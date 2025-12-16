@@ -1,29 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Map, List } from 'lucide-react';
+import { Map, List, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useMapboxToken } from '@/hooks/use-mapbox-token';
 import {
   SpotMap,
   SpotList,
   AddSpotDialog,
   SpotDetailSheet,
-  MapboxTokenInput,
-  getMapboxToken,
 } from '@/components/spots';
 
 export default function Spots() {
   const [view, setView] = useState<'map' | 'list'>('map');
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const { token: mapboxToken, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const [selectedSpot, setSelectedSpot] = useState<Tables<'fishing_spots'> | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-
-  useEffect(() => {
-    const token = getMapboxToken();
-    if (token) setMapboxToken(token);
-  }, []);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -48,8 +41,24 @@ export default function Spots() {
     },
   });
 
-  if (!mapboxToken) {
-    return <MapboxTokenInput onTokenSet={setMapboxToken} />;
+  if (tokenLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (tokenError || !mapboxToken) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
+        <Map className="w-12 h-12 text-muted-foreground mb-3" />
+        <h3 className="font-semibold mb-1">Map Unavailable</h3>
+        <p className="text-sm text-muted-foreground">
+          {tokenError || 'Map configuration is missing. Please contact support.'}
+        </p>
+      </div>
+    );
   }
 
   return (
