@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Settings, Edit, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { NotificationToggle } from '@/components/notifications/NotificationToggle';
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -57,6 +58,8 @@ export default function Profile() {
             Edit Profile
           </a>
         </Button>
+        
+        <NotificationToggle />
         
         <Button variant="outline" className="w-full justify-start">
           <Settings className="h-4 w-4 mr-3" />
