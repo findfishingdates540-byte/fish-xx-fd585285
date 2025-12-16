@@ -2,6 +2,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star } from 'lucide-react';
 import logo from '@/assets/logo.jpg';
+import heroFishing1 from '@/assets/hero-fishing-1.jpg';
+import heroFishing2 from '@/assets/hero-fishing-2.jpg';
+import heroFishing3 from '@/assets/hero-fishing-3.jpg';
+import coupleFishing from '@/assets/couple-fishing.jpg';
 
 const Index = () => {
   return (
@@ -66,20 +70,14 @@ const Index = () => {
 
             {/* Right - Image Grid */}
             <div className="relative h-[600px] hidden lg:block animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <div className="absolute right-0 top-0 w-80 h-[420px] bg-muted rounded-3xl overflow-hidden border border-border">
-                <div className="w-full h-full flex items-center justify-center">
-                  <Fish className="w-32 h-32 text-foreground/10" />
-                </div>
+              <div className="absolute right-0 top-0 w-80 h-[420px] rounded-3xl overflow-hidden shadow-xl">
+                <img src={heroFishing1} alt="Person fishing at sunset" className="w-full h-full object-cover" />
               </div>
-              <div className="absolute right-64 top-20 w-56 h-72 bg-foreground rounded-3xl overflow-hidden shadow-2xl">
-                <div className="w-full h-full flex items-center justify-center">
-                  <Heart className="w-20 h-20 text-background/30" />
-                </div>
+              <div className="absolute right-64 top-20 w-56 h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-background">
+                <img src={heroFishing2} alt="Woman with caught fish" className="w-full h-full object-cover" />
               </div>
-              <div className="absolute right-20 bottom-0 w-64 h-80 bg-muted rounded-3xl overflow-hidden border border-border">
-                <div className="w-full h-full flex items-center justify-center">
-                  <Users className="w-24 h-24 text-foreground/10" />
-                </div>
+              <div className="absolute right-20 bottom-0 w-64 h-80 rounded-3xl overflow-hidden shadow-xl">
+                <img src={heroFishing3} alt="Friends fishing together" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
@@ -134,19 +132,19 @@ const Index = () => {
             
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-6">
-                <div className="aspect-[3/4] bg-foreground rounded-3xl flex items-center justify-center">
-                  <Heart className="w-16 h-16 text-background/30" />
+                <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
+                  <img src={heroFishing1} alt="Fishing at sunset" className="w-full h-full object-cover" />
                 </div>
-                <div className="aspect-square bg-muted rounded-3xl flex items-center justify-center border border-border">
-                  <Fish className="w-12 h-12 text-foreground/20" />
+                <div className="aspect-square rounded-3xl overflow-hidden shadow-lg">
+                  <img src={heroFishing2} alt="Proud angler" className="w-full h-full object-cover" />
                 </div>
               </div>
               <div className="space-y-6 pt-12">
-                <div className="aspect-square bg-muted rounded-3xl flex items-center justify-center border border-border">
-                  <MapPin className="w-12 h-12 text-foreground/20" />
+                <div className="aspect-square rounded-3xl overflow-hidden shadow-lg">
+                  <img src={heroFishing3} alt="Friends fishing" className="w-full h-full object-cover" />
                 </div>
-                <div className="aspect-[3/4] bg-foreground rounded-3xl flex items-center justify-center">
-                  <Users className="w-16 h-16 text-background/30" />
+                <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
+                  <img src={coupleFishing} alt="Couple fishing together" className="w-full h-full object-cover" />
                 </div>
               </div>
             </div>
@@ -204,8 +202,8 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
-              <div className="aspect-[4/5] bg-muted rounded-3xl flex items-center justify-center border border-border">
-                <Heart className="w-32 h-32 text-foreground/10" />
+              <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+                <img src={coupleFishing} alt="Happy couple who met on Find Fishing Dates" className="w-full h-full object-cover" />
               </div>
             </div>
             
