@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Check, CheckCheck } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 
 interface Message {
@@ -24,8 +24,11 @@ export default function Chat() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [newMessage, setNewMessage] = useState('');
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Fetch match and other user info
   const { data: matchData, isLoading: matchLoading } = useQuery({
@@ -72,6 +75,24 @@ export default function Chat() {
     enabled: !!matchId,
   });
 
+  // Mark messages as read
+  const markAsRead = useMutation({
+    mutationFn: async () => {
+      if (!matchId || !user?.id) return;
+
+      await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('match_id', matchId)
+        .neq('sender_id', user.id)
+        .eq('is_read', false);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
+
   // Send message mutation
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
@@ -94,37 +115,88 @@ export default function Chat() {
     },
   });
 
-  // Subscribe to realtime messages
-  useEffect(() => {
-    if (!matchId) return;
+  // Broadcast typing status
+  const broadcastTyping = useCallback(() => {
+    if (channelRef.current && user?.id) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { userId: user.id },
+      });
+    }
+  }, [user?.id]);
 
-    const channel = supabase
-      .channel(`messages:${matchId}`)
+  // Handle input change with typing indicator
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    broadcastTyping();
+  };
+
+  // Subscribe to realtime messages and typing
+  useEffect(() => {
+    if (!matchId || !user?.id) return;
+
+    const channel = supabase.channel(`chat:${matchId}`)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'messages',
           filter: `match_id=eq.${matchId}`,
         },
         (payload) => {
-          console.log('New message received:', payload);
+          console.log('Message event:', payload);
           queryClient.invalidateQueries({ queryKey: ['messages', matchId] });
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          
+          // Mark new incoming messages as read
+          if (payload.eventType === 'INSERT' && payload.new.sender_id !== user.id) {
+            markAsRead.mutate();
+          }
         }
       )
+      .on('broadcast', { event: 'typing' }, ({ payload }) => {
+        if (payload.userId !== user.id) {
+          setIsOtherTyping(true);
+          
+          // Clear existing timeout
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+          }
+          
+          // Hide typing indicator after 2 seconds of no typing
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsOtherTyping(false);
+          }, 2000);
+        }
+      })
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       supabase.removeChannel(channel);
     };
-  }, [matchId, queryClient]);
+  }, [matchId, user?.id, queryClient, markAsRead]);
+
+  // Mark messages as read when chat opens
+  useEffect(() => {
+    if (messages && messages.length > 0 && user?.id) {
+      const hasUnread = messages.some(m => !m.is_read && m.sender_id !== user.id);
+      if (hasUnread) {
+        markAsRead.mutate();
+      }
+    }
+  }, [messages, user?.id]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isOtherTyping]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +252,12 @@ export default function Chat() {
           <AvatarImage src={avatarUrl} alt={otherUser?.display_name || ''} />
           <AvatarFallback className="bg-muted">{initials}</AvatarFallback>
         </Avatar>
-        <h1 className="font-semibold">{otherUser?.display_name || 'User'}</h1>
+        <div className="flex-1">
+          <h1 className="font-semibold">{otherUser?.display_name || 'User'}</h1>
+          {isOtherTyping && (
+            <p className="text-xs text-muted-foreground animate-pulse">typing...</p>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -192,34 +269,64 @@ export default function Chat() {
             ))}
           </div>
         ) : messages && messages.length > 0 ? (
-          messages.map((msg) => {
-            const isOwn = msg.sender_id === user?.id;
-            return (
-              <div
-                key={msg.id}
-                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-              >
+          <>
+            {messages.map((msg, index) => {
+              const isOwn = msg.sender_id === user?.id;
+              const isLastOwnMessage = isOwn && 
+                messages.slice(index + 1).every(m => m.sender_id !== user?.id);
+              
+              return (
                 <div
-                  className={`max-w-[75%] px-4 py-2 rounded-2xl ${
-                    isOwn
-                      ? 'bg-foreground text-background rounded-br-md'
-                      : 'bg-secondary text-foreground rounded-bl-md'
-                  }`}
+                  key={msg.id}
+                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                  <p className={`text-xs mt-1 ${isOwn ? 'text-background/60' : 'text-muted-foreground'}`}>
-                    {formatMessageTime(msg.created_at)}
-                  </p>
+                  <div
+                    className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                      isOwn
+                        ? 'bg-foreground text-background rounded-br-md'
+                        : 'bg-secondary text-foreground rounded-bl-md'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                    <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
+                      <span className={`text-xs ${isOwn ? 'text-background/60' : 'text-muted-foreground'}`}>
+                        {formatMessageTime(msg.created_at)}
+                      </span>
+                      {isOwn && (
+                        <span className={`${isOwn ? 'text-background/60' : 'text-muted-foreground'}`}>
+                          {msg.is_read ? (
+                            <CheckCheck className="h-3.5 w-3.5" />
+                          ) : (
+                            <Check className="h-3.5 w-3.5" />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </>
         ) : (
           <div className="text-center text-muted-foreground py-8">
             <p>No messages yet</p>
             <p className="text-sm">Say hello to start the conversation!</p>
           </div>
         )}
+        
+        {/* Typing indicator bubble */}
+        {isOtherTyping && (
+          <div className="flex justify-start">
+            <div className="bg-secondary text-foreground rounded-2xl rounded-bl-md px-4 py-3">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -228,7 +335,7 @@ export default function Chat() {
         <Input
           ref={inputRef}
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Type a message..."
           className="flex-1"
           autoComplete="off"
