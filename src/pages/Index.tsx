@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star } from 'lucide-react';
+import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star, Apple, Smartphone, Check } from 'lucide-react';
 import logo from '@/assets/logo.jpg';
 import heroFishing1 from '@/assets/hero-fishing-1.jpg';
 import heroFishing2 from '@/assets/hero-fishing-2.jpg';
@@ -306,32 +306,112 @@ const Index = () => {
       </section>
 
       {/* App Download Section */}
-      <section className="py-24 px-6 border-b border-border">
+      <section className="py-24 px-6 border-b border-border overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Mobile App</span>
               <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                Get the app
+                Take the catch<br />with you
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
                 Download our mobile app and start connecting with fishing enthusiasts 
-                wherever you are. Available on iOS and Android.
+                wherever you are. Swipe, match, and plan your next fishing date on the go.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Button className="btn-primary">
-                  App Store
-                </Button>
-                <Button className="btn-outline">
-                  Google Play
-                </Button>
+              
+              {/* App Features */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-foreground">
+                  <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                    <Check className="w-3 h-3 text-background" />
+                  </div>
+                  <span>Instant match notifications</span>
+                </div>
+                <div className="flex items-center gap-3 text-foreground">
+                  <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                    <Check className="w-3 h-3 text-background" />
+                  </div>
+                  <span>Log catches anywhere</span>
+                </div>
+                <div className="flex items-center gap-3 text-foreground">
+                  <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                    <Check className="w-3 h-3 text-background" />
+                  </div>
+                  <span>Discover nearby fishing spots</span>
+                </div>
+              </div>
+
+              {/* App Store Buttons */}
+              <div className="flex flex-wrap gap-4 pt-4">
+                <button className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl group">
+                  <Apple className="w-8 h-8" />
+                  <div className="text-left">
+                    <p className="text-xs opacity-80">Download on the</p>
+                    <p className="text-lg font-semibold -mt-1">App Store</p>
+                  </div>
+                </button>
+                <button className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl group">
+                  <Smartphone className="w-8 h-8" />
+                  <div className="text-left">
+                    <p className="text-xs opacity-80">Get it on</p>
+                    <p className="text-lg font-semibold -mt-1">Google Play</p>
+                  </div>
+                </button>
               </div>
             </div>
             
-            <div className="flex justify-center">
-              <div className="w-64 h-[500px] bg-foreground rounded-[3rem] p-3 shadow-2xl">
-                <div className="w-full h-full bg-background rounded-[2.5rem] flex items-center justify-center">
-                  <img src={logo} alt="Find Fishing Dates App" className="w-32 h-auto" />
+            {/* Phone Mockup */}
+            <div className="flex justify-center lg:justify-end">
+              <div className="relative">
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-foreground/10 blur-3xl rounded-full scale-150" />
+                
+                {/* Phone frame */}
+                <div className="relative w-72 h-[580px] bg-foreground rounded-[3rem] p-2 shadow-2xl transition-transform duration-500 hover:scale-105">
+                  {/* Screen bezel */}
+                  <div className="w-full h-full bg-background rounded-[2.5rem] overflow-hidden relative">
+                    {/* Notch */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-7 bg-foreground rounded-b-2xl z-10" />
+                    
+                    {/* App content mockup */}
+                    <div className="w-full h-full flex flex-col">
+                      {/* Status bar area */}
+                      <div className="h-12" />
+                      
+                      {/* App header */}
+                      <div className="px-6 py-4 border-b border-border">
+                        <img src={logo} alt="Find Fishing Dates" className="h-8 w-auto" />
+                      </div>
+                      
+                      {/* Profile card preview */}
+                      <div className="flex-1 p-4">
+                        <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg relative">
+                          <img src={heroFishing1} alt="Profile preview" className="w-full h-full object-cover" />
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/90 to-transparent p-4">
+                            <p className="text-background font-bold text-xl">Sarah, 28</p>
+                            <p className="text-background/80 text-sm">Bass fishing enthusiast</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Bottom nav mockup */}
+                      <div className="h-20 border-t border-border flex items-center justify-around px-6">
+                        <div className="w-10 h-10 rounded-full bg-muted" />
+                        <div className="w-12 h-12 rounded-full bg-foreground flex items-center justify-center">
+                          <Heart className="w-6 h-6 text-background" />
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-muted" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Floating elements */}
+                <div className="absolute -left-8 top-32 bg-background rounded-2xl p-4 shadow-xl animate-float">
+                  <Fish className="w-8 h-8 text-foreground" />
+                </div>
+                <div className="absolute -right-8 bottom-40 bg-background rounded-2xl p-4 shadow-xl animate-float" style={{ animationDelay: '1s' }}>
+                  <Heart className="w-8 h-8 text-foreground" />
                 </div>
               </div>
             </div>
