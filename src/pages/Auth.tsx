@@ -7,13 +7,21 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
-import authImage from '@/assets/auth-couple-fishing.jpg';
+import authBothImage from '@/assets/auth-couple-fishing.jpg';
+import authDatingImage from '@/assets/auth-dating.jpg';
+import authFishingImage from '@/assets/auth-fishing.jpg';
 import logo from '@/assets/logo.jpg';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
 type AccountMode = 'dating' | 'fishing' | 'both';
+
+const accountImages: Record<AccountMode, string> = {
+  dating: authDatingImage,
+  fishing: authFishingImage,
+  both: authBothImage,
+};
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -120,11 +128,16 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex">
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <img 
-          src={authImage} 
-          alt="Couple fishing together" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {Object.entries(accountImages).map(([mode, src]) => (
+          <img 
+            key={mode}
+            src={src} 
+            alt={`${mode} mode`} 
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+              accountMode === mode ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        ))}
         <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
       </div>
 
