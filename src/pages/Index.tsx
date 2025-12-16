@@ -74,14 +74,14 @@ const Index = () => {
 
             {/* Right - Image Grid */}
             <div className="relative h-[600px] hidden lg:block animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <div className="absolute right-0 top-0 w-80 h-[420px] rounded-3xl overflow-hidden shadow-xl">
-                <img src={heroFishing1} alt="Person fishing at sunset" className="w-full h-full object-cover" />
+              <div className="absolute right-0 top-0 w-80 h-[420px] rounded-3xl overflow-hidden shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:z-40">
+                <img src={heroFishing1} alt="Person fishing at sunset" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
               </div>
-              <div className="absolute right-64 top-20 w-56 h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-background">
-                <img src={heroFishing2} alt="Woman with caught fish" className="w-full h-full object-cover" />
+              <div className="absolute right-64 top-20 w-56 h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-background transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:z-40">
+                <img src={heroFishing2} alt="Woman with caught fish" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
               </div>
-              <div className="absolute right-20 bottom-0 w-64 h-80 rounded-3xl overflow-hidden shadow-xl">
-                <img src={heroFishing3} alt="Friends fishing together" className="w-full h-full object-cover" />
+              <div className="absolute right-20 bottom-0 w-64 h-80 rounded-3xl overflow-hidden shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:z-40">
+                <img src={heroFishing3} alt="Friends fishing together" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
               </div>
             </div>
           </div>
@@ -206,16 +206,16 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Dating Card */}
-            <div className="bg-muted rounded-3xl p-8 md:p-12">
+            <div className="bg-muted rounded-3xl p-8 md:p-12 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl cursor-pointer group">
               <div className="relative h-80 mb-8">
-                <div className="absolute left-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10">
-                  <img src={datingCouple1} alt="Couple fishing at sunset" className="w-full h-full object-cover" />
+                <div className="absolute left-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10 transition-transform duration-300 group-hover:translate-y-[-4px] group-hover:shadow-xl">
+                  <img src={datingCouple1} alt="Couple fishing at sunset" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
-                <div className="absolute right-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20">
-                  <img src={datingCouple2} alt="Happy couple on fishing date" className="w-full h-full object-cover" />
+                <div className="absolute right-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20 transition-transform duration-300 delay-75 group-hover:translate-y-[-6px] group-hover:shadow-2xl">
+                  <img src={datingCouple2} alt="Happy couple on fishing date" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
-                <div className="absolute left-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted">
-                  <img src={coupleFishing} alt="Romantic fishing moment" className="w-full h-full object-cover" />
+                <div className="absolute left-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted transition-transform duration-300 delay-150 group-hover:translate-y-[-8px] group-hover:shadow-xl">
+                  <img src={coupleFishing} alt="Romantic fishing moment" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
               </div>
               <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Your Date</h3>
@@ -223,23 +223,23 @@ const Index = () => {
                 Connect with fellow fishing enthusiasts looking for love. 
                 Find someone who shares your passion for the water and early morning adventures.
               </p>
-              <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium hover:opacity-70 transition-opacity underline underline-offset-4">
+              <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
                 Find your person
-                <ArrowRight className="ml-2 w-4 h-4" />
+                <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
             </div>
 
             {/* Fishing Buddies Card */}
-            <div className="bg-muted rounded-3xl p-8 md:p-12">
+            <div className="bg-muted rounded-3xl p-8 md:p-12 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl cursor-pointer group">
               <div className="relative h-80 mb-8">
-                <div className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10">
-                  <img src={fishingBuddies1} alt="Group of friends fishing" className="w-full h-full object-cover" />
+                <div className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10 transition-transform duration-300 group-hover:translate-y-[-4px] group-hover:shadow-xl">
+                  <img src={fishingBuddies1} alt="Group of friends fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
-                <div className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20">
-                  <img src={fishingBuddies2} alt="Friends celebrating a catch" className="w-full h-full object-cover" />
+                <div className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20 transition-transform duration-300 delay-75 group-hover:translate-y-[-6px] group-hover:shadow-2xl">
+                  <img src={fishingBuddies2} alt="Friends celebrating a catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
-                <div className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted">
-                  <img src={heroFishing3} alt="Fishing adventure" className="w-full h-full object-cover" />
+                <div className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted transition-transform duration-300 delay-150 group-hover:translate-y-[-8px] group-hover:shadow-xl">
+                  <img src={heroFishing3} alt="Fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
               </div>
               <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
@@ -247,9 +247,9 @@ const Index = () => {
                 Not looking for romance? Find local fishing companions for your next adventure. 
                 Connect with anglers in your area who share your fishing style.
               </p>
-              <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium hover:opacity-70 transition-opacity underline underline-offset-4">
+              <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
                 Find your crew
-                <ArrowRight className="ml-2 w-4 h-4" />
+                <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
             </div>
           </div>
@@ -410,8 +410,8 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <div className="feature-card bg-background">
-    <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-foreground mb-6">
+  <div className="feature-card bg-background transition-all duration-300 hover:scale-[1.03] hover:shadow-xl cursor-pointer group">
+    <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-foreground mb-6 transition-transform duration-300 group-hover:scale-110">
       {icon}
     </div>
     <h3 className="text-xl font-semibold text-foreground mb-3">{title}</h3>
