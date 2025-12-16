@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Heart, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SwipeCard } from '@/components/discovery';
+import { SwipeCard, ProfileDetail } from '@/components/discovery';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,8 @@ export default function Discover() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [detailProfile, setDetailProfile] = useState<Tables<'profiles'> | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   // Fetch potential matches
   const { data: profiles = [], isLoading } = useQuery({
@@ -233,6 +235,10 @@ export default function Discover() {
               profile={currentProfile}
               onSwipe={handleSwipe}
               isTop={true}
+              onTap={() => {
+                setDetailProfile(currentProfile);
+                setDetailOpen(true);
+              }}
             />
           )}
         </AnimatePresence>
@@ -258,6 +264,15 @@ export default function Discover() {
           <Heart className="h-8 w-8" />
         </Button>
       </div>
+
+      {/* Profile Detail Drawer */}
+      <ProfileDetail
+        profile={detailProfile}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onLike={handleLike}
+        onPass={handlePass}
+      />
     </div>
   );
 }

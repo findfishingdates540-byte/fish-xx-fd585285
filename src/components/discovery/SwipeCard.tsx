@@ -8,17 +8,31 @@ interface SwipeCardProps {
   profile: Tables<'profiles'>;
   onSwipe: (direction: 'left' | 'right') => void;
   isTop: boolean;
+  onTap?: () => void;
 }
 
 export const SwipeCard = forwardRef<HTMLDivElement, SwipeCardProps>(
-  ({ profile, onSwipe, isTop }, ref) => {
+  ({ profile, onSwipe, isTop, onTap }, ref) => {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
     const likeOpacity = useTransform(x, [0, 100], [0, 1]);
     const nopeOpacity = useTransform(x, [-100, 0], [1, 0]);
+    let dragStartX = 0;
+
+    const handleDragStart = () => {
+      dragStartX = x.get();
+    };
 
     const handleDragEnd = (_: any, info: PanInfo) => {
       const threshold = 100;
+      const movedDistance = Math.abs(info.offset.x);
+      
+      // Only trigger swipe if dragged enough, otherwise treat as tap
+      if (movedDistance < 10 && onTap) {
+        onTap();
+        return;
+      }
+      
       if (info.offset.x > threshold) {
         onSwipe('right');
       } else if (info.offset.x < -threshold) {
@@ -49,6 +63,7 @@ export const SwipeCard = forwardRef<HTMLDivElement, SwipeCardProps>(
         drag={isTop ? 'x' : false}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.7}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         initial={{ scale: isTop ? 1 : 0.95, opacity: isTop ? 1 : 0.5 }}
         animate={{ scale: isTop ? 1 : 0.95, opacity: isTop ? 1 : 0.5 }}
