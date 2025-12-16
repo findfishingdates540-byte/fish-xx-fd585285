@@ -3,85 +3,81 @@
 @tailwind utilities;
 
 /* Find Fishing Dates Design System
- * Light theme (white background, black text)
- * Brand color: Warm taupe/brown from logo
+ * Strict black and white theme
  * All colors in HSL format
  */
 
 @layer base {
   :root {
-    /* Light theme - White base */
+    /* Pure white and black theme */
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    --foreground: 0 0% 8%;
 
     --card: 0 0% 98%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 0 0% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 0 0% 8%;
 
-    /* Brand primary - warm taupe/brown from logo */
-    --primary: 30 25% 45%;
+    /* Primary - black */
+    --primary: 0 0% 8%;
     --primary-foreground: 0 0% 100%;
 
-    /* Accent - warm yellow like Bumble */
-    --accent: 45 100% 60%;
-    --accent-foreground: 0 0% 10%;
-
-    /* Secondary - soft coral for dating vibe */
-    --secondary: 15 80% 60%;
+    /* Secondary - dark gray */
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 30 10% 96%;
+    /* Accent - light gray */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 8%;
+
+    --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 10% 90%;
-    --input: 30 10% 92%;
-    --ring: 30 25% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 92%;
+    --ring: 0 0% 8%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 30 25% 45%;
+    --sidebar-foreground: 0 0% 8%;
+    --sidebar-primary: 0 0% 8%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 100% 60%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 30 10% 90%;
-    --sidebar-ring: 30 25% 45%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 8%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 8%;
 
     /* Custom tokens */
-    --gradient-brand: linear-gradient(135deg, hsl(30 25% 45%) 0%, hsl(30 30% 55%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(45 100% 60%) 0%, hsl(40 100% 55%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(45 100% 60%) 0%, hsl(40 100% 55%) 100%);
-    
-    --shadow-soft: 0 4px 20px hsla(0, 0%, 0%, 0.08);
-    --shadow-medium: 0 8px 30px hsla(0, 0%, 0%, 0.12);
+    --shadow-soft: 0 4px 20px hsla(0, 0%, 0%, 0.06);
+    --shadow-medium: 0 8px 30px hsla(0, 0%, 0%, 0.1);
+    --shadow-strong: 0 20px 50px hsla(0, 0%, 0%, 0.15);
   }
 
   .dark {
     --background: 0 0% 5%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 30 25% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 15 80% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 18%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 5%;
+    --secondary: 0 0% 85%;
+    --secondary-foreground: 0 0% 5%;
+    --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
-    --accent: 45 100% 60%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 20%;
     --input: 0 0% 18%;
-    --ring: 30 25% 55%;
+    --ring: 0 0% 98%;
   }
 }
 
@@ -100,65 +96,60 @@
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-background;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted rounded-full;
+    @apply bg-foreground/20 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+    @apply bg-foreground/40;
   }
 }
 
 @layer components {
-  /* Hero section with accent background */
-  .hero-accent {
-    background: hsl(var(--accent));
-  }
-
-  /* Feature card with light background */
-  .feature-card {
-    @apply bg-card rounded-3xl p-8 transition-all duration-300;
-    box-shadow: var(--shadow-soft);
-  }
-
-  .feature-card:hover {
-    @apply -translate-y-1;
-    box-shadow: var(--shadow-medium);
-  }
-
-  /* Brand button */
-  .btn-brand {
+  /* Primary button - black */
+  .btn-primary {
     @apply bg-foreground text-background font-semibold rounded-full px-8 py-3 transition-all duration-300;
   }
 
-  .btn-brand:hover {
-    @apply opacity-90 scale-[1.02];
+  .btn-primary:hover {
+    @apply opacity-80;
   }
 
   /* Outline button */
-  .btn-outline-brand {
+  .btn-outline {
     @apply border-2 border-foreground text-foreground font-semibold rounded-full px-8 py-3 transition-all duration-300 bg-transparent;
   }
 
-  .btn-outline-brand:hover {
+  .btn-outline:hover {
     @apply bg-foreground text-background;
   }
 
-  /* Section backgrounds */
+  /* Feature card */
+  .feature-card {
+    @apply bg-background border border-border rounded-3xl p-8 transition-all duration-300;
+  }
+
+  .feature-card:hover {
+    @apply -translate-y-1 border-foreground/20;
+    box-shadow: var(--shadow-medium);
+  }
+
+  /* Section with gray background */
   .section-muted {
     @apply bg-muted;
   }
 
-  .section-accent {
-    background: hsl(var(--accent) / 0.1);
+  /* Section with black background */
+  .section-dark {
+    @apply bg-foreground text-background;
   }
 
   /* Card hover effect */
@@ -196,20 +187,26 @@
   }
 
   .bottom-nav-item.active {
-    @apply text-primary;
+    @apply text-foreground;
   }
 
   .bottom-nav-item:not(.active) {
     @apply text-muted-foreground hover:text-foreground;
   }
 
-  /* Image overlap styles like Bumble */
-  .image-grid {
-    @apply relative;
+  /* Large display text */
+  .display-text {
+    @apply text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-none;
   }
 
-  .image-overlap {
-    @apply absolute rounded-2xl overflow-hidden shadow-lg;
+  /* Elegant underline */
+  .elegant-underline {
+    @apply relative inline-block;
+  }
+
+  .elegant-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 bg-foreground;
   }
 }
 
@@ -228,13 +225,13 @@
   }
 
   .animate-slide-up {
-    animation: slide-up 0.5s ease-out;
+    animation: slide-up 0.6s ease-out;
   }
 
   @keyframes slide-up {
     0% {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(30px);
     }
     100% {
       opacity: 1;
