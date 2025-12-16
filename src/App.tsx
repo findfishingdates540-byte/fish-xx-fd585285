@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit, Chat } from "./pages/app";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +31,7 @@ const App = () => (
               <Route path="discover" element={<Discover />} />
               <Route path="likes" element={<Likes />} />
               <Route path="messages" element={<Messages />} />
+              <Route path="messages/:matchId" element={<Chat />} />
               <Route path="spots" element={<Spots />} />
               <Route path="catches" element={<Catches />} />
               <Route path="buddies" element={<Buddies />} />
