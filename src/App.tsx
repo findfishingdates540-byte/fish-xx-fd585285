@@ -8,6 +8,14 @@ import { AppLayout } from "@/components/layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import About from "./pages/About";
+import Dating from "./pages/Dating";
+import Fishing from "./pages/Fishing";
+import Safety from "./pages/Safety";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit, Chat } from "./pages/app";
 
@@ -24,6 +32,14 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/dating" element={<Dating />} />
+            <Route path="/fishing" element={<Fishing />} />
+            <Route path="/safety" element={<Safety />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/help" element={<Help />} />
             
             {/* Logged-in app routes */}
             <Route path="/app" element={<AppLayout />}>
