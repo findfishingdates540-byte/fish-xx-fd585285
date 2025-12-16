@@ -82,7 +82,7 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, displayName);
+        const { error } = await signUp(email, password, displayName, accountMode);
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
