@@ -1,20 +1,38 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Heart, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SwipeCard, ProfileDetail } from '@/components/discovery';
+import { SwipeCard, ProfileDetail, MatchNotification } from '@/components/discovery';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
-import { toast } from 'sonner';
 
 export default function Discover() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [detailProfile, setDetailProfile] = useState<Tables<'profiles'> | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [matchedProfile, setMatchedProfile] = useState<Tables<'profiles'> | null>(null);
+  const [showMatchModal, setShowMatchModal] = useState(false);
+
+  // Fetch current user's profile (for match modal photo)
+  const { data: myProfile } = useQuery({
+    queryKey: ['my-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   // Fetch potential matches
   const { data: profiles = [], isLoading } = useQuery({
@@ -23,7 +41,7 @@ export default function Discover() {
       if (!user?.id) return [];
 
       // Get user's preferences
-      const { data: myProfile } = await supabase
+      const { data: userProfile } = await supabase
         .from('profiles')
         .select('gender, interested_in, account_mode, looking_for')
         .eq('id', user.id)
@@ -63,8 +81,8 @@ export default function Discover() {
         .limit(20);
 
       // Filter by interested_in preferences if set
-      if (myProfile?.interested_in && myProfile.interested_in.length > 0) {
-        query = query.in('gender', myProfile.interested_in);
+      if (userProfile?.interested_in && userProfile.interested_in.length > 0) {
+        query = query.in('gender', userProfile.interested_in);
       }
 
       const { data, error } = await query;
@@ -128,9 +146,13 @@ export default function Discover() {
         return { isMatch: false };
       }
     },
-    onSuccess: (result) => {
+    onSuccess: (result, targetId) => {
       if (result.isMatch) {
-        toast.success("It's a match! 🎉");
+        const matched = profiles.find(p => p.id === targetId);
+        if (matched) {
+          setMatchedProfile(matched);
+          setShowMatchModal(true);
+        }
       }
     },
   });
@@ -272,6 +294,18 @@ export default function Discover() {
         onOpenChange={setDetailOpen}
         onLike={handleLike}
         onPass={handlePass}
+      />
+
+      {/* Match Notification Modal */}
+      <MatchNotification
+        open={showMatchModal}
+        onClose={() => setShowMatchModal(false)}
+        onSendMessage={() => {
+          setShowMatchModal(false);
+          navigate('/app/messages');
+        }}
+        currentUserPhoto={myProfile?.photos?.[0]}
+        matchedProfile={matchedProfile}
       />
     </div>
   );
