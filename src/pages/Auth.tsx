@@ -5,21 +5,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Fish, Heart, Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react';
+import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
+import authImage from '@/assets/auth-couple-fishing.jpg';
+import logo from '@/assets/logo.jpg';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+
+type AccountMode = 'dating' | 'fishing' | 'both';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [accountMode, setAccountMode] = useState<AccountMode>('both');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -32,7 +39,7 @@ const Auth = () => {
   }, [user, navigate]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
+    const newErrors: { email?: string; password?: string; confirmPassword?: string } = {};
     
     try {
       emailSchema.parse(email);
@@ -48,6 +55,10 @@ const Auth = () => {
       if (e instanceof z.ZodError) {
         newErrors.password = e.errors[0].message;
       }
+    }
+
+    if (isSignUp && password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
     }
     
     setErrors(newErrors);
@@ -80,7 +91,7 @@ const Auth = () => {
           }
         } else {
           toast({
-            title: 'Welcome to FishMatch!',
+            title: 'Welcome to Find Fishing Dates!',
             description: 'Check your email to confirm your account.',
           });
         }
@@ -99,84 +110,115 @@ const Auth = () => {
     }
   };
 
+  const accountModeOptions: { value: AccountMode; label: string; icon: React.ReactNode }[] = [
+    { value: 'dating', label: 'Dating', icon: <Heart className="w-4 h-4" /> },
+    { value: 'fishing', label: 'Fishing', icon: <Fish className="w-4 h-4" /> },
+    { value: 'both', label: 'Both', icon: <><Heart className="w-3 h-3" /><Fish className="w-3 h-3" /></> },
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsla(174,72%,50%,0.1)_0%,_transparent_50%)]" />
-      
-      {/* Header */}
-      <header className="relative z-10 p-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </Link>
-      </header>
+    <div className="min-h-screen bg-background flex">
+      {/* Left Side - Image */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        <img 
+          src={authImage} 
+          alt="Couple fishing together" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+      </div>
 
-      {/* Auth Form */}
-      <main className="relative z-10 flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="relative">
-              <Fish className="w-10 h-10 text-primary" />
-              <Heart className="w-5 h-5 text-secondary absolute -bottom-1 -right-1" />
-            </div>
-            <span className="text-2xl font-bold">FishMatch</span>
-          </div>
+      {/* Right Side - Form */}
+      <div className="w-full lg:w-1/2 flex flex-col min-h-screen">
+        {/* Logo */}
+        <div className="flex justify-end p-6">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Find Fishing Dates" className="h-12 w-auto" />
+          </Link>
+        </div>
 
-          {/* Card */}
-          <div className="glass rounded-3xl p-8">
-            <h1 className="text-2xl font-bold text-center mb-2">
-              {isSignUp ? 'Create Account' : 'Welcome Back'}
+        {/* Form Container */}
+        <div className="flex-1 flex items-center justify-center px-6 pb-12">
+          <div className="w-full max-w-md">
+            <h1 className="text-3xl font-bold mb-8">
+              {isSignUp ? 'Create Account!' : 'Welcome Back!'}
             </h1>
-            <p className="text-muted-foreground text-center mb-8">
-              {isSignUp 
-                ? 'Start your fishing & dating journey' 
-                : 'Log in to continue your adventure'}
-            </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Account Mode Selection - Only show on signup */}
               {isSignUp && (
                 <div className="space-y-2">
-                  <Label htmlFor="displayName">Display Name</Label>
-                  <Input
-                    id="displayName"
-                    type="text"
-                    placeholder="What should we call you?"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="h-12 bg-input/50 border-border/50 rounded-xl"
-                  />
+                  <Label>I'm looking for</Label>
+                  <div className="flex rounded-lg border border-border overflow-hidden">
+                    {accountModeOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setAccountMode(option.value)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium transition-colors ${
+                          accountMode === option.value
+                            ? 'bg-foreground text-background'
+                            : 'bg-background text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {option.icon}
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
+              {/* Display Name - Only show on signup */}
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="displayName">Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="displayName"
+                      type="text"
+                      placeholder="Your display name"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`h-12 bg-input/50 border-border/50 rounded-xl ${errors.email ? 'border-destructive' : ''}`}
-                  required
-                />
+                <Label htmlFor="email">Email address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`h-12 pl-12 bg-muted/30 border-border rounded-xl ${errors.email ? 'border-destructive' : ''}`}
+                    required
+                  />
+                </div>
                 {errors.email && (
                   <p className="text-sm text-destructive">{errors.email}</p>
                 )}
               </div>
 
+              {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={`h-12 bg-input/50 border-border/50 rounded-xl pr-12 ${errors.password ? 'border-destructive' : ''}`}
+                    className={`h-12 pl-12 pr-12 bg-muted/30 border-border rounded-xl ${errors.password ? 'border-destructive' : ''}`}
                     required
                   />
                   <button
@@ -192,45 +234,75 @@ const Auth = () => {
                 )}
               </div>
 
+              {/* Confirm Password - Only show on signup */}
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={`h-12 pl-12 pr-12 bg-muted/30 border-border rounded-xl ${errors.confirmPassword ? 'border-destructive' : ''}`}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Submit Button */}
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 btn-gradient-primary rounded-xl text-base font-semibold"
+                className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 rounded-xl text-base font-semibold"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : isSignUp ? (
-                  'Create Account'
+                  'Sign Up'
                 ) : (
                   'Log In'
                 )}
               </Button>
             </form>
 
+            {/* Toggle Sign Up / Log In */}
             <div className="mt-6 text-center">
+              <span className="text-muted-foreground">
+                {isSignUp ? 'Have an account? ' : "Don't have an account? "}
+              </span>
               <button
                 type="button"
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="font-semibold text-foreground hover:underline"
               >
-                {isSignUp ? (
-                  <>Already have an account? <span className="text-primary font-medium">Log in</span></>
-                ) : (
-                  <>Don't have an account? <span className="text-primary font-medium">Sign up</span></>
-                )}
+                {isSignUp ? 'Login' : 'Sign Up'}
               </button>
             </div>
-          </div>
 
-          {/* Footer note */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            By continuing, you agree to our{' '}
-            <Link to="/terms" className="underline hover:text-foreground">Terms</Link>
-            {' '}and{' '}
-            <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>
-          </p>
+            {/* Footer note */}
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              By continuing, you agree to our{' '}
+              <Link to="/terms" className="underline hover:text-foreground">Terms</Link>
+              {' '}and{' '}
+              <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>
+            </p>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
