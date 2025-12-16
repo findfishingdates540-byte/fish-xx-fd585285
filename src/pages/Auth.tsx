@@ -41,9 +41,23 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
+    const checkOnboarding = async () => {
+      if (user) {
+        // Check if onboarding is completed
+        const { data } = await (await import('@/integrations/supabase/client')).supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.onboarding_completed) {
+          navigate('/');
+        } else {
+          navigate('/onboarding');
+        }
+      }
+    };
+    checkOnboarding();
   }, [user, navigate]);
 
   const validateForm = () => {
@@ -100,8 +114,10 @@ const Auth = () => {
         } else {
           toast({
             title: 'Welcome to Find Fishing Dates!',
-            description: 'Check your email to confirm your account.',
+            description: 'Check your email to confirm your account, then complete your profile.',
           });
+          // Navigate to onboarding after successful signup
+          navigate('/onboarding');
         }
       } else {
         const { error } = await signIn(email, password);

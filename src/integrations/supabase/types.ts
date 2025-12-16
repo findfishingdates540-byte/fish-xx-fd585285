@@ -335,6 +335,7 @@ export type Database = {
           max_age_preference: number | null
           max_distance_km: number | null
           min_age_preference: number | null
+          onboarding_completed: boolean | null
           photos: string[] | null
           preferred_species: string[] | null
           premium_expires_at: string | null
@@ -366,6 +367,7 @@ export type Database = {
           max_age_preference?: number | null
           max_distance_km?: number | null
           min_age_preference?: number | null
+          onboarding_completed?: boolean | null
           photos?: string[] | null
           preferred_species?: string[] | null
           premium_expires_at?: string | null
@@ -397,6 +399,7 @@ export type Database = {
           max_age_preference?: number | null
           max_distance_km?: number | null
           min_age_preference?: number | null
+          onboarding_completed?: boolean | null
           photos?: string[] | null
           preferred_species?: string[] | null
           premium_expires_at?: string | null
