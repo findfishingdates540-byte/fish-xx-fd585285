@@ -16,8 +16,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
-          <img src={logo} alt="Find Fishing Dates" className="h-14 w-auto" />
+        <div className="flex items-center justify-between px-6 py-2 max-w-7xl mx-auto">
+          <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
           
           <div className="hidden md:flex items-center gap-10 text-sm font-medium">
             <Link to="/about" className="text-foreground hover:opacity-60 transition-opacity">About</Link>
