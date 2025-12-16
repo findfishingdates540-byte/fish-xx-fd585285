@@ -133,8 +133,10 @@ const Auth = () => {
             key={mode}
             src={src} 
             alt={`${mode} mode`} 
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-              accountMode === mode ? 'opacity-100' : 'opacity-0'
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
+              accountMode === mode 
+                ? 'opacity-100 scale-100' 
+                : 'opacity-0 scale-105'
             }`}
           />
         ))}
