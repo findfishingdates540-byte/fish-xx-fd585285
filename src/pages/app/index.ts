@@ -1,4 +1,5 @@
 export { default as Discover } from './Discover';
+export { default as ProfileEdit } from './ProfileEdit';
 export { default as Messages } from './Messages';
 export { default as Likes } from './Likes';
 export { default as Spots } from './Spots';
