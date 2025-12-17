@@ -31,7 +31,7 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: M
         </Link>
 
         {/* Navigation - Desktop only */}
-        <nav className="hidden xl:flex items-center gap-8 ml-auto pr-4">
+        <nav className="hidden xl:flex items-center gap-8 ml-auto pr-12">
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
