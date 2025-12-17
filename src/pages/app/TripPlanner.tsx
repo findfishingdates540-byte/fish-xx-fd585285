@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { TripBuddyInvite } from "@/components/trips";
+import { TripBuddyInvite, TripSpotSelector } from "@/components/trips";
 import {
   Save,
   Clock,
@@ -71,6 +71,13 @@ export default function TripPlanner() {
   const [showWeatherNotes, setShowWeatherNotes] = useState(false);
   const [showCoordinates, setShowCoordinates] = useState(false);
   const [invitedBuddies, setInvitedBuddies] = useState<string[]>([]);
+  const [selectedSpot, setSelectedSpot] = useState<{
+    id: string;
+    name: string;
+    location_lat: number;
+    location_lng: number;
+    location_name: string | null;
+  } | null>(null);
 
   // Fetch existing trip if editing
   const { data: existingTrip } = useQuery({
@@ -125,6 +132,16 @@ export default function TripPlanner() {
       if (existingTrip.bait_details) setShowBaitDetails(true);
       if (existingTrip.weather_notes) setShowWeatherNotes(true);
       if (existingTrip.coordinates_notes) setShowCoordinates(true);
+      // Populate selected spot if available
+      if (existingTrip.fishing_spot_id && existingTrip.location_lat && existingTrip.location_lng) {
+        setSelectedSpot({
+          id: existingTrip.fishing_spot_id,
+          name: existingTrip.location_name || "",
+          location_lat: Number(existingTrip.location_lat),
+          location_lng: Number(existingTrip.location_lng),
+          location_name: existingTrip.location_name,
+        });
+      }
     }
   }, [existingTrip]);
 
@@ -150,6 +167,9 @@ export default function TripPlanner() {
         start_time: startTime,
         end_time: endTime,
         location_name: locationName.trim() || null,
+        location_lat: selectedSpot?.location_lat || null,
+        location_lng: selectedSpot?.location_lng || null,
+        fishing_spot_id: selectedSpot?.id || null,
         gear_checklist: JSON.parse(JSON.stringify(gearChecklist)),
         target_species: targetSpecies,
         bait_details: baitDetails.trim() || null,
@@ -388,9 +408,18 @@ export default function TripPlanner() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">Location</CardTitle>
-                <Button variant="link" className="text-primary p-0 h-auto">
-                  Change
-                </Button>
+                {selectedSpot && (
+                  <Button
+                    variant="link"
+                    className="text-primary p-0 h-auto"
+                    onClick={() => {
+                      setSelectedSpot(null);
+                      setLocationName("");
+                    }}
+                  >
+                    Clear
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="relative">
@@ -402,12 +431,12 @@ export default function TripPlanner() {
                     className="pl-10"
                   />
                 </div>
-                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border">
-                  <div className="text-center text-muted-foreground">
-                    <MapPin className="h-8 w-8 mx-auto mb-2" />
-                    <p className="text-sm">Map preview</p>
-                  </div>
-                </div>
+                <TripSpotSelector
+                  selectedSpotId={selectedSpot?.id || null}
+                  onSpotSelect={setSelectedSpot}
+                  locationName={locationName}
+                  onLocationNameChange={setLocationName}
+                />
                 {locationName && (
                   <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg text-sm">
                     <Info className="h-4 w-4 text-blue-600 mt-0.5" />
