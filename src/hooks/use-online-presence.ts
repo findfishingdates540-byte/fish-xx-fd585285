@@ -190,10 +190,19 @@ export function formatLastSeen(timestamp: string | null): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
+  if (diffMins < 5) return 'Active now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
   
   return lastSeen.toLocaleDateString();
+}
+
+// Check if user was recently active (within 5 minutes)
+export function isRecentlyActive(timestamp: string | null): boolean {
+  if (!timestamp) return false;
+  const lastSeen = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - lastSeen.getTime();
+  return diffMs < 5 * 60 * 1000; // 5 minutes
 }

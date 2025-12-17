@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { formatLastSeen } from '@/hooks/use-online-presence';
+import { formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 
 interface MyBuddyCardProps {
   buddyId: string;
@@ -52,7 +52,9 @@ export function MyBuddyCard({
             {/* Online indicator */}
             <span className={cn(
               "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-background",
-              isOnline ? "bg-green-500" : "bg-muted-foreground/30"
+              isOnline ? "bg-green-500" : 
+              isRecentlyActive(lastSeen) ? "bg-yellow-500" : 
+              "bg-muted-foreground/30"
             )} />
           </div>
           <div className="flex-1 min-w-0">
@@ -64,6 +66,8 @@ export function MyBuddyCard({
                 <p className="text-xs text-muted-foreground">
                   {isOnline ? (
                     <span className="text-green-600">Online</span>
+                  ) : isRecentlyActive(lastSeen) ? (
+                    <span className="text-yellow-600">Active now</span>
                   ) : lastSeen ? (
                     formatLastSeen(lastSeen)
                   ) : null}
