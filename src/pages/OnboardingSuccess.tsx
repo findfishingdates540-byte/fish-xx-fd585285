@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Fish, Heart, Sparkles, MapPin, ArrowRight } from "lucide-react";
+import { Fish, Heart, MapPin, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 type AccountMode = 'dating' | 'fishing' | 'both';
@@ -41,6 +42,19 @@ const modeOptions: ModeOption[] = [
     recommended: true,
   },
 ];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export default function OnboardingSuccess() {
   const navigate = useNavigate();
@@ -81,7 +95,12 @@ export default function OnboardingSuccess() {
   return (
     <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="bg-background border-b border-border px-6 py-4">
+      <motion.header 
+        className="bg-background border-b border-border px-6 py-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Fish className="w-6 h-6 text-primary" />
@@ -92,58 +111,111 @@ export default function OnboardingSuccess() {
             <p className="text-xs text-muted-foreground">Profile ID: #8821</p>
           </div>
         </div>
-      </header>
+      </motion.header>
 
-      <main className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+      <motion.main 
+        className="max-w-4xl mx-auto px-6 py-8 space-y-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Progress Card */}
-        <div className="bg-background rounded-2xl p-6 border border-border">
+        <motion.div 
+          className="bg-background rounded-2xl p-6 border border-border"
+          variants={itemVariants}
+        >
           <div className="flex justify-between items-center mb-3">
             <div>
               <h2 className="font-semibold text-foreground">Onboarding Complete</h2>
               <p className="text-sm text-muted-foreground">Your tackle box is packed!</p>
             </div>
-            <span className="text-primary font-bold">100%</span>
+            <motion.span 
+              className="text-primary font-bold"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+            >
+              100%
+            </motion.span>
           </div>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full w-full" />
+            <motion.div 
+              className="h-full bg-primary rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ delay: 0.3, duration: 1, ease: "easeOut" }}
+            />
           </div>
-        </div>
+        </motion.div>
 
         {/* Success Hero */}
-        <div className="bg-background rounded-2xl p-8 border border-border overflow-hidden relative">
+        <motion.div 
+          className="bg-background rounded-2xl p-8 border border-border overflow-hidden relative"
+          variants={itemVariants}
+        >
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1 space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+              <motion.h1 
+                className="text-4xl md:text-5xl font-bold text-foreground"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
                 You're <span className="text-primary">Hooked Up!</span>
-              </h1>
-              <p className="text-muted-foreground">
+              </motion.h1>
+              <motion.p 
+                className="text-muted-foreground"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+              >
                 Thanks for joining FindFish Date. Your profile is rigged and ready to go. You are now part of our community of anglers and singles.
-              </p>
-              <div className="flex gap-4 pt-2">
-                <Button
-                  onClick={handleChooseMode}
-                  disabled={saving}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  {saving ? 'Saving...' : 'Choose Your Mode'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/app/profile')}
-                >
-                  View Profile
-                </Button>
-              </div>
+              </motion.p>
+              <motion.div 
+                className="flex gap-4 pt-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={handleChooseMode}
+                    disabled={saving}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    {saving ? 'Saving...' : 'Choose Your Mode'}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/app/profile')}
+                  >
+                    View Profile
+                  </Button>
+                </motion.div>
+              </motion.div>
             </div>
-            <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-primary/5 border-4 border-primary/20 flex items-center justify-center overflow-hidden">
-              <div className="text-8xl">🐟</div>
-            </div>
+            <motion.div 
+              className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-primary/5 border-4 border-primary/20 flex items-center justify-center overflow-hidden"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
+            >
+              <motion.div 
+                className="text-8xl"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              >
+                🐟
+              </motion.div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Mode Selection */}
-        <div className="space-y-4">
+        <motion.div className="space-y-4" variants={itemVariants}>
           <div>
             <h2 className="text-xl font-bold text-foreground">Your Next Steps</h2>
             <p className="text-muted-foreground">
@@ -152,24 +224,34 @@ export default function OnboardingSuccess() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {modeOptions.map((mode) => {
+            {modeOptions.map((mode, index) => {
               const Icon = mode.icon;
               const isSelected = selectedMode === mode.value;
 
               return (
-                <button
+                <motion.button
                   key={mode.value}
                   onClick={() => setSelectedMode(mode.value)}
-                  className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-200 bg-background ${
+                  className={`relative p-6 rounded-2xl border-2 text-left transition-colors bg-background ${
                     isSelected
                       ? 'border-primary ring-2 ring-primary/20'
                       : 'border-border hover:border-primary/50'
                   }`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 + index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {mode.recommended && (
-                    <span className="absolute -top-3 right-4 px-3 py-1 rounded-full bg-green-500 text-white text-xs font-medium">
+                    <motion.span 
+                      className="absolute -top-3 right-4 px-3 py-1 rounded-full bg-green-500 text-white text-xs font-medium"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 1.2, type: "spring" }}
+                    >
                       RECOMMENDED
-                    </span>
+                    </motion.span>
                   )}
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${mode.iconBg}`}>
                     <Icon className="w-6 h-6" />
@@ -178,22 +260,27 @@ export default function OnboardingSuccess() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {mode.description}
                   </p>
-                </button>
+                </motion.button>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Edit Profile Link */}
-        <div className="text-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+        >
           <button
             onClick={() => navigate('/app/profile/edit')}
             className="text-sm text-primary hover:underline"
           >
             Need to change something? Edit Profile
           </button>
-        </div>
-      </main>
+        </motion.div>
+      </motion.main>
     </div>
   );
 }
