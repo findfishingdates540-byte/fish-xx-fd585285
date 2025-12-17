@@ -5,7 +5,48 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Fish, Heart, MapPin, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import confetti from "canvas-confetti";
+
+const fireConfetti = () => {
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  const colors = ['#000000', '#333333', '#666666', '#999999'];
+
+  const frame = () => {
+    confetti({
+      particleCount: 3,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors,
+    });
+    confetti({
+      particleCount: 3,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors,
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  };
+
+  frame();
+
+  // Big burst in the center
+  setTimeout(() => {
+    confetti({
+      particleCount: 100,
+      spread: 100,
+      origin: { y: 0.6 },
+      colors,
+    });
+  }, 200);
+};
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 
@@ -62,6 +103,11 @@ export default function OnboardingSuccess() {
   const { toast } = useToast();
   const [selectedMode, setSelectedMode] = useState<AccountMode>('both');
   const [saving, setSaving] = useState(false);
+
+  // Fire confetti on mount
+  useEffect(() => {
+    fireConfetti();
+  }, []);
 
   const handleChooseMode = async () => {
     if (!user) return;
