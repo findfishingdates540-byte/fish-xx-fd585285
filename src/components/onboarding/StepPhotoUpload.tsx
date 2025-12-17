@@ -132,33 +132,33 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Upload className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">
+                <h3 className="text-lg font-semibold text-foreground mb-1 text-center">
                   Drag & drop your photo
                 </h3>
-                <p className="text-sm text-muted-foreground mb-6">
+                <p className="text-sm text-muted-foreground mb-6 text-center">
                   Supports JPG, PNG (Max 5MB)
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 w-full px-4">
+                <div className="flex flex-col gap-3 w-full max-w-[220px]">
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
                   >
                     <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">{uploading ? 'Uploading...' : 'Upload from Computer'}</span>
+                    <span>{uploading ? 'Uploading...' : 'Upload from Computer'}</span>
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="w-full sm:w-auto"
+                    className="w-full"
                   >
                     <Camera className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">Take a New Photo</span>
+                    <span>Take a New Photo</span>
                   </Button>
                 </div>
               </div>
