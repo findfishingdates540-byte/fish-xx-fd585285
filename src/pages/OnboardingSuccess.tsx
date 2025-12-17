@@ -4,14 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Fish, Heart, MapPin, ArrowRight } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { Heart, MapPin, ArrowRight, Users, Compass, MessageCircle, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
+import logoImage from "@/assets/logo.jpg";
 
 const fireConfetti = () => {
   const duration = 3000;
   const end = Date.now() + duration;
-
   const colors = ['#000000', '#333333', '#666666', '#999999'];
 
   const frame = () => {
@@ -37,7 +37,6 @@ const fireConfetti = () => {
 
   frame();
 
-  // Big burst in the center
   setTimeout(() => {
     confetti({
       particleCount: 100,
@@ -50,39 +49,51 @@ const fireConfetti = () => {
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 
-interface ModeOption {
-  value: AccountMode;
-  label: string;
-  description: string;
-  icon: typeof Fish;
-  iconBg: string;
-  recommended?: boolean;
-}
-
-const modeOptions: ModeOption[] = [
-  {
-    value: 'fishing',
-    label: 'Fishing Spots Only',
-    description: 'Strictly business. Find the best local spots, check weather conditions, and log your catches without the romance.',
-    icon: MapPin,
-    iconBg: 'bg-primary/10 text-primary',
+// Mode-specific content configuration
+const modeContent = {
+  dating: {
+    title: "You're Ready to Mingle!",
+    highlight: "Ready to Mingle",
+    emoji: "💕",
+    description: "Your dating profile is all set! Start swiping to find your perfect match.",
+    progressText: "Profile complete!",
+    ctaText: "Start Swiping",
+    ctaRoute: "/app/discover",
+    nextSteps: [
+      { icon: Heart, label: "Browse Matches", description: "Discover singles who share your interests" },
+      { icon: MessageCircle, label: "Start Chatting", description: "Connect with your matches instantly" },
+      { icon: Users, label: "Find Friends", description: "Meet people looking for friendship too" },
+    ],
   },
-  {
-    value: 'dating',
-    label: 'Dating Only',
-    description: 'Cast your line for love. Connect with singles who share your passion for the outdoors and fishing lifestyle.',
-    icon: Heart,
-    iconBg: 'bg-pink-100 text-pink-500',
+  fishing: {
+    title: "You're Hooked Up!",
+    highlight: "Hooked Up",
+    emoji: "🐟",
+    description: "Welcome to the community! Start exploring fishing spots and connecting with fellow anglers.",
+    progressText: "Your tackle box is packed!",
+    ctaText: "Explore Spots",
+    ctaRoute: "/app/spots",
+    nextSteps: [
+      { icon: MapPin, label: "Find Spots", description: "Discover the best fishing locations nearby" },
+      { icon: Compass, label: "Log Catches", description: "Track your catches and share your wins" },
+      { icon: Users, label: "Find Buddies", description: "Connect with fishing buddies in your area" },
+    ],
   },
-  {
-    value: 'both',
-    label: 'Combo Mode',
-    description: "The full experience. Seamlessly toggle between finding hot spots and hot dates. Why choose when you can have both?",
-    icon: Fish,
-    iconBg: 'bg-green-100 text-green-600',
-    recommended: true,
+  both: {
+    title: "You're Hooked Up!",
+    highlight: "Hooked Up",
+    emoji: "🎣",
+    description: "Your profile is rigged and ready! Find love on the water or your next fishing buddy.",
+    progressText: "Your tackle box is packed!",
+    ctaText: "Start Exploring",
+    ctaRoute: "/app/discover",
+    nextSteps: [
+      { icon: Heart, label: "Find Matches", description: "Meet singles who love fishing as much as you" },
+      { icon: MapPin, label: "Explore Spots", description: "Discover the best fishing spots nearby" },
+      { icon: Users, label: "Connect", description: "Chat with matches and fishing buddies" },
+    ],
   },
-];
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -101,42 +112,47 @@ export default function OnboardingSuccess() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedMode, setSelectedMode] = useState<AccountMode>('both');
-  const [saving, setSaving] = useState(false);
+  const [accountMode, setAccountMode] = useState<AccountMode>('both');
+  const [displayName, setDisplayName] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // Fire confetti on mount
   useEffect(() => {
     fireConfetti();
   }, []);
 
-  const handleChooseMode = async () => {
-    if (!user) return;
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
 
-    setSaving(true);
-    try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .update({ account_mode: selectedMode })
-        .eq('id', user.id);
+        .select('account_mode, display_name')
+        .eq('id', user.id)
+        .single();
 
-      if (error) throw error;
+      if (data) {
+        setAccountMode(data.account_mode || 'both');
+        setDisplayName(data.display_name || '');
+      }
+      setLoading(false);
+    };
 
-      toast({
-        title: "Mode selected!",
-        description: `You're all set with ${selectedMode === 'both' ? 'Combo' : selectedMode === 'dating' ? 'Dating' : 'Fishing'} mode.`,
-      });
+    fetchProfile();
+  }, [user]);
 
-      navigate('/app/discover');
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+  const content = modeContent[accountMode];
+
+  const handleContinue = () => {
+    navigate(content.ctaRoute);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted">
@@ -149,13 +165,15 @@ export default function OnboardingSuccess() {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Fish className="w-6 h-6 text-primary" />
+            <img src={logoImage} alt="Find Fishing Dates" className="w-8 h-8 rounded-full object-cover" />
             <span className="font-bold text-lg text-foreground">Find Fishing Dates</span>
           </div>
-          <div className="text-right">
-            <p className="font-semibold text-foreground text-sm">Captain Jack</p>
-            <p className="text-xs text-muted-foreground">Profile ID: #8821</p>
-          </div>
+          {displayName && (
+            <div className="text-right">
+              <p className="font-semibold text-foreground text-sm">{displayName}</p>
+              <p className="text-xs text-muted-foreground capitalize">{accountMode} Mode</p>
+            </div>
+          )}
         </div>
       </motion.header>
 
@@ -173,7 +191,7 @@ export default function OnboardingSuccess() {
           <div className="flex justify-between items-center mb-3">
             <div>
               <h2 className="font-semibold text-foreground">Onboarding Complete</h2>
-              <p className="text-sm text-muted-foreground">Your tackle box is packed!</p>
+              <p className="text-sm text-muted-foreground">{content.progressText}</p>
             </div>
             <motion.span 
               className="text-primary font-bold"
@@ -207,7 +225,7 @@ export default function OnboardingSuccess() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                You're <span className="text-primary">Hooked Up!</span>
+                You&apos;re <span className="text-primary">{content.highlight}!</span>
               </motion.h1>
               <motion.p 
                 className="text-muted-foreground"
@@ -215,7 +233,7 @@ export default function OnboardingSuccess() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
               >
-                Thanks for joining Find Fishing Dates. Your profile is rigged and ready to go. You are now part of our community of anglers and singles.
+                {content.description}
               </motion.p>
               <motion.div 
                 className="flex gap-4 pt-2"
@@ -225,11 +243,10 @@ export default function OnboardingSuccess() {
               >
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button
-                    onClick={handleChooseMode}
-                    disabled={saving}
+                    onClick={handleContinue}
                     className="bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    {saving ? 'Saving...' : 'Choose Your Mode'}
+                    {content.ctaText}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </motion.div>
@@ -254,59 +271,42 @@ export default function OnboardingSuccess() {
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               >
-                🐟
+                {content.emoji}
               </motion.div>
             </motion.div>
           </div>
         </motion.div>
 
-        {/* Mode Selection */}
+        {/* Next Steps */}
         <motion.div className="space-y-4" variants={itemVariants}>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Your Next Steps</h2>
+            <h2 className="text-xl font-bold text-foreground">What You Can Do</h2>
             <p className="text-muted-foreground">
-              Decide how you want to use the app today. Don't worry, you can switch modes anytime from the settings menu.
+              Here&apos;s how to get started with your {accountMode === 'both' ? 'combo' : accountMode} experience.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {modeOptions.map((mode, index) => {
-              const Icon = mode.icon;
-              const isSelected = selectedMode === mode.value;
+            {content.nextSteps.map((step, index) => {
+              const Icon = step.icon;
 
               return (
-                <motion.button
-                  key={mode.value}
-                  onClick={() => setSelectedMode(mode.value)}
-                  className={`relative p-6 rounded-2xl border-2 text-left transition-colors bg-background ${
-                    isSelected
-                      ? 'border-primary ring-2 ring-primary/20'
-                      : 'border-border hover:border-primary/50'
-                  }`}
+                <motion.div
+                  key={step.label}
+                  className="p-6 rounded-2xl border border-border bg-background"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 + index * 0.1 }}
                   whileHover={{ scale: 1.02, y: -4 }}
-                  whileTap={{ scale: 0.98 }}
                 >
-                  {mode.recommended && (
-                    <motion.span 
-                      className="absolute -top-3 right-4 px-3 py-1 rounded-full bg-green-500 text-white text-xs font-medium"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 1.2, type: "spring" }}
-                    >
-                      RECOMMENDED
-                    </motion.span>
-                  )}
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${mode.iconBg}`}>
-                    <Icon className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <Icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">{mode.label}</h3>
+                  <h3 className="font-semibold text-foreground mb-2">{step.label}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {mode.description}
+                    {step.description}
                   </p>
-                </motion.button>
+                </motion.div>
               );
             })}
           </div>
