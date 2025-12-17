@@ -3,30 +3,41 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Download, Heart, Fish, Users, CheckCircle, AlertTriangle } from 'lucide-react';
 import logo from '@/assets/logo.jpg';
-
-const sections = [
-  { id: 'introduction', label: 'Introduction' },
-  { id: 'eligibility', label: 'Eligibility & Account' },
-  { id: 'mode-rules', label: 'Mode-Specific Rules' },
-  { id: 'safety', label: 'Safety & Conduct' },
-  { id: 'intellectual', label: 'Intellectual Property' },
-  { id: 'disclaimers', label: 'Disclaimers & Liability' },
-  { id: 'dispute', label: 'Dispute Resolution' },
-];
-
+const sections = [{
+  id: 'introduction',
+  label: 'Introduction'
+}, {
+  id: 'eligibility',
+  label: 'Eligibility & Account'
+}, {
+  id: 'mode-rules',
+  label: 'Mode-Specific Rules'
+}, {
+  id: 'safety',
+  label: 'Safety & Conduct'
+}, {
+  id: 'intellectual',
+  label: 'Intellectual Property'
+}, {
+  id: 'disclaimers',
+  label: 'Disclaimers & Liability'
+}, {
+  id: 'dispute',
+  label: 'Dispute Resolution'
+}];
 const Terms = () => {
   const [activeSection, setActiveSection] = useState('introduction');
-
   const scrollToSection = (id: string) => {
     setActiveSection(id);
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
@@ -57,7 +68,7 @@ const Terms = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 text-foreground text-sm font-medium mb-2">
-                <Fish className="h-4 w-4" />
+                
                 <span>LEGAL CENTER</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Terms & Conditions</h1>
@@ -82,26 +93,12 @@ const Terms = () => {
                   TABLE OF CONTENTS
                 </h3>
                 <nav className="space-y-1">
-                  {sections.map((section, index) => (
-                    <button
-                      key={section.id}
-                      onClick={() => scrollToSection(section.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left ${
-                        activeSection === section.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:bg-muted'
-                      }`}
-                    >
-                      <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs ${
-                        activeSection === section.id
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted-foreground/20'
-                      }`}>
+                  {sections.map((section, index) => <button key={section.id} onClick={() => scrollToSection(section.id)} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left ${activeSection === section.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
+                      <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs ${activeSection === section.id ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted-foreground/20'}`}>
                         {index + 1}
                       </span>
                       {section.label}
-                    </button>
-                  ))}
+                    </button>)}
                 </nav>
               </div>
 
@@ -114,10 +111,7 @@ const Terms = () => {
                 <p className="text-sm text-muted-foreground mb-3">
                   If you have questions about these terms, please contact our legal team.
                 </p>
-                <Link 
-                  to="/contact" 
-                  className="text-primary text-sm font-medium hover:underline"
-                >
+                <Link to="/contact" className="text-primary text-sm font-medium hover:underline">
                   Contact Support
                 </Link>
               </div>
@@ -370,8 +364,6 @@ const Terms = () => {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Terms;
