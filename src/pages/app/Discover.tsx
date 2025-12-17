@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   DiscoverSidebar,
-  ProfileCard,
+  CardStack,
   SwipeActions,
   RightSidebar,
   type ProfileData,
@@ -17,21 +18,53 @@ import datingCouple2 from '@/assets/dating-couple-2.jpg';
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
 // Mock data for demo
-const mockProfile: ProfileData = {
-  id: '1',
-  name: 'Jessica',
-  age: 28,
-  location: 'Orlando, FL',
-  distance: '5 miles away',
-  bio: "Loves early morning casts and coffee. Looking for a first mate who knows how to tie a knot and...",
-  photos: [coupleFishing, datingCouple1, datingCouple2],
-  fishingType: 'Freshwater',
-  tags: [
-    { icon: '🎣', label: 'Bass Fishing' },
-    { icon: '🚤', label: 'Boat Owner' },
-    { icon: '📅', label: 'Weekend Angler' },
-  ],
-};
+const mockProfiles: ProfileData[] = [
+  {
+    id: '1',
+    name: 'Jessica',
+    age: 28,
+    location: 'Orlando, FL',
+    distance: '5 miles away',
+    bio: "Loves early morning casts and coffee. Looking for a first mate who knows how to tie a knot and appreciate a good sunrise.",
+    photos: [coupleFishing, datingCouple1, datingCouple2],
+    fishingType: 'Freshwater',
+    tags: [
+      { icon: '🎣', label: 'Bass Fishing' },
+      { icon: '🚤', label: 'Boat Owner' },
+      { icon: '📅', label: 'Weekend Angler' },
+    ],
+  },
+  {
+    id: '2',
+    name: 'Amanda',
+    age: 26,
+    location: 'Tampa, FL',
+    distance: '12 miles away',
+    bio: "Deep sea fishing enthusiast. Looking for someone to share the thrill of the catch and sunset views on the water.",
+    photos: [datingCouple1, coupleFishing],
+    fishingType: 'Saltwater',
+    tags: [
+      { icon: '🌊', label: 'Deep Sea' },
+      { icon: '🐟', label: 'Tournament Fisher' },
+      { icon: '☀️', label: 'Morning Person' },
+    ],
+  },
+  {
+    id: '3',
+    name: 'Sarah',
+    age: 30,
+    location: 'Miami, FL',
+    distance: '8 miles away',
+    bio: "Kayak fishing fanatic. Let's paddle somewhere beautiful and see what we can catch together!",
+    photos: [datingCouple2, datingCouple1],
+    fishingType: 'Kayak Fishing',
+    tags: [
+      { icon: '🛶', label: 'Kayak Fisher' },
+      { icon: '🏕️', label: 'Outdoorsy' },
+      { icon: '📸', label: 'Catch & Release' },
+    ],
+  },
+];
 
 const mockMatches = [
   { id: '1', name: 'Sarah', photo: datingCouple1 },
@@ -69,6 +102,9 @@ export default function Discover() {
   const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>(
     accountMode === 'both' ? 'combo' : accountMode
   );
+  
+  // Store action refs for button controls
+  const actionsRef = useRef<{ like: () => void; pass: () => void } | null>(null);
 
   const { data: profile } = useQuery({
     queryKey: ['user-profile', user?.id],
@@ -84,20 +120,26 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
-  const handlePass = () => {
-    console.log('Passed');
+  const handleLike = (likedProfile: ProfileData) => {
+    toast.success(`Liked ${likedProfile.name}!`, {
+      description: 'If they like you back, it\'s a match!',
+    });
   };
 
-  const handleLike = () => {
-    console.log('Liked');
+  const handlePass = (passedProfile: ProfileData) => {
+    console.log('Passed on', passedProfile.name);
   };
 
   const handleSuperLike = () => {
-    console.log('Super liked');
+    toast('Super Like sent!', {
+      description: 'They\'ll know you really like them.',
+    });
   };
 
   const handleRewind = () => {
-    console.log('Rewound');
+    toast('Rewind used', {
+      description: 'Go Premium for unlimited rewinds!',
+    });
   };
 
   return (
@@ -114,16 +156,27 @@ export default function Discover() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden">
-        <div className="w-full max-w-sm">
-          <ProfileCard profile={mockProfile} />
+        <div className="w-full max-w-sm flex flex-col items-center">
+          {/* Swipeable Card Stack */}
+          <CardStack
+            profiles={mockProfiles}
+            onLike={handleLike}
+            onPass={handlePass}
+          />
 
           {/* Swipe Actions */}
           <div className="mt-6">
             <SwipeActions
               onRewind={handleRewind}
-              onPass={handlePass}
+              onPass={() => {
+                // Trigger keyboard event for pass
+                window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+              }}
               onSuperLike={handleSuperLike}
-              onLike={handleLike}
+              onLike={() => {
+                // Trigger keyboard event for like
+                window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+              }}
               canRewind={profile?.is_premium}
             />
           </div>
