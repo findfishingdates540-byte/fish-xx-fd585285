@@ -429,7 +429,7 @@ export default function Onboarding() {
                   Connect with thousands of fishing enthusiasts and singles in your area.
                 </p>
               </div>
-              <div className="flex-1 flex items-end">
+              <div className="flex-1 flex items-center">
                 <img
                   src={fishingRodImage}
                   alt="Fishing"
