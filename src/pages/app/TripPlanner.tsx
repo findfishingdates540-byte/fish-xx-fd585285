@@ -12,12 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { TripBuddyInvite } from "@/components/trips";
 import {
-  ChevronLeft,
-  ChevronRight,
   Save,
   Clock,
   MapPin,
@@ -71,6 +70,7 @@ export default function TripPlanner() {
   const [showBaitDetails, setShowBaitDetails] = useState(false);
   const [showWeatherNotes, setShowWeatherNotes] = useState(false);
   const [showCoordinates, setShowCoordinates] = useState(false);
+  const [invitedBuddies, setInvitedBuddies] = useState<string[]>([]);
 
   // Fetch existing trip if editing
   const { data: existingTrip } = useQuery({
@@ -84,6 +84,21 @@ export default function TripPlanner() {
         .single();
       if (error) throw error;
       return data;
+    },
+    enabled: !!isEditing,
+  });
+
+  // Fetch existing participants if editing
+  const { data: existingParticipants } = useQuery({
+    queryKey: ["trip-participants", id],
+    queryFn: async () => {
+      if (!isEditing) return [];
+      const { data, error } = await supabase
+        .from("trip_participants")
+        .select("user_id, status")
+        .eq("trip_id", id);
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!isEditing,
   });
@@ -113,6 +128,13 @@ export default function TripPlanner() {
     }
   }, [existingTrip]);
 
+  // Populate invited buddies from existing participants
+  useEffect(() => {
+    if (existingParticipants?.length) {
+      setInvitedBuddies(existingParticipants.map((p) => p.user_id));
+    }
+  }, [existingParticipants]);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id || !selectedDate || !title.trim()) {
@@ -137,6 +159,8 @@ export default function TripPlanner() {
         weather_alert: weatherAlert,
       };
 
+      let tripId = id;
+
       if (isEditing) {
         const { error } = await supabase
           .from("fishing_trips")
@@ -144,15 +168,59 @@ export default function TripPlanner() {
           .eq("id", id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("fishing_trips").insert(tripData);
+        const { data, error } = await supabase
+          .from("fishing_trips")
+          .insert(tripData)
+          .select("id")
+          .single();
         if (error) throw error;
+        tripId = data.id;
+      }
+
+      // Handle buddy invitations for buddies trips
+      if (tripType === "buddies" && tripId) {
+        const existingBuddyIds = existingParticipants?.map((p) => p.user_id) || [];
+        
+        // Find new buddies to invite
+        const newBuddies = invitedBuddies.filter((id) => !existingBuddyIds.includes(id));
+        
+        // Find buddies to remove
+        const removedBuddies = existingBuddyIds.filter((id) => !invitedBuddies.includes(id));
+
+        // Insert new invitations
+        if (newBuddies.length > 0) {
+          const { error: inviteError } = await supabase
+            .from("trip_participants")
+            .insert(
+              newBuddies.map((userId) => ({
+                trip_id: tripId,
+                user_id: userId,
+                status: "invited",
+              }))
+            );
+          if (inviteError) throw inviteError;
+        }
+
+        // Remove uninvited buddies
+        if (removedBuddies.length > 0) {
+          const { error: removeError } = await supabase
+            .from("trip_participants")
+            .delete()
+            .eq("trip_id", tripId)
+            .in("user_id", removedBuddies);
+          if (removeError) throw removeError;
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-trips"] });
+      queryClient.invalidateQueries({ queryKey: ["trip-participants"] });
+      queryClient.invalidateQueries({ queryKey: ["trip-invitations"] });
       toast({
         title: isEditing ? "Trip updated!" : "Trip saved!",
-        description: "Your fishing trip has been saved successfully.",
+        description: tripType === "buddies" && invitedBuddies.length > 0
+          ? `Trip saved and ${invitedBuddies.length} buddy${invitedBuddies.length !== 1 ? "ies" : ""} invited!`
+          : "Your fishing trip has been saved successfully.",
       });
       navigate("/app/trips");
     },
@@ -353,6 +421,15 @@ export default function TripPlanner() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Buddy Invitations - only for buddies trips */}
+            {tripType === "buddies" && (
+              <TripBuddyInvite
+                selectedBuddies={invitedBuddies}
+                onBuddiesChange={setInvitedBuddies}
+                existingParticipants={existingParticipants}
+              />
+            )}
           </div>
 
           {/* Right Column */}

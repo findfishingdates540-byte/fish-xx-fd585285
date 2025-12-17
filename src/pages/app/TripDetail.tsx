@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
@@ -22,6 +23,9 @@ import {
   Sun,
   FileText,
   CheckCircle,
+  Check,
+  X,
+  HourglassIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -39,6 +43,16 @@ interface GearItem {
   id: string;
   name: string;
   checked: boolean;
+}
+
+interface Participant {
+  id: string;
+  user_id: string;
+  status: string;
+  profile: {
+    display_name: string | null;
+    photos: string[] | null;
+  } | null;
 }
 
 export default function TripDetail() {
@@ -60,6 +74,36 @@ export default function TripDetail() {
       return data;
     },
     enabled: !!id,
+  });
+
+  // Fetch participants for buddies trips
+  const { data: participants } = useQuery({
+    queryKey: ["trip-participants-detail", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from("trip_participants")
+        .select("id, user_id, status")
+        .eq("trip_id", id);
+      if (error) throw error;
+
+      if (!data?.length) return [];
+
+      // Fetch profiles for participants
+      const userIds = data.map((p) => p.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, photos")
+        .in("id", userIds);
+
+      const profileMap = new Map(profiles?.map((p) => [p.id, p]));
+
+      return data.map((p) => ({
+        ...p,
+        profile: profileMap.get(p.user_id) || null,
+      })) as Participant[];
+    },
+    enabled: !!id && trip?.trip_type === "buddies",
   });
 
   const deleteMutation = useMutation({
@@ -282,6 +326,72 @@ export default function TripDetail() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Participants - only for buddies trips */}
+          {trip.trip_type === "buddies" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Participants ({(participants?.length || 0) + 1})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {/* Trip owner */}
+                <div className="flex items-center gap-3 p-2 bg-primary/5 rounded-lg">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>You</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">You</p>
+                    <p className="text-xs text-muted-foreground">Trip organizer</p>
+                  </div>
+                  <Badge variant="secondary">Organizer</Badge>
+                </div>
+
+                {/* Invited participants */}
+                {participants?.map((participant) => (
+                  <div key={participant.id} className="flex items-center gap-3 p-2 rounded-lg border">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={participant.profile?.photos?.[0]} />
+                      <AvatarFallback>
+                        {participant.profile?.display_name?.charAt(0)?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">
+                        {participant.profile?.display_name || "Unknown"}
+                      </p>
+                      <p className="text-xs text-muted-foreground capitalize">
+                        {participant.status}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={
+                        participant.status === "accepted"
+                          ? "default"
+                          : participant.status === "declined"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                      className="flex items-center gap-1"
+                    >
+                      {participant.status === "accepted" && <Check className="h-3 w-3" />}
+                      {participant.status === "declined" && <X className="h-3 w-3" />}
+                      {participant.status === "invited" && <HourglassIcon className="h-3 w-3" />}
+                      {participant.status}
+                    </Badge>
+                  </div>
+                ))}
+
+                {(!participants || participants.length === 0) && (
+                  <p className="text-sm text-muted-foreground text-center py-2">
+                    No buddies invited yet
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right Column */}
