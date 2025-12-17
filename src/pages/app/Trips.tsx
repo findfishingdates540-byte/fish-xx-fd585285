@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { Plus, Calendar, MapPin, Clock, Users, User as UserIcon } from "lucide-react";
+import { TripInvitations } from "@/components/trips";
 
 export default function Trips() {
   const { user } = useAuth();
@@ -126,6 +127,9 @@ export default function Trips() {
           Plan Trip
         </Button>
       </div>
+
+      {/* Trip Invitations */}
+      <TripInvitations />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
