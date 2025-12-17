@@ -5,9 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 const PRESENCE_CHANNEL = 'online-users';
 const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 const HEARTBEAT_INTERVAL = 30 * 1000; // 30 seconds
+const DB_UPDATE_INTERVAL = 60 * 1000; // 1 minute
 
 interface PresenceState {
-  odline_at: string;
+  online_at: string;
   user_id: string;
 }
 
@@ -16,6 +17,16 @@ export function useOnlinePresence() {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const idleRef = useRef<NodeJS.Timeout | null>(null);
+  const dbUpdateRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update last_active_at in database
+  const updateLastActiveInDb = useCallback(async () => {
+    if (!user?.id) return;
+    await supabase
+      .from('profiles')
+      .update({ last_active_at: new Date().toISOString() })
+      .eq('id', user.id);
+  }, [user?.id]);
 
   const updatePresence = useCallback(async () => {
     if (channelRef.current && user?.id) {
@@ -52,6 +63,8 @@ export function useOnlinePresence() {
           online_at: new Date().toISOString(),
           user_id: user.id
         });
+        // Update database immediately on connect
+        updateLastActiveInDb();
       }
     });
 
@@ -59,6 +72,9 @@ export function useOnlinePresence() {
 
     // Heartbeat to keep presence alive
     heartbeatRef.current = setInterval(updatePresence, HEARTBEAT_INTERVAL);
+
+    // Periodic database update for last_active_at
+    dbUpdateRef.current = setInterval(updateLastActiveInDb, DB_UPDATE_INTERVAL);
 
     // Track user activity
     const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll'];
@@ -70,6 +86,7 @@ export function useOnlinePresence() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         updatePresence();
+        updateLastActiveInDb();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -77,12 +94,15 @@ export function useOnlinePresence() {
     // Handle beforeunload
     const handleBeforeUnload = () => {
       channel.untrack();
+      // Try to update last active before leaving
+      navigator.sendBeacon && updateLastActiveInDb();
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
       if (idleRef.current) clearTimeout(idleRef.current);
+      if (dbUpdateRef.current) clearInterval(dbUpdateRef.current);
       activityEvents.forEach(event => {
         window.removeEventListener(event, resetIdleTimer);
       });
@@ -91,11 +111,36 @@ export function useOnlinePresence() {
       channel.untrack();
       supabase.removeChannel(channel);
     };
-  }, [user?.id, updatePresence, resetIdleTimer]);
+  }, [user?.id, updatePresence, resetIdleTimer, updateLastActiveInDb]);
 }
 
 export function useOnlineStatus(userIds: string[]) {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [lastSeenMap, setLastSeenMap] = useState<Map<string, string>>(new Map());
+
+  // Fetch last_active_at for all users
+  useEffect(() => {
+    if (userIds.length === 0) return;
+
+    const fetchLastSeen = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, last_active_at')
+        .in('id', userIds);
+      
+      if (data) {
+        const map = new Map<string, string>();
+        data.forEach(profile => {
+          if (profile.last_active_at) {
+            map.set(profile.id, profile.last_active_at);
+          }
+        });
+        setLastSeenMap(map);
+      }
+    };
+
+    fetchLastSeen();
+  }, [userIds.join(',')]);
 
   useEffect(() => {
     if (userIds.length === 0) return;
@@ -126,5 +171,29 @@ export function useOnlineStatus(userIds: string[]) {
     return onlineUsers.has(userId);
   }, [onlineUsers]);
 
-  return { onlineUsers, isOnline };
+  const getLastSeen = useCallback((userId: string): string | null => {
+    if (onlineUsers.has(userId)) return null; // Online, no need for last seen
+    return lastSeenMap.get(userId) || null;
+  }, [onlineUsers, lastSeenMap]);
+
+  return { onlineUsers, isOnline, getLastSeen };
+}
+
+// Helper function to format last seen timestamp
+export function formatLastSeen(timestamp: string | null): string {
+  if (!timestamp) return '';
+  
+  const lastSeen = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - lastSeen.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  
+  return lastSeen.toLocaleDateString();
 }

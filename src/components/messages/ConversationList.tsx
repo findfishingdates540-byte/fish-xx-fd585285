@@ -15,6 +15,7 @@ interface Conversation {
   unreadCount?: number;
   isOnline?: boolean;
   isRead?: boolean;
+  lastSeen?: string;
 }
 
 interface ConversationListProps {
@@ -103,17 +104,20 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
                 <AvatarImage src={convo.photo} alt={convo.name} />
                 <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              {convo.isOnline && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
-              )}
+              <div className={cn(
+                "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
+                convo.isOnline ? "bg-green-500" : "bg-muted-foreground/30"
+              )} />
             </div>
 
-            {/* Content */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-0.5">
                 <span className="font-semibold text-sm">{convo.name}</span>
                 <span className="text-xs text-primary">{convo.time}</span>
               </div>
+              {!convo.isOnline && convo.lastSeen && (
+                <p className="text-xs text-muted-foreground mb-0.5">{convo.lastSeen}</p>
+              )}
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground truncate pr-2">
                   {convo.lastMessage}

@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatArea } from '@/components/chat/ChatArea';
 import { ProfileSidebar } from '@/components/chat/ProfileSidebar';
-import { useOnlineStatus } from '@/hooks/use-online-presence';
+import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import {
   Sheet,
   SheetContent,
@@ -120,14 +120,15 @@ export default function Chat() {
     if (matchId) ids.push(matchId);
     return ids;
   }, [matchId]);
-  const { isOnline } = useOnlineStatus(allUserIds);
+  const { isOnline, getLastSeen } = useOnlineStatus(allUserIds);
 
-  // Update conversations with real online status
+  // Update conversations with real online status and last seen
   const conversationsWithStatus = useMemo(() => 
     mockConversations.map(convo => ({
       ...convo,
-      isOnline: isOnline(convo.id)
-    })), [isOnline]);
+      isOnline: isOnline(convo.id),
+      lastSeen: !isOnline(convo.id) ? formatLastSeen(getLastSeen(convo.id)) : undefined
+    })), [isOnline, getLastSeen]);
 
   // Check if current match is online (using matchId or mock profile)
   const isMatchOnline = matchId ? isOnline(matchId) : mockMatchProfile.isOnline;

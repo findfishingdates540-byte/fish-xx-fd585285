@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MessagesHeader } from '@/components/messages/MessagesHeader';
 import { ConversationList } from '@/components/messages/ConversationList';
 import { EmptyMessages } from '@/components/messages/EmptyMessages';
-import { useOnlineStatus } from '@/hooks/use-online-presence';
+import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 
 // Mock conversations data
 const mockConversations = [
@@ -75,14 +75,15 @@ export default function Messages() {
 
   // Get all conversation user IDs for online status tracking
   const conversationUserIds = useMemo(() => mockConversations.map(c => c.id), []);
-  const { isOnline } = useOnlineStatus(conversationUserIds);
+  const { isOnline, getLastSeen } = useOnlineStatus(conversationUserIds);
 
-  // Update conversations with real online status
+  // Update conversations with real online status and last seen
   const conversationsWithStatus = useMemo(() => 
     mockConversations.map(convo => ({
       ...convo,
-      isOnline: isOnline(convo.id)
-    })), [isOnline]);
+      isOnline: isOnline(convo.id),
+      lastSeen: !isOnline(convo.id) ? formatLastSeen(getLastSeen(convo.id)) : undefined
+    })), [isOnline, getLastSeen]);
 
   const handleSelectConversation = (id: string) => {
     setSelectedConversation(id);

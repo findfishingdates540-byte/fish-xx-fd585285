@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { formatLastSeen } from '@/hooks/use-online-presence';
 
 interface MyBuddyCardProps {
   buddyId: string;
@@ -17,6 +18,7 @@ interface MyBuddyCardProps {
   };
   catchCount?: number;
   isOnline?: boolean;
+  lastSeen?: string | null;
   onMessage: (buddyId: string) => void;
   onRemove: (userId: string) => void;
 }
@@ -26,6 +28,7 @@ export function MyBuddyCard({
   profile, 
   catchCount = 0,
   isOnline = false,
+  lastSeen,
   onMessage,
   onRemove 
 }: MyBuddyCardProps) {
@@ -58,6 +61,13 @@ export function MyBuddyCard({
                 <h4 className="font-semibold">
                   {profile.display_name || 'Anonymous'}
                 </h4>
+                <p className="text-xs text-muted-foreground">
+                  {isOnline ? (
+                    <span className="text-green-600">Online</span>
+                  ) : lastSeen ? (
+                    formatLastSeen(lastSeen)
+                  ) : null}
+                </p>
                 {profile.location_name && (
                   <p className="text-sm text-muted-foreground flex items-center gap-1">
                     <MapPin className="w-3 h-3" />

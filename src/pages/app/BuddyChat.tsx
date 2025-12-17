@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Send, Fish, Check, CheckCheck, MapPin, Image, Plus, Scale, Ruler } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useOnlineStatus } from '@/hooks/use-online-presence';
+import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 
 interface Message {
   id: string;
@@ -83,8 +83,9 @@ export default function BuddyChat() {
     buddyProfile ? [buddyProfile.id] : [], 
     [buddyProfile?.id]
   );
-  const { isOnline } = useOnlineStatus(buddyUserIds);
+  const { isOnline, getLastSeen } = useOnlineStatus(buddyUserIds);
   const isBuddyOnline = buddyProfile ? isOnline(buddyProfile.id) : false;
+  const buddyLastSeen = buddyProfile ? getLastSeen(buddyProfile.id) : null;
 
   useEffect(() => {
     if (user && buddyId) {
@@ -538,6 +539,8 @@ export default function BuddyChat() {
               <span className="text-primary animate-pulse">typing...</span>
             ) : isBuddyOnline ? (
               <span className="text-green-500">Online</span>
+            ) : buddyLastSeen ? (
+              <span>{formatLastSeen(buddyLastSeen)}</span>
             ) : (
               <><Fish className="w-3 h-3" />Fishing Buddy</>
             )}
