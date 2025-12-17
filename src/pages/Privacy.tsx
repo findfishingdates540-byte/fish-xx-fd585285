@@ -74,11 +74,11 @@ const Privacy = () => {
       </nav>
 
       {/* Hero Banner */}
-      <div className="pt-20 pb-8 px-6 bg-gradient-to-r from-sky-50 to-blue-50">
+      <div className="pt-32 pb-8 px-6 bg-muted/30 border-b border-border">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-2 text-primary text-sm font-medium mb-2">
+              <div className="flex items-center gap-2 text-foreground text-sm font-medium mb-2">
                 <Fish className="h-4 w-4" />
                 <span>Legal Center</span>
               </div>
