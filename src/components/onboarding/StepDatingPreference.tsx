@@ -137,14 +137,16 @@ export function StepDatingPreference({
             {ageRange[0]} - {ageRange[1]} years
           </span>
         </div>
-        <Slider
-          value={ageRange}
-          onValueChange={(value) => setAgeRange(value as [number, number])}
-          min={18}
-          max={80}
-          step={1}
-          className="w-full"
-        />
+        <div className="px-2">
+          <Slider
+            value={ageRange}
+            onValueChange={(value) => setAgeRange(value as [number, number])}
+            min={18}
+            max={80}
+            step={1}
+            className="w-full"
+          />
+        </div>
       </div>
 
       {/* Distance */}
@@ -155,14 +157,16 @@ export function StepDatingPreference({
             {maxDistance} km
           </span>
         </div>
-        <Slider
-          value={[maxDistance]}
-          onValueChange={(value) => setMaxDistance(value[0])}
-          min={5}
-          max={200}
-          step={5}
-          className="w-full"
-        />
+        <div className="px-2">
+          <Slider
+            value={[maxDistance]}
+            onValueChange={(value) => setMaxDistance(value[0])}
+            min={5}
+            max={200}
+            step={5}
+            className="w-full"
+          />
+        </div>
       </div>
     </div>
   );
