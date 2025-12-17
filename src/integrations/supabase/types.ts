@@ -153,6 +153,33 @@ export type Database = {
         }
         Relationships: []
       }
+      fishing_buddies: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          id: string
+          recipient_id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          recipient_id: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       fishing_spots: {
         Row: {
           created_at: string
