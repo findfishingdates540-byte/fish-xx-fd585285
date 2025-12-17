@@ -1,4 +1,4 @@
-import { Home, Heart, MapPin, User, Settings } from 'lucide-react';
+import { Home, Heart, MapPin, MessageSquare, Settings } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,9 +18,9 @@ interface DiscoverSidebarProps {
 
 const navItems = [
   { to: '/app/discover', icon: Home, label: 'Home' },
-  { to: '/app/likes', icon: Heart, label: 'Matches' },
-  { to: '/app/spots', icon: MapPin, label: 'Map' },
-  { to: '/app/profile', icon: User, label: 'Profile' },
+  { to: '/app/matches', icon: Heart, label: 'Matches' },
+  { to: '/app/spots', icon: MapPin, label: 'Fishing Map' },
+  { to: '/app/messages', icon: MessageSquare, label: 'Messages' },
 ];
 
 export function DiscoverSidebar({

@@ -3,6 +3,7 @@ export { default as ProfileEdit } from './ProfileEdit';
 export { default as Chat } from './Chat';
 export { default as Messages } from './Messages';
 export { default as Likes } from './Likes';
+export { default as Matches } from './Matches';
 export { default as Spots } from './Spots';
 export { default as Catches } from './Catches';
 export { default as Buddies } from './Buddies';
