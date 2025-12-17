@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import {
   Loader2,
   Trash2,
   Star,
+  LogOut,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -44,7 +45,8 @@ const settingsNav = [
 ];
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -178,6 +180,12 @@ export default function Settings() {
     toast.success("Settings saved successfully");
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+    navigate("/auth");
+  };
+
   const getAccountModeLabel = () => {
     switch (accountMode) {
       case "dating":
@@ -240,8 +248,19 @@ export default function Settings() {
                       <item.icon className="h-4 w-4" />
                       {item.label}
                     </button>
-                  ))}
-                </nav>
+                    ))}
+                  </nav>
+
+                  {/* Sign Out Button */}
+                  <div className="mt-4 pt-4 border-t">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </button>
+                  </div>
               </CardContent>
             </Card>
           </aside>
