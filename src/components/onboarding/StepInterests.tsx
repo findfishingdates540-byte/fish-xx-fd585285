@@ -2,15 +2,23 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedInput } from "@/components/ui/animated-input";
 import { SelectableChip } from "@/components/ui/selectable-card";
-import { Search, Fish, Sailboat, Anchor, Snowflake, UtensilsCrossed, Tent, Ship, Camera, Plane, TreePine, Sun, Mountain, Utensils, Footprints } from "lucide-react";
+import { 
+  Search, Fish, Sailboat, Anchor, Snowflake, UtensilsCrossed, Tent, Ship, Camera, Plane, 
+  TreePine, Sun, Mountain, Utensils, Footprints, Music, Film, Dumbbell, Palette, Gamepad2,
+  BookOpen, Wine, Coffee, Heart, Dog, Sparkles, Globe, Ticket, UtensilsCrossed as Foodie
+} from "lucide-react";
+
+type AccountMode = 'dating' | 'fishing' | 'both';
 
 interface StepInterestsProps {
   selectedStyles: string[];
   setSelectedStyles: (styles: string[]) => void;
   selectedActivities: string[];
   setSelectedActivities: (activities: string[]) => void;
+  accountMode: AccountMode;
 }
 
+// Fishing-specific interests
 const fishingStyles = [
   { id: 'fly_fishing', label: 'Fly Fishing', icon: Fish },
   { id: 'deep_sea', label: 'Deep Sea', icon: Sailboat },
@@ -20,7 +28,7 @@ const fishingStyles = [
   { id: 'bass_fishing', label: 'Bass Fishing', icon: Fish },
 ];
 
-const beyondWater = [
+const fishingActivities = [
   { id: 'camping', label: 'Camping', icon: Tent },
   { id: 'boating', label: 'Boating', icon: Ship },
   { id: 'photography', label: 'Photography', icon: Camera },
@@ -31,13 +39,88 @@ const beyondWater = [
   { id: 'hiking', label: 'Hiking', icon: Footprints },
 ];
 
+// Dating-specific interests
+const datingInterests = [
+  { id: 'music', label: 'Music', icon: Music },
+  { id: 'movies', label: 'Movies', icon: Film },
+  { id: 'fitness', label: 'Fitness', icon: Dumbbell },
+  { id: 'art', label: 'Art', icon: Palette },
+  { id: 'gaming', label: 'Gaming', icon: Gamepad2 },
+  { id: 'reading', label: 'Reading', icon: BookOpen },
+];
+
+const datingActivities = [
+  { id: 'travel', label: 'Travel', icon: Plane },
+  { id: 'wine', label: 'Wine', icon: Wine },
+  { id: 'coffee', label: 'Coffee', icon: Coffee },
+  { id: 'dancing', label: 'Dancing', icon: Sparkles },
+  { id: 'pets', label: 'Pets', icon: Dog },
+  { id: 'foodie', label: 'Foodie', icon: Utensils },
+  { id: 'concerts', label: 'Concerts', icon: Ticket },
+  { id: 'nature', label: 'Nature', icon: TreePine },
+  { id: 'photography', label: 'Photography', icon: Camera },
+  { id: 'hiking', label: 'Hiking', icon: Footprints },
+];
+
+// Combined interests for "both" mode
+const comboStyles = [
+  ...fishingStyles,
+  { id: 'music', label: 'Music', icon: Music },
+  { id: 'movies', label: 'Movies', icon: Film },
+  { id: 'fitness', label: 'Fitness', icon: Dumbbell },
+];
+
+const comboActivities = [
+  { id: 'camping', label: 'Camping', icon: Tent },
+  { id: 'boating', label: 'Boating', icon: Ship },
+  { id: 'travel', label: 'Travel', icon: Plane },
+  { id: 'photography', label: 'Photography', icon: Camera },
+  { id: 'hiking', label: 'Hiking', icon: Footprints },
+  { id: 'wine', label: 'Wine', icon: Wine },
+  { id: 'coffee', label: 'Coffee', icon: Coffee },
+  { id: 'foodie', label: 'Foodie', icon: Utensils },
+  { id: 'nature', label: 'Nature', icon: TreePine },
+  { id: 'concerts', label: 'Concerts', icon: Ticket },
+];
+
+// Section config by mode
+const modeConfig = {
+  dating: {
+    primaryTitle: 'Lifestyle & Hobbies',
+    primaryIcon: Heart,
+    primaryItems: datingInterests,
+    secondaryTitle: 'Activities',
+    secondaryIcon: Sparkles,
+    secondaryItems: datingActivities,
+  },
+  fishing: {
+    primaryTitle: 'Fishing Styles',
+    primaryIcon: Fish,
+    primaryItems: fishingStyles,
+    secondaryTitle: 'Beyond the Water',
+    secondaryIcon: Mountain,
+    secondaryItems: fishingActivities,
+  },
+  both: {
+    primaryTitle: 'Fishing & Hobbies',
+    primaryIcon: Fish,
+    primaryItems: comboStyles,
+    secondaryTitle: 'Lifestyle & Activities',
+    secondaryIcon: Heart,
+    secondaryItems: comboActivities,
+  },
+};
+
 export function StepInterests({
   selectedStyles,
   setSelectedStyles,
   selectedActivities,
   setSelectedActivities,
+  accountMode,
 }: StepInterestsProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const config = modeConfig[accountMode];
 
   const toggleStyle = (id: string) => {
     if (selectedStyles.includes(id)) {
@@ -55,15 +138,17 @@ export function StepInterests({
     }
   };
 
-  const filteredStyles = fishingStyles.filter((s) =>
+  const filteredStyles = config.primaryItems.filter((s) =>
     s.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredActivities = beyondWater.filter((a) =>
+  const filteredActivities = config.secondaryItems.filter((a) =>
     a.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalSelected = selectedStyles.length + selectedActivities.length;
+  const PrimaryIcon = config.primaryIcon;
+  const SecondaryIcon = config.secondaryIcon;
 
   return (
     <motion.div 
@@ -85,7 +170,7 @@ export function StepInterests({
         />
       </motion.div>
 
-      {/* Fishing Styles */}
+      {/* Primary Section */}
       <motion.div 
         className="space-y-4"
         initial={{ opacity: 0, y: 10 }}
@@ -93,8 +178,8 @@ export function StepInterests({
         transition={{ delay: 0.1 }}
       >
         <div className="flex items-center gap-2">
-          <Fish className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-foreground">Fishing Styles</h3>
+          <PrimaryIcon className="w-5 h-5 text-primary" />
+          <h3 className="font-semibold text-foreground">{config.primaryTitle}</h3>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <AnimatePresence>
@@ -146,7 +231,7 @@ export function StepInterests({
         </div>
       </motion.div>
 
-      {/* Beyond the Water */}
+      {/* Secondary Section */}
       <motion.div 
         className="space-y-4"
         initial={{ opacity: 0, y: 10 }}
@@ -154,8 +239,8 @@ export function StepInterests({
         transition={{ delay: 0.2 }}
       >
         <div className="flex items-center gap-2">
-          <Mountain className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-foreground">Beyond the Water</h3>
+          <SecondaryIcon className="w-5 h-5 text-primary" />
+          <h3 className="font-semibold text-foreground">{config.secondaryTitle}</h3>
         </div>
         <div className="flex flex-wrap gap-3">
           <AnimatePresence>

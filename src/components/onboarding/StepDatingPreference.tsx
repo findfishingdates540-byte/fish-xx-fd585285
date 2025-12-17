@@ -5,6 +5,7 @@ import { Heart, Users, Sparkles, UserPlus } from "lucide-react";
 
 type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
 type LookingFor = 'relationship' | 'casual' | 'friends' | 'fishing_buddy';
+type AccountMode = 'dating' | 'fishing' | 'both';
 
 interface StepDatingPreferenceProps {
   interestedIn: Gender[];
@@ -15,6 +16,7 @@ interface StepDatingPreferenceProps {
   setAgeRange: (value: [number, number]) => void;
   maxDistance: number;
   setMaxDistance: (value: number) => void;
+  accountMode: AccountMode;
 }
 
 const genderOptions: { value: Gender | 'everyone'; label: string }[] = [
@@ -23,7 +25,7 @@ const genderOptions: { value: Gender | 'everyone'; label: string }[] = [
   { value: 'everyone', label: 'Everyone' },
 ];
 
-const lookingForOptions: { value: LookingFor; label: string; icon: typeof Heart }[] = [
+const allLookingForOptions: { value: LookingFor; label: string; icon: typeof Heart }[] = [
   { value: 'relationship', label: 'Relationship', icon: Heart },
   { value: 'casual', label: 'Something Casual', icon: Sparkles },
   { value: 'friends', label: 'Friends', icon: Users },
@@ -39,7 +41,13 @@ export function StepDatingPreference({
   setAgeRange,
   maxDistance,
   setMaxDistance,
+  accountMode,
 }: StepDatingPreferenceProps) {
+  // Filter out 'fishing_buddy' for dating-only mode
+  const lookingForOptions = accountMode === 'dating'
+    ? allLookingForOptions.filter(opt => opt.value !== 'fishing_buddy')
+    : allLookingForOptions;
+
   const toggleGenderPreference = (value: Gender | 'everyone') => {
     if (value === 'everyone') {
       setInterestedIn(['male', 'female', 'non_binary', 'other']);
