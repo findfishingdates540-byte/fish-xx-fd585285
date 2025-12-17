@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BuddyCard, BuddyFilters, BuddyRequestCard, MyBuddyCard } from '@/components/buddies';
 import { useToast } from '@/hooks/use-toast';
-import { Users, UserPlus, Inbox } from 'lucide-react';
+import { Users, UserPlus, Inbox, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface Profile {
   id: string;
@@ -24,9 +26,14 @@ interface BuddyRequest {
   created_at: string;
 }
 
+interface MyBuddy extends Profile {
+  buddyId: string;
+}
+
 export default function Buddies() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('discover');
   const [searchQuery, setSearchQuery] = useState('');
   const [experienceFilter, setExperienceFilter] = useState('all');
@@ -34,7 +41,7 @@ export default function Buddies() {
   const [discoverProfiles, setDiscoverProfiles] = useState<Profile[]>([]);
   const [receivedRequests, setReceivedRequests] = useState<(BuddyRequest & { profile: Profile })[]>([]);
   const [sentRequests, setSentRequests] = useState<(BuddyRequest & { profile: Profile })[]>([]);
-  const [myBuddies, setMyBuddies] = useState<Profile[]>([]);
+  const [myBuddies, setMyBuddies] = useState<MyBuddy[]>([]);
   const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
   const [catchCounts, setCatchCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -58,7 +65,7 @@ export default function Buddies() {
 
       const existingBuddyIds = new Set<string>();
       const pendingRequestedIds = new Set<string>();
-      const acceptedBuddyIds: string[] = [];
+      const acceptedBuddies: { id: string; otherId: string }[] = [];
       const receivedPending: BuddyRequest[] = [];
       const sentPending: BuddyRequest[] = [];
 
@@ -67,7 +74,7 @@ export default function Buddies() {
         existingBuddyIds.add(otherId);
         
         if (buddy.status === 'accepted') {
-          acceptedBuddyIds.push(otherId);
+          acceptedBuddies.push({ id: buddy.id, otherId });
         } else if (buddy.status === 'pending') {
           if (buddy.recipient_id === user.id) {
             receivedPending.push(buddy);
@@ -126,12 +133,22 @@ export default function Buddies() {
       }
 
       // Fetch my buddies profiles
-      if (acceptedBuddyIds.length > 0) {
+      if (acceptedBuddies.length > 0) {
         const { data: buddyProfiles } = await supabase
           .from('profiles')
           .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio')
-          .in('id', acceptedBuddyIds);
-        setMyBuddies(buddyProfiles || []);
+          .in('id', acceptedBuddies.map(b => b.otherId));
+        
+        const profileMap = new Map(buddyProfiles?.map(p => [p.id, p]));
+        const buddiesWithIds: MyBuddy[] = acceptedBuddies
+          .map(b => {
+            const profile = profileMap.get(b.otherId);
+            if (!profile) return null;
+            return { ...profile, buddyId: b.id };
+          })
+          .filter(Boolean) as MyBuddy[];
+        
+        setMyBuddies(buddiesWithIds);
       } else {
         setMyBuddies([]);
       }
@@ -139,7 +156,7 @@ export default function Buddies() {
       // Fetch catch counts for all relevant profiles
       const allProfileIds = [
         ...availableProfiles.map(p => p.id),
-        ...acceptedBuddyIds
+        ...acceptedBuddies.map(b => b.otherId)
       ];
       
       if (allProfileIds.length > 0) {
@@ -267,12 +284,12 @@ export default function Buddies() {
     }
   };
 
-  const handleMessage = (userId: string) => {
-    // TODO: Navigate to messages or create conversation
-    toast({
-      title: 'Coming Soon',
-      description: 'Direct messaging between buddies is coming soon!'
-    });
+  const handleMessage = (buddyId: string) => {
+    navigate(`/app/buddy-chat/${buddyId}`);
+  };
+
+  const handleViewAllMessages = () => {
+    navigate('/app/buddy-messages');
   };
 
   // Filter discover profiles
@@ -297,9 +314,17 @@ export default function Buddies() {
 
   return (
     <div className="container max-w-4xl mx-auto p-4 pb-24 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Fishing Buddies</h1>
-        <p className="text-muted-foreground">Connect with fellow anglers</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Fishing Buddies</h1>
+          <p className="text-muted-foreground">Connect with fellow anglers</p>
+        </div>
+        {myBuddies.length > 0 && (
+          <Button variant="outline" onClick={handleViewAllMessages}>
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Messages
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -403,6 +428,7 @@ export default function Buddies() {
               {myBuddies.map(buddy => (
                 <MyBuddyCard
                   key={buddy.id}
+                  buddyId={buddy.buddyId}
                   profile={buddy}
                   catchCount={catchCounts[buddy.id] || 0}
                   onMessage={handleMessage}

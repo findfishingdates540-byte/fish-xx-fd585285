@@ -19,7 +19,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit, Chat, Matches, Settings } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, Profile, ProfileEdit, Chat, Matches, Settings } from "./pages/app";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 
@@ -62,6 +62,8 @@ const App = () => (
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
               <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
+              <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>} />
+              <Route path="buddy-chat/:buddyId" element={<FishingRoute><BuddyChat /></FishingRoute>} />
               
               {/* Shared routes (all account types) */}
               <Route path="profile" element={<Profile />} />
