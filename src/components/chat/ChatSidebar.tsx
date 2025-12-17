@@ -29,7 +29,7 @@ const navItems = [
 
 export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount = 0 }: ChatSidebarProps) {
   return (
-    <aside className="hidden lg:flex flex-col w-72 h-screen border-r border-border bg-background">
+    <aside className="hidden md:flex flex-col w-72 h-screen border-r border-border bg-background flex-shrink-0">
       {/* Logo */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-2">

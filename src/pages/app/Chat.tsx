@@ -6,6 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatArea } from '@/components/chat/ChatArea';
 import { ProfileSidebar } from '@/components/chat/ProfileSidebar';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 
 // Mock data
 const mockConversations = [
@@ -89,6 +95,7 @@ export default function Chat() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [messages, setMessages] = useState(mockMessages);
+  const [showProfile, setShowProfile] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -120,7 +127,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Left Sidebar */}
       <ChatSidebar
         conversations={mockConversations}
@@ -137,19 +144,43 @@ export default function Chat() {
         messages={messages}
         currentUserId="me"
         onSendMessage={handleSendMessage}
+        onShowProfile={() => setShowProfile(true)}
       />
 
-      {/* Right Profile Sidebar */}
-      <ProfileSidebar
-        name={mockMatchProfile.name}
-        age={mockMatchProfile.age}
-        photo={mockMatchProfile.photo}
-        isOnline={mockMatchProfile.isOnline}
-        location={mockMatchProfile.location}
-        bio={mockMatchProfile.bio}
-        interests={mockMatchProfile.interests}
-        photos={mockMatchProfile.photos}
-      />
+      {/* Right Profile Sidebar - Desktop */}
+      <div className="hidden xl:block w-80 h-screen border-l border-border flex-shrink-0">
+        <ProfileSidebar
+          name={mockMatchProfile.name}
+          age={mockMatchProfile.age}
+          photo={mockMatchProfile.photo}
+          isOnline={mockMatchProfile.isOnline}
+          location={mockMatchProfile.location}
+          bio={mockMatchProfile.bio}
+          interests={mockMatchProfile.interests}
+          photos={mockMatchProfile.photos}
+          className="h-full"
+        />
+      </div>
+
+      {/* Mobile Profile Sheet */}
+      <Sheet open={showProfile} onOpenChange={setShowProfile}>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Profile</SheetTitle>
+          </SheetHeader>
+          <ProfileSidebar
+            name={mockMatchProfile.name}
+            age={mockMatchProfile.age}
+            photo={mockMatchProfile.photo}
+            isOnline={mockMatchProfile.isOnline}
+            location={mockMatchProfile.location}
+            bio={mockMatchProfile.bio}
+            interests={mockMatchProfile.interests}
+            photos={mockMatchProfile.photos}
+            className="h-full"
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
