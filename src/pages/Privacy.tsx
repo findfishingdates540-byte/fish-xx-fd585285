@@ -19,7 +19,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import logo from '@/assets/logo.jpg';
+import { PublicHeader, PublicFooter } from '@/components/layout';
 
 const sections = [
   { id: 'introduction', label: 'Introduction', icon: Info },
@@ -44,34 +44,7 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
-          <Link to="/">
-            <img src={logo} alt="Find Fishing Dates" className="h-24 w-auto" />
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-10 text-sm font-medium">
-            <Link to="/about" className="text-foreground hover:opacity-60 transition-opacity">About</Link>
-            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Dating</Link>
-            <Link to="/fishing" className="text-foreground hover:opacity-60 transition-opacity">Fishing</Link>
-            <Link to="/safety" className="text-foreground hover:opacity-60 transition-opacity">Safety</Link>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Link to="/auth">
-              <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
-                Log in
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button className="btn-primary">
-                Sign up
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicHeader />
 
       {/* Hero Banner */}
       <div className="pt-32 pb-8 px-6 bg-muted/30 border-b border-border">
@@ -389,66 +362,7 @@ const Privacy = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
-            <div className="col-span-2 md:col-span-1">
-              <img src={logo} alt="Find Fishing Dates" className="h-12 w-auto mb-6" />
-              <p className="text-sm text-muted-foreground">
-                Connecting fishing enthusiasts worldwide.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">Products</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><Link to="/dating" className="hover:text-foreground transition-colors">Dating</Link></li>
-                <li><Link to="/fishing" className="hover:text-foreground transition-colors">Fishing Buddies</Link></li>
-                <li><Link to="/premium" className="hover:text-foreground transition-colors">Premium</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">Company</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><Link to="/about" className="hover:text-foreground transition-colors">About</Link></li>
-                <li><Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link></li>
-                <li><Link to="/careers" className="hover:text-foreground transition-colors">Careers</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">Resources</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
-                <li><Link to="/help" className="hover:text-foreground transition-colors">Help Center</Link></li>
-                <li><Link to="/safety" className="hover:text-foreground transition-colors">Safety</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-foreground mb-4">Legal</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link></li>
-                <li><Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link></li>
-                <li><Link to="/guidelines" className="hover:text-foreground transition-colors">Guidelines</Link></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground">
-              © 2024 Find Fishing Dates. All rights reserved.
-            </p>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
-              <a href="#" className="hover:text-foreground transition-colors">Instagram</a>
-              <a href="#" className="hover:text-foreground transition-colors">Facebook</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 };

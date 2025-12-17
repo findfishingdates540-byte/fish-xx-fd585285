@@ -1,43 +1,15 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Users, Target, Award, Globe, Sparkles } from 'lucide-react';
-import logo from '@/assets/logo.jpg';
 import aboutHero from '@/assets/about-hero.jpg';
 import coupleFishing from '@/assets/couple-fishing.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
-import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
+import { PublicHeader, PublicFooter } from '@/components/layout';
 
 const About = () => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
-          <Link to="/">
-            <img src={logo} alt="Find Fishing Dates" className="h-24 w-auto" />
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-10 text-sm font-medium">
-            <Link to="/about" className="text-foreground font-semibold">About</Link>
-            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Dating</Link>
-            <Link to="/fishing" className="text-foreground hover:opacity-60 transition-opacity">Fishing</Link>
-            <Link to="/safety" className="text-foreground hover:opacity-60 transition-opacity">Safety</Link>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Link to="/auth">
-              <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
-                Log in
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button className="btn-primary">
-                Sign up
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicHeader />
 
       {/* Hero Section */}
       <header className="pt-32 pb-20 px-6">
@@ -237,49 +209,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-16 px-6 border-t border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="space-y-4">
-              <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
-              <p className="text-muted-foreground">
-                The dating app for fishing enthusiasts.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Company</h4>
-              <div className="space-y-3">
-                <Link to="/about" className="block text-muted-foreground hover:text-foreground transition-colors">About</Link>
-                <Link to="/contact" className="block text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
-                <Link to="/help" className="block text-muted-foreground hover:text-foreground transition-colors">Help Center</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Features</h4>
-              <div className="space-y-3">
-                <Link to="/dating" className="block text-muted-foreground hover:text-foreground transition-colors">Dating</Link>
-                <Link to="/fishing" className="block text-muted-foreground hover:text-foreground transition-colors">Fishing</Link>
-                <Link to="/safety" className="block text-muted-foreground hover:text-foreground transition-colors">Safety</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Legal</h4>
-              <div className="space-y-3">
-                <Link to="/privacy" className="block text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
-                <Link to="/terms" className="block text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-border pt-8 text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} Find Fishing Dates. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 };
