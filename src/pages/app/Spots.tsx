@@ -126,15 +126,36 @@ export default function Spots() {
     };
   }, [token, userLocation]);
 
-  // Add markers for spots
+  // Filter spots
+  const filteredSpots = spots.filter((spot) => {
+    const matchesSearch =
+      spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      spot.location_name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (activeFilter === "top-rated") {
+      return matchesSearch && (spot.rating_avg || 0) >= 4.0;
+    }
+
+    return matchesSearch;
+  });
+
+  // Add markers for filtered spots
   useEffect(() => {
-    if (!map.current || spots.length === 0) return;
+    if (!map.current || !token) return;
 
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    spots.forEach((spot) => {
+    if (filteredSpots.length === 0) return;
+
+    // Create bounds to fit all spots
+    const bounds = new mapboxgl.LngLatBounds();
+
+    filteredSpots.forEach((spot) => {
+      // Extend bounds to include this spot
+      bounds.extend([spot.location_lng, spot.location_lat]);
+
       // Create custom marker element
       const el = document.createElement("div");
       el.className = "spot-marker";
@@ -150,6 +171,7 @@ export default function Spots() {
           justify-content: center;
           cursor: pointer;
           box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          transition: transform 0.2s ease;
         ">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
@@ -157,6 +179,44 @@ export default function Spots() {
           </svg>
         </div>
       `;
+
+      el.addEventListener("mouseenter", () => {
+        el.querySelector("div")?.setAttribute("style", `
+          width: 36px;
+          height: 36px;
+          background: #000;
+          border: 2px solid #000;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+          transform: scale(1.1);
+          transition: transform 0.2s ease;
+        `);
+        const svg = el.querySelector("svg");
+        if (svg) svg.setAttribute("stroke", "white");
+      });
+
+      el.addEventListener("mouseleave", () => {
+        el.querySelector("div")?.setAttribute("style", `
+          width: 36px;
+          height: 36px;
+          background: white;
+          border: 2px solid #000;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          transform: scale(1);
+          transition: transform 0.2s ease;
+        `);
+        const svg = el.querySelector("svg");
+        if (svg) svg.setAttribute("stroke", "currentColor");
+      });
 
       el.addEventListener("click", () => {
         setSelectedSpot(spot);
@@ -199,20 +259,21 @@ export default function Spots() {
 
       markersRef.current.push(marker);
     });
-  }, [spots]);
 
-  // Filter spots
-  const filteredSpots = spots.filter((spot) => {
-    const matchesSearch =
-      spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      spot.location_name?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (activeFilter === "top-rated") {
-      return matchesSearch && (spot.rating_avg || 0) >= 4.0;
+    // Fit map to show all spots with padding
+    if (filteredSpots.length > 1) {
+      map.current.fitBounds(bounds, {
+        padding: { top: 50, bottom: 50, left: 50, right: 50 },
+        maxZoom: 12,
+      });
+    } else if (filteredSpots.length === 1) {
+      map.current.flyTo({
+        center: [filteredSpots[0].location_lng, filteredSpots[0].location_lat],
+        zoom: 12,
+      });
     }
+  }, [filteredSpots, token]);
 
-    return matchesSearch;
-  });
 
   const handleCenterOnLocation = () => {
     if (userLocation && map.current) {
