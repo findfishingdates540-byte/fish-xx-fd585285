@@ -104,6 +104,30 @@ const Safety = () => {
       question: 'What verification methods does the app use?',
       answer: 'We offer photo verification where you take a real-time selfie matching a pose, email and phone verification, and optional ID verification for enhanced trust badges. Verified profiles display badges on their profiles.',
     },
+    {
+      question: 'How does photo verification work?',
+      answer: 'Photo verification requires you to take a live selfie that matches a specific pose shown on screen. Our system compares this selfie to your profile photos using facial recognition to confirm you\'re a real person. Verified users receive a blue checkmark badge visible on their profile, giving potential matches confidence they\'re talking to who they think they are.',
+    },
+    {
+      question: 'What are some video chat safety tips?',
+      answer: 'Before video chatting: 1) Use our in-app video feature rather than sharing personal contact info. 2) Choose a neutral background that doesn\'t reveal your home address. 3) Trust your instincts—if something feels off, end the call. 4) Never share financial information or send money. 5) Report any inappropriate behavior during the call using the flag icon. Video calls are a great way to verify someone before meeting in person.',
+    },
+    {
+      question: 'What should I do if I encounter a scammer?',
+      answer: 'If you suspect someone is a scammer: 1) Stop all communication immediately. 2) Do NOT send money or share financial information. 3) Take screenshots of suspicious messages. 4) Report the profile using the flag icon and select "Scam or Fraud." 5) Block the user. Common scam signs include: asking for money, moving conversations off-app quickly, overly romantic language too soon, inconsistent stories, and refusing video calls. Our team investigates all scam reports within 24 hours.',
+    },
+    {
+      question: 'How can I verify someone is real before meeting?',
+      answer: 'Before meeting in person: 1) Look for the verification badge on their profile. 2) Request a video call to confirm they match their photos. 3) Check if their social media accounts seem legitimate. 4) Ask questions about details mentioned in their profile. 5) Trust your gut—if anything seems off, don\'t meet. For fishing dates, suggest meeting at a public boat ramp or verified fishing spot first.',
+    },
+    {
+      question: 'What should I do if someone asks for money?',
+      answer: 'Never send money to someone you\'ve met online, regardless of the reason they give. Scammers often create elaborate stories about emergencies, medical bills, or travel costs. If someone asks for money: 1) Refuse immediately. 2) Report the user to our safety team. 3) Block them. Legitimate matches will never ask for financial assistance. If you\'ve already sent money, contact your bank and local authorities.',
+    },
+    {
+      question: 'Are my private photos safe on the app?',
+      answer: 'Your photos are protected with industry-standard encryption. Only users you\'ve matched with can see photos you share in chat. Profile photos are visible based on your privacy settings. We never sell or share your photos with third parties. You can delete any photo at any time, and it will be removed from our servers. For extra privacy, avoid photos that show identifying information like your home, workplace, or license plates.',
+    },
   ];
 
   const quickActions = [
