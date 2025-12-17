@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,11 @@ import {
   Heart, 
   Shield, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Plus,
+  X,
+  Loader2,
+  ImageIcon
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -27,11 +31,15 @@ type AccountMode = Database["public"]["Enums"]["account_mode"];
 type GenderType = Database["public"]["Enums"]["gender_type"];
 type LookingForType = Database["public"]["Enums"]["looking_for_type"];
 
+const SUPABASE_URL = "https://zjmnlelqoiclkbrqefyv.supabase.co";
+
 export default function ProfileEdit() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [displayName, setDisplayName] = useState("");
@@ -80,6 +88,79 @@ export default function ProfileEdit() {
     setLoading(false);
   };
 
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("profile-photos")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/profile-photos/${fileName}`;
+      const newPhotos = [...photos, publicUrl];
+      setPhotos(newPhotos);
+
+      // Save to profile immediately
+      await supabase
+        .from("profiles")
+        .update({ photos: newPhotos })
+        .eq("id", user.id);
+
+      toast.success("Photo uploaded successfully");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload photo");
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemovePhoto = async (photoUrl: string) => {
+    if (!user) return;
+
+    try {
+      // Extract file path from URL
+      const urlParts = photoUrl.split("/profile-photos/");
+      if (urlParts[1]) {
+        await supabase.storage.from("profile-photos").remove([urlParts[1]]);
+      }
+
+      const newPhotos = photos.filter((p) => p !== photoUrl);
+      setPhotos(newPhotos);
+
+      // Save to profile immediately
+      await supabase
+        .from("profiles")
+        .update({ photos: newPhotos })
+        .eq("id", user.id);
+
+      toast.success("Photo removed");
+    } catch (error) {
+      console.error("Remove error:", error);
+      toast.error("Failed to remove photo");
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -97,6 +178,7 @@ export default function ProfileEdit() {
         min_age_preference: ageRange[0],
         max_age_preference: ageRange[1],
         max_distance_km: maxDistance,
+        photos: photos,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
@@ -187,14 +269,28 @@ export default function ProfileEdit() {
             {/* Profile Photo */}
             <div className="relative flex-shrink-0">
               <div className="h-32 w-32 rounded-full border-4 border-background overflow-hidden bg-muted">
-                <img
-                  src={profilePhoto}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+                {profilePhoto !== "/placeholder.svg" ? (
+                  <img
+                    src={profilePhoto}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                )}
               </div>
-              <button className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-                <Camera className="h-4 w-4" />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {uploadingPhoto ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
               </button>
             </div>
 
@@ -206,12 +302,79 @@ export default function ProfileEdit() {
                   Max 5MB, JPG or PNG. Make sure your face is visible!
                 </p>
               </div>
-              <Button variant="outline" className="w-fit">
+              <Button 
+                variant="outline" 
+                className="w-fit"
+                onClick={() => photos[0] && handleRemovePhoto(photos[0])}
+                disabled={!photos.length}
+              >
                 Remove Photo
               </Button>
             </div>
           </div>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
         </div>
+
+        {/* Photo Gallery */}
+        <Card className="mt-6">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <ImageIcon className="h-5 w-5 text-primary" />
+              My Photos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+              {photos.map((photo, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
+                  <img
+                    src={photo}
+                    alt={`Photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => handleRemovePhoto(photo)}
+                    className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background/80 text-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  {index === 0 && (
+                    <span className="absolute bottom-1 left-1 text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                      Main
+                    </span>
+                  )}
+                </div>
+              ))}
+              {photos.length < 6 && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-muted/50 transition-colors disabled:opacity-50"
+                >
+                  {uploadingPhoto ? (
+                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                  ) : (
+                    <>
+                      <Plus className="h-6 w-6 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Add</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Add up to 6 photos. Your first photo will be your main profile picture.
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content */}
