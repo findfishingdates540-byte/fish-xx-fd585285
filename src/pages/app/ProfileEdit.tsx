@@ -39,9 +39,11 @@ export default function ProfileEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [displayName, setDisplayName] = useState("");
@@ -54,6 +56,7 @@ export default function ProfileEdit() {
   const [ageRange, setAgeRange] = useState<[number, number]>([18, 50]);
   const [maxDistance, setMaxDistance] = useState(50);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -86,6 +89,7 @@ export default function ProfileEdit() {
       setAgeRange([data.min_age_preference || 18, data.max_age_preference || 50]);
       setMaxDistance(data.max_distance_km || 50);
       setPhotos(data.photos || []);
+      setCoverPhoto((data as any).cover_photo || null);
     }
     setLoading(false);
   };
@@ -163,6 +167,58 @@ export default function ProfileEdit() {
     }
   };
 
+  const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setUploadingBanner(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/banner_${Date.now()}.${fileExt}`;
+
+      // Remove old banner if exists
+      if (coverPhoto) {
+        const oldPath = coverPhoto.split("/profile-photos/")[1];
+        if (oldPath) {
+          await supabase.storage.from("profile-photos").remove([oldPath]);
+        }
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from("profile-photos")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/profile-photos/${fileName}`;
+      setCoverPhoto(publicUrl);
+
+      await supabase
+        .from("profiles")
+        .update({ cover_photo: publicUrl } as any)
+        .eq("id", user.id);
+
+      toast.success("Banner uploaded successfully");
+    } catch (error) {
+      console.error("Banner upload error:", error);
+      toast.error("Failed to upload banner");
+    } finally {
+      setUploadingBanner(false);
+      if (bannerInputRef.current) {
+        bannerInputRef.current.value = "";
+      }
+    }
+  };
+
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -222,8 +278,9 @@ export default function ProfileEdit() {
         max_age_preference: ageRange[1],
         max_distance_km: maxDistance,
         photos: photos,
+        cover_photo: coverPhoto,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq("id", user.id);
 
     setSaving(false);
@@ -291,21 +348,43 @@ export default function ProfileEdit() {
       <div className="px-4 md:px-6">
         <div className="relative">
           {/* Banner Image */}
-          <div className="h-48 md:h-56 rounded-2xl overflow-hidden bg-muted">
-            <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=400&fit=crop"
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
+          <div className="h-48 md:h-56 rounded-2xl overflow-hidden bg-muted relative group">
+            {coverPhoto ? (
+              <img
+                src={coverPhoto}
+                alt="Cover"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+                <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors" />
             <Button
               variant="secondary"
               size="sm"
+              onClick={() => bannerInputRef.current?.click()}
+              disabled={uploadingBanner}
               className="absolute top-4 right-4 gap-2 z-10"
             >
-              <Pencil className="h-4 w-4" />
-              Edit Banner
+              {uploadingBanner ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Pencil className="h-4 w-4" />
+              )}
+              {uploadingBanner ? "Uploading..." : "Edit Banner"}
             </Button>
           </div>
+
+          {/* Hidden banner file input */}
+          <input
+            ref={bannerInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleBannerUpload}
+            className="hidden"
+          />
 
           {/* Profile Photo & Info - positioned to overlap banner */}
           <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-16 ml-6 md:ml-8">
