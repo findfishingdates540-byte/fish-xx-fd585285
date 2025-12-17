@@ -4,6 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
+import { FishingHeader } from './FishingHeader';
+import { DatingHeader } from './DatingHeader';
+import { BothHeader } from './BothHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function AppLayout() {
@@ -26,7 +29,7 @@ export function AppLayout() {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 0, // Always refetch on mount
+    staleTime: 0,
     retry: 2,
   });
 
@@ -46,7 +49,6 @@ export function AppLayout() {
     return <Navigate to="/auth" replace />;
   }
 
-  // If profile fetch failed or profile doesn't exist yet, retry or redirect
   if (profileError) {
     console.error('Profile error:', profileError);
     return <Navigate to="/auth" replace />;
@@ -58,9 +60,26 @@ export function AppLayout() {
 
   const accountMode = profile?.account_mode || 'both';
 
+  // Determine which desktop header to show
+  const renderDesktopHeader = () => {
+    if (accountMode === 'dating') {
+      return <DatingHeader />;
+    }
+    if (accountMode === 'fishing') {
+      return <FishingHeader />;
+    }
+    // Both mode
+    return <BothHeader />;
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Header - Hidden on desktop when sidebar is visible */}
+      {/* Desktop Header */}
+      <div className="hidden lg:block">
+        {renderDesktopHeader()}
+      </div>
+
+      {/* Mobile Header */}
       <div className="lg:hidden">
         <AppHeader />
       </div>
@@ -69,7 +88,7 @@ export function AppLayout() {
         <Outlet context={{ accountMode }} />
       </main>
 
-      {/* Mobile Bottom Nav - Hidden on desktop */}
+      {/* Mobile Bottom Nav */}
       <div className="lg:hidden">
         <BottomNav accountMode={accountMode} />
       </div>
