@@ -106,7 +106,7 @@ export function StepBasicInfoNew({
         />
         {!dobError && (
           <p className="text-xs text-primary mt-2">
-            You must be at least 18 years old to use FindFish Date.
+            You must be at least 18 years old to use Find Fishing Dates.
           </p>
         )}
       </div>
