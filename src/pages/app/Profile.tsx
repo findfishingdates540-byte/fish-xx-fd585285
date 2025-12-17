@@ -86,39 +86,42 @@ export default function Profile() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           
           {/* Profile Info inside banner */}
-          <div className="absolute bottom-4 left-4 md:left-6 flex items-end gap-4">
-            <div className="relative">
-              <Avatar className="h-24 w-24 md:h-28 md:w-28 border-4 border-white shadow-lg">
-                <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
-                <AvatarFallback className="text-2xl md:text-3xl bg-muted">{initials}</AvatarFallback>
-              </Avatar>
-              {profile?.is_verified && <div className="absolute bottom-1 right-1 h-6 w-6 bg-primary rounded-full flex items-center justify-center border-2 border-white">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
-                </div>}
+          <div className="absolute inset-x-0 bottom-4 flex flex-col items-center md:flex-row md:items-end md:justify-between px-4 md:px-6 gap-3">
+            {/* Avatar and Name */}
+            <div className="flex flex-col items-center md:flex-row md:items-end gap-3 md:gap-4">
+              <div className="relative">
+                <Avatar className="h-24 w-24 md:h-28 md:w-28 border-4 border-white shadow-lg">
+                  <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
+                  <AvatarFallback className="text-2xl md:text-3xl bg-muted">{initials}</AvatarFallback>
+                </Avatar>
+                {profile?.is_verified && <div className="absolute bottom-1 right-1 h-6 w-6 bg-primary rounded-full flex items-center justify-center border-2 border-white">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
+                  </div>}
+              </div>
+              <div className="text-center md:text-left md:mb-2">
+                <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-md">
+                  {profile?.display_name || 'User'}{age ? `, ${age}` : ''}
+                </h1>
+                {profile?.location_name && <div className="flex items-center justify-center md:justify-start gap-1 text-white/90 mt-0.5">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">{profile.location_name}</span>
+                  </div>}
+              </div>
             </div>
-            <div className="mb-2">
-              <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-md">
-                {profile?.display_name || 'User'}{age ? `, ${age}` : ''}
-              </h1>
-              {profile?.location_name && <div className="flex items-center gap-1 text-white/90 mt-0.5">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{profile.location_name}</span>
-                </div>}
-            </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="absolute bottom-4 right-4 md:right-6 flex gap-2">
-            <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white">
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/app/profile/edit">
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Link>
-            </Button>
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+              <Button asChild size="sm">
+                <Link to="/app/profile/edit">
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
