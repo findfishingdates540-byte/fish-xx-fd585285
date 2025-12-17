@@ -1,73 +1,89 @@
-# Welcome to your Lovable project
+# Find Fishing Dates
 
-## Project info
+A hybrid dating and fishing social platform that combines Tinder/Bumble-style dating with Fishbrain-style fishing features.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+### Dating
+- Swipe-based profile discovery
+- Real-time messaging with typing indicators and read receipts
+- Match notifications
+- Profile customization
 
-There are several ways of editing your application.
+### Fishing
+- Trip planning with Mapbox integration
+- Fishing spot discovery and saving
+- Catch logging
+- Fishing buddy system with separate messaging
 
-**Use Lovable**
+### Account Modes
+- **Dating Only** - Focus on finding romantic connections
+- **Fishing Only** - Connect with fishing buddies and plan trips
+- **Both** - Full access to dating and fishing features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (Auth, Database, Real-time, Storage, Edge Functions)
+- **Maps**: Mapbox GL JS
+- **State Management**: TanStack Query
+- **Animations**: Framer Motion
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+
+- npm or yarn
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Clone the repository
+git clone <repository-url>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Navigate to project directory
+cd find-fishing-dates
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env` file in the root directory:
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── assets/          # Images and static assets
+├── components/      # Reusable UI components
+│   ├── buddies/     # Fishing buddy components
+│   ├── chat/        # Messaging components
+│   ├── discover/    # Dating discovery components
+│   ├── layout/      # Layout components (headers, nav)
+│   ├── matches/     # Match-related components
+│   ├── onboarding/  # Onboarding flow components
+│   ├── trips/       # Trip planning components
+│   └── ui/          # shadcn/ui components
+├── contexts/        # React contexts
+├── hooks/           # Custom React hooks
+├── integrations/    # Third-party integrations
+├── lib/             # Utility functions
+└── pages/           # Page components
+    └── app/         # Authenticated app pages
+```
 
-This project is built with:
+## License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT
