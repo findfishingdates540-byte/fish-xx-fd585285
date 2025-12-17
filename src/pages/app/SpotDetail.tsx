@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useMapboxToken } from "@/hooks/use-mapbox-token";
+import { useSavedSpots } from "@/hooks/use-saved-spots";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,13 +98,15 @@ export default function SpotDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { token: mapboxToken } = useMapboxToken();
+  const { isSpotSaved, toggleSaveSpot } = useSavedSpots();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
   const [spot, setSpot] = useState<FishingSpot | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSaved, setIsSaved] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
+
+  const isSaved = id ? isSpotSaved(id) : false;
 
   useEffect(() => {
     const fetchSpot = async () => {
@@ -268,7 +271,7 @@ export default function SpotDetail() {
             </Button>
             <Button
               size="sm"
-              onClick={() => setIsSaved(!isSaved)}
+              onClick={() => id && toggleSaveSpot(id)}
               className={isSaved ? "bg-red-500 hover:bg-red-600" : ""}
             >
               <Heart className={`h-4 w-4 mr-2 ${isSaved ? "fill-current" : ""}`} />
