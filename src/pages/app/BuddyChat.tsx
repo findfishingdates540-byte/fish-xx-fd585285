@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Send, Fish, Check, CheckCheck, MapPin, Image, Plus, Scale, Ruler } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useOnlineStatus } from '@/hooks/use-online-presence';
 
 interface Message {
   id: string;
@@ -76,6 +77,14 @@ export default function BuddyChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Track buddy's online status
+  const buddyUserIds = useMemo(() => 
+    buddyProfile ? [buddyProfile.id] : [], 
+    [buddyProfile?.id]
+  );
+  const { isOnline } = useOnlineStatus(buddyUserIds);
+  const isBuddyOnline = buddyProfile ? isOnline(buddyProfile.id) : false;
 
   useEffect(() => {
     if (user && buddyId) {
@@ -511,15 +520,24 @@ export default function BuddyChat() {
         <Button variant="ghost" size="icon" onClick={() => navigate('/app/buddy-messages')}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={buddyProfile?.photos?.[0]} className="object-cover" />
-          <AvatarFallback>{buddyProfile?.display_name?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
-        </Avatar>
+        <div className="relative">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={buddyProfile?.photos?.[0]} className="object-cover" />
+            <AvatarFallback>{buddyProfile?.display_name?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
+          </Avatar>
+          {/* Online indicator */}
+          <span className={cn(
+            "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
+            isBuddyOnline ? "bg-green-500" : "bg-muted-foreground/30"
+          )} />
+        </div>
         <div className="flex-1">
           <h2 className="font-semibold">{buddyProfile?.display_name || 'Anonymous'}</h2>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             {isTyping ? (
               <span className="text-primary animate-pulse">typing...</span>
+            ) : isBuddyOnline ? (
+              <span className="text-green-500">Online</span>
             ) : (
               <><Fish className="w-3 h-3" />Fishing Buddy</>
             )}

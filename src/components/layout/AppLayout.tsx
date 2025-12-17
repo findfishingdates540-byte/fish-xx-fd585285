@@ -8,9 +8,13 @@ import { FishingHeader } from './FishingHeader';
 import { DatingHeader } from './DatingHeader';
 import { BothHeader } from './BothHeader';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useOnlinePresence } from '@/hooks/use-online-presence';
 
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
+  
+  // Track online presence for the current user
+  useOnlinePresence();
 
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile-mode', user?.id],
