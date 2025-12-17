@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, ArrowRight, HelpCircle } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, HelpCircle, LogOut } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 import { StepBasicInfoNew } from "@/components/onboarding/StepBasicInfoNew";
@@ -103,7 +103,7 @@ const stepLabels: Record<string, string> = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { toast } = useToast();
   
   const [currentStep, setCurrentStep] = useState(0);
@@ -428,14 +428,16 @@ export default function Onboarding() {
             <span className="font-bold text-lg text-foreground">Find Fishing Dates</span>
           </div>
           <div className="flex items-center gap-4">
-            {accountMode !== 'fishing' && (
-              <span className="text-sm text-muted-foreground hidden sm:block">
-                Already have an account?{' '}
-                <Link to="/auth" className="text-foreground font-medium hover:underline">
-                  Log In
-                </Link>
-              </span>
-            )}
+            <button 
+              onClick={async () => {
+                await signOut();
+                navigate('/auth');
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
             <button className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
               <HelpCircle className="w-5 h-5 text-muted-foreground" />
             </button>
