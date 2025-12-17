@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface MyBuddyCardProps {
+  buddyId: string;
   profile: {
     id: string;
     display_name: string | null;
@@ -14,11 +15,12 @@ interface MyBuddyCardProps {
     preferred_species: string[] | null;
   };
   catchCount?: number;
-  onMessage: (userId: string) => void;
+  onMessage: (buddyId: string) => void;
   onRemove: (userId: string) => void;
 }
 
 export function MyBuddyCard({ 
+  buddyId,
   profile, 
   catchCount = 0,
   onMessage,
@@ -81,7 +83,7 @@ export function MyBuddyCard({
               <Button
                 size="sm"
                 variant="default"
-                onClick={() => onMessage(profile.id)}
+                onClick={() => onMessage(buddyId)}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Message

@@ -50,6 +50,51 @@ export type Database = {
           },
         ]
       }
+      buddy_messages: {
+        Row: {
+          buddy_id: string
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_read: boolean | null
+          sender_id: string
+        }
+        Insert: {
+          buddy_id: string
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean | null
+          sender_id: string
+        }
+        Update: {
+          buddy_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buddy_messages_buddy_id_fkey"
+            columns: ["buddy_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_buddies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buddy_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catches: {
         Row: {
           bait_used: string | null

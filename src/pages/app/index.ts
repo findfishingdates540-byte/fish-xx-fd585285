@@ -7,5 +7,7 @@ export { default as Matches } from './Matches';
 export { default as Spots } from './Spots';
 export { default as Catches } from './Catches';
 export { default as Buddies } from './Buddies';
+export { default as BuddyMessages } from './BuddyMessages';
+export { default as BuddyChat } from './BuddyChat';
 export { default as Profile } from './Profile';
 export { default as Settings } from './Settings';
