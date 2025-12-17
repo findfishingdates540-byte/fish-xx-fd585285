@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedInput } from "@/components/ui/animated-input";
+import { SelectableChip } from "@/components/ui/selectable-card";
 import { Search, Fish, Sailboat, Anchor, Snowflake, UtensilsCrossed, Tent, Ship, Camera, Plane, TreePine, Sun, Mountain, Utensils, Footprints } from "lucide-react";
 
 interface StepInterestsProps {
@@ -61,94 +63,155 @@ export function StepInterests({
     a.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalSelected = selectedStyles.length + selectedActivities.length;
+
   return (
-    <div className="space-y-8">
+    <motion.div 
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-        <Input
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <AnimatedInput
           type="text"
           placeholder="Search for interests..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="h-12 pl-12 rounded-xl border-border bg-background"
+          icon={<Search className="w-5 h-5" />}
         />
-      </div>
+      </motion.div>
 
       {/* Fishing Styles */}
-      <div className="space-y-4">
+      <motion.div 
+        className="space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <div className="flex items-center gap-2">
           <Fish className="w-5 h-5 text-primary" />
           <h3 className="font-semibold text-foreground">Fishing Styles</h3>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {filteredStyles.map((style) => {
-            const Icon = style.icon;
-            const isSelected = selectedStyles.includes(style.id);
+          <AnimatePresence>
+            {filteredStyles.map((style, index) => {
+              const Icon = style.icon;
+              const isSelected = selectedStyles.includes(style.id);
 
-            return (
-              <button
-                key={style.id}
-                type="button"
-                onClick={() => toggleStyle(style.id)}
-                className={`relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all duration-200 ${
-                  isSelected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background hover:border-primary/50 text-foreground'
-                }`}
-              >
-                {isSelected && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary-foreground flex items-center justify-center">
-                    <svg className="w-3 h-3 text-primary" fill="currentColor" viewBox="0 0 12 12">
-                      <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                    </svg>
+              return (
+                <motion.button
+                  key={style.id}
+                  type="button"
+                  onClick={() => toggleStyle(style.id)}
+                  className={`relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-colors ${
+                    isSelected
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border bg-background hover:border-primary/50 text-foreground'
+                  }`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <AnimatePresence>
+                    {isSelected && (
+                      <motion.div 
+                        className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary-foreground flex items-center justify-center"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                      >
+                        <svg className="w-3 h-3 text-primary" fill="currentColor" viewBox="0 0 12 12">
+                          <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
+                        </svg>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${
+                    isSelected ? 'bg-primary-foreground/20' : 'bg-muted'
+                  }`}>
+                    <Icon className={`w-5 h-5 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                   </div>
-                )}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${
-                  isSelected ? 'bg-primary-foreground/20' : 'bg-muted'
-                }`}>
-                  <Icon className={`w-5 h-5 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                </div>
-                <span className="text-sm font-medium">{style.label}</span>
-              </button>
-            );
-          })}
+                  <span className="text-sm font-medium">{style.label}</span>
+                </motion.button>
+              );
+            })}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
       {/* Beyond the Water */}
-      <div className="space-y-4">
+      <motion.div 
+        className="space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <div className="flex items-center gap-2">
           <Mountain className="w-5 h-5 text-primary" />
           <h3 className="font-semibold text-foreground">Beyond the Water</h3>
         </div>
         <div className="flex flex-wrap gap-3">
-          {filteredActivities.map((activity) => {
-            const Icon = activity.icon;
-            const isSelected = selectedActivities.includes(activity.id);
+          <AnimatePresence>
+            {filteredActivities.map((activity, index) => {
+              const Icon = activity.icon;
+              const isSelected = selectedActivities.includes(activity.id);
 
-            return (
-              <button
-                key={activity.id}
-                type="button"
-                onClick={() => toggleActivity(activity.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-full border-2 transition-all duration-200 ${
-                  isSelected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background hover:border-primary/50 text-foreground'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                <span className="text-sm font-medium">{activity.label}</span>
-              </button>
-            );
-          })}
+              return (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: index * 0.03 }}
+                >
+                  <SelectableChip
+                    selected={isSelected}
+                    onClick={() => toggleActivity(activity.id)}
+                    icon={<Icon className="w-4 h-4" />}
+                  >
+                    {activity.label}
+                  </SelectableChip>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
-      <p className="text-sm text-muted-foreground text-center">
-        Select at least 3 interests to help us find your perfect catch or spot.
-      </p>
-    </div>
+      {/* Selection Counter */}
+      <motion.p 
+        className={`text-sm text-center ${
+          totalSelected >= 3 ? 'text-green-600' : 'text-muted-foreground'
+        }`}
+        animate={{
+          scale: totalSelected >= 3 ? [1, 1.05, 1] : 1,
+        }}
+        transition={{ duration: 0.2 }}
+      >
+        {totalSelected >= 3 ? (
+          <span className="flex items-center justify-center gap-2">
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center"
+            >
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 12 12">
+                <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
+              </svg>
+            </motion.span>
+            Great! You've selected {totalSelected} interests.
+          </span>
+        ) : (
+          `Select at least 3 interests (${totalSelected}/3)`
+        )}
+      </motion.p>
+    </motion.div>
   );
 }

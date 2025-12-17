@@ -1,6 +1,9 @@
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { AnimatedInput } from "@/components/ui/animated-input";
+import { SelectableCard } from "@/components/ui/selectable-card";
 import { Label } from "@/components/ui/label";
-import { User, Calendar } from "lucide-react";
+import { User } from "lucide-react";
+import { motion } from "framer-motion";
 
 type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
 
@@ -29,77 +32,135 @@ export function StepBasicInfoNew({
   setGender,
   showGender = true,
 }: StepBasicInfoNewProps) {
+  const [firstNameError, setFirstNameError] = useState('');
+  const [dobError, setDobError] = useState('');
+  const [firstNameTouched, setFirstNameTouched] = useState(false);
+  const [dobTouched, setDobTouched] = useState(false);
+
   const today = new Date();
   const minAge = 18;
   const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate())
     .toISOString()
     .split('T')[0];
 
+  // Validate first name
+  useEffect(() => {
+    if (!firstNameTouched) return;
+    if (!firstName.trim()) {
+      setFirstNameError('Please enter your first name');
+    } else if (firstName.length < 2) {
+      setFirstNameError('Name must be at least 2 characters');
+    } else if (firstName.length > 50) {
+      setFirstNameError('Name must be less than 50 characters');
+    } else {
+      setFirstNameError('');
+    }
+  }, [firstName, firstNameTouched]);
+
+  // Validate date of birth
+  useEffect(() => {
+    if (!dobTouched) return;
+    if (!dateOfBirth) {
+      setDobError('Please enter your date of birth');
+    } else {
+      const dob = new Date(dateOfBirth);
+      const age = Math.floor((today.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+      if (age < 18) {
+        setDobError('You must be at least 18 years old');
+      } else if (age > 120) {
+        setDobError('Please enter a valid date');
+      } else {
+        setDobError('');
+      }
+    }
+  }, [dateOfBirth, dobTouched]);
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ staggerChildren: 0.1 }}
+    >
       {/* First Name */}
-      <div className="space-y-2">
-        <Label htmlFor="firstName" className="text-sm font-medium text-foreground">
-          First Name
-        </Label>
-        <div className="relative">
-          <Input
-            id="firstName"
-            type="text"
-            placeholder="e.g. River"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="h-12 pl-4 pr-12 rounded-xl border-border bg-background text-foreground placeholder:text-muted-foreground"
-          />
-          <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <AnimatedInput
+          label="First Name"
+          type="text"
+          placeholder="e.g. River"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          onBlur={() => setFirstNameTouched(true)}
+          error={firstNameError}
+          success={firstNameTouched && !firstNameError && firstName.length >= 2}
+          icon={<User className="w-5 h-5" />}
+        />
+      </motion.div>
 
       {/* Date of Birth */}
-      <div className="space-y-2">
-        <Label htmlFor="dob" className="text-sm font-medium text-foreground">
-          Date of Birth
-        </Label>
-        <div className="relative">
-          <Input
-            id="dob"
-            type="date"
-            max={maxDate}
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            className="h-12 pl-4 pr-12 rounded-xl border-border bg-background text-foreground"
-          />
-        </div>
-        <p className="text-xs text-primary">
-          You must be at least 18 years old to use FindFish Date.
-        </p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <AnimatedInput
+          label="Date of Birth"
+          type="date"
+          max={maxDate}
+          value={dateOfBirth}
+          onChange={(e) => setDateOfBirth(e.target.value)}
+          onBlur={() => setDobTouched(true)}
+          error={dobError}
+          success={dobTouched && !dobError && !!dateOfBirth}
+        />
+        {!dobError && (
+          <motion.p 
+            className="text-xs text-primary mt-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            You must be at least 18 years old to use FindFish Date.
+          </motion.p>
+        )}
+      </motion.div>
 
       {/* Gender Selection */}
       {showGender && (
-        <div className="space-y-3">
+        <motion.div 
+          className="space-y-3"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <Label className="text-sm font-medium text-foreground">
             I identify as...
           </Label>
           <div className="grid grid-cols-3 gap-3">
-            {genderOptions.map((option) => (
-              <button
+            {genderOptions.map((option, index) => (
+              <motion.div
                 key={option.value}
-                type="button"
-                onClick={() => setGender(option.value)}
-                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
-                  gender === option.value
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/50'
-                }`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 + index * 0.1 }}
               >
-                <span className="text-2xl text-primary mb-1">{option.icon}</span>
-                <span className="text-sm font-medium text-foreground">{option.label}</span>
-              </button>
+                <SelectableCard
+                  selected={gender === option.value}
+                  onClick={() => setGender(option.value)}
+                  className="flex flex-col items-center justify-center py-4"
+                >
+                  <span className="text-2xl text-primary mb-1">{option.icon}</span>
+                  <span className="text-sm font-medium text-foreground">{option.label}</span>
+                </SelectableCard>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

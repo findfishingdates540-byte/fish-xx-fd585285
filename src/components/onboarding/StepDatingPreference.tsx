@@ -1,5 +1,7 @@
+import { motion } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { SelectableCard, SelectableChip } from "@/components/ui/selectable-card";
 import { Heart, Users, Sparkles, UserPlus } from "lucide-react";
 
 type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
@@ -65,78 +67,114 @@ export function StepDatingPreference({
     interestedIn.includes('non_binary');
 
   return (
-    <div className="space-y-8">
+    <motion.div 
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
       {/* Gender Preference */}
-      <div className="space-y-4">
+      <motion.div 
+        className="space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <Label className="text-sm font-medium text-foreground">
           Who are you interested in?
         </Label>
         <div className="grid grid-cols-3 gap-3">
-          {genderOptions.map((option) => {
+          {genderOptions.map((option, index) => {
             const isSelected = option.value === 'everyone' 
               ? isEveryoneSelected 
               : interestedIn.includes(option.value as Gender);
 
             return (
-              <button
+              <motion.button
                 key={option.value}
                 type="button"
                 onClick={() => toggleGenderPreference(option.value)}
-                className={`py-3 px-4 rounded-xl border-2 font-medium transition-all duration-200 ${
+                className={`py-3 px-4 rounded-xl border-2 font-medium transition-colors ${
                   isSelected
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-background hover:border-primary/50 text-foreground'
                 }`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {option.label}
-              </button>
+              </motion.button>
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
       {/* Looking For */}
-      <div className="space-y-4">
+      <motion.div 
+        className="space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <Label className="text-sm font-medium text-foreground">
           What are you looking for?
         </Label>
         <div className="grid grid-cols-2 gap-3">
-          {lookingForOptions.map((option) => {
+          {lookingForOptions.map((option, index) => {
             const Icon = option.icon;
             const isSelected = lookingFor.includes(option.value);
 
             return (
-              <button
+              <motion.div
                 key={option.value}
-                type="button"
-                onClick={() => toggleLookingFor(option.value)}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-200 ${
-                  isSelected
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border bg-background hover:border-primary/50'
-                }`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  isSelected ? 'bg-primary/20' : 'bg-muted'
-                }`}>
-                  <Icon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                </div>
-                <span className={`font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                  {option.label}
-                </span>
-              </button>
+                <SelectableCard
+                  selected={isSelected}
+                  onClick={() => toggleLookingFor(option.value)}
+                  className="flex items-center gap-3 p-4"
+                >
+                  <motion.div 
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      isSelected ? 'bg-primary/20' : 'bg-muted'
+                    }`}
+                    animate={{
+                      scale: isSelected ? [1, 1.1, 1] : 1,
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Icon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </motion.div>
+                  <span className={`font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                    {option.label}
+                  </span>
+                </SelectableCard>
+              </motion.div>
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
       {/* Age Range */}
-      <div className="space-y-4">
+      <motion.div 
+        className="space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
         <div className="flex justify-between items-center">
           <Label className="text-sm font-medium text-foreground">Age Range</Label>
-          <span className="text-sm font-medium text-primary">
+          <motion.span 
+            className="text-sm font-medium text-primary"
+            key={`${ageRange[0]}-${ageRange[1]}`}
+            initial={{ scale: 1.2 }}
+            animate={{ scale: 1 }}
+          >
             {ageRange[0]} - {ageRange[1]} years
-          </span>
+          </motion.span>
         </div>
         <Slider
           value={ageRange}
@@ -146,15 +184,25 @@ export function StepDatingPreference({
           step={1}
           className="w-full"
         />
-      </div>
+      </motion.div>
 
       {/* Distance */}
-      <div className="space-y-4">
+      <motion.div 
+        className="space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
         <div className="flex justify-between items-center">
           <Label className="text-sm font-medium text-foreground">Maximum Distance</Label>
-          <span className="text-sm font-medium text-primary">
+          <motion.span 
+            className="text-sm font-medium text-primary"
+            key={maxDistance}
+            initial={{ scale: 1.2 }}
+            animate={{ scale: 1 }}
+          >
             {maxDistance} km
-          </span>
+          </motion.span>
         </div>
         <Slider
           value={[maxDistance]}
@@ -164,7 +212,7 @@ export function StepDatingPreference({
           step={5}
           className="w-full"
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
