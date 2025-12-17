@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useMapboxToken } from "@/hooks/use-mapbox-token";
+import { useSavedSpots } from "@/hooks/use-saved-spots";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,7 @@ const FILTER_OPTIONS = [
 export default function Spots() {
   const { user } = useAuth();
   const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
+  const { isSpotSaved, toggleSaveSpot } = useSavedSpots();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -353,6 +355,8 @@ export default function Spots() {
                   spot={spot}
                   distance={calculateDistance(spot.location_lat, spot.location_lng)}
                   isSelected={selectedSpot?.id === spot.id}
+                  isSaved={isSpotSaved(spot.id)}
+                  onToggleSave={() => toggleSaveSpot(spot.id)}
                   onClick={() => handleSpotClick(spot)}
                 />
               ))
@@ -408,10 +412,12 @@ interface SpotCardProps {
   spot: FishingSpot;
   distance: string;
   isSelected: boolean;
+  isSaved: boolean;
+  onToggleSave: () => void;
   onClick: () => void;
 }
 
-function SpotCard({ spot, distance, isSelected, onClick }: SpotCardProps) {
+function SpotCard({ spot, distance, isSelected, isSaved, onToggleSave, onClick }: SpotCardProps) {
   const navigate = useNavigate();
   const getCrowdLevel = (): { label: string; color: string } => {
     // Mock crowd level based on rating count
@@ -450,8 +456,18 @@ function SpotCard({ spot, distance, isSelected, onClick }: SpotCardProps) {
         </Badge>
 
         {/* Favorite Button */}
-        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors">
-          <Heart className="h-4 w-4" />
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSave();
+          }}
+          className={`absolute top-3 right-3 w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${
+            isSaved 
+              ? "bg-red-500 text-white hover:bg-red-600" 
+              : "bg-background/80 hover:bg-background"
+          }`}
+        >
+          <Heart className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
         </button>
       </div>
 
