@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Bell, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MatchCard } from '@/components/matches/MatchCard';
@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { useOnlineStatus } from '@/hooks/use-online-presence';
 
 // Mock data for matches - will be replaced with real data
 const mockMatches = [
@@ -118,6 +119,10 @@ export default function Matches() {
 
   const accountMode = profile?.account_mode || 'both';
 
+  // Get all match user IDs for online status tracking
+  const matchUserIds = useMemo(() => mockMatches.map(m => m.id), []);
+  const { isOnline } = useOnlineStatus(matchUserIds);
+
   const filteredMatches = mockMatches.filter((match) =>
     match.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -184,6 +189,7 @@ export default function Matches() {
                 <MatchCard
                   key={match.id}
                   {...match}
+                  status={isOnline(match.id) ? 'online' : match.status}
                   onSayHi={() => handleSayHi(match.id)}
                   onStartChat={() => handleStartChat(match.id)}
                   onWave={() => handleWave(match.id)}

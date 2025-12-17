@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatArea } from '@/components/chat/ChatArea';
 import { ProfileSidebar } from '@/components/chat/ProfileSidebar';
+import { useOnlineStatus } from '@/hooks/use-online-presence';
 import {
   Sheet,
   SheetContent,
@@ -112,6 +113,25 @@ export default function Chat() {
     enabled: !!user?.id,
   });
 
+  // Get all conversation user IDs for online status tracking
+  const allUserIds = useMemo(() => {
+    const ids = mockConversations.map(c => c.id);
+    // Add the current match profile ID if available
+    if (matchId) ids.push(matchId);
+    return ids;
+  }, [matchId]);
+  const { isOnline } = useOnlineStatus(allUserIds);
+
+  // Update conversations with real online status
+  const conversationsWithStatus = useMemo(() => 
+    mockConversations.map(convo => ({
+      ...convo,
+      isOnline: isOnline(convo.id)
+    })), [isOnline]);
+
+  // Check if current match is online (using matchId or mock profile)
+  const isMatchOnline = matchId ? isOnline(matchId) : mockMatchProfile.isOnline;
+
   const handleSelectConversation = (id: string) => {
     navigate(`/app/messages/${id}`);
   };
@@ -130,7 +150,7 @@ export default function Chat() {
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Left Sidebar */}
       <ChatSidebar
-        conversations={mockConversations}
+        conversations={conversationsWithStatus}
         selectedId={matchId}
         onSelect={handleSelectConversation}
         unreadCount={3}
@@ -140,7 +160,7 @@ export default function Chat() {
       <ChatArea
         matchName={mockMatchProfile.name}
         matchPhoto={mockMatchProfile.photo}
-        isOnline={mockMatchProfile.isOnline}
+        isOnline={isMatchOnline}
         messages={messages}
         currentUserId="me"
         onSendMessage={handleSendMessage}
@@ -153,7 +173,7 @@ export default function Chat() {
           name={mockMatchProfile.name}
           age={mockMatchProfile.age}
           photo={mockMatchProfile.photo}
-          isOnline={mockMatchProfile.isOnline}
+          isOnline={isMatchOnline}
           location={mockMatchProfile.location}
           bio={mockMatchProfile.bio}
           interests={mockMatchProfile.interests}
@@ -172,7 +192,7 @@ export default function Chat() {
             name={mockMatchProfile.name}
             age={mockMatchProfile.age}
             photo={mockMatchProfile.photo}
-            isOnline={mockMatchProfile.isOnline}
+            isOnline={isMatchOnline}
             location={mockMatchProfile.location}
             bio={mockMatchProfile.bio}
             interests={mockMatchProfile.interests}
