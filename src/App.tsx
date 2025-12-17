@@ -19,6 +19,7 @@ import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit, Chat, Matches, Settings } from "./pages/app";
+import SpotDetail from "./pages/app/SpotDetail";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="messages" element={<Messages />} />
               <Route path="messages/:matchId" element={<Chat />} />
               <Route path="spots" element={<Spots />} />
+              <Route path="spots/:id" element={<SpotDetail />} />
               <Route path="catches" element={<Catches />} />
               <Route path="buddies" element={<Buddies />} />
               <Route path="profile" element={<Profile />} />

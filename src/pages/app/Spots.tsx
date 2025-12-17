@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useMapboxToken } from "@/hooks/use-mapbox-token";
@@ -411,6 +412,7 @@ interface SpotCardProps {
 }
 
 function SpotCard({ spot, distance, isSelected, onClick }: SpotCardProps) {
+  const navigate = useNavigate();
   const getCrowdLevel = (): { label: string; color: string } => {
     // Mock crowd level based on rating count
     const count = spot.rating_count || 0;
@@ -483,7 +485,14 @@ function SpotCard({ spot, distance, isSelected, onClick }: SpotCardProps) {
         </div>
 
         {/* View Details Button */}
-        <Button variant="outline" className="w-full">
+        <Button 
+          variant="outline" 
+          className="w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/app/spots/${spot.id}`);
+          }}
+        >
           View Details
         </Button>
       </div>
