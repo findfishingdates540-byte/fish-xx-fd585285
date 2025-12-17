@@ -156,7 +156,7 @@ export default function Discover() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden lg:ml-60">
         <div className="w-full max-w-sm">
           <div onClick={handleProfileClick} className="cursor-pointer">
             <ProfileCard profile={mockProfile} />
