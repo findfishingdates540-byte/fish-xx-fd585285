@@ -1,6 +1,13 @@
 export { StepProgress } from './StepProgress';
 export { StepBasicInfo } from './StepBasicInfo';
+export { StepBasicInfoNew } from './StepBasicInfoNew';
 export { StepPhotos } from './StepPhotos';
+export { StepPhotoUpload } from './StepPhotoUpload';
 export { StepBio, fishingLookingForOptions } from './StepBio';
 export { StepPreferences } from './StepPreferences';
 export { StepFishingProfile } from './StepFishingProfile';
+export { StepLocation } from './StepLocation';
+export { StepExperienceLevel } from './StepExperienceLevel';
+export { StepInterests } from './StepInterests';
+export { StepDatingPreference } from './StepDatingPreference';
+export { StepPreferenceSync } from './StepPreferenceSync';

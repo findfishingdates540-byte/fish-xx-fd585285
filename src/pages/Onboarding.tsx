@@ -1,55 +1,52 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Fish, HelpCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
-import { StepProgress } from "@/components/onboarding/StepProgress";
-import { StepBasicInfo } from "@/components/onboarding/StepBasicInfo";
-import { StepPhotos } from "@/components/onboarding/StepPhotos";
-import { StepBio, fishingLookingForOptions } from "@/components/onboarding/StepBio";
-import { StepPreferences } from "@/components/onboarding/StepPreferences";
-import { StepFishingProfile } from "@/components/onboarding/StepFishingProfile";
+import { StepBasicInfoNew } from "@/components/onboarding/StepBasicInfoNew";
+import { StepPhotoUpload } from "@/components/onboarding/StepPhotoUpload";
+import { StepLocation } from "@/components/onboarding/StepLocation";
+import { StepExperienceLevel } from "@/components/onboarding/StepExperienceLevel";
+import { StepInterests } from "@/components/onboarding/StepInterests";
+import { StepDatingPreference } from "@/components/onboarding/StepDatingPreference";
+import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 
-import onboardingStep1 from "@/assets/onboarding-step1.jpg";
-import onboardingStep2 from "@/assets/onboarding-step2.jpg";
-import onboardingStep3 from "@/assets/onboarding-step3.jpg";
-import onboardingStep4 from "@/assets/onboarding-step4.jpg";
+import fishingRodImage from "@/assets/onboarding-step1.jpg";
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
 type LookingFor = 'relationship' | 'casual' | 'friends' | 'fishing_buddy';
 type FishingExperience = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
-const stepImages = [onboardingStep1, onboardingStep2, onboardingStep3, onboardingStep4];
-
-const stepTitles: Record<AccountMode, string[]> = {
-  dating: ['About You', 'Your Photos', 'Your Story', 'Preferences'],
-  fishing: ['About You', 'Your Photos', 'Fishing Profile', 'Preferences'],
-  both: ['About You', 'Your Photos', 'Your Story', 'Preferences'],
+// Step configurations per account mode
+const stepConfigs: Record<AccountMode, string[]> = {
+  dating: ['basic_info', 'photo', 'location', 'interests', 'dating_preference', 'success'],
+  fishing: ['basic_info', 'experience', 'interests', 'photo', 'location', 'success'],
+  both: ['basic_info', 'photo', 'location', 'experience', 'interests', 'dating_preference', 'preference_sync', 'success'],
 };
 
-const stepSubtitles: Record<AccountMode, string[]> = {
-  dating: [
-    'Tell us a bit about yourself',
-    'Show your best side',
-    'What makes you unique?',
-    'Who are you looking for?',
-  ],
-  fishing: [
-    'Tell us a bit about yourself',
-    'Show your fishing adventures',
-    'Share your fishing experience',
-    'Find your fishing companions',
-  ],
-  both: [
-    'Tell us a bit about yourself',
-    'Show your best side',
-    'Share your story and fishing experience',
-    'Set your preferences',
-  ],
+const stepTitles: Record<string, { title: string; subtitle: string }> = {
+  basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to find your perfect catch or fishing buddy.' },
+  photo: { title: 'Show us your best catch!', subtitle: 'Upload a clear photo of yourself so others can recognize you on the water. A good photo builds trust!' },
+  location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots in your waters.' },
+  experience: { title: 'How much experience do you have on the water?', subtitle: 'This helps us match you with the right fishing buddies or dates.' },
+  interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 interests to help us find your perfect catch or spot.' },
+  dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
+  preference_sync: { title: "Let's Sync Your Worlds", subtitle: "We'll use this to find matches who love the water just as much as you do." },
+};
+
+const stepLabels: Record<string, string> = {
+  basic_info: 'Basic Info',
+  photo: 'Profile Photo',
+  location: 'Location Setup',
+  experience: 'Experience Level',
+  interests: 'Interest Selection',
+  dating_preference: 'Dating Preference',
+  preference_sync: 'Preference Sync',
 };
 
 export default function Onboarding() {
@@ -57,30 +54,47 @@ export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [accountMode, setAccountMode] = useState<AccountMode>('both');
   
-  // Step 1: Basic Info
+  // Basic Info
+  const [firstName, setFirstName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState<Gender | null>(null);
-  const [locationName, setLocationName] = useState('');
   
-  // Step 2: Photos
+  // Photos
   const [photos, setPhotos] = useState<string[]>([]);
   
-  // Step 3: Bio / Fishing Profile
-  const [bio, setBio] = useState('');
-  const [lookingFor, setLookingFor] = useState<LookingFor[]>([]);
-  const [fishingExperience, setFishingExperience] = useState<FishingExperience>('beginner');
-  const [preferredSpecies, setPreferredSpecies] = useState<string[]>([]);
-  const [fishingGear, setFishingGear] = useState<string[]>([]);
+  // Location
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zipCode, setZipCode] = useState('');
   
-  // Step 4: Preferences
+  // Fishing
+  const [fishingExperience, setFishingExperience] = useState<FishingExperience>('beginner');
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  
+  // Dating Preferences
   const [interestedIn, setInterestedIn] = useState<Gender[]>([]);
+  const [lookingFor, setLookingFor] = useState<LookingFor[]>([]);
   const [ageRange, setAgeRange] = useState<[number, number]>([18, 50]);
   const [maxDistance, setMaxDistance] = useState(50);
+  
+  // Preference Sync (Combo mode)
+  const [fishingImportance, setFishingImportance] = useState(50);
+  const [myStyle, setMyStyle] = useState('weekend_warrior');
+  const [theirStyle, setTheirStyle] = useState('any');
+  const [myPace, setMyPace] = useState<'relaxed' | 'intense'>('relaxed');
+  const [theirPace, setTheirPace] = useState<'relaxed' | 'intense'>('relaxed');
+  const [comboActivities, setComboActivities] = useState<string[]>([]);
+
+  const steps = stepConfigs[accountMode].filter(s => s !== 'success');
+  const totalSteps = steps.length;
+  const currentStepKey = steps[currentStep];
+  const progress = ((currentStep + 1) / totalSteps) * 100;
 
   useEffect(() => {
     if (authLoading) return;
@@ -90,7 +104,6 @@ export default function Onboarding() {
       return;
     }
 
-    // Fetch current profile data
     const fetchProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -105,23 +118,26 @@ export default function Onboarding() {
       }
 
       if (data) {
-        // If onboarding is already completed, redirect to home
         if (data.onboarding_completed) {
           navigate('/');
           return;
         }
 
         setAccountMode(data.account_mode || 'both');
+        if (data.display_name) setFirstName(data.display_name);
         if (data.date_of_birth) setDateOfBirth(data.date_of_birth);
         if (data.gender) setGender(data.gender);
-        if (data.location_name) setLocationName(data.location_name);
         if (data.photos) setPhotos(data.photos);
-        if (data.bio) setBio(data.bio);
-        if (data.looking_for) setLookingFor(data.looking_for);
+        if (data.location_name) {
+          const parts = data.location_name.split(', ');
+          if (parts[0]) setCity(parts[0]);
+          if (parts[1]) setState(parts[1]);
+        }
         if (data.fishing_experience) setFishingExperience(data.fishing_experience);
-        if (data.preferred_species) setPreferredSpecies(data.preferred_species);
-        if (data.fishing_gear) setFishingGear(data.fishing_gear);
+        if (data.preferred_species) setSelectedStyles(data.preferred_species);
+        if (data.fishing_gear) setSelectedActivities(data.fishing_gear);
         if (data.interested_in) setInterestedIn(data.interested_in);
+        if (data.looking_for) setLookingFor(data.looking_for);
         if (data.min_age_preference && data.max_age_preference) {
           setAgeRange([data.min_age_preference, data.max_age_preference]);
         }
@@ -134,11 +150,13 @@ export default function Onboarding() {
     fetchProfile();
   }, [user, authLoading, navigate]);
 
-  const totalSteps = 4;
-
   const validateStep = (): boolean => {
-    switch (currentStep) {
-      case 1:
+    switch (currentStepKey) {
+      case 'basic_info':
+        if (!firstName.trim()) {
+          toast({ title: "Please enter your first name", variant: "destructive" });
+          return false;
+        }
         if (!dateOfBirth) {
           toast({ title: "Please enter your date of birth", variant: "destructive" });
           return false;
@@ -148,19 +166,27 @@ export default function Onboarding() {
           return false;
         }
         return true;
-      case 2:
-        if (photos.length < 1) {
-          toast({ title: "Please add at least one photo", variant: "destructive" });
+      case 'photo':
+        // Photo is optional but encouraged
+        return true;
+      case 'location':
+        // Location can be skipped
+        return true;
+      case 'experience':
+        return true;
+      case 'interests':
+        if (selectedStyles.length + selectedActivities.length < 3) {
+          toast({ title: "Please select at least 3 interests", variant: "destructive" });
           return false;
         }
         return true;
-      case 3:
-        return true; // Bio is optional
-      case 4:
-        if ((accountMode === 'dating' || accountMode === 'both') && interestedIn.length === 0) {
+      case 'dating_preference':
+        if (interestedIn.length === 0) {
           toast({ title: "Please select who you're interested in", variant: "destructive" });
           return false;
         }
+        return true;
+      case 'preference_sync':
         return true;
       default:
         return true;
@@ -170,27 +196,38 @@ export default function Onboarding() {
   const handleNext = () => {
     if (!validateStep()) return;
     
-    if (currentStep < totalSteps) {
+    if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
+    } else {
+      handleComplete();
     }
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
+  const handleSkip = () => {
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
   const handleComplete = async () => {
-    if (!validateStep() || !user) return;
+    if (!user) return;
     
     setSaving(true);
 
     try {
+      const locationName = [city, state].filter(Boolean).join(', ');
+      
       const updateData: Record<string, any> = {
+        display_name: firstName,
         date_of_birth: dateOfBirth,
         photos,
-        bio,
+        location_name: locationName || null,
         max_distance_km: maxDistance,
         onboarding_completed: true,
       };
@@ -204,13 +241,9 @@ export default function Onboarding() {
       }
 
       if (accountMode === 'fishing' || accountMode === 'both') {
-        updateData.location_name = locationName;
         updateData.fishing_experience = fishingExperience;
-        updateData.preferred_species = preferredSpecies;
-        updateData.fishing_gear = fishingGear;
-        if (accountMode === 'fishing') {
-          updateData.looking_for = lookingFor;
-        }
+        updateData.preferred_species = selectedStyles;
+        updateData.fishing_gear = selectedActivities;
       }
 
       const { error } = await supabase
@@ -220,12 +253,7 @@ export default function Onboarding() {
 
       if (error) throw error;
 
-      toast({
-        title: "Profile complete!",
-        description: "Welcome to Find Fishing Dates",
-      });
-
-      navigate('/');
+      navigate('/onboarding/success');
     } catch (error: any) {
       toast({
         title: "Error saving profile",
@@ -246,99 +274,82 @@ export default function Onboarding() {
   }
 
   const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
+    switch (currentStepKey) {
+      case 'basic_info':
         return (
-          <StepBasicInfo
+          <StepBasicInfoNew
+            firstName={firstName}
+            setFirstName={setFirstName}
             dateOfBirth={dateOfBirth}
             setDateOfBirth={setDateOfBirth}
             gender={gender}
             setGender={setGender}
-            locationName={locationName}
-            setLocationName={setLocationName}
             showGender={accountMode === 'dating' || accountMode === 'both'}
-            showLocation={accountMode === 'fishing' || accountMode === 'both'}
           />
         );
-      case 2:
+      case 'photo':
         return (
-          <StepPhotos
+          <StepPhotoUpload
             photos={photos}
             setPhotos={setPhotos}
             userId={user?.id || ''}
-            maxPhotos={accountMode === 'fishing' ? 4 : 6}
-            minPhotos={1}
           />
         );
-      case 3:
-        if (accountMode === 'fishing') {
-          return (
-            <StepFishingProfile
-              experience={fishingExperience}
-              setExperience={setFishingExperience}
-              preferredSpecies={preferredSpecies}
-              setPreferredSpecies={setPreferredSpecies}
-              fishingGear={fishingGear}
-              setFishingGear={setFishingGear}
-            />
-          );
-        }
+      case 'location':
         return (
-          <div className="space-y-8">
-            <StepBio
-              bio={bio}
-              setBio={setBio}
-              lookingFor={lookingFor}
-              setLookingFor={setLookingFor}
-              showLookingFor={accountMode === 'dating'}
-            />
-            {accountMode === 'both' && (
-              <StepFishingProfile
-                experience={fishingExperience}
-                setExperience={setFishingExperience}
-                preferredSpecies={preferredSpecies}
-                setPreferredSpecies={setPreferredSpecies}
-                fishingGear={fishingGear}
-                setFishingGear={setFishingGear}
-              />
-            )}
-          </div>
+          <StepLocation
+            city={city}
+            setCity={setCity}
+            state={state}
+            setState={setState}
+            zipCode={zipCode}
+            setZipCode={setZipCode}
+          />
         );
-      case 4:
-        if (accountMode === 'fishing') {
-          return (
-            <div className="space-y-6">
-              <StepBio
-                bio={bio}
-                setBio={setBio}
-                lookingFor={lookingFor}
-                setLookingFor={setLookingFor}
-                showLookingFor={true}
-                lookingForOptions={fishingLookingForOptions}
-              />
-              <StepPreferences
-                interestedIn={interestedIn}
-                setInterestedIn={setInterestedIn}
-                ageRange={ageRange}
-                setAgeRange={setAgeRange}
-                maxDistance={maxDistance}
-                setMaxDistance={setMaxDistance}
-                showGenderPreference={false}
-                showAgeRange={false}
-              />
-            </div>
-          );
-        }
+      case 'experience':
         return (
-          <StepPreferences
+          <StepExperienceLevel
+            experience={fishingExperience}
+            setExperience={setFishingExperience}
+          />
+        );
+      case 'interests':
+        return (
+          <StepInterests
+            selectedStyles={selectedStyles}
+            setSelectedStyles={setSelectedStyles}
+            selectedActivities={selectedActivities}
+            setSelectedActivities={setSelectedActivities}
+          />
+        );
+      case 'dating_preference':
+        return (
+          <StepDatingPreference
             interestedIn={interestedIn}
             setInterestedIn={setInterestedIn}
+            lookingFor={lookingFor}
+            setLookingFor={setLookingFor}
             ageRange={ageRange}
             setAgeRange={setAgeRange}
             maxDistance={maxDistance}
             setMaxDistance={setMaxDistance}
-            showGenderPreference={true}
-            showAgeRange={true}
+          />
+        );
+      case 'preference_sync':
+        return (
+          <StepPreferenceSync
+            fishingImportance={fishingImportance}
+            setFishingImportance={setFishingImportance}
+            myStyle={myStyle}
+            setMyStyle={setMyStyle}
+            theirStyle={theirStyle}
+            setTheirStyle={setTheirStyle}
+            myPace={myPace}
+            setMyPace={setMyPace}
+            theirPace={theirPace}
+            setTheirPace={setTheirPace}
+            comboActivities={comboActivities}
+            setComboActivities={setComboActivities}
           />
         );
       default:
@@ -346,81 +357,132 @@ export default function Onboarding() {
     }
   };
 
+  const canSkip = ['photo', 'location'].includes(currentStepKey);
+  const isLastStep = currentStep === totalSteps - 1;
+
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        {stepImages.map((img, index) => (
-          <img
-            key={index}
-            src={img}
-            alt={`Onboarding step ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
-              currentStep === index + 1 
-                ? 'opacity-100 scale-100' 
-                : 'opacity-0 scale-105'
-            }`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-      </div>
-
-      {/* Right side - Form */}
-      <div className="flex-1 flex flex-col p-6 lg:p-12 max-w-xl mx-auto w-full">
-        <div className="mb-8">
-          <StepProgress currentStep={currentStep} totalSteps={totalSteps} />
-        </div>
-
-        <div className="flex-1 flex flex-col">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              {stepTitles[accountMode][currentStep - 1]}
-            </h1>
-            <p className="text-muted-foreground">
-              {stepSubtitles[accountMode][currentStep - 1]}
-            </p>
+    <div className="min-h-screen bg-muted">
+      {/* Header */}
+      <header className="bg-background border-b border-border px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Fish className="w-6 h-6 text-primary" />
+            <span className="font-bold text-lg text-foreground">FindFish Date</span>
           </div>
-
-          <div className="flex-1 overflow-y-auto pb-8">
-            {renderStepContent()}
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-border">
-            {currentStep > 1 && (
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex-1"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
+          <div className="flex items-center gap-4">
+            {accountMode !== 'fishing' && (
+              <span className="text-sm text-muted-foreground hidden sm:block">
+                Already have an account?{' '}
+                <Link to="/auth" className="text-foreground font-medium hover:underline">
+                  Log In
+                </Link>
+              </span>
             )}
-            
-            {currentStep < totalSteps ? (
-              <Button
-                onClick={handleNext}
-                className="flex-1 bg-foreground text-background hover:bg-foreground/90"
-              >
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleComplete}
-                disabled={saving}
-                className="flex-1 bg-foreground text-background hover:bg-foreground/90"
-              >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  <Check className="w-4 h-4 mr-2" />
-                )}
-                Complete Setup
-              </Button>
-            )}
+            <button className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
+              <HelpCircle className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="bg-background rounded-3xl border border-border overflow-hidden">
+          <div className="flex flex-col lg:flex-row min-h-[600px]">
+            {/* Left Side - Image/Info (Desktop) */}
+            <div className="hidden lg:flex lg:w-2/5 bg-muted p-8 flex-col justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-primary mb-2">Join the Community</h2>
+                <p className="text-muted-foreground">
+                  Connect with thousands of fishing enthusiasts and singles in your area.
+                </p>
+              </div>
+              <div className="flex-1 flex items-end">
+                <img
+                  src={fishingRodImage}
+                  alt="Fishing"
+                  className="w-full max-w-sm mx-auto rounded-2xl object-cover"
+                />
+              </div>
+            </div>
+
+            {/* Right Side - Form */}
+            <div className="flex-1 p-6 lg:p-10 flex flex-col">
+              {/* Step Progress */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-primary">
+                      STEP {currentStep + 1} OF {totalSteps}
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {stepLabels[currentStepKey]}
+                  </span>
+                </div>
+                <Progress value={progress} className="h-1.5" />
+              </div>
+
+              {/* Step Title */}
+              <div className="mb-8">
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
+                  {stepTitles[currentStepKey]?.title}
+                </h1>
+                <p className="text-muted-foreground">
+                  {stepTitles[currentStepKey]?.subtitle}
+                </p>
+              </div>
+
+              {/* Step Content */}
+              <div className="flex-1 overflow-y-auto">
+                {renderStepContent()}
+              </div>
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
+                <div>
+                  {currentStep > 0 && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleBack}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  {canSkip && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleSkip}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Skip for now
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleNext}
+                    disabled={saving}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
+                  >
+                    {saving ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    {isLastStep ? 'Finalize & Find Matches' : 'Continue'}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          © {new Date().getFullYear()} FindFish Date. All rights reserved.
+        </p>
       </div>
     </div>
   );
