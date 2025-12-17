@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { useOnlineStatus } from '@/hooks/use-online-presence';
+import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 
 // Mock data for matches - will be replaced with real data
 const mockMatches = [
@@ -121,7 +121,7 @@ export default function Matches() {
 
   // Get all match user IDs for online status tracking
   const matchUserIds = useMemo(() => mockMatches.map(m => m.id), []);
-  const { isOnline } = useOnlineStatus(matchUserIds);
+  const { isOnline, getLastSeen } = useOnlineStatus(matchUserIds);
 
   const filteredMatches = mockMatches.filter((match) =>
     match.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -190,6 +190,7 @@ export default function Matches() {
                   key={match.id}
                   {...match}
                   status={isOnline(match.id) ? 'online' : match.status}
+                  lastSeen={!isOnline(match.id) ? formatLastSeen(getLastSeen(match.id)) || match.lastSeen : undefined}
                   onSayHi={() => handleSayHi(match.id)}
                   onStartChat={() => handleStartChat(match.id)}
                   onWave={() => handleWave(match.id)}

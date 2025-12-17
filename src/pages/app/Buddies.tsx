@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BuddyCard, BuddyFilters, BuddyRequestCard, MyBuddyCard } from '@/components/buddies';
 import { useToast } from '@/hooks/use-toast';
-import { useOnlineStatus } from '@/hooks/use-online-presence';
+import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { Users, UserPlus, Inbox, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -55,7 +55,7 @@ export default function Buddies() {
     return Array.from(ids);
   }, [discoverProfiles, myBuddies]);
 
-  const { isOnline } = useOnlineStatus(allUserIds);
+  const { isOnline, getLastSeen } = useOnlineStatus(allUserIds);
 
   useEffect(() => {
     if (user) {
@@ -382,6 +382,7 @@ export default function Buddies() {
                   catchCount={catchCounts[profile.id] || 0}
                   isRequested={requestedIds.has(profile.id)}
                   isOnline={isOnline(profile.id)}
+                  lastSeen={formatLastSeen(getLastSeen(profile.id))}
                   onSendRequest={sendBuddyRequest}
                 />
               ))}
@@ -444,6 +445,7 @@ export default function Buddies() {
                   profile={buddy}
                   catchCount={catchCounts[buddy.id] || 0}
                   isOnline={isOnline(buddy.id)}
+                  lastSeen={getLastSeen(buddy.id)}
                   onMessage={handleMessage}
                   onRemove={removeBuddy}
                 />
