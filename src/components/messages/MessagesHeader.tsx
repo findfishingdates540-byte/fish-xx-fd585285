@@ -31,7 +31,7 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: M
         </Link>
 
         {/* Navigation - Desktop only */}
-        <nav className="hidden lg:flex items-center gap-8">
+        <nav className="hidden xl:flex items-center gap-8">
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
@@ -70,7 +70,7 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: M
       </div>
 
       {/* Navigation row - Tablet/Mobile only */}
-      <nav className="hidden md:flex lg:hidden h-12 px-4 items-center justify-center gap-8 border-t border-border">
+      <nav className="hidden md:flex xl:hidden h-12 px-4 items-center justify-center gap-8 border-t border-border">
         {navLinks.map((link) => (
           <NavLink
             key={link.to}
