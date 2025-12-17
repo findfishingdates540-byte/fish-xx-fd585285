@@ -47,22 +47,26 @@ const Privacy = () => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
-          <Link to="/" className="flex items-center gap-2">
-            <Fish className="h-6 w-6 text-primary" />
-            <span className="font-bold text-foreground">FindFish Date</span>
+          <Link to="/">
+            <img src={logo} alt="Find Fishing Dates" className="h-24 w-auto" />
           </Link>
           
           <div className="hidden md:flex items-center gap-10 text-sm font-medium">
-            <Link to="/" className="text-foreground hover:opacity-60 transition-opacity">Home</Link>
-            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Modes</Link>
+            <Link to="/about" className="text-foreground hover:opacity-60 transition-opacity">About</Link>
+            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Dating</Link>
+            <Link to="/fishing" className="text-foreground hover:opacity-60 transition-opacity">Fishing</Link>
             <Link to="/safety" className="text-foreground hover:opacity-60 transition-opacity">Safety</Link>
-            <Link to="/auth" className="text-foreground hover:opacity-60 transition-opacity">Login</Link>
           </div>
           
           <div className="flex items-center gap-4">
+            <Link to="/auth">
+              <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
+                Log in
+              </Button>
+            </Link>
             <Link to="/auth?mode=signup">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6">
-                Sign Up
+              <Button className="btn-primary">
+                Sign up
               </Button>
             </Link>
           </div>
