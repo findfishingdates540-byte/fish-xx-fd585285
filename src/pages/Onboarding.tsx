@@ -57,14 +57,35 @@ const stepConfigs: Record<AccountMode, string[]> = {
   both: ['basic_info', 'photo', 'location', 'experience', 'interests', 'dating_preference', 'preference_sync', 'success'],
 };
 
-const stepTitles: Record<string, { title: string; subtitle: string }> = {
-  basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to find your perfect catch or fishing buddy.' },
-  photo: { title: 'Show us your best catch!', subtitle: 'Upload a clear photo of yourself so others can recognize you on the water. A good photo builds trust!' },
-  location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots in your waters.' },
-  experience: { title: 'How much experience do you have on the water?', subtitle: 'This helps us match you with the right fishing buddies or dates.' },
-  interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 interests to help us find your perfect catch or spot.' },
-  dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
-  preference_sync: { title: "Let's Sync Your Worlds", subtitle: "We'll use this to find matches who love the water just as much as you do." },
+// Mode-specific step titles and subtitles
+const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subtitle: string }>> = {
+  dating: {
+    basic_info: { title: "Let's get to know you", subtitle: 'We need a few basics to help you find your perfect match.' },
+    photo: { title: 'Show your best self!', subtitle: 'Upload a clear photo of yourself. A good photo helps build trust and connection!' },
+    location: { title: 'Where are you located?', subtitle: 'Set your location to find matches nearby.' },
+    interests: { title: 'What are you into?', subtitle: 'Select at least 3 interests to help us find compatible matches.' },
+    dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
+  },
+  fishing: {
+    basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to connect you with fellow anglers.' },
+    photo: { title: 'Show us your best catch!', subtitle: 'Upload a clear photo of yourself so others can recognize you on the water.' },
+    location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots.' },
+    experience: { title: 'How experienced are you?', subtitle: 'This helps us match you with the right fishing buddies.' },
+    interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 fishing styles and activities you enjoy.' },
+  },
+  both: {
+    basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to find your perfect catch or fishing buddy.' },
+    photo: { title: 'Show us your best catch!', subtitle: 'Upload a clear photo of yourself so others can recognize you on the water. A good photo builds trust!' },
+    location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots in your waters.' },
+    experience: { title: 'How much experience do you have on the water?', subtitle: 'This helps us match you with the right fishing buddies or dates.' },
+    interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 interests to help us find your perfect catch or spot.' },
+    dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
+    preference_sync: { title: "Let's Sync Your Worlds", subtitle: "We'll use this to find matches who love the water just as much as you do." },
+  },
+};
+
+const getStepTitles = (mode: AccountMode, stepKey: string) => {
+  return stepTitlesConfig[mode][stepKey] || { title: '', subtitle: '' };
 };
 
 const stepLabels: Record<string, string> = {
@@ -352,6 +373,7 @@ export default function Onboarding() {
             setSelectedStyles={setSelectedStyles}
             selectedActivities={selectedActivities}
             setSelectedActivities={setSelectedActivities}
+            accountMode={accountMode}
           />
         );
       case 'dating_preference':
@@ -365,6 +387,7 @@ export default function Onboarding() {
             setAgeRange={setAgeRange}
             maxDistance={maxDistance}
             setMaxDistance={setMaxDistance}
+            accountMode={accountMode}
           />
         );
       case 'preference_sync':
@@ -483,10 +506,10 @@ export default function Onboarding() {
                   className="mb-8"
                 >
                   <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
-                    {stepTitles[currentStepKey]?.title}
+                    {getStepTitles(accountMode, currentStepKey).title}
                   </h1>
                   <p className="text-muted-foreground">
-                    {stepTitles[currentStepKey]?.subtitle}
+                    {getStepTitles(accountMode, currentStepKey).subtitle}
                   </p>
                 </motion.div>
               </AnimatePresence>
