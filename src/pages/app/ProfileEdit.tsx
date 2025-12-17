@@ -39,6 +39,8 @@ export default function ProfileEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
@@ -159,6 +161,47 @@ export default function ProfileEdit() {
       console.error("Remove error:", error);
       toast.error("Failed to remove photo");
     }
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex || !user) return;
+
+    const newPhotos = [...photos];
+    const [draggedPhoto] = newPhotos.splice(draggedIndex, 1);
+    newPhotos.splice(dropIndex, 0, draggedPhoto);
+
+    setPhotos(newPhotos);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+
+    // Save reordered photos
+    await supabase
+      .from("profiles")
+      .update({ photos: newPhotos })
+      .eq("id", user.id);
+
+    toast.success("Photos reordered");
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleSave = async () => {
@@ -334,11 +377,24 @@ export default function ProfileEdit() {
           <CardContent>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
               {photos.map((photo, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
+                <div
+                  key={photo}
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`relative aspect-square rounded-lg overflow-hidden bg-muted group cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                    draggedIndex === index ? "opacity-50 scale-95" : ""
+                  } ${
+                    dragOverIndex === index ? "ring-2 ring-primary ring-offset-2" : ""
+                  }`}
+                >
                   <img
                     src={photo}
                     alt={`Photo ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                   />
                   <button
                     onClick={() => handleRemovePhoto(photo)}
@@ -351,6 +407,7 @@ export default function ProfileEdit() {
                       Main
                     </span>
                   )}
+                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors pointer-events-none" />
                 </div>
               ))}
               {photos.length < 6 && (
@@ -371,7 +428,7 @@ export default function ProfileEdit() {
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              Add up to 6 photos. Your first photo will be your main profile picture.
+              Drag photos to reorder. Your first photo will be your main profile picture.
             </p>
           </CardContent>
         </Card>
