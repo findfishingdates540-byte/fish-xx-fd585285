@@ -17,6 +17,8 @@ import { StepDatingPreference } from "@/components/onboarding/StepDatingPreferen
 import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
+import datingImage from "@/assets/dating-hero.jpg";
+import comboImage from "@/assets/couple-fishing.jpg";
 
 // Animation variants - fade only, no sliding
 const stepVariants = {
@@ -447,15 +449,21 @@ export default function Onboarding() {
             {/* Left Side - Image/Info (Desktop) */}
             <div className="hidden lg:flex lg:w-2/5 bg-muted p-8 flex-col justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-primary mb-2">Join the Community</h2>
+                <h2 className="text-2xl font-bold text-primary mb-2">
+                  {accountMode === 'dating' && 'Find Your Match'}
+                  {accountMode === 'fishing' && 'Join the Community'}
+                  {accountMode === 'both' && 'Find Love on the Water'}
+                </h2>
                 <p className="text-muted-foreground">
-                  Connect with thousands of fishing enthusiasts and singles in your area.
+                  {accountMode === 'dating' && 'Connect with singles who share your interests and values.'}
+                  {accountMode === 'fishing' && 'Connect with thousands of fishing enthusiasts in your area.'}
+                  {accountMode === 'both' && 'Meet singles who love fishing as much as you do.'}
                 </p>
               </div>
               <div className="flex-1 flex items-center">
                 <img
-                  src={fishingRodImage}
-                  alt="Fishing"
+                  src={accountMode === 'dating' ? datingImage : accountMode === 'fishing' ? fishingRodImage : comboImage}
+                  alt={accountMode === 'dating' ? 'Dating' : accountMode === 'fishing' ? 'Fishing' : 'Couple Fishing'}
                   className="w-full max-w-sm mx-auto rounded-2xl object-cover"
                 />
               </div>
