@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import OnboardingSuccess from "./pages/OnboardingSuccess";
 import About from "./pages/About";
 import Dating from "./pages/Dating";
 import Fishing from "./pages/Fishing";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/about" element={<About />} />
             <Route path="/dating" element={<Dating />} />
             <Route path="/fishing" element={<Fishing />} />
