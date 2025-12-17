@@ -287,6 +287,96 @@ export type Database = {
           },
         ]
       }
+      fishing_trips: {
+        Row: {
+          bait_details: string | null
+          coordinates_notes: string | null
+          created_at: string
+          departure_reminder: boolean | null
+          end_time: string | null
+          fishing_spot_id: string | null
+          gear_checklist: Json | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          location_name: string | null
+          notes: string | null
+          start_time: string | null
+          status: string
+          target_species: string[] | null
+          title: string
+          trip_date: string
+          trip_type: string
+          updated_at: string
+          user_id: string
+          weather_alert: boolean | null
+          weather_notes: string | null
+        }
+        Insert: {
+          bait_details?: string | null
+          coordinates_notes?: string | null
+          created_at?: string
+          departure_reminder?: boolean | null
+          end_time?: string | null
+          fishing_spot_id?: string | null
+          gear_checklist?: Json | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          notes?: string | null
+          start_time?: string | null
+          status?: string
+          target_species?: string[] | null
+          title: string
+          trip_date: string
+          trip_type?: string
+          updated_at?: string
+          user_id: string
+          weather_alert?: boolean | null
+          weather_notes?: string | null
+        }
+        Update: {
+          bait_details?: string | null
+          coordinates_notes?: string | null
+          created_at?: string
+          departure_reminder?: boolean | null
+          end_time?: string | null
+          fishing_spot_id?: string | null
+          gear_checklist?: Json | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          notes?: string | null
+          start_time?: string | null
+          status?: string
+          target_species?: string[] | null
+          title?: string
+          trip_date?: string
+          trip_type?: string
+          updated_at?: string
+          user_id?: string
+          weather_alert?: boolean | null
+          weather_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fishing_trips_fishing_spot_id_fkey"
+            columns: ["fishing_spot_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_spots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fishing_trips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           created_at: string
@@ -622,6 +712,45 @@ export type Database = {
           },
           {
             foreignKeyName: "spot_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_participants: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_participants_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_participants_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

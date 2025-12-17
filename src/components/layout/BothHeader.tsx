@@ -18,6 +18,7 @@ import logo from "@/assets/logo.jpg";
 const bothNavItems = [
   { to: "/app/discover", label: "Discover" },
   { to: "/app/spots", label: "Find Spots" },
+  { to: "/app/trips", label: "My Trips" },
   { to: "/app/catches", label: "Catches" },
   { to: "/app/messages", label: "Messages" },
   { to: "/app/profile", label: "Profile" },

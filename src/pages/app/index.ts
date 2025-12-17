@@ -11,3 +11,6 @@ export { default as BuddyMessages } from './BuddyMessages';
 export { default as BuddyChat } from './BuddyChat';
 export { default as Profile } from './Profile';
 export { default as Settings } from './Settings';
+export { default as Trips } from './Trips';
+export { default as TripPlanner } from './TripPlanner';
+export { default as TripDetail } from './TripDetail';
