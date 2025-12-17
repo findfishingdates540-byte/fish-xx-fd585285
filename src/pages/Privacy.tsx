@@ -1,259 +1,402 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { 
+  Fish, 
+  Search, 
+  Info, 
+  Database, 
+  BarChart3, 
+  Share2, 
+  Shield, 
+  Mail,
+  User,
+  MapPin,
+  Image,
+  Activity,
+  CheckCircle,
+  ChevronDown,
+  Calendar
+} from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import logo from '@/assets/logo.jpg';
 
+const sections = [
+  { id: 'introduction', label: 'Introduction', icon: Info },
+  { id: 'data-collection', label: 'Data Collection', icon: Database },
+  { id: 'data-usage', label: 'Data Usage', icon: BarChart3 },
+  { id: 'sharing', label: 'Sharing & Disclosures', icon: Share2 },
+  { id: 'rights', label: 'Your Rights', icon: Shield },
+  { id: 'contact', label: 'Contact Us', icon: Mail },
+];
+
 const Privacy = () => {
+  const [activeSection, setActiveSection] = useState('introduction');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const scrollToSection = (id: string) => {
+    setActiveSection(id);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
-          <Link to="/">
-            <img src={logo} alt="Find Fishing Dates" className="h-24 w-auto" />
+          <Link to="/" className="flex items-center gap-2">
+            <Fish className="h-6 w-6 text-primary" />
+            <span className="font-bold text-foreground">FindFish Date</span>
           </Link>
           
           <div className="hidden md:flex items-center gap-10 text-sm font-medium">
-            <Link to="/about" className="text-foreground hover:opacity-60 transition-opacity">About</Link>
-            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Dating</Link>
-            <Link to="/fishing" className="text-foreground hover:opacity-60 transition-opacity">Fishing</Link>
+            <Link to="/" className="text-foreground hover:opacity-60 transition-opacity">Home</Link>
+            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Modes</Link>
             <Link to="/safety" className="text-foreground hover:opacity-60 transition-opacity">Safety</Link>
+            <Link to="/auth" className="text-foreground hover:opacity-60 transition-opacity">Login</Link>
           </div>
           
           <div className="flex items-center gap-4">
-            <Link to="/auth">
-              <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
-                Log in
-              </Button>
-            </Link>
             <Link to="/auth?mode=signup">
-              <Button className="btn-primary">
-                Sign up
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6">
+                Sign Up
               </Button>
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Content */}
-      <main className="pt-32 pb-20 px-6">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Privacy Policy</h1>
-          <p className="text-muted-foreground mb-12">Last updated: December 16, 2025</p>
-          
-          <div className="prose prose-lg max-w-none">
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">1. Introduction</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Welcome to Find Fishing Dates ("we," "our," or "us"). We are committed to protecting your 
-                personal information and your right to privacy. This Privacy Policy explains how we collect, 
-                use, disclose, and safeguard your information when you use our mobile application and website.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Please read this privacy policy carefully. If you do not agree with the terms of this privacy 
-                policy, please do not access the application.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">2. Information We Collect</h2>
-              
-              <h3 className="text-xl font-semibold text-foreground mb-3">Personal Information You Provide</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                We collect personal information that you voluntarily provide to us when you register on the 
-                application, express interest in obtaining information about us or our products, or otherwise 
-                contact us. This includes:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-6">
-                <li>Name, email address, and phone number</li>
-                <li>Date of birth and gender</li>
-                <li>Profile photos and bio information</li>
-                <li>Fishing preferences and experience level</li>
-                <li>Location data (with your permission)</li>
-                <li>Payment information (processed securely through third-party providers)</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold text-foreground mb-3">Information Automatically Collected</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                When you access our application, we automatically collect certain information, including:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Device information (type, operating system, unique identifiers)</li>
-                <li>Log data (access times, pages viewed, IP address)</li>
-                <li>Location data (if enabled)</li>
-                <li>Usage patterns and preferences</li>
-              </ul>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">3. How We Use Your Information</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                We use the information we collect for various purposes, including:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Creating and managing your account</li>
-                <li>Matching you with compatible users</li>
-                <li>Facilitating communication between users</li>
-                <li>Improving our services and user experience</li>
-                <li>Sending you relevant notifications and updates</li>
-                <li>Processing payments and subscriptions</li>
-                <li>Ensuring platform safety and preventing fraud</li>
-                <li>Complying with legal obligations</li>
-              </ul>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">4. Sharing Your Information</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                We may share your information in the following situations:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li><strong>With Other Users:</strong> Your profile information is visible to other users as part of the matching service</li>
-                <li><strong>Service Providers:</strong> We share data with third parties that perform services for us (payment processing, hosting, analytics)</li>
-                <li><strong>Legal Requirements:</strong> We may disclose information where required by law or to protect our rights</li>
-                <li><strong>Business Transfers:</strong> In connection with any merger, sale, or acquisition</li>
-              </ul>
-              <p className="text-muted-foreground leading-relaxed mt-4">
-                We do not sell your personal information to third parties for marketing purposes.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">5. Data Security</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                We implement appropriate technical and organizational security measures to protect your personal 
-                information. This includes encryption, secure servers, and access controls. However, no method of 
-                transmission over the internet is 100% secure, and we cannot guarantee absolute security.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">6. Data Retention</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                We retain your personal information for as long as your account is active or as needed to provide 
-                you services. We may also retain certain information as required by law, to prevent fraud, resolve 
-                disputes, or enforce our agreements. When you delete your account, we will delete or anonymize your 
-                data within 30 days, unless retention is required by law.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">7. Your Rights</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Depending on your location, you may have the following rights regarding your personal information:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Access and receive a copy of your data</li>
-                <li>Correct inaccurate or incomplete data</li>
-                <li>Delete your personal data</li>
-                <li>Restrict or object to processing</li>
-                <li>Data portability</li>
-                <li>Withdraw consent at any time</li>
-              </ul>
-              <p className="text-muted-foreground leading-relaxed mt-4">
-                To exercise these rights, please contact us at privacy@findfishingdates.com.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">8. Cookies and Tracking</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                We use cookies and similar tracking technologies to collect and store information. You can set 
-                your browser to refuse cookies, but some features of our service may not function properly. We 
-                use cookies for authentication, preferences, analytics, and advertising purposes.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">9. Third-Party Services</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Our application may contain links to third-party websites and services. We are not responsible 
-                for the privacy practices of these third parties. We encourage you to read the privacy policies 
-                of any third-party services you access.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">10. Children's Privacy</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Our service is not intended for users under 18 years of age. We do not knowingly collect personal 
-                information from children under 18. If we discover that we have collected information from a child 
-                under 18, we will delete that information immediately.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">11. International Data Transfers</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Your information may be transferred to and processed in countries other than your own. We ensure 
-                appropriate safeguards are in place to protect your data in accordance with applicable data 
-                protection laws.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">12. Changes to This Policy</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                We may update this privacy policy from time to time. We will notify you of any changes by posting 
-                the new privacy policy on this page and updating the "Last updated" date. We encourage you to 
-                review this privacy policy periodically.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">13. Contact Us</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                If you have questions or concerns about this privacy policy or our practices, please contact us at:
-              </p>
-              <div className="mt-4 text-muted-foreground">
-                <p>Find Fishing Dates</p>
-                <p>Email: privacy@findfishingdates.com</p>
-                <p>Address: 123 Fishing Lane, Lake City, FL 32055</p>
+      {/* Hero Banner */}
+      <div className="pt-20 pb-8 px-6 bg-gradient-to-r from-sky-50 to-blue-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-primary text-sm font-medium mb-2">
+                <Fish className="h-4 w-4" />
+                <span>Legal Center</span>
               </div>
-            </section>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Privacy Policy</h1>
+              <p className="text-muted-foreground max-w-lg">
+                Transparency about how we handle your data in Dating, Fishing, and Combo 
+                modes. We believe trust is the catch of the day.
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-2 bg-background rounded-full px-4 py-2 border border-border text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              Last Updated: Oct 26, 2023
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="px-6 py-12 bg-muted/30">
+        <div className="max-w-7xl mx-auto flex gap-8">
+          {/* Sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="bg-background rounded-2xl shadow-sm border border-border p-6 sticky top-24">
+              {/* Search */}
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search (e.g. cookies)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-muted/50 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              {/* Navigation */}
+              <nav className="space-y-1 mb-8">
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => scrollToSection(section.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left ${
+                      activeSection === section.id
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <section.icon className="h-4 w-4" />
+                    {section.label}
+                  </button>
+                ))}
+              </nav>
+
+              {/* Need Help Box */}
+              <div className="border-t border-border pt-6">
+                <h4 className="font-medium text-foreground mb-2">Need help?</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Our privacy team is available to answer your questions.
+                </p>
+                <a 
+                  href="mailto:privacy@findfishdate.com" 
+                  className="text-primary text-sm font-medium hover:underline flex items-center gap-1"
+                >
+                  privacy@findfishdate.com
+                  <span>↗</span>
+                </a>
+              </div>
+            </div>
+          </aside>
+
+          {/* Content */}
+          <div className="flex-1">
+            <div className="bg-background rounded-2xl shadow-sm border border-border p-8">
+              
+              {/* Section: Introduction */}
+              <section id="introduction" className="mb-12 scroll-mt-24">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
+                    <Info className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground">Introduction</h2>
+                </div>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Welcome to FindFish Date! We are a unique community offering three distinct modes for our users: <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Dating Only</span>, <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Fishing Spots Only</span>, and our signature <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Combo Mode</span>. We understand that your privacy is as important as finding the perfect catch or match.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  This Privacy Policy outlines how we collect, use, process, and share your personal data. By using our services, you consent to the practices described in this policy.
+                </p>
+              </section>
+
+              {/* Section: Information We Collect */}
+              <section id="data-collection" className="mb-12 scroll-mt-24">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
+                    <Database className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground">Information We Collect</h2>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-muted/30 rounded-xl p-5 border border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-foreground">Account Information</h4>
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      When you sign up, we collect basic details such as your name, email address, date of birth, and gender identity to create your profile.
+                    </p>
+                  </div>
+
+                  <div className="bg-muted/30 rounded-xl p-5 border border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-foreground">Location Data</h4>
+                      <MapPin className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Essential for <em>Fishing Spots</em> and <em>Combo Mode</em>. We collect precise geolocation to show nearby spots and potential matches.
+                    </p>
+                  </div>
+
+                  <div className="bg-muted/30 rounded-xl p-5 border border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-foreground">User Content</h4>
+                      <Image className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Photos of your catches, profile pictures, and messages sent within the app are stored securely on our servers.
+                    </p>
+                  </div>
+
+                  <div className="bg-muted/30 rounded-xl p-5 border border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-foreground">Usage Data</h4>
+                      <Activity className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      We collect information about how you interact with our services, such as which features you use and the time spent on the app.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: How We Use Your Data */}
+              <section id="data-usage" className="mb-12 scroll-mt-24">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground">How We Use Your Data</h2>
+                </div>
+                
+                <p className="text-muted-foreground leading-relaxed mb-6">
+                  We use your information to provide, improve, and secure our services. Specifically:
+                </p>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="font-medium text-foreground">To provide matches:</span>
+                      <span className="text-muted-foreground"> We use your preferences and location to suggest potential dates or fishing buddies.</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="font-medium text-foreground">To recommend spots:</span>
+                      <span className="text-muted-foreground"> In Fishing Mode, we analyze community data to suggest the best local fishing spots.</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="font-medium text-foreground">For safety and security:</span>
+                      <span className="text-muted-foreground"> We monitor accounts for fraudulent activity and ensure compliance with our community guidelines.</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: Sharing & Disclosures */}
+              <section id="sharing" className="mb-12 scroll-mt-24">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
+                    <Share2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground">Sharing & Disclosures</h2>
+                </div>
+                
+                <div className="border-l-4 border-primary/30 pl-6">
+                  <p className="text-muted-foreground mb-4">
+                    We do not sell your personal data. We may share information with:
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <Collapsible>
+                      <CollapsibleTrigger className="w-full flex items-center justify-between bg-muted/30 rounded-lg px-4 py-3 text-left hover:bg-muted/50 transition-colors">
+                        <span className="font-medium text-foreground">Service Providers</span>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="px-4 py-3 text-sm text-muted-foreground">
+                        Third-party companies that help us operate our platform, including hosting, payment processing, and analytics providers.
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    <Collapsible>
+                      <CollapsibleTrigger className="w-full flex items-center justify-between bg-muted/30 rounded-lg px-4 py-3 text-left hover:bg-muted/50 transition-colors">
+                        <span className="font-medium text-foreground">Legal Authorities</span>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="px-4 py-3 text-sm text-muted-foreground">
+                        When required by law, court order, or to protect the safety of our users and the public.
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: Your Rights */}
+              <section id="rights" className="mb-12 scroll-mt-24">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
+                    <Shield className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground">Your Rights</h2>
+                </div>
+                
+                <p className="text-muted-foreground leading-relaxed mb-6">
+                  Depending on your location (e.g., GDPR for Europe, CCPA for California), you may have specific rights regarding your personal information:
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-foreground">Right to Access</h4>
+                      <p className="text-sm text-muted-foreground">Request a copy of the data we hold about you.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-foreground">Right to Rectification</h4>
+                      <p className="text-sm text-muted-foreground">Update inaccurate or incomplete information.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-foreground">Right to Deletion</h4>
+                      <p className="text-sm text-muted-foreground">Request that we delete your personal data.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-foreground">Right to Opt-Out</h4>
+                      <p className="text-sm text-muted-foreground">Opt-out of marketing communications at any time.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: Contact Us */}
+              <section id="contact" className="scroll-mt-24">
+                <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-8 text-primary-foreground relative overflow-hidden">
+                  <div className="relative z-10">
+                    <h2 className="text-2xl font-bold mb-3">Contact Us</h2>
+                    <p className="text-primary-foreground/80 mb-6 max-w-md">
+                      If you have any questions about this Privacy Policy or how we handle your data, please contact our Data Protection Officer.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-4">
+                      <a 
+                        href="mailto:privacy@findfishdate.com"
+                        className="flex items-center gap-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 rounded-full px-5 py-2.5 transition-colors"
+                      >
+                        <Mail className="h-4 w-4" />
+                        <div className="text-left">
+                          <div className="text-xs opacity-80">EMAIL</div>
+                          <div className="text-sm font-medium">privacy@findfishdate.com</div>
+                        </div>
+                      </a>
+                      
+                      <div className="flex items-center gap-2 bg-primary-foreground/20 rounded-full px-5 py-2.5">
+                        <MapPin className="h-4 w-4" />
+                        <div className="text-left">
+                          <div className="text-xs opacity-80">OFFICE</div>
+                          <div className="text-sm font-medium">123 Angler Way, Seattle, WA</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Decorative element */}
+                  <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-20">
+                    <Mail className="h-32 w-32" />
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="py-16 px-6 border-t border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="space-y-4">
-              <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
-              <p className="text-muted-foreground">
-                The dating app for fishing enthusiasts.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Company</h4>
-              <div className="space-y-3">
-                <Link to="/about" className="block text-muted-foreground hover:text-foreground transition-colors">About</Link>
-                <Link to="/contact" className="block text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
-                <Link to="/help" className="block text-muted-foreground hover:text-foreground transition-colors">Help Center</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Features</h4>
-              <div className="space-y-3">
-                <Link to="/dating" className="block text-muted-foreground hover:text-foreground transition-colors">Dating</Link>
-                <Link to="/fishing" className="block text-muted-foreground hover:text-foreground transition-colors">Fishing</Link>
-                <Link to="/safety" className="block text-muted-foreground hover:text-foreground transition-colors">Safety</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Legal</h4>
-              <div className="space-y-3">
-                <Link to="/privacy" className="block text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
-                <Link to="/terms" className="block text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link>
-              </div>
-            </div>
+      <footer className="py-8 px-6 border-t border-border">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Fish className="h-4 w-4 text-primary" />
+            <span className="text-sm">© 2023 FindFish Date</span>
           </div>
           
-          <div className="border-t border-border pt-8 text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} Find Fishing Dates. All rights reserved.</p>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link to="/help" className="hover:text-foreground transition-colors">Cookie Policy</Link>
           </div>
         </div>
       </footer>
