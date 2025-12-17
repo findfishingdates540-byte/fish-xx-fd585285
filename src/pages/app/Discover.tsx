@@ -8,7 +8,9 @@ import {
   ProfileCard,
   SwipeActions,
   RightSidebar,
+  ProfileDetailView,
   type ProfileData,
+  type ProfileDetailData,
 } from '@/components/discover';
 import coupleFishing from '@/assets/couple-fishing.jpg';
 import datingCouple1 from '@/assets/dating-couple-1.jpg';
@@ -31,6 +33,26 @@ const mockProfile: ProfileData = {
     { icon: '🚤', label: 'Boat Owner' },
     { icon: '📅', label: 'Weekend Angler' },
   ],
+};
+
+// Extended mock data for detail view
+const mockProfileDetail: ProfileDetailData = {
+  id: '1',
+  name: 'Jessica',
+  age: 28,
+  location: 'Orlando, FL',
+  distance: '15 miles away',
+  bio: "Love early mornings on the lake. Looking for someone who knows how to bait a hook but isn't afraid to get their hands dirty. I spend most weekends on my kayak or hiking up to hidden streams. Let's trade fish stories! 🎣",
+  photos: [coupleFishing, datingCouple1, datingCouple2],
+  isVerified: true,
+  isActive: true,
+  height: "5'7\"",
+  smoker: 'No',
+  drinker: 'Socially',
+  targetSpecies: 'Bass & Trout',
+  bestCatch: '12lb Largemouth',
+  ride: 'Ocean Kayak',
+  interests: ['Fly Fishing', 'Camping', 'Morning Person', 'Sushi Lover', 'Hiking', 'Dogs'],
 };
 
 const mockMatches = [
@@ -69,6 +91,7 @@ export default function Discover() {
   const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>(
     accountMode === 'both' ? 'combo' : accountMode
   );
+  const [showDetailView, setShowDetailView] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ['user-profile', user?.id],
@@ -86,19 +109,39 @@ export default function Discover() {
 
   const handlePass = () => {
     console.log('Passed');
+    setShowDetailView(false);
   };
 
   const handleLike = () => {
     console.log('Liked');
+    setShowDetailView(false);
   };
 
   const handleSuperLike = () => {
     console.log('Super liked');
+    setShowDetailView(false);
   };
 
   const handleRewind = () => {
     console.log('Rewound');
   };
+
+  const handleProfileClick = () => {
+    setShowDetailView(true);
+  };
+
+  // Show detail view
+  if (showDetailView) {
+    return (
+      <ProfileDetailView
+        profile={mockProfileDetail}
+        onClose={() => setShowDetailView(false)}
+        onPass={handlePass}
+        onSuperLike={handleSuperLike}
+        onLike={handleLike}
+      />
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] lg:h-screen">
@@ -115,7 +158,9 @@ export default function Discover() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden">
         <div className="w-full max-w-sm">
-          <ProfileCard profile={mockProfile} />
+          <div onClick={handleProfileClick} className="cursor-pointer">
+            <ProfileCard profile={mockProfile} />
+          </div>
 
           {/* Swipe Actions */}
           <div className="mt-6">
