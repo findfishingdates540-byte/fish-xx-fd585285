@@ -501,7 +501,7 @@ export default function Onboarding() {
                     animate="center"
                     exit="exit"
                     transition={{ duration: 0.2 }}
-                    className="h-full overflow-y-auto"
+                    className="h-full"
                   >
                     {renderStepContent()}
                   </motion.div>
