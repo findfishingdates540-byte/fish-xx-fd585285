@@ -78,57 +78,59 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-muted/30 pb-8">
       {/* Hero Section */}
-      <div className="relative h-48 md:h-64 bg-gradient-to-r from-primary/20 to-primary/10">
-        <img
-          src={coverPhoto}
-          alt="Cover"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-        
-        {/* Profile Avatar */}
-        <div className="absolute -bottom-16 left-4 md:left-8">
-          <div className="relative">
-            <Avatar className="h-28 w-28 md:h-32 md:w-32 border-4 border-background shadow-lg">
-              <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
-              <AvatarFallback className="text-3xl bg-muted">{initials}</AvatarFallback>
-            </Avatar>
-            {profile?.is_verified && (
-              <div className="absolute bottom-2 right-2 h-7 w-7 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
-              </div>
-            )}
+      <div className="max-w-6xl mx-auto px-4 pt-4">
+        <div className="relative h-56 md:h-72 rounded-2xl overflow-hidden">
+          <img
+            src={coverPhoto}
+            alt="Cover"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          
+          {/* Profile Info inside banner */}
+          <div className="absolute bottom-4 left-4 md:left-6 flex items-end gap-4">
+            <div className="relative">
+              <Avatar className="h-24 w-24 md:h-28 md:w-28 border-4 border-white shadow-lg">
+                <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
+                <AvatarFallback className="text-2xl md:text-3xl bg-muted">{initials}</AvatarFallback>
+              </Avatar>
+              {profile?.is_verified && (
+                <div className="absolute bottom-1 right-1 h-6 w-6 bg-primary rounded-full flex items-center justify-center border-2 border-white">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+              )}
+            </div>
+            <div className="mb-2">
+              <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-md">
+                {profile?.display_name || 'User'}{age ? `, ${age}` : ''}
+              </h1>
+              {profile?.location_name && (
+                <div className="flex items-center gap-1 text-white/90 mt-0.5">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm">{profile.location_name}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="absolute bottom-4 right-4 md:right-8 flex gap-2">
-          <Button variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-          <Button asChild size="sm">
-            <Link to="/app/profile/edit">
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Link>
-          </Button>
+          {/* Action Buttons */}
+          <div className="absolute bottom-4 right-4 md:right-6 flex gap-2">
+            <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white">
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/app/profile/edit">
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* User Info */}
-      <div className="max-w-6xl mx-auto px-4 pt-20 md:pt-20">
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">
-            {profile?.display_name || 'User'}{age ? `, ${age}` : ''}
-          </h1>
-          {profile?.location_name && (
-            <div className="flex items-center gap-1 text-muted-foreground mt-1">
-              <MapPin className="h-4 w-4" />
-              <span>{profile.location_name}</span>
-            </div>
-          )}
-        </div>
+      {/* Main Content Grid */}
+      <div className="max-w-6xl mx-auto px-4 pt-6">
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
