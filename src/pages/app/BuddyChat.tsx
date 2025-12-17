@@ -297,7 +297,7 @@ export default function BuddyChat() {
   };
 
   const sendMessage = async (content?: string, imageUrl?: string) => {
-    if (!user || !buddyId || sending) return;
+    if (!user || !buddyId || sending || !buddyProfile) return;
     const msgContent = content || newMessage.trim();
     if (!msgContent && !imageUrl) return;
 
@@ -319,8 +319,48 @@ export default function BuddyChat() {
     if (error) {
       console.error('Error sending message:', error);
       if (!content) setNewMessage(msgContent);
+    } else {
+      // Send push notification to buddy (fire and forget)
+      sendPushNotification(buddyProfile.id, msgContent);
     }
     setSending(false);
+  };
+
+  const sendPushNotification = async (recipientId: string, messageContent: string) => {
+    try {
+      // Get sender's display name
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user?.id)
+        .single();
+
+      const senderName = senderProfile?.display_name || 'Your fishing buddy';
+      
+      // Parse message to create appropriate notification body
+      const parsed = parseMessageContent(messageContent);
+      let notificationBody = parsed.text || messageContent;
+      if (parsed.type === 'spot') {
+        notificationBody = '📍 Shared a fishing spot with you';
+      } else if (parsed.type === 'catch') {
+        notificationBody = '🐟 Shared a catch with you';
+      }
+      if (notificationBody.length > 50) {
+        notificationBody = notificationBody.substring(0, 47) + '...';
+      }
+
+      await supabase.functions.invoke('send-push-notification', {
+        body: {
+          userId: recipientId,
+          title: `New message from ${senderName}`,
+          body: notificationBody,
+          url: `/app/buddy-chat/${buddyId}`,
+          tag: `buddy-message-${buddyId}`
+        }
+      });
+    } catch (error) {
+      console.log('Push notification failed (non-critical):', error);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
