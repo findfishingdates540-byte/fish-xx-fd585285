@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +17,36 @@ import { StepDatingPreference } from "@/components/onboarding/StepDatingPreferen
 import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
+
+// Animation variants
+const stepVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 100 : -100,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 100 : -100,
+    opacity: 0,
+  }),
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
@@ -55,6 +86,7 @@ export default function Onboarding() {
   const { toast } = useToast();
   
   const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [accountMode, setAccountMode] = useState<AccountMode>('both');
@@ -196,6 +228,7 @@ export default function Onboarding() {
   const handleNext = () => {
     if (!validateStep()) return;
     
+    setDirection(1);
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -205,12 +238,14 @@ export default function Onboarding() {
 
   const handleBack = () => {
     if (currentStep > 0) {
+      setDirection(-1);
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleSkip = () => {
     if (currentStep < totalSteps - 1) {
+      setDirection(1);
       setCurrentStep(currentStep + 1);
     }
   };
@@ -409,72 +444,140 @@ export default function Onboarding() {
             {/* Right Side - Form */}
             <div className="flex-1 p-6 lg:p-10 flex flex-col">
               {/* Step Progress */}
-              <div className="mb-8">
+              <motion.div 
+                className="mb-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-primary">
                       STEP {currentStep + 1} OF {totalSteps}
                     </span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
+                  <motion.span 
+                    key={stepLabels[currentStepKey]}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="text-sm text-muted-foreground"
+                  >
                     {stepLabels[currentStepKey]}
-                  </span>
+                  </motion.span>
                 </div>
-                <Progress value={progress} className="h-1.5" />
-              </div>
+                <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
+                  <motion.div
+                    className="absolute inset-y-0 left-0 bg-primary rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                </div>
+              </motion.div>
 
               {/* Step Title */}
-              <div className="mb-8">
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
-                  {stepTitles[currentStepKey]?.title}
-                </h1>
-                <p className="text-muted-foreground">
-                  {stepTitles[currentStepKey]?.subtitle}
-                </p>
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`title-${currentStepKey}`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-8"
+                >
+                  <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
+                    {stepTitles[currentStepKey]?.title}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    {stepTitles[currentStepKey]?.subtitle}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
 
               {/* Step Content */}
-              <div className="flex-1 overflow-y-auto">
-                {renderStepContent()}
+              <div className="flex-1 overflow-hidden relative">
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={currentStepKey}
+                    custom={direction}
+                    variants={stepVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 },
+                    }}
+                    className="h-full overflow-y-auto"
+                  >
+                    {renderStepContent()}
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
+              <motion.div 
+                className="flex items-center justify-between pt-6 mt-6 border-t border-border"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
                 <div>
-                  {currentStep > 0 && (
-                    <Button
-                      variant="ghost"
-                      onClick={handleBack}
-                      className="text-primary hover:text-primary/80"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {currentStep > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                      >
+                        <Button
+                          variant="ghost"
+                          onClick={handleBack}
+                          className="text-primary hover:text-primary/80"
+                        >
+                          <ArrowLeft className="w-4 h-4 mr-2" />
+                          Back
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 <div className="flex items-center gap-3">
-                  {canSkip && (
-                    <Button
-                      variant="ghost"
-                      onClick={handleSkip}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      Skip for now
-                    </Button>
-                  )}
-                  <Button
-                    onClick={handleNext}
-                    disabled={saving}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
+                  <AnimatePresence mode="wait">
+                    {canSkip && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <Button
+                          variant="ghost"
+                          onClick={handleSkip}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          Skip for now
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    {saving ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}
-                    {isLastStep ? 'Finalize & Find Matches' : 'Continue'}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                    <Button
+                      onClick={handleNext}
+                      disabled={saving}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
+                    >
+                      {saving ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : null}
+                      {isLastStep ? 'Finalize & Find Matches' : 'Continue'}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
