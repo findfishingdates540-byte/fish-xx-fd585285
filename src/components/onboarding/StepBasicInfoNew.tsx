@@ -76,18 +76,9 @@ export function StepBasicInfoNew({
   }, [dateOfBirth, dobTouched]);
 
   return (
-    <motion.div 
-      className="space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ staggerChildren: 0.1 }}
-    >
+    <div className="space-y-6">
       {/* First Name */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
+      <div>
         <AnimatedInput
           label="First Name"
           type="text"
@@ -99,14 +90,10 @@ export function StepBasicInfoNew({
           success={firstNameTouched && !firstNameError && firstName.length >= 2}
           icon={<User className="w-5 h-5" />}
         />
-      </motion.div>
+      </div>
 
       {/* Date of Birth */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
+      <div>
         <AnimatedInput
           label="Date of Birth"
           type="date"
@@ -118,49 +105,33 @@ export function StepBasicInfoNew({
           success={dobTouched && !dobError && !!dateOfBirth}
         />
         {!dobError && (
-          <motion.p 
-            className="text-xs text-primary mt-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
+          <p className="text-xs text-primary mt-2">
             You must be at least 18 years old to use FindFish Date.
-          </motion.p>
+          </p>
         )}
-      </motion.div>
+      </div>
 
       {/* Gender Selection */}
       {showGender && (
-        <motion.div 
-          className="space-y-3"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="space-y-3">
           <Label className="text-sm font-medium text-foreground">
             I identify as...
           </Label>
-          <div className="grid grid-cols-3 gap-3">
-            {genderOptions.map((option, index) => (
-              <motion.div
+          <div className="grid grid-cols-3 gap-4">
+            {genderOptions.map((option) => (
+              <SelectableCard
                 key={option.value}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
+                selected={gender === option.value}
+                onClick={() => setGender(option.value)}
+                className="flex flex-col items-center justify-center py-5 px-4 min-w-[100px]"
               >
-                <SelectableCard
-                  selected={gender === option.value}
-                  onClick={() => setGender(option.value)}
-                  className="flex flex-col items-center justify-center py-4"
-                >
-                  <span className="text-2xl text-primary mb-1">{option.icon}</span>
-                  <span className="text-sm font-medium text-foreground">{option.label}</span>
-                </SelectableCard>
-              </motion.div>
+                <span className="text-2xl text-primary mb-1">{option.icon}</span>
+                <span className="text-sm font-medium text-foreground">{option.label}</span>
+              </SelectableCard>
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }
