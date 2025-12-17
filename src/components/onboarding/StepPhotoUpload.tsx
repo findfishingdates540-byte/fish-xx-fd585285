@@ -124,7 +124,7 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
             </div>
           ) : (
             <div
-              className={`relative aspect-square rounded-2xl border-2 border-dashed transition-all duration-200 ${
+              className={`relative aspect-[3/4] rounded-2xl border-2 border-dashed transition-all duration-200 ${
                 dragActive ? 'border-primary bg-primary/5' : 'border-border'
               }`}
               onDragEnter={handleDrag}
