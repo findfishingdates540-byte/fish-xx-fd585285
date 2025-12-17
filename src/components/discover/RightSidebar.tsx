@@ -43,10 +43,10 @@ export function RightSidebar({
           )}
         </div>
 
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+        <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1">
           {newMatches.map((match) => (
             <div key={match.id} className="flex flex-col items-center gap-1.5 flex-shrink-0">
-              <Avatar className="h-14 w-14 ring-2 ring-foreground ring-offset-2">
+              <Avatar className="h-14 w-14 ring-2 ring-foreground ring-offset-2 ring-offset-background">
                 <AvatarImage src={match.photo} alt={match.name} />
                 <AvatarFallback>{match.name.charAt(0)}</AvatarFallback>
               </Avatar>
