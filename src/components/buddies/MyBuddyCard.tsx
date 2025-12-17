@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 interface MyBuddyCardProps {
   buddyId: string;
@@ -15,6 +16,7 @@ interface MyBuddyCardProps {
     preferred_species: string[] | null;
   };
   catchCount?: number;
+  isOnline?: boolean;
   onMessage: (buddyId: string) => void;
   onRemove: (userId: string) => void;
 }
@@ -23,6 +25,7 @@ export function MyBuddyCard({
   buddyId,
   profile, 
   catchCount = 0,
+  isOnline = false,
   onMessage,
   onRemove 
 }: MyBuddyCardProps) {
@@ -36,12 +39,19 @@ export function MyBuddyCard({
     <Card>
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={profile.photos?.[0]} className="object-cover" />
-            <AvatarFallback className="text-lg">
-              {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={profile.photos?.[0]} className="object-cover" />
+              <AvatarFallback className="text-lg">
+                {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+            {/* Online indicator */}
+            <span className={cn(
+              "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-background",
+              isOnline ? "bg-green-500" : "bg-muted-foreground/30"
+            )} />
+          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">
               <div>

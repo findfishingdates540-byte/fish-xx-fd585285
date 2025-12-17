@@ -16,6 +16,7 @@ interface BuddyCardProps {
   };
   catchCount?: number;
   isRequested?: boolean;
+  isOnline?: boolean;
   onSendRequest: (userId: string) => void;
   onMessage?: (userId: string) => void;
 }
@@ -24,6 +25,7 @@ export function BuddyCard({
   profile, 
   catchCount = 0, 
   isRequested = false,
+  isOnline = false,
   onSendRequest,
   onMessage 
 }: BuddyCardProps) {
@@ -41,6 +43,15 @@ export function BuddyCard({
           alt={profile.display_name || 'Angler'}
           className="w-full h-full object-cover"
         />
+        {/* Online indicator */}
+        {isOnline && (
+          <div className="absolute top-2 left-2">
+            <span className="flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </span>
+          </div>
+        )}
         {profile.fishing_experience && (
           <Badge 
             variant="secondary" 

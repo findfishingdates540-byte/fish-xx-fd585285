@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BuddyCard, BuddyFilters, BuddyRequestCard, MyBuddyCard } from '@/components/buddies';
 import { useToast } from '@/hooks/use-toast';
+import { useOnlineStatus } from '@/hooks/use-online-presence';
 import { Users, UserPlus, Inbox, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -45,6 +46,16 @@ export default function Buddies() {
   const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
   const [catchCounts, setCatchCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+
+  // Get all user IDs to track online status
+  const allUserIds = useMemo(() => {
+    const ids = new Set<string>();
+    discoverProfiles.forEach(p => ids.add(p.id));
+    myBuddies.forEach(b => ids.add(b.id));
+    return Array.from(ids);
+  }, [discoverProfiles, myBuddies]);
+
+  const { isOnline } = useOnlineStatus(allUserIds);
 
   useEffect(() => {
     if (user) {
@@ -370,6 +381,7 @@ export default function Buddies() {
                   profile={profile}
                   catchCount={catchCounts[profile.id] || 0}
                   isRequested={requestedIds.has(profile.id)}
+                  isOnline={isOnline(profile.id)}
                   onSendRequest={sendBuddyRequest}
                 />
               ))}
@@ -431,6 +443,7 @@ export default function Buddies() {
                   buddyId={buddy.buddyId}
                   profile={buddy}
                   catchCount={catchCounts[buddy.id] || 0}
+                  isOnline={isOnline(buddy.id)}
                   onMessage={handleMessage}
                   onRemove={removeBuddy}
                 />
