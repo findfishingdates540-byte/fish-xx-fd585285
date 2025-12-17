@@ -18,26 +18,23 @@ import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
 
-// Animation variants
+// Animation variants - fade only, no sliding
 const stepVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 100 : -100,
+  enter: {
     opacity: 0,
-  }),
+  },
   center: {
-    x: 0,
     opacity: 1,
   },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 100 : -100,
+  exit: {
     opacity: 0,
-  }),
+  },
 };
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
+const fadeIn = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
 };
 
 const staggerContainer = {
@@ -479,9 +476,9 @@ export default function Onboarding() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`title-${currentStepKey}`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
                   className="mb-8"
                 >
@@ -496,18 +493,14 @@ export default function Onboarding() {
 
               {/* Step Content */}
               <div className="flex-1 overflow-hidden relative">
-                <AnimatePresence mode="wait" custom={direction}>
+                <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStepKey}
-                    custom={direction}
                     variants={stepVariants}
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{
-                      x: { type: "spring", stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
+                    transition={{ duration: 0.2 }}
                     className="h-full overflow-y-auto"
                   >
                     {renderStepContent()}
@@ -516,19 +509,14 @@ export default function Onboarding() {
               </div>
 
               {/* Navigation */}
-              <motion.div 
-                className="flex items-center justify-between pt-6 mt-6 border-t border-border"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+              <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
                 <div>
                   <AnimatePresence mode="wait">
                     {currentStep > 0 && (
                       <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                       >
                         <Button
                           variant="ghost"
@@ -577,7 +565,7 @@ export default function Onboarding() {
                     </Button>
                   </motion.div>
                 </div>
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>
