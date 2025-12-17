@@ -142,22 +142,23 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
                 <p className="text-sm text-muted-foreground mb-6">
                   Supports JPG, PNG (Max 5MB)
                 </p>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full px-4">
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
                   >
-                    <Upload className="w-4 h-4 mr-2" />
-                    {uploading ? 'Uploading...' : 'Upload from Computer'}
+                    <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{uploading ? 'Uploading...' : 'Upload from Computer'}</span>
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
+                    className="w-full sm:w-auto"
                   >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Take a New Photo
+                    <Camera className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Take a New Photo</span>
                   </Button>
                 </div>
               </div>
