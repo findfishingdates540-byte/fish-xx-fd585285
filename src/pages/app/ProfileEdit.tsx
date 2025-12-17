@@ -164,24 +164,28 @@ export default function ProfileEdit() {
 
       {/* Hero Banner */}
       <div className="px-4 md:px-6">
-        <div className="relative h-48 md:h-56 rounded-2xl overflow-hidden bg-muted">
-          <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=400&fit=crop"
-            alt="Cover"
-            className="w-full h-full object-cover"
-          />
-          <Button
-            variant="secondary"
-            size="sm"
-            className="absolute top-4 right-4 gap-2"
-          >
-            <Pencil className="h-4 w-4" />
-            Edit Banner
-          </Button>
+        <div className="relative">
+          {/* Banner Image */}
+          <div className="h-48 md:h-56 rounded-2xl overflow-hidden bg-muted">
+            <img
+              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=400&fit=crop"
+              alt="Cover"
+              className="w-full h-full object-cover"
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-4 right-4 gap-2 z-10"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Banner
+            </Button>
+          </div>
 
-          {/* Profile Photo overlapping banner */}
-          <div className="absolute -bottom-16 left-6 md:left-8">
-            <div className="relative">
+          {/* Profile Photo & Info - positioned to overlap banner */}
+          <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-16 ml-6 md:ml-8">
+            {/* Profile Photo */}
+            <div className="relative flex-shrink-0">
               <div className="h-32 w-32 rounded-full border-4 border-background overflow-hidden bg-muted">
                 <img
                   src={profilePhoto}
@@ -193,20 +197,20 @@ export default function ProfileEdit() {
                 <Camera className="h-4 w-4" />
               </button>
             </div>
-          </div>
-        </div>
 
-        {/* Photo change section */}
-        <div className="mt-20 md:ml-44 flex flex-col md:flex-row md:items-center gap-3">
-          <div>
-            <h3 className="font-semibold">Change Profile Photo</h3>
-            <p className="text-sm text-muted-foreground">
-              Max 5MB, JPG or PNG. Make sure your face is visible!
-            </p>
+            {/* Photo change section */}
+            <div className="flex flex-col md:flex-row md:items-center gap-3 pb-2">
+              <div>
+                <h3 className="font-semibold">Change Profile Photo</h3>
+                <p className="text-sm text-muted-foreground">
+                  Max 5MB, JPG or PNG. Make sure your face is visible!
+                </p>
+              </div>
+              <Button variant="outline" className="w-fit">
+                Remove Photo
+              </Button>
+            </div>
           </div>
-          <Button variant="outline" className="w-fit">
-            Remove Photo
-          </Button>
         </div>
       </div>
 
