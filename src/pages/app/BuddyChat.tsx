@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Fish } from 'lucide-react';
+import { ArrowLeft, Send, Fish, Check, CheckCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -31,7 +31,10 @@ export default function BuddyChat() {
   const [buddyProfile, setBuddyProfile] = useState<BuddyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     if (user && buddyId) {
@@ -40,10 +43,43 @@ export default function BuddyChat() {
     }
   }, [user, buddyId]);
 
+  // Setup presence channel for typing indicators
   useEffect(() => {
-    if (!buddyId) return;
+    if (!buddyId || !user || !buddyProfile) return;
 
-    // Subscribe to new messages
+    const presenceChannel = supabase.channel(`buddy-typing-${buddyId}`, {
+      config: { presence: { key: user.id } }
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        // Check if buddy is typing
+        const buddyState = state[buddyProfile.id];
+        if (buddyState && buddyState.length > 0) {
+          const latestState = buddyState[0] as { isTyping?: boolean };
+          setIsTyping(latestState.isTyping || false);
+        } else {
+          setIsTyping(false);
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ isTyping: false });
+        }
+      });
+
+    presenceChannelRef.current = presenceChannel;
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [buddyId, user?.id, buddyProfile?.id]);
+
+  // Subscribe to messages (INSERT and UPDATE for read receipts)
+  useEffect(() => {
+    if (!buddyId || !user) return;
+
     const channel = supabase
       .channel(`buddy-messages-${buddyId}`)
       .on(
@@ -59,9 +95,24 @@ export default function BuddyChat() {
           setMessages(prev => [...prev, newMsg]);
           
           // Mark as read if not from current user
-          if (newMsg.sender_id !== user?.id) {
+          if (newMsg.sender_id !== user.id) {
             markMessagesAsRead();
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'buddy_messages',
+          filter: `buddy_id=eq.${buddyId}`
+        },
+        (payload) => {
+          const updatedMsg = payload.new as Message;
+          setMessages(prev => prev.map(msg => 
+            msg.id === updatedMsg.id ? updatedMsg : msg
+          ));
         }
       )
       .subscribe();
@@ -73,7 +124,7 @@ export default function BuddyChat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -133,8 +184,37 @@ export default function BuddyChat() {
       .eq('is_read', false);
   };
 
+  const updateTypingStatus = useCallback(async (typing: boolean) => {
+    if (presenceChannelRef.current) {
+      await presenceChannelRef.current.track({ isTyping: typing });
+    }
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    // Update typing status
+    updateTypingStatus(true);
+    
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set timeout to stop typing indicator after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      updateTypingStatus(false);
+    }, 2000);
+  };
+
   const sendMessage = async () => {
     if (!user || !buddyId || !newMessage.trim() || sending) return;
+
+    // Clear typing status
+    updateTypingStatus(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
     setSending(true);
     const content = newMessage.trim();
@@ -225,8 +305,14 @@ export default function BuddyChat() {
         <div className="flex-1">
           <h2 className="font-semibold">{buddyProfile?.display_name || 'Anonymous'}</h2>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Fish className="w-3 h-3" />
-            Fishing Buddy
+            {isTyping ? (
+              <span className="text-primary animate-pulse">typing...</span>
+            ) : (
+              <>
+                <Fish className="w-3 h-3" />
+                Fishing Buddy
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -264,20 +350,41 @@ export default function BuddyChat() {
                     )}
                   >
                     <p className="break-words">{msg.content}</p>
-                    <p className={cn(
-                      "text-xs mt-1",
+                    <div className={cn(
+                      "flex items-center justify-end gap-1 mt-1",
                       msg.sender_id === user?.id
                         ? "text-primary-foreground/70"
                         : "text-muted-foreground"
                     )}>
-                      {formatTime(msg.created_at)}
-                    </p>
+                      <span className="text-xs">{formatTime(msg.created_at)}</span>
+                      {msg.sender_id === user?.id && (
+                        msg.is_read ? (
+                          <CheckCheck className="w-3.5 h-3.5" />
+                        ) : (
+                          <Check className="w-3.5 h-3.5" />
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ))
         )}
+        
+        {/* Typing indicator bubble */}
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="bg-muted rounded-2xl px-4 py-3">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -287,7 +394,7 @@ export default function BuddyChat() {
           <Input
             placeholder="Type a message..."
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             className="flex-1"
           />
