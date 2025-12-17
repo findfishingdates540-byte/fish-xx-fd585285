@@ -1,8 +1,30 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Download, Heart, Fish, Users, CheckCircle, AlertTriangle } from 'lucide-react';
 import logo from '@/assets/logo.jpg';
 
+const sections = [
+  { id: 'introduction', label: 'Introduction' },
+  { id: 'eligibility', label: 'Eligibility & Account' },
+  { id: 'mode-rules', label: 'Mode-Specific Rules' },
+  { id: 'safety', label: 'Safety & Conduct' },
+  { id: 'intellectual', label: 'Intellectual Property' },
+  { id: 'disclaimers', label: 'Disclaimers & Liability' },
+  { id: 'dispute', label: 'Dispute Resolution' },
+];
+
 const Terms = () => {
+  const [activeSection, setActiveSection] = useState('introduction');
+
+  const scrollToSection = (id: string) => {
+    setActiveSection(id);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -13,302 +35,338 @@ const Terms = () => {
           </Link>
           
           <div className="hidden md:flex items-center gap-10 text-sm font-medium">
+            <Link to="/" className="text-foreground hover:opacity-60 transition-opacity">Home</Link>
+            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Modes</Link>
             <Link to="/about" className="text-foreground hover:opacity-60 transition-opacity">About</Link>
-            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Dating</Link>
-            <Link to="/fishing" className="text-foreground hover:opacity-60 transition-opacity">Fishing</Link>
-            <Link to="/safety" className="text-foreground hover:opacity-60 transition-opacity">Safety</Link>
+            <Link to="/contact" className="text-foreground hover:opacity-60 transition-opacity">Contact</Link>
           </div>
           
           <div className="flex items-center gap-4">
             <Link to="/auth">
-              <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
-                Log in
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button className="btn-primary">
-                Sign up
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6">
+                Login
               </Button>
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Content */}
-      <main className="pt-32 pb-20 px-6">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Terms of Service</h1>
-          <p className="text-muted-foreground mb-12">Last updated: December 16, 2025</p>
-          
-          <div className="prose prose-lg max-w-none">
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">1. Agreement to Terms</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                By accessing or using Find Fishing Dates ("Service"), you agree to be bound by these Terms of 
-                Service ("Terms"). If you disagree with any part of these terms, you do not have permission to 
-                access the Service. These Terms apply to all visitors, users, and others who access or use the Service.
-              </p>
+      {/* Hero Banner */}
+      <div className="pt-28 pb-8 px-6 bg-gradient-to-r from-sky-50 to-blue-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-primary text-sm font-medium mb-2">
+                <Fish className="h-4 w-4" />
+                <span>LEGAL CENTER</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Terms & Conditions</h1>
+              <p className="text-muted-foreground">Last Updated: October 24, 2023</p>
+            </div>
+            <Button variant="outline" className="hidden md:flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Download PDF
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="px-6 py-12">
+        <div className="max-w-7xl mx-auto flex gap-12">
+          {/* Sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-32">
+              <div className="mb-8">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
+                  TABLE OF CONTENTS
+                </h3>
+                <nav className="space-y-1">
+                  {sections.map((section, index) => (
+                    <button
+                      key={section.id}
+                      onClick={() => scrollToSection(section.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left ${
+                        activeSection === section.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs ${
+                        activeSection === section.id
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted-foreground/20'
+                      }`}>
+                        {index + 1}
+                      </span>
+                      {section.label}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Need Help Box */}
+              <div className="bg-sky-50 rounded-xl p-4 border border-sky-100">
+                <div className="flex items-center gap-2 text-primary font-medium mb-2">
+                  <span className="text-lg">💬</span>
+                  <span>Need Help?</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  If you have questions about these terms, please contact our legal team.
+                </p>
+                <Link 
+                  to="/contact" 
+                  className="text-primary text-sm font-medium hover:underline"
+                >
+                  Contact Support
+                </Link>
+              </div>
+            </div>
+          </aside>
+
+          {/* Content */}
+          <div className="flex-1 max-w-3xl">
+            {/* Section 1: Introduction */}
+            <section id="introduction" className="mb-12 scroll-mt-32">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  1
+                </span>
+                <h2 className="text-2xl font-bold text-foreground">Introduction</h2>
+              </div>
+              <div className="border-t border-border pt-6">
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Welcome to FindFish Date! These Terms and Conditions govern your use of our website and mobile 
+                  application. By accessing or using FindFish Date, you agree to be bound by these terms. FindFish Date 
+                  is a unique platform offering three distinct modes: Dating, Fishing Spots, and a Combo mode.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  Please read these terms carefully. If you do not agree with any part of these terms, you must not use our 
+                  services.
+                </p>
+              </div>
             </section>
 
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">2. Eligibility</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                To use our Service, you must:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Be at least 18 years of age</li>
-                <li>Be legally able to enter into a binding contract</li>
-                <li>Not be prohibited from using the Service under applicable laws</li>
-                <li>Not have been previously banned from the Service</li>
-                <li>Not be a registered sex offender</li>
-              </ul>
-              <p className="text-muted-foreground leading-relaxed mt-4">
-                By using the Service, you represent and warrant that you meet all eligibility requirements.
-              </p>
+            {/* Section 2: Eligibility & Account */}
+            <section id="eligibility" className="mb-12 scroll-mt-32">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  2
+                </span>
+                <h2 className="text-2xl font-bold text-foreground">Eligibility & Account</h2>
+              </div>
+              <div className="border-t border-border pt-6">
+                <p className="text-muted-foreground leading-relaxed mb-6">
+                  To use FindFish Date, you must be at least 18 years old. By creating an account, you warrant that you 
+                  meet this age requirement and that the information you provide is accurate and complete.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-foreground">Account Security</h4>
+                      <p className="text-sm text-muted-foreground">
+                        You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur 
+                        under your account.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-foreground">Verification</h4>
+                      <p className="text-sm text-muted-foreground">
+                        We reserve the right to require identity verification to ensure the safety of our community, especially for users 
+                        engaging in the Dating and Combo modes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
 
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">3. Account Registration</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                When you create an account with us, you must provide accurate, complete, and current information. 
-                Failure to do so constitutes a breach of these Terms. You are responsible for:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Maintaining the confidentiality of your account credentials</li>
-                <li>All activities that occur under your account</li>
-                <li>Notifying us immediately of any unauthorized use</li>
-                <li>Using only one account per person</li>
-              </ul>
+            {/* Section 3: Mode-Specific Rules */}
+            <section id="mode-rules" className="mb-12 scroll-mt-32">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  3
+                </span>
+                <h2 className="text-2xl font-bold text-foreground">Mode-Specific Rules</h2>
+              </div>
+              <div className="border-t border-border pt-6">
+                <p className="text-muted-foreground leading-relaxed mb-6">
+                  FindFish Date operates in three distinct modes. By using the platform, you agree to the specific rules 
+                  governed by your active mode.
+                </p>
+                
+                <div className="grid md:grid-cols-2 gap-4 mb-4">
+                  {/* Dating Mode Card */}
+                  <div className="bg-rose-50 rounded-xl p-5 border border-rose-100">
+                    <div className="flex items-center gap-2 text-rose-600 font-semibold mb-2">
+                      <Heart className="h-4 w-4" />
+                      Dating Mode
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Users must interact respectfully. Harassment, unwanted advances, or catfishing will result in 
+                      immediate suspension.
+                    </p>
+                  </div>
+
+                  {/* Fishing Spots Mode Card */}
+                  <div className="bg-sky-50 rounded-xl p-5 border border-sky-100">
+                    <div className="flex items-center gap-2 text-sky-600 font-semibold mb-2">
+                      <Fish className="h-4 w-4" />
+                      Fishing Spots Mode
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Share accurate locations. Do not trespass on private property. Respect local fishing regulations and 
+                      conservation efforts.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Combo Mode Card */}
+                <div className="bg-amber-50 rounded-xl p-5 border border-amber-100">
+                  <div className="flex items-center gap-2 text-amber-600 font-semibold mb-2">
+                    <Users className="h-4 w-4" />
+                    Combo Mode (Dating + Fishing)
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Combines rules from both modes. Safety is paramount when meeting new people in remote fishing locations. 
+                    Always inform a third party of your whereabouts.
+                  </p>
+                </div>
+              </div>
             </section>
 
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">4. Community Guidelines</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                To maintain a safe and respectful community, you agree NOT to:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Post false, misleading, or deceptive information</li>
-                <li>Harass, threaten, or intimidate other users</li>
-                <li>Post content that is offensive, discriminatory, or hateful</li>
-                <li>Share sexually explicit or pornographic content</li>
-                <li>Impersonate another person or entity</li>
-                <li>Use the Service for commercial purposes without authorization</li>
-                <li>Attempt to access other users' accounts</li>
-                <li>Use automated systems or bots to access the Service</li>
-                <li>Engage in any illegal activity</li>
-                <li>Solicit money from other users</li>
-                <li>Share other users' personal information without consent</li>
-              </ul>
+            {/* Section 4: Safety & Conduct */}
+            <section id="safety" className="mb-12 scroll-mt-32">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  4
+                </span>
+                <h2 className="text-2xl font-bold text-foreground">Safety & Conduct</h2>
+              </div>
+              <div className="border-t border-border pt-6">
+                <p className="text-muted-foreground leading-relaxed mb-6">
+                  You agree not to use the Service for any unlawful purpose or in any way that interrupts, damages, impairs, 
+                  or renders the Service less efficient.
+                </p>
+                
+                {/* Zero Tolerance Alert */}
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-red-600">Zero Tolerance Policy</h4>
+                    <p className="text-sm text-red-600/80">
+                      We have zero tolerance for hate speech, bullying, or illegal content. Violations result in a permanent ban.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </section>
 
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">5. Content and Conduct</h2>
-              
-              <h3 className="text-xl font-semibold text-foreground mb-3">Your Content</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                You retain ownership of content you post on the Service. By posting content, you grant us a 
-                non-exclusive, royalty-free, worldwide license to use, display, and distribute your content 
-                in connection with the Service. You represent that you have the right to post any content you share.
-              </p>
-
-              <h3 className="text-xl font-semibold text-foreground mb-3">Content Moderation</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                We reserve the right to review, remove, or modify any content that violates these Terms or 
-                that we find objectionable. We are not obligated to monitor all content but may do so at our discretion.
-              </p>
+            {/* Section 5: Intellectual Property */}
+            <section id="intellectual" className="mb-12 scroll-mt-32">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  5
+                </span>
+                <h2 className="text-2xl font-bold text-foreground">Intellectual Property</h2>
+              </div>
+              <div className="border-t border-border pt-6">
+                <p className="text-muted-foreground leading-relaxed">
+                  The Service and its original content (excluding Content provided by users), features, and functionality 
+                  are and will remain the exclusive property of FindFish Date and its licensors. You grant FindFish Date a 
+                  worldwide, non-exclusive, royalty-free license to use, copy, reproduce, process, adapt, modify, 
+                  publish, transmit, display, and distribute any content you post (e.g., fishing catch photos, profile bios).
+                </p>
+              </div>
             </section>
 
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">6. Safety and Reporting</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Your safety is important to us. We encourage you to:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Report any suspicious or inappropriate behavior</li>
-                <li>Use the blocking feature for unwanted contacts</li>
-                <li>Follow our safety tips when meeting in person</li>
-                <li>Never share financial information with other users</li>
-              </ul>
-              <p className="text-muted-foreground leading-relaxed mt-4">
-                We investigate all reports and take appropriate action, including account suspension or termination.
-              </p>
+            {/* Section 6: Disclaimers & Liability */}
+            <section id="disclaimers" className="mb-12 scroll-mt-32">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  6
+                </span>
+                <h2 className="text-2xl font-bold text-foreground">Disclaimers & Liability</h2>
+              </div>
+              <div className="border-t border-border pt-6">
+                <p className="text-muted-foreground leading-relaxed uppercase text-sm mb-4">
+                  YOUR USE OF THE SERVICE IS AT YOUR SOLE RISK. THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS 
+                  AVAILABLE" BASIS.
+                </p>
+                <p className="text-muted-foreground leading-relaxed uppercase text-sm">
+                  IN NO EVENT SHALL FINDFISH DATE, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR 
+                  AFFILIATES, BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE 
+                  DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER 
+                  INTANGIBLE LOSSES.
+                </p>
+              </div>
             </section>
 
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">7. Premium Subscriptions</h2>
-              
-              <h3 className="text-xl font-semibold text-foreground mb-3">Billing</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Premium subscriptions are billed on a recurring basis (monthly or annually). By subscribing, 
-                you authorize us to charge your payment method at the beginning of each billing period.
-              </p>
-
-              <h3 className="text-xl font-semibold text-foreground mb-3">Cancellation</h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                You may cancel your subscription at any time through your account settings. Cancellation will 
-                take effect at the end of your current billing period. We do not provide refunds for partial 
-                subscription periods.
-              </p>
-
-              <h3 className="text-xl font-semibold text-foreground mb-3">Price Changes</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                We may change subscription prices at any time. Price changes will not affect your current 
-                subscription period but will apply to subsequent renewals. We will notify you of any price 
-                changes in advance.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">8. Intellectual Property</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                The Service and its original content (excluding user-generated content), features, and functionality 
-                are owned by Find Fishing Dates and are protected by international copyright, trademark, patent, 
-                trade secret, and other intellectual property laws. You may not copy, modify, distribute, or create 
-                derivative works based on our content without express written permission.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">9. Disclaimers</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND. WE DISCLAIM 
-                ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Warranties of merchantability and fitness for a particular purpose</li>
-                <li>Warranties that the Service will be uninterrupted or error-free</li>
-                <li>Warranties regarding the accuracy of user-provided information</li>
-                <li>Warranties regarding the conduct of other users</li>
-              </ul>
-              <p className="text-muted-foreground leading-relaxed mt-4">
-                We do not conduct criminal background checks on users. We are not responsible for the actions 
-                of users on or off the platform.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">10. Limitation of Liability</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                TO THE MAXIMUM EXTENT PERMITTED BY LAW, FIND FISHING DATES SHALL NOT BE LIABLE FOR ANY INDIRECT, 
-                INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF 
-                PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE. OUR TOTAL 
-                LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE TWELVE MONTHS PRECEDING THE CLAIM.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">11. Indemnification</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                You agree to indemnify and hold harmless Find Fishing Dates, its officers, directors, employees, 
-                and agents from any claims, damages, losses, liabilities, and expenses (including attorneys' fees) 
-                arising from your use of the Service, your content, or your violation of these Terms.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">12. Termination</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                We may terminate or suspend your account immediately, without prior notice or liability, for 
-                any reason, including but not limited to:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Breach of these Terms</li>
-                <li>Violation of Community Guidelines</li>
-                <li>Fraudulent or illegal activity</li>
-                <li>At your request</li>
-              </ul>
-              <p className="text-muted-foreground leading-relaxed mt-4">
-                Upon termination, your right to use the Service will immediately cease. All provisions of these 
-                Terms which should survive termination shall survive.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">13. Dispute Resolution</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Any disputes arising from these Terms or your use of the Service will be resolved through 
-                binding arbitration in accordance with the rules of the American Arbitration Association. 
-                You agree to waive your right to a jury trial and to participate in class actions.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Notwithstanding the above, either party may seek injunctive relief in any court of competent 
-                jurisdiction to protect intellectual property rights.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">14. Governing Law</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                These Terms shall be governed by and construed in accordance with the laws of the State of 
-                Florida, United States, without regard to its conflict of law provisions.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">15. Changes to Terms</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                We reserve the right to modify these Terms at any time. If we make material changes, we will 
-                notify you by email or through the Service before the changes take effect. Your continued use 
-                of the Service after changes become effective constitutes acceptance of the new Terms.
-              </p>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">16. Contact Information</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                If you have any questions about these Terms, please contact us at:
-              </p>
-              <div className="mt-4 text-muted-foreground">
-                <p>Find Fishing Dates</p>
-                <p>Email: legal@findfishingdates.com</p>
-                <p>Address: 123 Fishing Lane, Lake City, FL 32055</p>
+            {/* Section 7: Dispute Resolution */}
+            <section id="dispute" className="mb-12 scroll-mt-32">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  7
+                </span>
+                <h2 className="text-2xl font-bold text-foreground">Dispute Resolution</h2>
+              </div>
+              <div className="border-t border-border pt-6">
+                <p className="text-muted-foreground leading-relaxed">
+                  Any dispute related to these Terms will be governed by the laws of the State of California, without regard 
+                  to its conflict of law provisions. You agree to submit to the personal jurisdiction of the courts located 
+                  within San Francisco County, California for the purpose of litigating all such claims or disputes.
+                </p>
               </div>
             </section>
           </div>
         </div>
       </main>
 
+      {/* Sticky Acceptance Bar */}
+      <div className="sticky bottom-0 bg-background border-t border-border py-4 px-6 shadow-lg">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="text-center sm:text-left">
+            <p className="font-medium text-foreground">I accept the Terms & Conditions</p>
+            <p className="text-sm text-muted-foreground">Please scroll to the bottom to accept</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="px-6">
+              Decline
+            </Button>
+            <Link to="/auth?mode=signup">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6">
+                Accept →
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
-      <footer className="py-16 px-6 border-t border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="space-y-4">
-              <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
-              <p className="text-muted-foreground">
-                The dating app for fishing enthusiasts.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Company</h4>
-              <div className="space-y-3">
-                <Link to="/about" className="block text-muted-foreground hover:text-foreground transition-colors">About</Link>
-                <Link to="/contact" className="block text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
-                <Link to="/help" className="block text-muted-foreground hover:text-foreground transition-colors">Help Center</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Features</h4>
-              <div className="space-y-3">
-                <Link to="/dating" className="block text-muted-foreground hover:text-foreground transition-colors">Dating</Link>
-                <Link to="/fishing" className="block text-muted-foreground hover:text-foreground transition-colors">Fishing</Link>
-                <Link to="/safety" className="block text-muted-foreground hover:text-foreground transition-colors">Safety</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Legal</h4>
-              <div className="space-y-3">
-                <Link to="/privacy" className="block text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
-                <Link to="/terms" className="block text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link>
-              </div>
-            </div>
+      <footer className="py-12 px-6 border-t border-border bg-muted/30">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Fish className="h-5 w-5 text-primary" />
+            <span className="font-bold text-foreground">FindFish Date</span>
           </div>
           
-          <div className="border-t border-border pt-8 text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} Find Fishing Dates. All rights reserved.</p>
+          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground mb-6">
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <Link to="/help" className="hover:text-foreground transition-colors">Cookie Policy</Link>
+            <Link to="/safety" className="hover:text-foreground transition-colors">Community Guidelines</Link>
           </div>
+          
+          <p className="text-xs text-muted-foreground">
+            © 2023 FindFish Date Inc. All rights reserved. Fishing spots are user-generated; verify local 
+            laws before fishing. Dating safety is your responsibility.
+          </p>
         </div>
       </footer>
     </div>
