@@ -33,6 +33,8 @@ export function MatchCard({
   onStartChat,
   onWave,
 }: MatchCardProps) {
+  const isActiveNow = lastSeen === 'Active now';
+
   const getStatusIndicator = () => {
     switch (status) {
       case 'online':
@@ -40,6 +42,9 @@ export function MatchCard({
       case 'gone_fishing':
         return 'bg-blue-500';
       default:
+        if (isActiveNow) {
+          return 'bg-yellow-500';
+        }
         return 'bg-muted-foreground/50';
     }
   };
@@ -55,6 +60,9 @@ export function MatchCard({
           </span>
         );
       default:
+        if (isActiveNow) {
+          return <span className="text-yellow-600 text-xs font-medium">Active now</span>;
+        }
         return <span className="text-muted-foreground text-xs">Last seen {lastSeen}</span>;
     }
   };

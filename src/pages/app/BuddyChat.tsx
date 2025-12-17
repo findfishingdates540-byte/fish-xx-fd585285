@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Send, Fish, Check, CheckCheck, MapPin, Image, Plus, Scale, Ruler } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
+import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 
 interface Message {
   id: string;
@@ -526,10 +526,12 @@ export default function BuddyChat() {
             <AvatarImage src={buddyProfile?.photos?.[0]} className="object-cover" />
             <AvatarFallback>{buddyProfile?.display_name?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
           </Avatar>
-          {/* Online indicator */}
+          {/* Status indicator */}
           <span className={cn(
             "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
-            isBuddyOnline ? "bg-green-500" : "bg-muted-foreground/30"
+            isBuddyOnline ? "bg-green-500" : 
+            isRecentlyActive(buddyLastSeen) ? "bg-yellow-500" :
+            "bg-muted-foreground/30"
           )} />
         </div>
         <div className="flex-1">
@@ -539,6 +541,8 @@ export default function BuddyChat() {
               <span className="text-primary animate-pulse">typing...</span>
             ) : isBuddyOnline ? (
               <span className="text-green-500">Online</span>
+            ) : isRecentlyActive(buddyLastSeen) ? (
+              <span className="text-yellow-600">Active now</span>
             ) : buddyLastSeen ? (
               <span>{formatLastSeen(buddyLastSeen)}</span>
             ) : (

@@ -98,7 +98,7 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
                 : 'border-l-transparent hover:bg-accent/30'
             )}
           >
-            {/* Avatar with online indicator */}
+            {/* Avatar with status indicator */}
             <div className="relative flex-shrink-0">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={convo.photo} alt={convo.name} />
@@ -106,7 +106,9 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
               </Avatar>
               <div className={cn(
                 "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
-                convo.isOnline ? "bg-green-500" : "bg-muted-foreground/30"
+                convo.isOnline ? "bg-green-500" : 
+                convo.lastSeen === 'Active now' ? "bg-yellow-500" :
+                "bg-muted-foreground/30"
               )} />
             </div>
 
@@ -116,7 +118,10 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
                 <span className="text-xs text-primary">{convo.time}</span>
               </div>
               {!convo.isOnline && convo.lastSeen && (
-                <p className="text-xs text-muted-foreground mb-0.5">{convo.lastSeen}</p>
+                <p className={cn(
+                  "text-xs mb-0.5",
+                  convo.lastSeen === 'Active now' ? "text-yellow-600" : "text-muted-foreground"
+                )}>{convo.lastSeen}</p>
               )}
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground truncate pr-2">

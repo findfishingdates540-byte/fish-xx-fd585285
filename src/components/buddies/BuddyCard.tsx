@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { isRecentlyActive } from '@/hooks/use-online-presence';
 
 interface BuddyCardProps {
   profile: {
@@ -45,13 +46,17 @@ export function BuddyCard({
           alt={profile.display_name || 'Angler'}
           className="w-full h-full object-cover"
         />
-        {/* Online indicator */}
+        {/* Status indicator */}
         {isOnline ? (
           <div className="absolute top-2 left-2">
             <span className="flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
             </span>
+          </div>
+        ) : isRecentlyActive(lastSeen) ? (
+          <div className="absolute top-2 left-2 bg-yellow-500/90 rounded px-1.5 py-0.5">
+            <span className="text-xs text-yellow-950 font-medium">Active now</span>
           </div>
         ) : lastSeen ? (
           <div className="absolute top-2 left-2 bg-background/90 rounded px-1.5 py-0.5">
