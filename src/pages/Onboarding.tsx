@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, ArrowRight, Fish, HelpCircle } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, HelpCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 import { StepBasicInfoNew } from "@/components/onboarding/StepBasicInfoNew";
@@ -19,6 +19,7 @@ import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
 import datingImage from "@/assets/dating-hero.jpg";
 import comboImage from "@/assets/couple-fishing.jpg";
+import logoImage from "@/assets/logo.jpg";
 
 // Animation variants - fade only, no sliding
 const stepVariants = {
@@ -423,7 +424,7 @@ export default function Onboarding() {
       <header className="bg-background border-b border-border px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Fish className="w-6 h-6 text-primary" />
+            <img src={logoImage} alt="Find Fishing Dates" className="w-8 h-8 rounded-full object-cover" />
             <span className="font-bold text-lg text-foreground">Find Fishing Dates</span>
           </div>
           <div className="flex items-center gap-4">
