@@ -64,7 +64,7 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
           {[
             { key: 'all' as FilterType, label: 'All Chats' },
             { key: 'unread' as FilterType, label: 'Unread' },
-            { key: 'buddies' as FilterType, label: 'Fishing Buddies' },
+            { key: 'buddies' as FilterType, label: 'Dates' },
           ].map((filter) => (
             <Button
               key={filter.key}
