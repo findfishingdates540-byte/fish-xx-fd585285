@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Download, Heart, Fish, Users, CheckCircle, AlertTriangle } from 'lucide-react';
-import logo from '@/assets/logo.jpg';
+import { PublicHeader, PublicFooter } from '@/components/layout';
+
 const sections = [{
   id: 'introduction',
   label: 'Introduction'
@@ -25,6 +26,7 @@ const sections = [{
   id: 'dispute',
   label: 'Dispute Resolution'
 }];
+
 const Terms = () => {
   const [activeSection, setActiveSection] = useState('introduction');
   const scrollToSection = (id: string) => {
@@ -38,29 +40,7 @@ const Terms = () => {
     }
   };
   return <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
-          <Link to="/">
-            <img src={logo} alt="Find Fishing Dates" className="h-24 w-auto" />
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-10 text-sm font-medium">
-            <Link to="/" className="text-foreground hover:opacity-60 transition-opacity">Home</Link>
-            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Modes</Link>
-            <Link to="/about" className="text-foreground hover:opacity-60 transition-opacity">About</Link>
-            <Link to="/contact" className="text-foreground hover:opacity-60 transition-opacity">Contact</Link>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Link to="/auth">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6">
-                Login
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicHeader />
 
       {/* Hero Banner */}
       <div className="pt-32 pb-8 px-6 bg-muted/30 border-b border-border">
@@ -344,26 +324,7 @@ const Terms = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-border bg-muted/30">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center mb-4">
-            <img src={logo} alt="Find Fishing Dates" className="h-48 w-auto" />
-          </div>
-          
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground mb-6">
-            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-            <Link to="/help" className="hover:text-foreground transition-colors">Cookie Policy</Link>
-            <Link to="/safety" className="hover:text-foreground transition-colors">Community Guidelines</Link>
-          </div>
-          
-          <p className="text-xs text-muted-foreground">
-            © 2023 FindFish Date Inc. All rights reserved. Fishing spots are user-generated; verify local 
-            laws before fishing. Dating safety is your responsibility.
-          </p>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>;
 };
 export default Terms;

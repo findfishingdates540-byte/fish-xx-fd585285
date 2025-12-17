@@ -28,8 +28,8 @@ import {
   Settings,
   ArrowRight,
 } from 'lucide-react';
-import logo from '@/assets/logo.jpg';
 import safetyHero from '@/assets/safety-hero.jpg';
+import { PublicHeader, PublicFooter } from '@/components/layout';
 
 type FilterTab = 'all' | 'dating' | 'fishing' | 'guidelines';
 
@@ -155,34 +155,7 @@ const Safety = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
-          <Link to="/">
-            <img src={logo} alt="Find Fishing Dates" className="h-20 w-auto" />
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-10 text-sm font-medium">
-            <Link to="/" className="text-foreground hover:opacity-60 transition-opacity">Home</Link>
-            <Link to="/app/discover" className="text-foreground hover:opacity-60 transition-opacity">Matches</Link>
-            <Link to="/app/spots" className="text-foreground hover:opacity-60 transition-opacity">Fishing Map</Link>
-            <Link to="/safety" className="text-foreground font-semibold">Safety Center</Link>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Link to="/auth">
-              <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
-                Log in
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button className="btn-primary">
-                Sign up
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicHeader />
 
       {/* Main Layout */}
       <div className="pt-24 flex">
@@ -417,25 +390,7 @@ const Safety = () => {
         </aside>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 px-6 mt-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Find Fishing Dates. All rights reserved.
-          </p>
-          <div className="flex items-center gap-6 text-sm">
-            <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-              Terms of Service
-            </Link>
-            <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-              Cookie Policy
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 };
