@@ -101,18 +101,20 @@ export function DiscoverSidebar({
 
       {/* User Profile */}
       <div className="flex items-center gap-3 pt-6 border-t border-border">
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={userPhoto} alt={userName} />
-          <AvatarFallback className="bg-muted text-muted-foreground">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">{userName}</p>
-          <p className="text-xs text-muted-foreground">
-            {isPremium ? 'Pro Member' : 'Free Member'}
-          </p>
-        </div>
+        <NavLink to="/app/profile" className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={userPhoto} alt={userName} />
+            <AvatarFallback className="bg-muted text-muted-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm truncate">{userName}</p>
+            <p className="text-xs text-muted-foreground">
+              {isPremium ? 'Pro Member' : 'Free Member'}
+            </p>
+          </div>
+        </NavLink>
         <NavLink to="/app/settings" className="text-muted-foreground hover:text-foreground">
           <Settings className="h-5 w-5" />
         </NavLink>
