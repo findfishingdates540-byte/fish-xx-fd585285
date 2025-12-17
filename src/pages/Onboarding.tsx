@@ -399,7 +399,7 @@ export default function Onboarding() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Fish className="w-6 h-6 text-primary" />
-            <span className="font-bold text-lg text-foreground">FindFish Date</span>
+            <span className="font-bold text-lg text-foreground">Find Fishing Dates</span>
           </div>
           <div className="flex items-center gap-4">
             {accountMode !== 'fishing' && (
@@ -572,7 +572,7 @@ export default function Onboarding() {
 
         {/* Footer */}
         <p className="text-center text-sm text-muted-foreground mt-6">
-          © {new Date().getFullYear()} FindFish Date. All rights reserved.
+          © {new Date().getFullYear()} Find Fishing Dates. All rights reserved.
         </p>
       </div>
     </div>

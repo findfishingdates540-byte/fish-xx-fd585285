@@ -135,7 +135,7 @@ const Privacy = () => {
                   <h2 className="text-2xl font-bold text-foreground">Introduction</h2>
                 </div>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Welcome to FindFish Date! We are a unique community offering three distinct modes for our users: <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Dating Only</span>, <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Fishing Spots Only</span>, and our signature <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Combo Mode</span>. We understand that your privacy is as important as finding the perfect catch or match.
+                  Welcome to Find Fishing Dates! We are a unique community offering three distinct modes for our users: <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Dating Only</span>, <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Fishing Spots Only</span>, and our signature <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Combo Mode</span>. We understand that your privacy is as important as finding the perfect catch or match.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
                   This Privacy Policy outlines how we collect, use, process, and share your personal data. By using our services, you consent to the practices described in this policy.

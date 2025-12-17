@@ -150,7 +150,7 @@ export default function OnboardingSuccess() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Fish className="w-6 h-6 text-primary" />
-            <span className="font-bold text-lg text-foreground">FindFish Date</span>
+            <span className="font-bold text-lg text-foreground">Find Fishing Dates</span>
           </div>
           <div className="text-right">
             <p className="font-semibold text-foreground text-sm">Captain Jack</p>
@@ -215,7 +215,7 @@ export default function OnboardingSuccess() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
               >
-                Thanks for joining FindFish Date. Your profile is rigged and ready to go. You are now part of our community of anglers and singles.
+                Thanks for joining Find Fishing Dates. Your profile is rigged and ready to go. You are now part of our community of anglers and singles.
               </motion.p>
               <motion.div 
                 className="flex gap-4 pt-2"
