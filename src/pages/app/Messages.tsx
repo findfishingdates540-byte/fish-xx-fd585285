@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MessagesHeader } from '@/components/messages/MessagesHeader';
 import { ConversationList } from '@/components/messages/ConversationList';
 import { EmptyMessages } from '@/components/messages/EmptyMessages';
+import { useOnlineStatus } from '@/hooks/use-online-presence';
 
 // Mock conversations data
 const mockConversations = [
@@ -72,6 +73,17 @@ export default function Messages() {
     enabled: !!user?.id,
   });
 
+  // Get all conversation user IDs for online status tracking
+  const conversationUserIds = useMemo(() => mockConversations.map(c => c.id), []);
+  const { isOnline } = useOnlineStatus(conversationUserIds);
+
+  // Update conversations with real online status
+  const conversationsWithStatus = useMemo(() => 
+    mockConversations.map(convo => ({
+      ...convo,
+      isOnline: isOnline(convo.id)
+    })), [isOnline]);
+
   const handleSelectConversation = (id: string) => {
     setSelectedConversation(id);
     navigate(`/app/messages/${id}`);
@@ -92,7 +104,7 @@ export default function Messages() {
       <div className="flex flex-1 overflow-hidden">
         {/* Conversation Sidebar */}
         <ConversationList
-          conversations={mockConversations}
+          conversations={conversationsWithStatus}
           selectedId={selectedConversation}
           onSelect={handleSelectConversation}
         />
