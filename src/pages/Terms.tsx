@@ -111,8 +111,8 @@ const Terms = () => {
               </div>
               <div className="border-t border-border pt-6">
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Welcome to FindFish Date! These Terms and Conditions govern your use of our website and mobile 
-                  application. By accessing or using FindFish Date, you agree to be bound by these terms. FindFish Date 
+                  Welcome to Find Fishing Dates! These Terms and Conditions govern your use of our website and mobile 
+                  application. By accessing or using Find Fishing Dates, you agree to be bound by these terms. Find Fishing Dates 
                   is a unique platform offering three distinct modes: Dating, Fishing Spots, and a Combo mode.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
@@ -132,7 +132,7 @@ const Terms = () => {
               </div>
               <div className="border-t border-border pt-6">
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  To use FindFish Date, you must be at least 18 years old. By creating an account, you warrant that you 
+                  To use Find Fishing Dates, you must be at least 18 years old. By creating an account, you warrant that you 
                   meet this age requirement and that the information you provide is accurate and complete.
                 </p>
                 
@@ -172,7 +172,7 @@ const Terms = () => {
               </div>
               <div className="border-t border-border pt-6">
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  FindFish Date operates in three distinct modes. By using the platform, you agree to the specific rules 
+                  Find Fishing Dates operates in three distinct modes. By using the platform, you agree to the specific rules 
                   governed by your active mode.
                 </p>
                 
@@ -254,8 +254,8 @@ const Terms = () => {
               <div className="border-t border-border pt-6">
                 <p className="text-muted-foreground leading-relaxed">
                   The Service and its original content (excluding Content provided by users), features, and functionality 
-                  are and will remain the exclusive property of FindFish Date and its licensors. You grant FindFish Date a 
-                  worldwide, non-exclusive, royalty-free license to use, copy, reproduce, process, adapt, modify, 
+                  are and will remain the exclusive property of Find Fishing Dates and its licensors. You grant Find Fishing Dates a 
+                  worldwide, non-exclusive, royalty-free license to use, copy, reproduce, process, adapt, modify,
                   publish, transmit, display, and distribute any content you post (e.g., fishing catch photos, profile bios).
                 </p>
               </div>
@@ -275,7 +275,7 @@ const Terms = () => {
                   AVAILABLE" BASIS.
                 </p>
                 <p className="text-muted-foreground leading-relaxed uppercase text-sm">
-                  IN NO EVENT SHALL FINDFISH DATE, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR 
+                  IN NO EVENT SHALL FIND FISHING DATES, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR 
                   AFFILIATES, BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE 
                   DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER 
                   INTANGIBLE LOSSES.
