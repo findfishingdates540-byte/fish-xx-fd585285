@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout";
+import { DatingRoute, FishingRoute } from "@/components/layout/RouteGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -20,6 +21,7 @@ import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit, Chat, Matches, Settings } from "./pages/app";
 import SpotDetail from "./pages/app/SpotDetail";
+import AppIndex from "./pages/app/AppIndex";
 
 const queryClient = new QueryClient();
 
@@ -46,16 +48,22 @@ const App = () => (
             
             {/* Logged-in app routes */}
             <Route path="/app" element={<AppLayout />}>
-              <Route index element={<Navigate to="/app/discover" replace />} />
-              <Route path="discover" element={<Discover />} />
-              <Route path="likes" element={<Likes />} />
-              <Route path="matches" element={<Matches />} />
-              <Route path="messages" element={<Messages />} />
-              <Route path="messages/:matchId" element={<Chat />} />
-              <Route path="spots" element={<Spots />} />
-              <Route path="spots/:id" element={<SpotDetail />} />
-              <Route path="catches" element={<Catches />} />
-              <Route path="buddies" element={<Buddies />} />
+              <Route index element={<AppIndex />} />
+              
+              {/* Dating-only routes */}
+              <Route path="discover" element={<DatingRoute><Discover /></DatingRoute>} />
+              <Route path="likes" element={<DatingRoute><Likes /></DatingRoute>} />
+              <Route path="matches" element={<DatingRoute><Matches /></DatingRoute>} />
+              <Route path="messages" element={<DatingRoute><Messages /></DatingRoute>} />
+              <Route path="messages/:matchId" element={<DatingRoute><Chat /></DatingRoute>} />
+              
+              {/* Fishing-only routes */}
+              <Route path="spots" element={<FishingRoute><Spots /></FishingRoute>} />
+              <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
+              <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
+              <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
+              
+              {/* Shared routes (all account types) */}
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
               <Route path="settings" element={<Settings />} />
