@@ -33,6 +33,9 @@ import {
   ArrowLeft,
   ExternalLink,
   Image as ImageIcon,
+  Scale,
+  Ruler,
+  Calendar,
 } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -51,6 +54,20 @@ interface FishingSpot {
   rating_count: number | null;
   photos: string[] | null;
   created_by: string | null;
+}
+
+interface SpotCatch {
+  id: string;
+  species_name: string | null;
+  weight_kg: number | null;
+  length_cm: number | null;
+  photos: string[] | null;
+  caught_at: string | null;
+  user_id: string;
+  profiles?: {
+    display_name: string | null;
+    photos: string[] | null;
+  } | null;
 }
 
 // Mock weather data - in production this would come from a weather API
@@ -103,32 +120,55 @@ export default function SpotDetail() {
   const map = useRef<mapboxgl.Map | null>(null);
 
   const [spot, setSpot] = useState<FishingSpot | null>(null);
+  const [catches, setCatches] = useState<SpotCatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
 
   const isSaved = id ? isSpotSaved(id) : false;
 
   useEffect(() => {
-    const fetchSpot = async () => {
+    const fetchData = async () => {
       if (!id) return;
 
       try {
-        const { data, error } = await supabase
-          .from("fishing_spots")
-          .select("*")
-          .eq("id", id)
-          .maybeSingle();
+        // Fetch spot and catches in parallel
+        const [spotRes, catchesRes] = await Promise.all([
+          supabase
+            .from("fishing_spots")
+            .select("*")
+            .eq("id", id)
+            .maybeSingle(),
+          supabase
+            .from("catches")
+            .select(`
+              id,
+              species_name,
+              weight_kg,
+              length_cm,
+              photos,
+              caught_at,
+              user_id,
+              profiles:user_id (
+                display_name,
+                photos
+              )
+            `)
+            .eq("fishing_spot_id", id)
+            .order("caught_at", { ascending: false })
+            .limit(10),
+        ]);
 
-        if (error) throw error;
-        setSpot(data);
+        if (spotRes.error) throw spotRes.error;
+        setSpot(spotRes.data);
+        setCatches((catchesRes.data as SpotCatch[]) || []);
       } catch (err) {
-        console.error("Error fetching spot:", err);
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSpot();
+    fetchData();
   }, [id]);
 
   // Initialize mini map
@@ -432,6 +472,82 @@ export default function SpotDetail() {
                 </div>
               </div>
             </div>
+
+            {/* Recent Catches at this Spot */}
+            {catches.length > 0 && (
+              <div className="bg-background rounded-xl p-6 border">
+                <h2 className="text-lg font-semibold mb-4">Recent Catches Here</h2>
+                <div className="space-y-4">
+                  {catches.map((catchItem) => {
+                    const profile = catchItem.profiles;
+                    const avatarUrl = profile?.photos?.[0];
+                    const initials = profile?.display_name?.charAt(0)?.toUpperCase() || "U";
+                    
+                    return (
+                      <div key={catchItem.id} className="flex gap-4 p-3 rounded-lg bg-muted/30">
+                        {/* Catch Photo */}
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                          {catchItem.photos?.[0] ? (
+                            <img
+                              src={catchItem.photos[0]}
+                              alt={catchItem.species_name || "Catch"}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Fish className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Catch Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm truncate">
+                              {catchItem.species_name || "Unknown Species"}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            {catchItem.weight_kg && (
+                              <span className="flex items-center gap-1">
+                                <Scale className="h-3 w-3" />
+                                {catchItem.weight_kg} kg
+                              </span>
+                            )}
+                            {catchItem.length_cm && (
+                              <span className="flex items-center gap-1">
+                                <Ruler className="h-3 w-3" />
+                                {catchItem.length_cm} cm
+                              </span>
+                            )}
+                            {catchItem.caught_at && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {new Date(catchItem.caught_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </span>
+                            )}
+                          </div>
+                          
+                          {/* User */}
+                          <div className="flex items-center gap-1.5 mt-2">
+                            <Avatar className="h-5 w-5">
+                              <AvatarImage src={avatarUrl || undefined} />
+                              <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs text-muted-foreground">
+                              {profile?.display_name || "Angler"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}

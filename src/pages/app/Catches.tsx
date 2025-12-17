@@ -66,10 +66,17 @@ interface FishSpecies {
   image_url: string | null;
 }
 
+interface FishingSpot {
+  id: string;
+  name: string;
+  location_name: string | null;
+}
+
 export default function Catches() {
   const { user } = useAuth();
   const [catches, setCatches] = useState<Catch[]>([]);
   const [species, setSpecies] = useState<FishSpecies[]>([]);
+  const [spots, setSpots] = useState<FishingSpot[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,6 +86,7 @@ export default function Catches() {
   const [formData, setFormData] = useState({
     species_name: "",
     species_id: "",
+    fishing_spot_id: "",
     weight_kg: "",
     length_cm: "",
     notes: "",
@@ -94,20 +102,23 @@ export default function Catches() {
       if (!user) return;
 
       try {
-        const [catchesRes, speciesRes] = await Promise.all([
+        const [catchesRes, speciesRes, spotsRes] = await Promise.all([
           supabase
             .from("catches")
             .select("*")
             .eq("user_id", user.id)
             .order("caught_at", { ascending: false }),
           supabase.from("fish_species").select("*").order("name"),
+          supabase.from("fishing_spots").select("id, name, location_name").eq("is_public", true).order("name"),
         ]);
 
         if (catchesRes.error) throw catchesRes.error;
         if (speciesRes.error) throw speciesRes.error;
+        if (spotsRes.error) throw spotsRes.error;
 
         setCatches(catchesRes.data || []);
         setSpecies(speciesRes.data || []);
+        setSpots(spotsRes.data || []);
       } catch (err) {
         console.error("Error fetching data:", err);
         toast.error("Failed to load catches");
@@ -197,6 +208,7 @@ export default function Catches() {
         user_id: user.id,
         species_name: speciesName || null,
         species_id: formData.species_id || null,
+        fishing_spot_id: formData.fishing_spot_id || null,
         weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
         length_cm: formData.length_cm ? parseFloat(formData.length_cm) : null,
         notes: formData.notes || null,
@@ -247,6 +259,7 @@ export default function Catches() {
     setFormData({
       species_name: "",
       species_id: "",
+      fishing_spot_id: "",
       weight_kg: "",
       length_cm: "",
       notes: "",
@@ -370,6 +383,27 @@ export default function Catches() {
                   onChange={(e) => setFormData({ ...formData, species_name: e.target.value, species_id: "" })}
                   className="mt-2"
                 />
+              </div>
+
+              {/* Fishing Spot Selection */}
+              <div>
+                <Label htmlFor="spot">Fishing Spot (optional)</Label>
+                <Select
+                  value={formData.fishing_spot_id}
+                  onValueChange={(val) => setFormData({ ...formData, fishing_spot_id: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a spot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No spot selected</SelectItem>
+                    {spots.map((spot) => (
+                      <SelectItem key={spot.id} value={spot.id}>
+                        {spot.name} {spot.location_name && `• ${spot.location_name}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Weight & Length */}
