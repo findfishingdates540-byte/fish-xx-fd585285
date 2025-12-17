@@ -312,6 +312,7 @@ export type Database = {
         Row: {
           account_mode: Database["public"]["Enums"]["account_mode"] | null
           bio: string | null
+          cover_photo: string | null
           created_at: string
           date_of_birth: string | null
           display_name: string | null
@@ -344,6 +345,7 @@ export type Database = {
         Insert: {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
           bio?: string | null
+          cover_photo?: string | null
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
@@ -376,6 +378,7 @@ export type Database = {
         Update: {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
           bio?: string | null
+          cover_photo?: string | null
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
