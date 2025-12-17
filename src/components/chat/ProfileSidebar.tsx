@@ -2,6 +2,7 @@ import { MapPin, Heart, Briefcase, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ProfileSidebarProps {
   name: string;
@@ -12,6 +13,7 @@ interface ProfileSidebarProps {
   bio?: string;
   interests?: string[];
   photos?: string[];
+  className?: string;
 }
 
 export function ProfileSidebar({
@@ -23,9 +25,10 @@ export function ProfileSidebar({
   bio,
   interests = [],
   photos = [],
+  className,
 }: ProfileSidebarProps) {
   return (
-    <aside className="hidden xl:flex flex-col w-80 h-screen border-l border-border bg-background overflow-y-auto">
+    <aside className={cn("flex flex-col bg-background overflow-y-auto", className)}>
       <div className="p-6">
         {/* Profile Photo */}
         <div className="flex justify-center mb-4">

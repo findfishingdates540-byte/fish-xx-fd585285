@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Smile, Image, MoreVertical, Phone, Video } from 'lucide-react';
+import { Send, Smile, Image, MoreVertical, Phone, Video, ArrowLeft, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -20,6 +21,7 @@ interface ChatAreaProps {
   messages: Message[];
   currentUserId: string;
   onSendMessage: (content: string) => void;
+  onShowProfile?: () => void;
 }
 
 const quickReplies = [
@@ -35,6 +37,7 @@ export function ChatArea({
   messages,
   currentUserId,
   onSendMessage,
+  onShowProfile,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -58,27 +61,37 @@ export function ChatArea({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-background">
+    <div className="flex-1 flex flex-col h-screen bg-background min-w-0">
       {/* Chat Header */}
-      <header className="h-16 px-6 border-b border-border flex items-center justify-between bg-background">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
+      <header className="h-14 md:h-16 px-3 md:px-6 border-b border-border flex items-center justify-between bg-background flex-shrink-0">
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Back button - mobile only */}
+          <Button variant="ghost" size="icon" className="md:hidden" asChild>
+            <Link to="/app/messages">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <Avatar className="h-9 w-9 md:h-10 md:w-10" onClick={onShowProfile}>
             <AvatarImage src={matchPhoto} alt={matchName} />
             <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div>
-            <h2 className="font-semibold">{matchName} 💕</h2>
+          <div className="cursor-pointer" onClick={onShowProfile}>
+            <h2 className="font-semibold text-sm md:text-base">{matchName} 💕</h2>
             <p className={cn('text-xs', isOnline ? 'text-green-500' : 'text-muted-foreground')}>
               {isOnline ? 'Active now' : 'Offline'}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
+        <div className="flex items-center gap-1 md:gap-2">
+          <Button variant="ghost" size="icon" className="hidden sm:flex">
             <Phone className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="hidden sm:flex">
             <Video className="h-5 w-5" />
+          </Button>
+          {/* Profile button - mobile only */}
+          <Button variant="ghost" size="icon" className="xl:hidden" onClick={onShowProfile}>
+            <User className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon">
             <MoreVertical className="h-5 w-5" />
@@ -87,14 +100,14 @@ export function ChatArea({
       </header>
 
       {/* Match Banner */}
-      <div className="px-6 py-3 bg-accent/50 border-b border-border">
-        <p className="text-sm text-center text-muted-foreground">
-          <span className="text-primary">💕</span> You matched with {matchName}! Start the conversation.
+      <div className="px-4 md:px-6 py-2 md:py-3 bg-accent/50 border-b border-border flex-shrink-0">
+        <p className="text-xs md:text-sm text-center text-muted-foreground">
+          <span className="text-primary">💕</span> You matched with {matchName}!
         </p>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
         {messages.map((message) => {
           const isMine = message.senderId === currentUserId;
           return (
@@ -130,7 +143,7 @@ export function ChatArea({
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-border bg-background">
+      <div className="p-3 md:p-4 border-t border-border bg-background flex-shrink-0">
         <div className="flex items-center gap-2 mb-3">
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Image className="h-5 w-5" />
@@ -160,8 +173,8 @@ export function ChatArea({
           </Button>
         </div>
 
-        {/* Quick Replies */}
-        <div className="flex gap-2 flex-wrap">
+        {/* Quick Replies - hidden on very small screens */}
+        <div className="hidden sm:flex gap-2 flex-wrap">
           {quickReplies.map((reply) => (
             <Button
               key={reply.text}
