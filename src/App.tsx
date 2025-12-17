@@ -18,7 +18,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit, Chat, Matches } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, Profile, ProfileEdit, Chat, Matches, Settings } from "./pages/app";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +56,7 @@ const App = () => (
               <Route path="buddies" element={<Buddies />} />
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
