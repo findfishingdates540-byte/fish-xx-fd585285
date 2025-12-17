@@ -51,7 +51,7 @@ const Auth = () => {
           .single();
         
         if (data?.onboarding_completed) {
-          navigate('/');
+          navigate('/app/discover');
         } else {
           navigate('/onboarding');
         }
