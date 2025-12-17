@@ -135,7 +135,7 @@ export default function Matches() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-accent/30">
+    <div className="flex min-h-screen w-full bg-accent/30 overflow-hidden">
       <DiscoverSidebar
         accountMode={accountMode}
         discoveryMode="dating"

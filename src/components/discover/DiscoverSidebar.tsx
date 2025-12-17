@@ -45,7 +45,7 @@ export function DiscoverSidebar({
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6">
+    <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 sticky top-0 flex-shrink-0">
       {/* Logo */}
       <div className="mb-8">
         <div className="flex items-center gap-2">
