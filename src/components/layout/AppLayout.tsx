@@ -46,14 +46,20 @@ export function AppLayout() {
   const accountMode = profile?.account_mode || 'both';
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <AppHeader />
+    <div className="min-h-screen bg-background">
+      {/* Mobile Header - Hidden on desktop when sidebar is visible */}
+      <div className="lg:hidden">
+        <AppHeader />
+      </div>
       
-      <main className="flex-1 pb-16">
+      <main className="pb-16 lg:pb-0">
         <Outlet context={{ accountMode }} />
       </main>
 
-      <BottomNav accountMode={accountMode} />
+      {/* Mobile Bottom Nav - Hidden on desktop */}
+      <div className="lg:hidden">
+        <BottomNav accountMode={accountMode} />
+      </div>
     </div>
   );
 }
