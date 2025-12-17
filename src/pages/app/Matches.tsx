@@ -145,7 +145,7 @@ export default function Matches() {
         isPremium={profile?.is_premium}
       />
 
-      <main className="flex-1 p-6 lg:p-8 overflow-auto">
+      <main className="flex-1 p-6 lg:p-8 overflow-auto lg:ml-60">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
