@@ -9,12 +9,16 @@ import { DatingHeader } from './DatingHeader';
 import { BothHeader } from './BothHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
+import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
 
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
   
   // Track online presence for the current user
   useOnlinePresence();
+  
+  // Listen for trip invitation responses (real-time notifications)
+  useTripInvitationNotifications();
 
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile-mode', user?.id],

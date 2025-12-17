@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Calendar, MapPin, Check, X, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { sendTripResponseNotification } from "@/hooks/use-trip-notifications";
 
 interface TripInvitation {
   id: string;
@@ -82,24 +83,62 @@ export function TripInvitations() {
     enabled: !!user?.id,
   });
 
+  // Fetch current user's profile for the notification
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ["current-user-profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   const respondMutation = useMutation({
-    mutationFn: async ({ invitationId, status }: { invitationId: string; status: "accepted" | "declined" }) => {
+    mutationFn: async ({ 
+      invitationId, 
+      status, 
+      tripOwnerId, 
+      tripTitle 
+    }: { 
+      invitationId: string; 
+      status: "accepted" | "declined";
+      tripOwnerId: string;
+      tripTitle: string;
+    }) => {
       const { error } = await supabase
         .from("trip_participants")
         .update({ status })
         .eq("id", invitationId);
 
       if (error) throw error;
+
+      // Return the data needed for notification
+      return { tripOwnerId, tripTitle, status };
     },
-    onSuccess: (_, { status }) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["trip-invitations"] });
       queryClient.invalidateQueries({ queryKey: ["my-trips"] });
+      
       toast({
-        title: status === "accepted" ? "Invitation accepted!" : "Invitation declined",
-        description: status === "accepted" 
+        title: data.status === "accepted" ? "Invitation accepted!" : "Invitation declined",
+        description: data.status === "accepted" 
           ? "You've joined the trip." 
           : "You've declined the invitation.",
       });
+
+      // Send push notification to trip owner
+      const responderName = currentUserProfile?.display_name || "A buddy";
+      sendTripResponseNotification(
+        data.tripOwnerId,
+        responderName,
+        data.tripTitle,
+        data.status === "accepted"
+      );
     },
     onError: () => {
       toast({
@@ -187,7 +226,9 @@ export function TripInvitations() {
                     variant="outline"
                     onClick={() => respondMutation.mutate({ 
                       invitationId: invitation.id, 
-                      status: "declined" 
+                      status: "declined",
+                      tripOwnerId: invitation.trip.user_id,
+                      tripTitle: invitation.trip.title,
                     })}
                     disabled={respondMutation.isPending}
                   >
@@ -197,7 +238,9 @@ export function TripInvitations() {
                     size="sm"
                     onClick={() => respondMutation.mutate({ 
                       invitationId: invitation.id, 
-                      status: "accepted" 
+                      status: "accepted",
+                      tripOwnerId: invitation.trip.user_id,
+                      tripTitle: invitation.trip.title,
                     })}
                     disabled={respondMutation.isPending}
                   >
