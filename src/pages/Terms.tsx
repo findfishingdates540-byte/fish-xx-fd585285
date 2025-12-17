@@ -353,9 +353,8 @@ const Terms = () => {
       {/* Footer */}
       <footer className="py-12 px-6 border-t border-border bg-muted/30">
         <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Fish className="h-5 w-5 text-primary" />
-            <span className="font-bold text-foreground">FindFish Date</span>
+          <div className="flex items-center justify-center mb-4">
+            <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
           </div>
           
           <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground mb-6">
