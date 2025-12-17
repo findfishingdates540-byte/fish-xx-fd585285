@@ -70,7 +70,7 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: M
       </div>
 
       {/* Navigation row - Tablet/Mobile only */}
-      <nav className="lg:hidden h-12 px-4 flex items-center justify-center gap-8 border-t border-border">
+      <nav className="hidden md:flex lg:hidden h-12 px-4 items-center justify-center gap-8 border-t border-border">
         {navLinks.map((link) => (
           <NavLink
             key={link.to}
