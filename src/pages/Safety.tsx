@@ -1,24 +1,148 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Shield, Lock, Eye, AlertTriangle, UserX, MessageSquare, MapPin, Phone, Check, Heart } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+  Search,
+  Shield,
+  Heart,
+  Fish,
+  FileText,
+  MessageSquare,
+  MapPin,
+  Anchor,
+  AlertTriangle,
+  Phone,
+  Flag,
+  Navigation,
+  Download,
+  ExternalLink,
+  Headphones,
+  LayoutDashboard,
+  Settings,
+  ArrowRight,
+} from 'lucide-react';
 import logo from '@/assets/logo.jpg';
 import safetyHero from '@/assets/safety-hero.jpg';
 
+type FilterTab = 'all' | 'dating' | 'fishing' | 'guidelines';
+
 const Safety = () => {
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filterTabs = [
+    { id: 'all' as FilterTab, label: 'All Topics', icon: null },
+    { id: 'dating' as FilterTab, label: 'Dating Safety', icon: Heart },
+    { id: 'fishing' as FilterTab, label: 'Fishing Safety', icon: Fish },
+    { id: 'guidelines' as FilterTab, label: 'Guidelines', icon: FileText },
+  ];
+
+  const essentialGuides = [
+    {
+      id: 'messaging',
+      title: 'Safe Messaging',
+      description: 'Keep conversations on the app until you\'re ready to meet. Learn how to spot scammers and catfish early.',
+      icon: MessageSquare,
+      link: '#messaging',
+      linkText: 'Read Guide',
+      category: 'all',
+    },
+    {
+      id: 'meeting',
+      title: 'Meeting Spots',
+      description: 'Always meet in public places first. For fishing dates, choose verified high-traffic spots before going remote.',
+      icon: MapPin,
+      link: '/app/spots',
+      linkText: 'View Verified Spots',
+      category: 'all',
+    },
+    {
+      id: 'gear',
+      title: 'Gear & Trip Safety',
+      description: 'Check weather conditions, bring life jackets, and share your live location with a friend before casting off.',
+      icon: Anchor,
+      link: '#trip-checklist',
+      linkText: 'Pre-Trip Checklist',
+      category: 'fishing',
+    },
+    {
+      id: 'harassment',
+      title: 'Harassment Policy',
+      description: 'We have zero tolerance for harassment. Learn how to block, report, and document bad behavior effectively.',
+      icon: AlertTriangle,
+      link: '/terms',
+      linkText: 'Read Policy',
+      category: 'guidelines',
+    },
+  ];
+
+  const faqs = [
+    {
+      question: 'How do I block a user?',
+      answer: 'You can block any user by tapping the three dots on their profile or in your chat conversation with them. Once blocked, they won\'t be able to see your profile or contact you. You can manage your blocked users list in Settings → Privacy → Blocked Users.',
+    },
+    {
+      question: 'What if a fishing spot feels unsafe?',
+      answer: 'If you encounter an unsafe fishing spot, please report it immediately through the app. Go to the spot\'s page, tap "Report Issue" and describe the safety concern. Our team reviews all reports within 24 hours and may remove or flag the spot.',
+    },
+    {
+      question: 'Can I share my location through the app?',
+      answer: 'Yes! You can share your live location with trusted contacts through the Safety features in your profile settings. This is especially useful for fishing trips. Your location is only visible to people you explicitly choose to share with.',
+    },
+    {
+      question: 'How do I report inappropriate behavior?',
+      answer: 'Use the report button available on profiles and in chat conversations. You can also contact our support team directly through Settings → Help & Support or email safety@findfishingdates.com. All reports are reviewed by our safety team.',
+    },
+    {
+      question: 'What verification methods does the app use?',
+      answer: 'We offer photo verification where you take a real-time selfie matching a pose, email and phone verification, and optional ID verification for enhanced trust badges. Verified profiles display badges on their profiles.',
+    },
+  ];
+
+  const quickActions = [
+    { label: 'File a Report', icon: Flag, link: '/contact' },
+    { label: 'Share Location', icon: Navigation, link: '/app/profile' },
+    { label: 'Download Data', icon: Download, link: '/app/profile' },
+  ];
+
+  const externalResources = [
+    {
+      title: 'National Center for Victims of Crime',
+      description: 'Resources for victims of crime.',
+      url: 'https://victimsofcrime.org',
+    },
+    {
+      title: 'U.S. Coast Guard Boating',
+      description: 'Boating safety regulations.',
+      url: 'https://www.uscgboating.org',
+    },
+  ];
+
+  const filteredGuides = essentialGuides.filter(
+    guide => activeFilter === 'all' || guide.category === activeFilter || guide.category === 'all'
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
           <Link to="/">
-            <img src={logo} alt="Find Fishing Dates" className="h-24 w-auto" />
+            <img src={logo} alt="Find Fishing Dates" className="h-20 w-auto" />
           </Link>
           
           <div className="hidden md:flex items-center gap-10 text-sm font-medium">
-            <Link to="/about" className="text-foreground hover:opacity-60 transition-opacity">About</Link>
-            <Link to="/dating" className="text-foreground hover:opacity-60 transition-opacity">Dating</Link>
-            <Link to="/fishing" className="text-foreground hover:opacity-60 transition-opacity">Fishing</Link>
-            <Link to="/safety" className="text-foreground font-semibold">Safety</Link>
+            <Link to="/" className="text-foreground hover:opacity-60 transition-opacity">Home</Link>
+            <Link to="/app/discover" className="text-foreground hover:opacity-60 transition-opacity">Matches</Link>
+            <Link to="/app/spots" className="text-foreground hover:opacity-60 transition-opacity">Fishing Map</Link>
+            <Link to="/safety" className="text-foreground font-semibold">Safety Center</Link>
           </div>
           
           <div className="flex items-center gap-4">
@@ -36,368 +160,255 @@ const Safety = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <header className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Safety Center</span>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
-                Your Safety is Our Priority
-              </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                We've built comprehensive safety features to ensure you can connect with confidence. 
-                Here's everything you need to know about staying safe on Find Fishing Dates.
-              </p>
+      {/* Main Layout */}
+      <div className="pt-24 flex">
+        {/* Left Sidebar */}
+        <aside className="hidden lg:flex flex-col w-64 border-r border-border min-h-[calc(100vh-6rem)] p-6 sticky top-24 h-fit">
+          {/* User Profile Placeholder */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <span className="text-muted-foreground text-sm">👤</span>
             </div>
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
-              <img src={safetyHero} alt="Online safety and trust" className="w-full h-full object-cover" />
+            <div>
+              <p className="font-medium text-foreground text-sm">Guest User</p>
+              <p className="text-xs text-muted-foreground">Safety Center</p>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Safety Features */}
-      <section className="py-24 px-6 section-muted">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Platform Safety</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
-              Built-in Safety Features
-            </h2>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Shield className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Profile Verification</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Verified badges help you identify authentic profiles. We use multiple verification 
-                methods to ensure users are who they say they are.
-              </p>
+          {/* Sidebar Navigation */}
+          <nav className="space-y-1 mb-8">
+            <Link
+              to="/app/discover"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span className="text-sm">Dashboard</span>
+            </Link>
+            <Link
+              to="/app/messages"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="text-sm">Messages</span>
+            </Link>
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted text-foreground">
+              <Shield className="w-5 h-5" />
+              <span className="text-sm font-medium">Safety Center</span>
             </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Lock className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Secure Messaging</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                All messages are encrypted and stay within our platform. We never share your 
-                contact information without your explicit consent.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Eye className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Photo Moderation</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                All photos are reviewed for inappropriate content. Our AI and human moderators 
-                work 24/7 to keep the platform safe.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <UserX className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Block & Report</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Easily block anyone and report inappropriate behavior. Our team reviews all 
-                reports and takes action quickly.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <MapPin className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Location Privacy</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                You control what location information is shared. We never reveal your exact 
-                location to other users without permission.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <MessageSquare className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">24/7 Support</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Our safety team is available around the clock. Contact us anytime if you 
-                experience any issues or concerns.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+            <Link
+              to="/app/profile"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+              <span className="text-sm">Settings</span>
+            </Link>
+          </nav>
 
-      {/* Meeting Safety */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Meeting In Person</span>
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
-                Tips for Meeting Safely
-              </h2>
-              <p className="text-xl text-muted-foreground mt-4">
-                When you're ready to take your connection offline, follow these guidelines to stay safe.
-              </p>
+          {/* Emergency Section */}
+          <div className="mt-auto p-4 bg-destructive/10 rounded-xl border border-destructive/20">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-bold text-destructive">SOS</span>
+              <span className="text-sm font-semibold text-foreground">Emergency?</span>
             </div>
-            
-            <div className="space-y-8">
-              <div className="flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 text-xl font-bold">
-                  1
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground">Meet in Public Places</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Always meet in public, well-populated areas for your first few dates. Popular fishing spots, 
-                    bait shops, or restaurants near the water are great options. Avoid isolated locations until 
-                    you've built trust.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 text-xl font-bold">
-                  2
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground">Tell Someone Your Plans</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Let a friend or family member know where you're going, who you're meeting, and when you 
-                    expect to be back. Share your date's profile with them and check in during and after the date.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 text-xl font-bold">
-                  3
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground">Arrange Your Own Transportation</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Drive yourself or use public transportation for your first few meetings. Don't let your date 
-                    pick you up from home, and have a way to leave independently if needed.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 text-xl font-bold">
-                  4
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground">Video Chat First</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Before meeting in person, have a video call to verify your match is who they claim to be. 
-                    This adds an extra layer of verification and helps you feel more comfortable.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 text-xl font-bold">
-                  5
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground">Trust Your Instincts</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    If something feels wrong, it probably is. Don't feel obligated to continue a date if you're 
-                    uncomfortable. Your safety is more important than being polite.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-6 items-start">
-                <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 text-xl font-bold">
-                  6
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground">Stay Sober</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Keep a clear head when meeting someone new. Alcohol can impair your judgment and reaction time. 
-                    Never leave your drink unattended.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Red Flags */}
-      <section className="py-24 px-6 section-muted">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Stay Alert</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
-              Red Flags to Watch For
-            </h2>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <AlertTriangle className="w-8 h-8 text-foreground" />
-              <h3 className="text-xl font-bold text-foreground">Requests for Money</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Never send money to someone you haven't met in person. Scammers often build emotional 
-                connections before asking for financial help.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <AlertTriangle className="w-8 h-8 text-foreground" />
-              <h3 className="text-xl font-bold text-foreground">Refuses to Video Chat</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                If someone consistently avoids video calls or meeting in person, they may be hiding 
-                something or using fake photos.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <AlertTriangle className="w-8 h-8 text-foreground" />
-              <h3 className="text-xl font-bold text-foreground">Too Good to Be True</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Be wary of profiles that seem perfect or people who fall in love very quickly. 
-                Real relationships take time to develop.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <AlertTriangle className="w-8 h-8 text-foreground" />
-              <h3 className="text-xl font-bold text-foreground">Pressures You</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Anyone who pressures you to meet quickly, share personal info, or do things you're 
-                uncomfortable with is not respecting your boundaries.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Report & Support */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-foreground text-background rounded-3xl p-12 md:p-16">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
-                <h2 className="text-4xl md:text-5xl font-bold">
-                  Need Help? We're Here
-                </h2>
-                <p className="text-xl text-background/70 leading-relaxed">
-                  If you encounter any issues or feel unsafe, our team is available 24/7 to help. 
-                  Don't hesitate to reach out.
-                </p>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Phone className="w-6 h-6" />
-                    <span className="text-lg">Emergency: 911</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <MessageSquare className="w-6 h-6" />
-                    <span className="text-lg">In-app support: Available 24/7</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Heart className="w-6 h-6" />
-                    <span className="text-lg">National Domestic Violence Hotline: 1-800-799-7233</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-2xl font-bold mb-6">How to Report</h3>
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6 flex-shrink-0 mt-1" />
-                  <p>Tap the three dots on any profile to report or block</p>
-                </div>
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6 flex-shrink-0 mt-1" />
-                  <p>Use the report button in any chat conversation</p>
-                </div>
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6 flex-shrink-0 mt-1" />
-                  <p>Contact support through Settings → Help & Support</p>
-                </div>
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6 flex-shrink-0 mt-1" />
-                  <p>Email us at safety@findfishingdates.com</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Community Guidelines */}
-      <section className="py-24 px-6 section-muted">
-        <div className="max-w-3xl mx-auto text-center">
-          <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Community Standards</span>
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4 mb-8">
-            Our Community Guidelines
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            We expect all members to treat each other with respect. Harassment, hate speech, 
-            and inappropriate content are not tolerated and will result in account termination.
-          </p>
-          <Link to="/terms">
-            <Button variant="outline" className="btn-outline">
-              Read Full Guidelines
-              <ArrowRight className="ml-2 w-4 h-4" />
+            <p className="text-xs text-muted-foreground mb-3">
+              If you are in immediate danger, call local authorities.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+              asChild
+            >
+              <a href="tel:911">
+                <Phone className="w-4 h-4 mr-2" />
+                Call 911
+              </a>
             </Button>
-          </Link>
-        </div>
-      </section>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 px-6 lg:px-12 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Safety Center</h1>
+            <p className="text-muted-foreground max-w-2xl">
+              Your safety is our priority. Find guides, verified spot info, and emergency contacts for both your dates and your fishing trips.
+            </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative mb-6">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search safety topics, guides, or FAQs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 py-6 bg-background border-border"
+            />
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap gap-2 mb-10">
+            {filterTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveFilter(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  activeFilter === tab.id
+                    ? 'bg-foreground text-background'
+                    : 'bg-muted text-foreground hover:bg-muted/80'
+                }`}
+              >
+                {tab.icon && <tab.icon className="w-4 h-4" />}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Essential Guides */}
+          <section className="mb-12">
+            <h2 className="text-xl font-bold text-foreground mb-6">Essential Guides</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {filteredGuides.map((guide) => (
+                <div
+                  key={guide.id}
+                  className="bg-muted/30 border border-border rounded-2xl p-6 space-y-3"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                    <guide.icon className="w-5 h-5 text-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">{guide.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {guide.description}
+                  </p>
+                  <Link
+                    to={guide.link}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:underline"
+                  >
+                    {guide.linkText}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* FAQs */}
+          <section>
+            <h2 className="text-xl font-bold text-foreground mb-6">Frequently Asked Questions</h2>
+            <Accordion type="single" collapsible className="space-y-2">
+              {faqs.map((faq, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`faq-${index}`}
+                  className="border border-border rounded-xl px-6 bg-background"
+                >
+                  <AccordionTrigger className="text-left text-foreground font-medium hover:no-underline">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </section>
+        </main>
+
+        {/* Right Sidebar */}
+        <aside className="hidden xl:block w-80 p-6 sticky top-24 h-fit">
+          {/* Need Help Now */}
+          <div className="bg-muted/30 border border-border rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <Headphones className="w-5 h-5 text-foreground" />
+              </div>
+              <h3 className="font-semibold text-foreground">Need help now?</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Our support team is available 24/7 for urgent safety concerns regarding dates or trips.
+            </p>
+            <Button className="w-full btn-primary" asChild>
+              <Link to="/contact">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Start Live Chat
+              </Link>
+            </Button>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-muted/30 border border-border rounded-2xl p-6 mb-6">
+            <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              {quickActions.map((action) => (
+                <Link
+                  key={action.label}
+                  to={action.link}
+                  className="flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl hover:bg-muted transition-colors"
+                >
+                  <action.icon className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">{action.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* External Resources */}
+          <div className="bg-muted/30 border border-border rounded-2xl p-6 mb-6">
+            <h3 className="font-semibold text-foreground mb-4">External Resources</h3>
+            <div className="space-y-4">
+              {externalResources.map((resource) => (
+                <a
+                  key={resource.title}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block border-l-2 border-foreground pl-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">{resource.title}</span>
+                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{resource.description}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Promo Image */}
+          <div className="relative rounded-2xl overflow-hidden h-40">
+            <img
+              src={safetyHero}
+              alt="Stay safe out there"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center">
+              <p className="text-background font-semibold text-center px-4">
+                Stay Safe Out There.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       {/* Footer */}
-      <footer className="py-16 px-6 border-t border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="space-y-4">
-              <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
-              <p className="text-muted-foreground">
-                The dating app for fishing enthusiasts.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Company</h4>
-              <div className="space-y-3">
-                <Link to="/about" className="block text-muted-foreground hover:text-foreground transition-colors">About</Link>
-                <Link to="/contact" className="block text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
-                <Link to="/help" className="block text-muted-foreground hover:text-foreground transition-colors">Help Center</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Features</h4>
-              <div className="space-y-3">
-                <Link to="/dating" className="block text-muted-foreground hover:text-foreground transition-colors">Dating</Link>
-                <Link to="/fishing" className="block text-muted-foreground hover:text-foreground transition-colors">Fishing</Link>
-                <Link to="/safety" className="block text-muted-foreground hover:text-foreground transition-colors">Safety</Link>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Legal</h4>
-              <div className="space-y-3">
-                <Link to="/privacy" className="block text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
-                <Link to="/terms" className="block text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-border pt-8 text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} Find Fishing Dates. All rights reserved.</p>
+      <footer className="border-t border-border py-8 px-6 mt-12">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Find Fishing Dates. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6 text-sm">
+            <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+              Terms of Service
+            </Link>
+            <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+              Cookie Policy
+            </Link>
           </div>
         </div>
       </footer>
