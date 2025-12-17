@@ -73,11 +73,10 @@ const Terms = () => {
 
       {/* Main Content */}
       <main className="px-6 py-12 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-background rounded-2xl shadow-sm border border-border p-8 flex gap-12">
-            {/* Sidebar */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-32">
+        <div className="max-w-7xl mx-auto flex gap-8">
+          {/* Sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="bg-background rounded-2xl shadow-sm border border-border p-6 sticky top-32">
               <div className="mb-8">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
                   TABLE OF CONTENTS
@@ -126,7 +125,8 @@ const Terms = () => {
           </aside>
 
           {/* Content */}
-          <div className="flex-1 max-w-3xl">
+          <div className="flex-1">
+            <div className="bg-background rounded-2xl shadow-sm border border-border p-8">
             {/* Section 1: Introduction */}
             <section id="introduction" className="mb-12 scroll-mt-32">
               <div className="flex items-center gap-3 mb-4">
@@ -325,7 +325,7 @@ const Terms = () => {
                 </p>
               </div>
             </section>
-          </div>
+            </div>
           </div>
         </div>
       </main>
