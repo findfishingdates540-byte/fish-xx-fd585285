@@ -79,12 +79,14 @@ export default function Messages() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Top Header */}
-      <MessagesHeader
-        userName={profile?.display_name || 'User'}
-        userPhoto={profile?.photos?.[0]}
-        notificationCount={2}
-      />
+      {/* Top Header (Desktop only) */}
+      <div className="hidden lg:block">
+        <MessagesHeader
+          userName={profile?.display_name || 'User'}
+          userPhoto={profile?.photos?.[0]}
+          notificationCount={2}
+        />
+      </div>
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
