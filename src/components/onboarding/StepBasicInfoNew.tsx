@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { User } from "lucide-react";
 import { motion } from "framer-motion";
 
-type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
+type Gender = 'male' | 'female';
 
 interface StepBasicInfoNewProps {
   firstName: string;
@@ -20,7 +20,6 @@ interface StepBasicInfoNewProps {
 const genderOptions: { value: Gender; label: string; icon: string }[] = [
   { value: 'male', label: 'Male', icon: '♂' },
   { value: 'female', label: 'Female', icon: '♀' },
-  { value: 'other', label: 'Other', icon: '⚥' },
 ];
 
 export function StepBasicInfoNew({

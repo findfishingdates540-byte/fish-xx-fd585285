@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { SelectableCard } from "@/components/ui/selectable-card";
 import { Heart, Users, Sparkles, UserPlus } from "lucide-react";
 
-type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
+type Gender = 'male' | 'female';
 type LookingFor = 'relationship' | 'casual' | 'friends' | 'fishing_buddy';
 type AccountMode = 'dating' | 'fishing' | 'both';
 
@@ -19,10 +19,9 @@ interface StepDatingPreferenceProps {
   accountMode: AccountMode;
 }
 
-const genderOptions: { value: Gender | 'everyone'; label: string }[] = [
+const genderOptions: { value: Gender; label: string }[] = [
   { value: 'male', label: 'Men' },
   { value: 'female', label: 'Women' },
-  { value: 'everyone', label: 'Everyone' },
 ];
 
 const allLookingForOptions: { value: LookingFor; label: string; icon: typeof Heart }[] = [
@@ -48,15 +47,11 @@ export function StepDatingPreference({
     ? allLookingForOptions.filter(opt => opt.value !== 'fishing_buddy')
     : allLookingForOptions;
 
-  const toggleGenderPreference = (value: Gender | 'everyone') => {
-    if (value === 'everyone') {
-      setInterestedIn(['male', 'female', 'non_binary', 'other']);
+  const toggleGenderPreference = (value: Gender) => {
+    if (interestedIn.includes(value)) {
+      setInterestedIn(interestedIn.filter((g) => g !== value));
     } else {
-      if (interestedIn.includes(value)) {
-        setInterestedIn(interestedIn.filter((g) => g !== value));
-      } else {
-        setInterestedIn([...interestedIn, value]);
-      }
+      setInterestedIn([...interestedIn, value]);
     }
   };
 
@@ -68,11 +63,6 @@ export function StepDatingPreference({
     }
   };
 
-  const isEveryoneSelected = 
-    interestedIn.includes('male') && 
-    interestedIn.includes('female') && 
-    interestedIn.includes('non_binary');
-
   return (
     <div className="space-y-8">
       {/* Gender Preference */}
@@ -80,11 +70,9 @@ export function StepDatingPreference({
         <Label className="text-sm font-medium text-foreground">
           Who are you interested in?
         </Label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {genderOptions.map((option) => {
-            const isSelected = option.value === 'everyone' 
-              ? isEveryoneSelected 
-              : interestedIn.includes(option.value as Gender);
+            const isSelected = interestedIn.includes(option.value);
 
             return (
               <button

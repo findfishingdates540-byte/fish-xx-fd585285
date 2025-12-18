@@ -315,7 +315,6 @@ export default function ProfileEdit() {
   const genderOptions: { value: GenderType; label: string }[] = [
     { value: "male", label: "Men" },
     { value: "female", label: "Women" },
-    { value: "non_binary", label: "Non-binary" },
   ];
 
   const lookingForOptions: { value: LookingForType; label: string; description: string }[] = [
