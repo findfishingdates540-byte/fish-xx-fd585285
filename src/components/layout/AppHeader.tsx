@@ -1,16 +1,18 @@
-import { Bell, Heart, MessageCircle, Fish, Calendar } from 'lucide-react';
+import { useEffect } from 'react';
+import { Bell, Heart, MessageCircle, Calendar } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
 export function AppHeader() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -95,6 +97,71 @@ export function AppHeader() {
     enabled: !!user?.id,
   });
 
+  // Real-time subscriptions for notifications
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('Setting up real-time notification subscriptions');
+
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          console.log('Match update received:', payload);
+          // Check if this is a new match involving the current user
+          const match = payload.new as any;
+          if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
+            queryClient.invalidateQueries({ queryKey: ['recent-matches', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          console.log('New message received:', payload);
+          const message = payload.new as any;
+          // Only refresh if the message is not from the current user
+          if (message.sender_id !== user.id) {
+            queryClient.invalidateQueries({ queryKey: ['unread-messages', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'trip_participants',
+        },
+        (payload) => {
+          console.log('Trip invitation received:', payload);
+          const invite = payload.new as any;
+          if (invite.user_id === user.id) {
+            queryClient.invalidateQueries({ queryKey: ['trip-invites', user.id] });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Notification subscription status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up notification subscriptions');
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   const avatarUrl = profile?.photos?.[0] || '';
   const initials = profile?.display_name?.charAt(0)?.toUpperCase() || 'U';
 
@@ -149,7 +216,7 @@ export function AppHeader() {
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 {totalNotifications > 0 && (
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
+                  <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full animate-pulse" />
                 )}
               </Button>
             </PopoverTrigger>
