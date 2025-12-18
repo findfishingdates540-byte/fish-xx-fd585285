@@ -543,35 +543,35 @@ export default function Onboarding() {
               </div>
 
               {/* Navigation */}
-              <div className="sticky bottom-0 bg-background border-t border-border pt-4 sm:pt-6 mt-4 sm:mt-6 flex items-center justify-between flex-shrink-0">
-                <div>
-                  <AnimatePresence mode="wait">
-                    {currentStep > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <Button
-                          variant="ghost"
-                          onClick={handleBack}
-                          className="text-primary hover:text-primary/80"
+              <div className="sticky bottom-0 bg-background border-t border-border pt-4 sm:pt-6 mt-4 sm:mt-6 flex-shrink-0">
+                {/* Back and Continue on same line */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <AnimatePresence mode="wait">
+                      {currentStep > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
                         >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          Back
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                          <Button
+                            variant="ghost"
+                            onClick={handleBack}
+                            className="text-primary hover:text-primary/80"
+                          >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-                {/* Actions */}
-                <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       onClick={handleNext}
                       disabled={saving}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 w-full sm:w-auto"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-6"
                     >
                       {saving ? (
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -580,25 +580,27 @@ export default function Onboarding() {
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </motion.div>
-
-                  <AnimatePresence mode="wait">
-                    {canSkip && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      >
-                        <Button
-                          variant="ghost"
-                          onClick={handleSkip}
-                          className="text-muted-foreground hover:text-foreground w-full sm:w-auto"
-                        >
-                          Skip for now
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
+
+                {/* Skip centered below */}
+                <AnimatePresence mode="wait">
+                  {canSkip && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex justify-center mt-2"
+                    >
+                      <Button
+                        variant="ghost"
+                        onClick={handleSkip}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Skip for now
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
