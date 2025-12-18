@@ -56,7 +56,6 @@ export function DatingHeader() {
           {/* Logo */}
           <Link to="/app/discover" className="flex items-center gap-2">
             <img src={logo} alt="FindFish Date" className="h-8 w-8 rounded" />
-            <span className="font-bold text-lg">FindFish Date</span>
           </Link>
 
           {/* Navigation */}
