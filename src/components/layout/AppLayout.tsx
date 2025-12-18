@@ -10,6 +10,7 @@ import { BothHeader } from './BothHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
+import { useMessageNotifications } from '@/hooks/use-message-notifications';
 
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
@@ -19,6 +20,9 @@ export function AppLayout() {
   
   // Listen for trip invitation responses (real-time notifications)
   useTripInvitationNotifications();
+
+  // Listen for new message notifications
+  useMessageNotifications();
 
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile-mode', user?.id],
