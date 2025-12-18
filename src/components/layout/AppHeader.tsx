@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bell, Heart, MessageCircle, Calendar } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,56 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
+// Request browser notification permission
+const requestNotificationPermission = async () => {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+};
+
+// Show browser notification
+const showBrowserNotification = (title: string, body: string, icon?: string) => {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: icon || '/favicon.jpg',
+      badge: '/favicon.jpg',
+    });
+  }
+};
+
+// Play notification sound
+const playNotificationSound = () => {
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.value = 800;
+  oscillator.type = 'sine';
+  
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.3);
+};
+
 export function AppHeader() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const previousCountRef = useRef<number>(0);
+  const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if (!hasRequestedPermission) {
+      requestNotificationPermission();
+      setHasRequestedPermission(true);
+    }
+  }, [hasRequestedPermission]);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -80,19 +127,24 @@ export function AppHeader() {
     queryKey: ['trip-invites', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data } = await supabase
-        .from('trip_participants')
-        .select(`
-          id,
-          created_at,
-          trip:fishing_trips(title, trip_date, user_id),
-          organizer:fishing_trips(profiles:user_id(display_name))
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(5);
-      return data || [];
+      try {
+        const { data } = await supabase
+          .from('trip_participants')
+          .select(`
+            id,
+            created_at,
+            status,
+            trip_id
+          `)
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching trip invites:', error);
+        return [];
+      }
     },
     enabled: !!user?.id,
   });
@@ -114,10 +166,12 @@ export function AppHeader() {
         },
         (payload) => {
           console.log('Match update received:', payload);
-          // Check if this is a new match involving the current user
           const match = payload.new as any;
           if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
             queryClient.invalidateQueries({ queryKey: ['recent-matches', user.id] });
+            // Play sound and show notification
+            playNotificationSound();
+            showBrowserNotification('New Match!', 'You have a new match on Find Fishing Dates!');
           }
         }
       )
@@ -131,9 +185,11 @@ export function AppHeader() {
         (payload) => {
           console.log('New message received:', payload);
           const message = payload.new as any;
-          // Only refresh if the message is not from the current user
           if (message.sender_id !== user.id) {
             queryClient.invalidateQueries({ queryKey: ['unread-messages', user.id] });
+            // Play sound and show notification
+            playNotificationSound();
+            showBrowserNotification('New Message', 'You have a new message!');
           }
         }
       )
@@ -149,6 +205,26 @@ export function AppHeader() {
           const invite = payload.new as any;
           if (invite.user_id === user.id) {
             queryClient.invalidateQueries({ queryKey: ['trip-invites', user.id] });
+            // Play sound and show notification
+            playNotificationSound();
+            showBrowserNotification('Trip Invitation', 'You have been invited to a fishing trip!');
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'buddy_messages',
+        },
+        (payload) => {
+          console.log('New buddy message received:', payload);
+          const message = payload.new as any;
+          if (message.sender_id !== user.id) {
+            // Play sound and show notification for buddy messages
+            playNotificationSound();
+            showBrowserNotification('New Buddy Message', 'You have a new message from a fishing buddy!');
           }
         }
       )
@@ -169,6 +245,15 @@ export function AppHeader() {
     (recentMatches?.length || 0) + 
     (unreadMessages?.length || 0) + 
     (tripInvites?.length || 0);
+
+  // Detect new notifications and trigger alerts
+  useEffect(() => {
+    if (totalNotifications > previousCountRef.current && previousCountRef.current > 0) {
+      // New notification arrived
+      playNotificationSound();
+    }
+    previousCountRef.current = totalNotifications;
+  }, [totalNotifications]);
 
   const notifications = [
     ...(recentMatches?.map((match: any) => {
@@ -196,7 +281,7 @@ export function AppHeader() {
       id: `trip-${invite.id}`,
       type: 'trip' as const,
       title: 'Trip Invitation',
-      message: `You're invited to "${invite.trip?.title || 'a fishing trip'}"`,
+      message: `You have a pending trip invitation`,
       time: invite.created_at,
       link: '/app/trips',
       icon: Calendar,
