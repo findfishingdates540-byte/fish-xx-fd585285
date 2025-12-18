@@ -5,6 +5,17 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { playNotificationSound, playBuddyRequestSound } from '@/utils/notification-sound';
 
+// Send push notification via edge function
+async function sendPushNotification(userId: string, title: string, body: string, url?: string) {
+  try {
+    await supabase.functions.invoke('send-push-notification', {
+      body: { userId, title, body, url },
+    });
+  } catch (error) {
+    console.log('Push notification not sent:', error);
+  }
+}
+
 export function useMessageNotifications() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -56,13 +67,24 @@ export function useMessageNotifications() {
             ? newMessage.content.substring(0, 50) + "..." 
             : newMessage.content;
 
-          // Play notification sound
-          playNotificationSound();
+          // Check if document is hidden (app in background)
+          if (document.hidden) {
+            // Send push notification for background
+            sendPushNotification(
+              user.id,
+              `New message from ${senderName}`,
+              preview,
+              `/app/messages`
+            );
+          } else {
+            // Play notification sound for foreground
+            playNotificationSound();
 
-          toast({
-            title: `New message from ${senderName}`,
-            description: preview,
-          });
+            toast({
+              title: `New message from ${senderName}`,
+              description: preview,
+            });
+          }
 
           // Invalidate unread count
           queryClient.invalidateQueries({ queryKey: ["unread-messages-count", user.id] });
@@ -113,13 +135,24 @@ export function useMessageNotifications() {
             ? newMessage.content.substring(0, 50) + "..." 
             : newMessage.content;
 
-          // Play notification sound
-          playNotificationSound();
+          // Check if document is hidden (app in background)
+          if (document.hidden) {
+            // Send push notification for background
+            sendPushNotification(
+              user.id,
+              `New message from ${senderName}`,
+              preview,
+              `/app/buddy-messages`
+            );
+          } else {
+            // Play notification sound for foreground
+            playNotificationSound();
 
-          toast({
-            title: `New message from ${senderName}`,
-            description: preview,
-          });
+            toast({
+              title: `New message from ${senderName}`,
+              description: preview,
+            });
+          }
         }
       )
       .subscribe();
@@ -153,13 +186,24 @@ export function useMessageNotifications() {
 
           const requesterName = requester?.display_name || "Someone";
 
-          // Play buddy request sound
-          playBuddyRequestSound();
+          // Check if document is hidden (app in background)
+          if (document.hidden) {
+            // Send push notification for background
+            sendPushNotification(
+              user.id,
+              "New buddy request!",
+              `${requesterName} wants to be your fishing buddy`,
+              `/app/buddies`
+            );
+          } else {
+            // Play buddy request sound for foreground
+            playBuddyRequestSound();
 
-          toast({
-            title: "New buddy request!",
-            description: `${requesterName} wants to be your fishing buddy`,
-          });
+            toast({
+              title: "New buddy request!",
+              description: `${requesterName} wants to be your fishing buddy`,
+            });
+          }
 
           // Invalidate pending requests count
           queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] });
