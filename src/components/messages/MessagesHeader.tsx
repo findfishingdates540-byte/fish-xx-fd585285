@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import logoImage from '@/assets/logo.jpg';
+import logoImage from '@/assets/logo.png';
 
 interface MessagesHeaderProps {
   userName: string;

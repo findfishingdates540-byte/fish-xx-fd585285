@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, MapPin, ArrowRight, Users, Compass, MessageCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
-import logoImage from "@/assets/logo.jpg";
+import logoImage from "@/assets/logo.png";
 
 const fireConfetti = () => {
   const duration = 3000;

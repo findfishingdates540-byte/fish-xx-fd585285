@@ -2,7 +2,7 @@ import { Home, Heart, MapPin, MessageSquare, Settings } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import logoImage from '@/assets/logo.jpg';
+import logoImage from '@/assets/logo.png';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';

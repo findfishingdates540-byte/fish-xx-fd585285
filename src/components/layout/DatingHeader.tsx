@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Settings, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 
 const datingNavItems = [
   { to: "/app/discover", label: "Discover" },

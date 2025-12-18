@@ -10,7 +10,7 @@ import { z } from 'zod';
 import authBothImage from '@/assets/auth-couple-fishing.jpg';
 import authDatingImage from '@/assets/auth-dating.jpg';
 import authFishingImage from '@/assets/auth-fishing.jpg';
-import logo from '@/assets/logo.jpg';
+import logo from '@/assets/logo.png';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');

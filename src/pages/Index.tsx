@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star, Apple, Smartphone, Check } from 'lucide-react';
-import logo from '@/assets/logo.jpg';
+import logo from '@/assets/logo.png';
 import heroFishing1 from '@/assets/hero-fishing-1.jpg';
 import heroFishing2 from '@/assets/hero-fishing-2.jpg';
 import heroFishing3 from '@/assets/hero-fishing-3.jpg';

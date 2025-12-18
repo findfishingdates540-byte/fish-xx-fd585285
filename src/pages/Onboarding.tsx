@@ -19,7 +19,7 @@ import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
 import datingImage from "@/assets/dating-hero.jpg";
 import comboImage from "@/assets/couple-fishing.jpg";
-import logoImage from "@/assets/logo.jpg";
+import logoImage from "@/assets/logo.png";
 
 // Animation variants - fade only, no sliding
 const stepVariants = {
