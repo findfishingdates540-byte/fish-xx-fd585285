@@ -34,10 +34,12 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
-          </Button>
+          <Link to="/app/settings">
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
+            </Button>
+          </Link>
 
           <Link to="/app/profile">
             <Avatar className="h-8 w-8 border border-border">
