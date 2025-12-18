@@ -127,27 +127,30 @@ export function AppHeader() {
     queryKey: ['trip-invites', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      try {
-        const { data } = await supabase
-          .from('trip_participants')
-          .select(`
-            id,
-            created_at,
-            status,
-            trip_id
-          `)
-          .eq('user_id', user.id)
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false })
-          .limit(5);
-        return data || [];
-      } catch (error) {
+      const { data, error } = await supabase
+        .from('trip_participants')
+        .select(`
+          id,
+          created_at,
+          status,
+          trip_id,
+          trip:fishing_trips(title, trip_date)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) {
         console.error('Error fetching trip invites:', error);
         return [];
       }
+      return data || [];
     },
     enabled: !!user?.id,
   });
+
+
 
   // Real-time subscriptions for notifications
   useEffect(() => {
@@ -281,7 +284,7 @@ export function AppHeader() {
       id: `trip-${invite.id}`,
       type: 'trip' as const,
       title: 'Trip Invitation',
-      message: `You have a pending trip invitation`,
+      message: `You're invited to "${invite.trip?.title || 'a fishing trip'}"`,
       time: invite.created_at,
       link: '/app/trips',
       icon: Calendar,
