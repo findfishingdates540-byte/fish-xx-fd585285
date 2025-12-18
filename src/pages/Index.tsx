@@ -252,7 +252,7 @@ const Index = () => {
                 <p className="font-semibold text-foreground">Sarah & Michael</p>
                 <p className="text-muted-foreground">Married in 2023</p>
               </div>
-              <Link to="/stories">
+              <Link to="/stories" className="mt-6 inline-block">
                 <Button variant="outline" className="btn-outline">
                   Read More Stories
                 </Button>
