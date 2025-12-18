@@ -23,14 +23,13 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')!;
-    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { userId, title, body, icon, url, tag }: PushPayload = await req.json();
 
     console.log(`Sending push notification to user: ${userId}`);
+    console.log(`Title: ${title}, Body: ${body}`);
 
     // Get user's push subscriptions
     const { data: subscriptions, error: subError } = await supabase
@@ -45,51 +44,39 @@ serve(async (req) => {
 
     if (!subscriptions || subscriptions.length === 0) {
       console.log('No subscriptions found for user');
-      return new Response(JSON.stringify({ sent: 0 }), {
+      return new Response(JSON.stringify({ sent: 0, message: 'No subscriptions found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     console.log(`Found ${subscriptions.length} subscriptions`);
 
-    // Web Push implementation using fetch to web-push compatible endpoint
+    const payload = JSON.stringify({
+      title,
+      body,
+      icon: icon || '/favicon.png',
+      badge: '/favicon.png',
+      url: url || '/app/messages',
+      tag: tag || 'message',
+    });
+
     const results = await Promise.all(
       subscriptions.map(async (sub) => {
         try {
-          const payload = JSON.stringify({
-            title,
-            body,
-            icon: icon || '/favicon.ico',
-            badge: '/favicon.ico',
-            url: url || '/',
-            tag: tag || 'default',
-          });
-
-          // Create JWT for VAPID
-          const header = { alg: 'ES256', typ: 'JWT' };
-          const audience = new URL(sub.endpoint).origin;
-          const expiration = Math.floor(Date.now() / 1000) + 12 * 60 * 60;
-          
-          const jwtPayload = {
-            aud: audience,
-            exp: expiration,
-            sub: `mailto:noreply@findfishingdates.com`,
-          };
-
-          // For web push, we need to use the web-push library approach
-          // Since Deno doesn't have native web-push, we'll use a simpler approach
+          // Simple push without encryption - relies on browser handling
           const response = await fetch(sub.endpoint, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/octet-stream',
-              'Content-Encoding': 'aes128gcm',
+              'Content-Type': 'application/json',
               'TTL': '86400',
             },
-            body: new TextEncoder().encode(payload),
+            body: payload,
           });
 
+          console.log(`Push response for ${sub.id}: ${response.status}`);
+
           if (!response.ok) {
-            console.error(`Push failed for ${sub.id}: ${response.status}`);
+            console.error(`Push failed for ${sub.id}: ${response.status} ${response.statusText}`);
             // Remove invalid subscription
             if (response.status === 404 || response.status === 410) {
               await supabase
@@ -98,14 +85,14 @@ serve(async (req) => {
                 .eq('id', sub.id);
               console.log(`Removed invalid subscription: ${sub.id}`);
             }
-            return { success: false, id: sub.id };
+            return { success: false, id: sub.id, status: response.status };
           }
 
           console.log(`Push sent successfully to ${sub.id}`);
           return { success: true, id: sub.id };
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          console.error(`Error sending push to ${sub.id}:`, error);
+          console.error(`Error sending push to ${sub.id}:`, errorMessage);
           return { success: false, id: sub.id, error: errorMessage };
         }
       })
