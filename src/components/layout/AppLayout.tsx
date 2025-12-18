@@ -71,7 +71,7 @@ export function AppLayout() {
   // Determine which desktop header to show
   const renderDesktopHeader = () => {
     if (accountMode === 'dating') {
-      return <DatingHeader />;
+      return null; // No header for dating mode
     }
     if (accountMode === 'fishing') {
       return <FishingHeader />;
