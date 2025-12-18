@@ -49,7 +49,7 @@ const staggerContainer = {
 };
 
 type AccountMode = 'dating' | 'fishing' | 'both';
-type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
+type Gender = 'male' | 'female';
 type LookingFor = 'relationship' | 'casual' | 'friends' | 'fishing_buddy';
 type FishingExperience = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
@@ -179,7 +179,9 @@ export default function Onboarding() {
         setAccountMode(data.account_mode || 'both');
         if (data.display_name) setFirstName(data.display_name);
         if (data.date_of_birth) setDateOfBirth(data.date_of_birth);
-        if (data.gender) setGender(data.gender);
+        if (data.gender && (data.gender === 'male' || data.gender === 'female')) {
+          setGender(data.gender);
+        }
         if (data.photos) setPhotos(data.photos);
         if (data.location_name) {
           const parts = data.location_name.split(', ');
@@ -189,7 +191,12 @@ export default function Onboarding() {
         if (data.fishing_experience) setFishingExperience(data.fishing_experience);
         if (data.preferred_species) setSelectedStyles(data.preferred_species);
         if (data.fishing_gear) setSelectedActivities(data.fishing_gear);
-        if (data.interested_in) setInterestedIn(data.interested_in);
+        if (data.interested_in) {
+          const filteredInterests = data.interested_in.filter(
+            (g): g is Gender => g === 'male' || g === 'female'
+          );
+          setInterestedIn(filteredInterests);
+        }
         if (data.looking_for) setLookingFor(data.looking_for);
         if (data.min_age_preference && data.max_age_preference) {
           setAgeRange([data.min_age_preference, data.max_age_preference]);

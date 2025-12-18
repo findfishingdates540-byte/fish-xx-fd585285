@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
-type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
+type Gender = 'male' | 'female';
 
 interface StepPreferencesProps {
   interestedIn: Gender[];
@@ -18,8 +18,6 @@ interface StepPreferencesProps {
 const genderOptions: { value: Gender; label: string }[] = [
   { value: 'male', label: 'Men' },
   { value: 'female', label: 'Women' },
-  { value: 'non_binary', label: 'Non-binary' },
-  { value: 'other', label: 'Everyone' },
 ];
 
 export function StepPreferences({
@@ -33,17 +31,12 @@ export function StepPreferences({
   showAgeRange = true,
 }: StepPreferencesProps) {
   const toggleGenderPreference = (value: Gender) => {
-    if (value === 'other') {
-      // "Everyone" selected - set all genders
-      setInterestedIn(['male', 'female', 'non_binary', 'other', 'prefer_not_to_say']);
-    } else if (interestedIn.includes(value)) {
-      setInterestedIn(interestedIn.filter((v) => v !== value && v !== 'other'));
+    if (interestedIn.includes(value)) {
+      setInterestedIn(interestedIn.filter((v) => v !== value));
     } else {
-      setInterestedIn([...interestedIn.filter((v) => v !== 'other'), value]);
+      setInterestedIn([...interestedIn, value]);
     }
   };
-
-  const isEveryone = interestedIn.length >= 4;
 
   return (
     <div className="space-y-8">
@@ -52,9 +45,7 @@ export function StepPreferences({
           <Label className="text-foreground font-medium">Show me...</Label>
           <div className="flex flex-wrap gap-2">
             {genderOptions.map((option) => {
-              const isSelected = option.value === 'other' 
-                ? isEveryone 
-                : interestedIn.includes(option.value);
+              const isSelected = interestedIn.includes(option.value);
               
               return (
                 <button

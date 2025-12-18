@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-type Gender = 'male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say';
+type Gender = 'male' | 'female';
 
 interface StepBasicInfoProps {
   dateOfBirth: string;
@@ -18,9 +18,6 @@ interface StepBasicInfoProps {
 const genderOptions: { value: Gender; label: string }[] = [
   { value: 'male', label: 'Man' },
   { value: 'female', label: 'Woman' },
-  { value: 'non_binary', label: 'Non-binary' },
-  { value: 'other', label: 'Other' },
-  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
 ];
 
 export function StepBasicInfo({
