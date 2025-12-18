@@ -1,8 +1,9 @@
-import { Home, Heart, MapPin, MessageSquare, Settings } from 'lucide-react';
+import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, Users } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import logoImage from '@/assets/logo.png';
+import datingLogoImage from '@/assets/dating-logo.png';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
@@ -16,7 +17,16 @@ interface DiscoverSidebarProps {
   isPremium?: boolean;
 }
 
-const navItems = [
+// Dating-specific nav items
+const datingNavItems = [
+  { to: '/app/discover', icon: Compass, label: 'Discover' },
+  { to: '/app/likes', icon: Sparkles, label: 'Who Likes You' },
+  { to: '/app/matches', icon: Heart, label: 'Matches' },
+  { to: '/app/messages', icon: MessageSquare, label: 'Messages' },
+];
+
+// Fishing/Both mode nav items
+const fishingNavItems = [
   { to: '/app/discover', icon: Home, label: 'Home' },
   { to: '/app/matches', icon: Heart, label: 'Matches' },
   { to: '/app/spots', icon: MapPin, label: 'Fishing Map' },
@@ -43,15 +53,21 @@ export function DiscoverSidebar({
   };
 
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
+  const isDatingMode = accountMode === 'dating';
+  const navItems = isDatingMode ? datingNavItems : fishingNavItems;
 
   return (
     <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
       {/* Logo */}
       <div className="mb-8">
-        <div className="flex items-center gap-2">
-          <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
-          <span className="font-bold text-lg">Find Fishing Dates</span>
-        </div>
+        {isDatingMode ? (
+          <img src={datingLogoImage} alt="Find Fishing Dates" className="h-12 w-auto" />
+        ) : (
+          <div className="flex items-center gap-2">
+            <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
+            <span className="font-bold text-lg">Find Fishing Dates</span>
+          </div>
+        )}
         <p className="text-xs text-muted-foreground mt-1">{getModeLabel()}</p>
       </div>
 
