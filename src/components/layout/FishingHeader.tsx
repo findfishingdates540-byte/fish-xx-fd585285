@@ -18,7 +18,7 @@ import logo from "@/assets/logo.png";
 const fishingNavItems = [
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
-  { to: "/app/buddies", label: "Community" },
+  { to: "/app/buddies", label: "Buddies" },
   { to: "/app/catches", label: "Catches" },
   { to: "/app/profile", label: "Profile" },
 ];
