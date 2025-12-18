@@ -526,7 +526,7 @@ export default function Onboarding() {
               </AnimatePresence>
 
               {/* Step Content */}
-              <div className="flex-1 overflow-y-auto relative min-h-0">
+              <div className="flex-1 relative">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStepKey}
