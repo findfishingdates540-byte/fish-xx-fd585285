@@ -419,9 +419,9 @@ export default function Onboarding() {
   const isLastStep = currentStep === totalSteps - 1;
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-muted flex flex-col">
       {/* Header */}
-      <header className="bg-background border-b border-border px-6 py-4">
+      <header className="bg-background border-b border-border px-6 py-4 flex-shrink-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={logoImage} alt="Find Fishing Dates" className="w-8 h-8 rounded-full object-cover" />
@@ -446,7 +446,7 @@ export default function Onboarding() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex-1 flex flex-col">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex-1 flex flex-col min-h-0 w-full">
         <div className="bg-background rounded-3xl border border-border overflow-hidden flex-1 flex flex-col">
           <div className="flex flex-col lg:flex-row min-h-0 lg:min-h-[600px] flex-1">
             {/* Left Side - Image/Info (Desktop) */}
@@ -543,7 +543,7 @@ export default function Onboarding() {
               </div>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between pt-4 sm:pt-6 mt-4 sm:mt-6 border-t border-border flex-shrink-0">
+              <div className="sticky bottom-0 bg-background border-t border-border pt-4 sm:pt-6 mt-4 sm:mt-6 flex items-center justify-between flex-shrink-0">
                 <div>
                   <AnimatePresence mode="wait">
                     {currentStep > 0 && (
@@ -564,7 +564,23 @@ export default function Onboarding() {
                     )}
                   </AnimatePresence>
                 </div>
-                <div className="flex items-center gap-3">
+
+                {/* Actions */}
+                <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      onClick={handleNext}
+                      disabled={saving}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 w-full sm:w-auto"
+                    >
+                      {saving ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : null}
+                      {isLastStep ? 'Finalize & Find Matches' : 'Continue'}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </motion.div>
+
                   <AnimatePresence mode="wait">
                     {canSkip && (
                       <motion.div
@@ -575,29 +591,13 @@ export default function Onboarding() {
                         <Button
                           variant="ghost"
                           onClick={handleSkip}
-                          className="text-muted-foreground hover:text-foreground"
+                          className="text-muted-foreground hover:text-foreground w-full sm:w-auto"
                         >
                           Skip for now
                         </Button>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      onClick={handleNext}
-                      disabled={saving}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
-                    >
-                      {saving ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : null}
-                      {isLastStep ? 'Finalize & Find Matches' : 'Continue'}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </motion.div>
                 </div>
               </div>
             </div>
