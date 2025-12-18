@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ const fishingNavItems = [
 export function FishingHeader() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: profile } = useQuery({
     queryKey: ["profile-header", user?.id],
@@ -56,6 +58,32 @@ export function FishingHeader() {
     },
     enabled: !!user?.id,
   });
+
+  // Real-time subscription for buddy requests
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel("buddy-requests-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "fishing_buddies",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        () => {
+          // Invalidate and refetch the pending requests count
+          queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
