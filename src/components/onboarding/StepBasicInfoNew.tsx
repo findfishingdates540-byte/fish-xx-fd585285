@@ -117,16 +117,16 @@ export function StepBasicInfoNew({
           <Label className="text-sm font-medium text-foreground">
             I identify as...
           </Label>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {genderOptions.map((option) => (
               <SelectableCard
                 key={option.value}
                 selected={gender === option.value}
                 onClick={() => setGender(option.value)}
-                className="flex flex-col items-center justify-center py-5 px-4 min-w-[100px]"
+                className="flex flex-col items-center justify-center py-3 px-2 sm:py-5 sm:px-4"
               >
-                <span className="text-2xl text-primary mb-1">{option.icon}</span>
-                <span className="text-sm font-medium text-foreground">{option.label}</span>
+                <span className="text-xl sm:text-2xl text-primary mb-1">{option.icon}</span>
+                <span className="text-xs sm:text-sm font-medium text-foreground">{option.label}</span>
               </SelectableCard>
             ))}
           </div>
