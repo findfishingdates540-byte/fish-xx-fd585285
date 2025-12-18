@@ -57,14 +57,7 @@ export function DiscoverSidebar({
   const navItems = isDatingMode ? datingNavItems : fishingNavItems;
 
   return (
-    <aside 
-      className={cn(
-        "hidden lg:flex flex-col w-60 h-screen border-r p-6 fixed top-0 left-0 z-40",
-        isDatingMode 
-          ? "bg-gradient-to-b from-dating-light to-background border-dating/20" 
-          : "bg-background border-border"
-      )}
-    >
+    <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
       {/* Logo */}
       <div className="mb-8">
         {isDatingMode ? (
@@ -75,12 +68,7 @@ export function DiscoverSidebar({
             <span className="font-bold text-lg">Find Fishing Dates</span>
           </div>
         )}
-        <p className={cn(
-          "text-xs mt-1",
-          isDatingMode ? "text-dating font-medium" : "text-muted-foreground"
-        )}>
-          {getModeLabel()}
-        </p>
+        <p className="text-xs text-muted-foreground mt-1">{getModeLabel()}</p>
       </div>
 
       {/* Navigation */}
@@ -91,14 +79,10 @@ export function DiscoverSidebar({
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium',
-                isDatingMode
-                  ? isActive
-                    ? 'bg-dating text-white shadow-md'
-                    : 'text-foreground/70 hover:bg-dating/10 hover:text-dating'
-                  : isActive
-                    ? 'bg-accent text-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium',
+                isActive
+                  ? 'bg-accent text-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               )
             }
           >
