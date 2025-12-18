@@ -57,6 +57,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        dating: {
+          DEFAULT: "hsl(var(--dating-primary))",
+          light: "hsl(var(--dating-primary-light))",
+          accent: "hsl(var(--dating-accent))",
+        },
       },
       fontFamily: {
         sans: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
