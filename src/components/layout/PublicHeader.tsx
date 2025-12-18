@@ -17,7 +17,7 @@ export function PublicHeader() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between px-6 py-1 max-w-7xl mx-auto">
         <Link to="/">
-          <img src={logo} alt="Find Fishing Dates" className="h-24 w-auto" />
+          <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
         </Link>
         
         <div className="hidden md:flex items-center gap-10 text-sm font-medium">
