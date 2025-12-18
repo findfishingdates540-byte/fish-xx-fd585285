@@ -446,9 +446,9 @@ export default function Onboarding() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="bg-background rounded-3xl border border-border overflow-hidden">
-          <div className="flex flex-col lg:flex-row min-h-[600px]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex-1 flex flex-col">
+        <div className="bg-background rounded-3xl border border-border overflow-hidden flex-1 flex flex-col">
+          <div className="flex flex-col lg:flex-row min-h-0 lg:min-h-[600px] flex-1">
             {/* Left Side - Image/Info (Desktop) */}
             <div className="hidden lg:flex lg:w-2/5 bg-muted p-8 flex-col justify-between">
               <div>
@@ -473,7 +473,7 @@ export default function Onboarding() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="flex-1 p-6 lg:p-10 flex flex-col">
+            <div className="flex-1 p-4 sm:p-6 lg:p-10 flex flex-col min-h-0">
               {/* Step Progress */}
               <motion.div 
                 className="mb-8"
@@ -526,7 +526,7 @@ export default function Onboarding() {
               </AnimatePresence>
 
               {/* Step Content */}
-              <div className="flex-1 overflow-hidden relative">
+              <div className="flex-1 overflow-y-auto relative min-h-0">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStepKey}
@@ -543,7 +543,7 @@ export default function Onboarding() {
               </div>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
+              <div className="flex items-center justify-between pt-4 sm:pt-6 mt-4 sm:mt-6 border-t border-border flex-shrink-0">
                 <div>
                   <AnimatePresence mode="wait">
                     {currentStep > 0 && (
