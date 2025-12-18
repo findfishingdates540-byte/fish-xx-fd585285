@@ -1,7 +1,12 @@
-import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, Users } from 'lucide-react';
+import { useEffect } from 'react';
+import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import logoImage from '@/assets/logo.png';
 import datingLogoImage from '@/assets/dating-logo.png';
 
@@ -17,20 +22,27 @@ interface DiscoverSidebarProps {
   isPremium?: boolean;
 }
 
+interface NavItem {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  hasMessageBadge?: boolean;
+}
+
 // Dating-specific nav items
-const datingNavItems = [
+const datingNavItems: NavItem[] = [
   { to: '/app/discover', icon: Compass, label: 'Discover' },
   { to: '/app/likes', icon: Sparkles, label: 'Who Likes You' },
   { to: '/app/matches', icon: Heart, label: 'Matches' },
-  { to: '/app/messages', icon: MessageSquare, label: 'Messages' },
+  { to: '/app/messages', icon: MessageSquare, label: 'Messages', hasMessageBadge: true },
 ];
 
 // Fishing/Both mode nav items
-const fishingNavItems = [
+const fishingNavItems: NavItem[] = [
   { to: '/app/discover', icon: Home, label: 'Home' },
   { to: '/app/matches', icon: Heart, label: 'Matches' },
   { to: '/app/spots', icon: MapPin, label: 'Fishing Map' },
-  { to: '/app/messages', icon: MessageSquare, label: 'Messages' },
+  { to: '/app/messages', icon: MessageSquare, label: 'Messages', hasMessageBadge: true },
 ];
 
 export function DiscoverSidebar({
@@ -41,6 +53,63 @@ export function DiscoverSidebar({
   userPhoto,
   isPremium,
 }: DiscoverSidebarProps) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch unread messages count
+  const { data: unreadMessagesCount = 0 } = useQuery({
+    queryKey: ["unread-messages-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      // First get all matches where user is a participant
+      const { data: matches } = await supabase
+        .from("matches")
+        .select("id")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq("is_match", true);
+
+      if (!matches || matches.length === 0) return 0;
+
+      const matchIds = matches.map(m => m.id);
+      
+      // Count unread messages in those matches
+      const { count } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .in("match_id", matchIds)
+        .neq("sender_id", user.id)
+        .eq("is_read", false);
+
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel("messages-sidebar")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["unread-messages-count", user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   const getModeLabel = () => {
     switch (discoveryMode) {
       case 'dating':
@@ -79,7 +148,7 @@ export function DiscoverSidebar({
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium',
+                'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium relative',
                 isActive
                   ? 'bg-accent text-foreground'
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -87,7 +156,15 @@ export function DiscoverSidebar({
             }
           >
             <item.icon className="h-5 w-5" />
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.hasMessageBadge && unreadMessagesCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="h-5 min-w-5 flex items-center justify-center text-xs px-1.5"
+              >
+                {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+              </Badge>
+            )}
           </NavLink>
         ))}
 
