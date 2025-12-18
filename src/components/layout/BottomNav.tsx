@@ -1,6 +1,11 @@
+import { useEffect } from 'react';
 import { Home, Heart, MessageCircle, User, Fish, MapPin } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 
@@ -12,11 +17,10 @@ interface NavItem {
   to: string;
   icon: React.ElementType;
   label: string;
+  hasBuddyBadge?: boolean;
 }
 
 const getNavItems = (mode: AccountMode): NavItem[] => {
-  const baseItems: NavItem[] = [];
-
   if (mode === 'dating') {
     return [
       { to: '/app/discover', icon: Home, label: 'Discover' },
@@ -30,7 +34,7 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
     return [
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
       { to: '/app/catches', icon: Fish, label: 'Catches' },
-      { to: '/app/buddies', icon: Heart, label: 'Buddies' },
+      { to: '/app/buddies', icon: Heart, label: 'Buddies', hasBuddyBadge: true },
       { to: '/app/profile', icon: User, label: 'Profile' },
     ];
   }
@@ -46,6 +50,48 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
 
 export function BottomNav({ accountMode }: BottomNavProps) {
   const navItems = getNavItems(accountMode);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch pending buddy requests count
+  const { data: pendingRequestsCount = 0 } = useQuery({
+    queryKey: ["pending-buddy-requests", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count } = await supabase
+        .from("fishing_buddies")
+        .select("*", { count: "exact", head: true })
+        .eq("recipient_id", user.id)
+        .eq("status", "pending");
+      return count || 0;
+    },
+    enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
+  });
+
+  // Real-time subscription for buddy requests
+  useEffect(() => {
+    if (!user?.id || (accountMode !== 'fishing' && accountMode !== 'both')) return;
+
+    const channel = supabase
+      .channel("buddy-requests-mobile-nav")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "fishing_buddies",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, accountMode, queryClient]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-pb">
@@ -56,7 +102,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors',
+                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative',
                 isActive
                   ? 'text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
@@ -65,10 +111,20 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           >
             {({ isActive }) => (
               <>
-                <item.icon
-                  className={cn('h-5 w-5', isActive && 'fill-current')}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
+                <div className="relative">
+                  <item.icon
+                    className={cn('h-5 w-5', isActive && 'fill-current')}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                  {item.hasBuddyBadge && pendingRequestsCount > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
+                    >
+                      {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                    </Badge>
+                  )}
+                </div>
                 <span className="text-xs font-medium">{item.label}</span>
               </>
             )}
