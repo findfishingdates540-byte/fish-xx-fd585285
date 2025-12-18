@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +19,7 @@ import logo from "@/assets/logo.png";
 const fishingNavItems = [
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
-  { to: "/app/buddies", label: "Buddies" },
+  { to: "/app/buddies", label: "Buddies", hasBadge: true },
   { to: "/app/catches", label: "Catches" },
   { to: "/app/profile", label: "Profile" },
 ];
@@ -37,6 +38,21 @@ export function FishingHeader() {
         .eq("id", user.id)
         .maybeSingle();
       return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch pending buddy requests count
+  const { data: pendingRequestsCount = 0 } = useQuery({
+    queryKey: ["pending-buddy-requests", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count } = await supabase
+        .from("fishing_buddies")
+        .select("*", { count: "exact", head: true })
+        .eq("recipient_id", user.id)
+        .eq("status", "pending");
+      return count || 0;
     },
     enabled: !!user?.id,
   });
@@ -68,12 +84,20 @@ export function FishingHeader() {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "text-sm font-medium transition-colors hover:text-foreground",
+                    "text-sm font-medium transition-colors hover:text-foreground relative",
                     isActive ? "text-foreground" : "text-muted-foreground"
                   )
                 }
               >
                 {item.label}
+                {item.hasBadge && pendingRequestsCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-4 h-5 min-w-5 flex items-center justify-center text-xs px-1"
+                  >
+                    {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                  </Badge>
+                )}
               </NavLink>
             ))}
           </nav>
