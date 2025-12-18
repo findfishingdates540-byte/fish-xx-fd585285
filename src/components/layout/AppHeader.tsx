@@ -22,8 +22,8 @@ const showBrowserNotification = (title: string, body: string, icon?: string) => 
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, {
       body,
-      icon: icon || '/favicon.jpg',
-      badge: '/favicon.jpg',
+      icon: icon || '/favicon.png',
+      badge: '/favicon.png',
     });
   }
 };

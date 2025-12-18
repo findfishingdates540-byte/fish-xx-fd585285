@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Settings, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 
 const fishingNavItems = [
   { to: "/app/spots", label: "Find Spots" },
