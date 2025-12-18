@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { playNotificationSound, playBuddyRequestSound } from '@/utils/notification-sound';
 
 export function useMessageNotifications() {
   const { user } = useAuth();
@@ -54,6 +55,9 @@ export function useMessageNotifications() {
           const preview = newMessage.content.length > 50 
             ? newMessage.content.substring(0, 50) + "..." 
             : newMessage.content;
+
+          // Play notification sound
+          playNotificationSound();
 
           toast({
             title: `New message from ${senderName}`,
@@ -109,6 +113,9 @@ export function useMessageNotifications() {
             ? newMessage.content.substring(0, 50) + "..." 
             : newMessage.content;
 
+          // Play notification sound
+          playNotificationSound();
+
           toast({
             title: `New message from ${senderName}`,
             description: preview,
@@ -117,9 +124,53 @@ export function useMessageNotifications() {
       )
       .subscribe();
 
+    // Listen for new buddy requests
+    const buddyRequestsChannel = supabase
+      .channel("new-buddy-requests-notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "fishing_buddies",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const newRequest = payload.new as {
+            id: string;
+            requester_id: string;
+            status: string;
+          };
+
+          if (newRequest.status !== "pending") return;
+
+          // Get requester's name
+          const { data: requester } = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("id", newRequest.requester_id)
+            .single();
+
+          const requesterName = requester?.display_name || "Someone";
+
+          // Play buddy request sound
+          playBuddyRequestSound();
+
+          toast({
+            title: "New buddy request!",
+            description: `${requesterName} wants to be your fishing buddy`,
+          });
+
+          // Invalidate pending requests count
+          queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] });
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(buddyMessagesChannel);
+      supabase.removeChannel(buddyRequestsChannel);
     };
   }, [user?.id, toast, queryClient]);
 }
