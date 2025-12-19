@@ -3,87 +3,18 @@ import { useOutletContext } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDiscoverProfiles } from '@/hooks/use-discover-profiles';
 import {
   DiscoverSidebar,
   ProfileCard,
   SwipeActions,
   RightSidebar,
   ProfileDetailView,
-  type ProfileData,
-  type ProfileDetailData,
 } from '@/components/discover';
-import coupleFishing from '@/assets/couple-fishing.jpg';
-import datingCouple1 from '@/assets/dating-couple-1.jpg';
-import datingCouple2 from '@/assets/dating-couple-2.jpg';
+import { RefreshCw, Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
-
-// Mock data for demo
-const mockProfile: ProfileData = {
-  id: '1',
-  name: 'Jessica',
-  age: 28,
-  location: 'Orlando, FL',
-  distance: '5 miles away',
-  bio: "Loves early morning casts and coffee. Looking for a first mate who knows how to tie a knot and...",
-  photos: [coupleFishing, datingCouple1, datingCouple2],
-  fishingType: 'Freshwater',
-  tags: [
-    { icon: '🎣', label: 'Bass Fishing' },
-    { icon: '🚤', label: 'Boat Owner' },
-    { icon: '📅', label: 'Weekend Angler' },
-  ],
-};
-
-// Extended mock data for detail view
-const mockProfileDetail: ProfileDetailData = {
-  id: '1',
-  name: 'Jessica',
-  age: 28,
-  location: 'Orlando, FL',
-  distance: '15 miles away',
-  bio: "Love early mornings on the lake. Looking for someone who knows how to bait a hook but isn't afraid to get their hands dirty. I spend most weekends on my kayak or hiking up to hidden streams. Let's trade fish stories! 🎣",
-  photos: [coupleFishing, datingCouple1, datingCouple2],
-  isVerified: true,
-  isActive: true,
-  height: "5'7\"",
-  smoker: 'No',
-  drinker: 'Socially',
-  targetSpecies: 'Bass & Trout',
-  bestCatch: '12lb Largemouth',
-  ride: 'Ocean Kayak',
-  interests: ['Fly Fishing', 'Camping', 'Morning Person', 'Sushi Lover', 'Hiking', 'Dogs'],
-};
-
-const mockMatches = [
-  { id: '1', name: 'Sarah', photo: datingCouple1 },
-  { id: '2', name: 'Jake', photo: coupleFishing },
-  { id: '3', name: 'Emily', photo: datingCouple2 },
-];
-
-const mockConversations = [
-  {
-    id: '1',
-    name: 'David W.',
-    photo: coupleFishing,
-    lastMessage: 'Did you catch anything on...',
-    time: '12m',
-  },
-  {
-    id: '2',
-    name: 'Amanda K.',
-    photo: datingCouple1,
-    lastMessage: 'Nice catch! I usually go to...',
-    time: '2h',
-  },
-  {
-    id: '3',
-    name: 'Robert T.',
-    photo: datingCouple2,
-    lastMessage: 'Lets go fishing this weekend?',
-    time: '1d',
-  },
-];
 
 export default function Discover() {
   const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
@@ -92,6 +23,19 @@ export default function Discover() {
     accountMode === 'both' ? 'combo' : accountMode
   );
   const [showDetailView, setShowDetailView] = useState(false);
+
+  const {
+    currentProfile,
+    currentDetailProfile,
+    isLoading,
+    isSwiping,
+    hasMoreProfiles,
+    noMoreProfiles,
+    handleLike,
+    handlePass,
+    handleSuperLike,
+    loadMoreProfiles,
+  } = useDiscoverProfiles();
 
   const { data: profile } = useQuery({
     queryKey: ['user-profile', user?.id],
@@ -107,41 +51,74 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
-  const handlePass = () => {
-    console.log('Passed');
+  // Mock data for sidebar (will be wired up in Phase 2 & 3)
+  const mockMatches = [
+    { id: '1', name: 'Sarah', photo: '' },
+    { id: '2', name: 'Jake', photo: '' },
+  ];
+  const mockConversations = [
+    { id: '1', name: 'David W.', photo: '', lastMessage: 'Hey!', time: '12m' },
+  ];
+
+  const onPass = async () => {
+    await handlePass();
     setShowDetailView(false);
   };
 
-  const handleLike = () => {
-    console.log('Liked');
+  const onLike = async () => {
+    await handleLike();
     setShowDetailView(false);
   };
 
-  const handleSuperLike = () => {
-    console.log('Super liked');
+  const onSuperLike = async () => {
+    await handleSuperLike();
     setShowDetailView(false);
-  };
-
-  const handleRewind = () => {
-    console.log('Rewound');
   };
 
   const handleProfileClick = () => {
-    setShowDetailView(true);
+    if (currentProfile) {
+      setShowDetailView(true);
+    }
   };
 
   // Show detail view
-  if (showDetailView) {
+  if (showDetailView && currentDetailProfile) {
     return (
       <ProfileDetailView
-        profile={mockProfileDetail}
+        profile={currentDetailProfile}
         onClose={() => setShowDetailView(false)}
-        onPass={handlePass}
-        onSuperLike={handleSuperLike}
-        onLike={handleLike}
+        onPass={onPass}
+        onSuperLike={onSuperLike}
+        onLike={onLike}
       />
     );
   }
+
+  // Empty state when no more profiles
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center text-center p-8">
+      <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
+        <Heart className="h-12 w-12 text-muted-foreground" />
+      </div>
+      <h2 className="text-2xl font-semibold mb-2">No more profiles</h2>
+      <p className="text-muted-foreground mb-6 max-w-sm">
+        You've seen all available profiles in your area. Check back later or adjust your preferences to see more people.
+      </p>
+      <Button onClick={loadMoreProfiles} variant="outline" className="gap-2">
+        <RefreshCw className="h-4 w-4" />
+        Refresh Profiles
+      </Button>
+    </div>
+  );
+
+  // Loading state
+  const renderLoading = () => (
+    <div className="flex flex-col items-center justify-center p-8">
+      <div className="w-16 h-16 rounded-full bg-muted animate-pulse mb-4" />
+      <div className="h-4 w-32 bg-muted animate-pulse rounded mb-2" />
+      <div className="h-3 w-24 bg-muted animate-pulse rounded" />
+    </div>
+  );
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] lg:h-screen">
@@ -158,33 +135,41 @@ export default function Discover() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden lg:ml-60">
         <div className="w-full max-w-sm">
-          <div onClick={handleProfileClick} className="cursor-pointer">
-            <ProfileCard profile={mockProfile} />
-          </div>
+          {isLoading ? (
+            renderLoading()
+          ) : noMoreProfiles || !currentProfile ? (
+            renderEmptyState()
+          ) : (
+            <>
+              <div onClick={handleProfileClick} className="cursor-pointer">
+                <ProfileCard profile={currentProfile} />
+              </div>
 
-          {/* Swipe Actions */}
-          <div className="mt-6">
-            <SwipeActions
-              onRewind={handleRewind}
-              onPass={handlePass}
-              onSuperLike={handleSuperLike}
-              onLike={handleLike}
-              canRewind={profile?.is_premium}
-            />
-          </div>
+              {/* Swipe Actions */}
+              <div className="mt-6">
+                <SwipeActions
+                  onRewind={() => {}} // Rewind requires storing history - future enhancement
+                  onPass={onPass}
+                  onSuperLike={onSuperLike}
+                  onLike={onLike}
+                  canRewind={false}
+                />
+              </div>
 
-          {/* Keyboard hint - Desktop */}
-          <p className="hidden lg:block text-center text-sm text-muted-foreground mt-4">
-            Use <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> and{' '}
-            <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> to navigate
-          </p>
+              {/* Keyboard hint - Desktop */}
+              <p className="hidden lg:block text-center text-sm text-muted-foreground mt-4">
+                Use <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> and{' '}
+                <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> to navigate
+              </p>
+            </>
+          )}
         </div>
       </main>
 
       {/* Right Sidebar - Desktop Only */}
       <RightSidebar
         newMatches={mockMatches}
-        newMatchCount={4}
+        newMatchCount={0}
         conversations={mockConversations}
         isPremium={profile?.is_premium || false}
       />
