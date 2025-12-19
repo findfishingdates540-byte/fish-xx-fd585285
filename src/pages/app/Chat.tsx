@@ -7,6 +7,10 @@ import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatArea } from '@/components/chat/ChatArea';
 import { ProfileSidebar } from '@/components/chat/ProfileSidebar';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
+import { useDatingConversations } from '@/hooks/use-dating-conversations';
+import { useDatingChat } from '@/hooks/use-dating-chat';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MessageCircle } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -14,88 +18,10 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 
-// Mock data
-const mockConversations = [
-  {
-    id: '1',
-    name: 'Sarah',
-    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-    lastMessage: 'Do you like freshwater fishing?',
-    time: '5m',
-    isOnline: true,
-  },
-  {
-    id: '2',
-    name: 'Emily',
-    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
-    lastMessage: 'Nice catch on the trout!',
-    time: '2h',
-    isOnline: false,
-  },
-  {
-    id: '3',
-    name: 'Jessica',
-    photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-    lastMessage: "Let's go next Saturday.",
-    time: '1d',
-    isOnline: true,
-  },
-];
-
-const mockMessages = [
-  {
-    id: '1',
-    content: "Hey! I saw you're into hiking. That's my favorite weekend activity!",
-    senderId: '2',
-    timestamp: '10:42 AM',
-  },
-  {
-    id: '2',
-    content: "Yes! I'm there almost every weekend. Usually near the mountain trails.",
-    senderId: 'me',
-    timestamp: '10:45 AM',
-  },
-  {
-    id: '3',
-    content: 'Do you prefer sunrise or sunset hikes?',
-    senderId: 'me',
-    timestamp: '10:46 AM',
-  },
-  {
-    id: '4',
-    content: 'Sunrise mostly! 🌅 I love catching the golden hour.',
-    senderId: '2',
-    timestamp: 'Just now',
-  },
-  {
-    id: '5',
-    content: 'Nothing beats a good coffee afterwards.',
-    senderId: '2',
-    timestamp: 'Just now',
-  },
-];
-
-const mockMatchProfile = {
-  name: 'Sarah',
-  age: 26,
-  photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-  isOnline: true,
-  location: 'Austin',
-  bio: "Adventure seeker and coffee lover. Looking for someone to share spontaneous road trips and lazy Sunday mornings. 💕",
-  interests: ['Hiking', 'Photography', 'Coffee', 'Travel'],
-  photos: [
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-    'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400',
-    'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400',
-    'https://images.unsplash.com/photo-1533577116850-9cc66cad8a9b?w=400',
-  ],
-};
-
 export default function Chat() {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [messages, setMessages] = useState(mockMessages);
   const [showProfile, setShowProfile] = useState(false);
 
   const { data: profile } = useQuery({
@@ -113,39 +39,81 @@ export default function Chat() {
     enabled: !!user?.id,
   });
 
-  // Get all conversation user IDs for online status tracking
+  // Fetch real conversations for sidebar
+  const { conversations } = useDatingConversations();
+
+  // Fetch real chat data
+  const { 
+    messages, 
+    matchProfile, 
+    loading, 
+    isTyping, 
+    sendMessage, 
+    handleInputChange 
+  } = useDatingChat(matchId);
+
+  // Get all user IDs for online status tracking
   const allUserIds = useMemo(() => {
-    const ids = mockConversations.map(c => c.id);
-    // Add the current match profile ID if available
-    if (matchId) ids.push(matchId);
-    return ids;
-  }, [matchId]);
+    const ids = conversations.map(c => c.matchedUserId);
+    if (matchProfile?.id) ids.push(matchProfile.id);
+    return [...new Set(ids)];
+  }, [conversations, matchProfile?.id]);
+  
   const { isOnline, getLastSeen } = useOnlineStatus(allUserIds);
 
-  // Update conversations with real online status and last seen
+  // Format conversations for sidebar
   const conversationsWithStatus = useMemo(() => 
-    mockConversations.map(convo => ({
-      ...convo,
-      isOnline: isOnline(convo.id),
-      lastSeen: !isOnline(convo.id) ? formatLastSeen(getLastSeen(convo.id)) : undefined
-    })), [isOnline, getLastSeen]);
+    conversations.map(convo => ({
+      id: convo.id,
+      name: convo.name,
+      photo: convo.photo,
+      lastMessage: convo.lastMessage || 'No messages yet',
+      time: convo.time,
+      isOnline: isOnline(convo.matchedUserId),
+      lastSeen: !isOnline(convo.matchedUserId) ? formatLastSeen(getLastSeen(convo.matchedUserId)) : undefined
+    })), [conversations, isOnline, getLastSeen]);
 
-  // Check if current match is online (using matchId or mock profile)
-  const isMatchOnline = matchId ? isOnline(matchId) : mockMatchProfile.isOnline;
+  // Check if current match is online
+  const isMatchOnline = matchProfile ? isOnline(matchProfile.id) : false;
 
   const handleSelectConversation = (id: string) => {
     navigate(`/app/messages/${id}`);
   };
 
   const handleSendMessage = (content: string) => {
-    const newMessage = {
-      id: String(messages.length + 1),
-      content,
-      senderId: 'me',
-      timestamp: 'Just now',
-    };
-    setMessages([...messages, newMessage]);
+    sendMessage(content);
   };
+
+  // Loading state for chat area
+  const renderChatLoading = () => (
+    <div className="flex-1 flex flex-col h-screen bg-background">
+      <header className="h-16 px-6 border-b border-border flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <div>
+          <Skeleton className="h-4 w-24 mb-1" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+      </header>
+      <div className="flex-1 p-6 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+            <Skeleton className={`h-12 ${i % 2 === 0 ? 'w-48' : 'w-56'} rounded-2xl`} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Empty state when no match selected or match not found
+  const renderEmptyChat = () => (
+    <div className="flex-1 flex flex-col items-center justify-center bg-background">
+      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+        <MessageCircle className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold mb-1">Select a conversation</h3>
+      <p className="text-muted-foreground text-sm">Choose a match to start chatting</p>
+    </div>
+  );
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -154,54 +122,68 @@ export default function Chat() {
         conversations={conversationsWithStatus}
         selectedId={matchId}
         onSelect={handleSelectConversation}
-        unreadCount={3}
+        unreadCount={conversations.reduce((sum, c) => sum + c.unreadCount, 0)}
       />
 
       {/* Chat Area */}
-      <ChatArea
-        matchName={mockMatchProfile.name}
-        matchPhoto={mockMatchProfile.photo}
-        isOnline={isMatchOnline}
-        messages={messages}
-        currentUserId="me"
-        onSendMessage={handleSendMessage}
-        onShowProfile={() => setShowProfile(true)}
-      />
+      {!matchId ? (
+        renderEmptyChat()
+      ) : loading ? (
+        renderChatLoading()
+      ) : !matchProfile ? (
+        renderEmptyChat()
+      ) : (
+        <ChatArea
+          matchName={matchProfile.display_name || 'Anonymous'}
+          matchPhoto={matchProfile.photos?.[0] || ''}
+          isOnline={isMatchOnline}
+          messages={messages}
+          currentUserId={user?.id || ''}
+          onSendMessage={handleSendMessage}
+          onShowProfile={() => setShowProfile(true)}
+          isTyping={isTyping}
+          onInputChange={handleInputChange}
+        />
+      )}
 
       {/* Right Profile Sidebar - Desktop */}
-      <div className="hidden xl:block w-80 h-screen border-l border-border flex-shrink-0">
-        <ProfileSidebar
-          name={mockMatchProfile.name}
-          age={mockMatchProfile.age}
-          photo={mockMatchProfile.photo}
-          isOnline={isMatchOnline}
-          location={mockMatchProfile.location}
-          bio={mockMatchProfile.bio}
-          interests={mockMatchProfile.interests}
-          photos={mockMatchProfile.photos}
-          className="h-full"
-        />
-      </div>
-
-      {/* Mobile Profile Sheet */}
-      <Sheet open={showProfile} onOpenChange={setShowProfile}>
-        <SheetContent side="right" className="w-full sm:max-w-md p-0">
-          <SheetHeader className="sr-only">
-            <SheetTitle>Profile</SheetTitle>
-          </SheetHeader>
+      {matchProfile && (
+        <div className="hidden xl:block w-80 h-screen border-l border-border flex-shrink-0">
           <ProfileSidebar
-            name={mockMatchProfile.name}
-            age={mockMatchProfile.age}
-            photo={mockMatchProfile.photo}
+            name={matchProfile.display_name || 'Anonymous'}
+            age={0}
+            photo={matchProfile.photos?.[0] || ''}
             isOnline={isMatchOnline}
-            location={mockMatchProfile.location}
-            bio={mockMatchProfile.bio}
-            interests={mockMatchProfile.interests}
-            photos={mockMatchProfile.photos}
+            location={matchProfile.location_name || ''}
+            bio={matchProfile.bio || ''}
+            interests={matchProfile.preferred_species || []}
+            photos={matchProfile.photos || []}
             className="h-full"
           />
-        </SheetContent>
-      </Sheet>
+        </div>
+      )}
+
+      {/* Mobile Profile Sheet */}
+      {matchProfile && (
+        <Sheet open={showProfile} onOpenChange={setShowProfile}>
+          <SheetContent side="right" className="w-full sm:max-w-md p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Profile</SheetTitle>
+            </SheetHeader>
+            <ProfileSidebar
+              name={matchProfile.display_name || 'Anonymous'}
+              age={0}
+              photo={matchProfile.photos?.[0] || ''}
+              isOnline={isMatchOnline}
+              location={matchProfile.location_name || ''}
+              bio={matchProfile.bio || ''}
+              interests={matchProfile.preferred_species || []}
+              photos={matchProfile.photos || []}
+              className="h-full"
+            />
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 }
