@@ -66,9 +66,9 @@ export function BuddyCard({
         {profile.fishing_experience && (
           <Badge 
             variant="secondary" 
-            className="absolute top-2 right-2 bg-background/90 text-foreground"
+            className="absolute top-2 right-2 bg-background/90 text-foreground hover:bg-primary hover:text-primary-foreground transition-colors group/badge"
           >
-            <Award className="w-3 h-3 mr-1 text-foreground" />
+            <Award className="w-3 h-3 mr-1 text-foreground group-hover/badge:text-primary-foreground transition-colors" />
             {experienceLabels[profile.fishing_experience] || profile.fishing_experience}
           </Badge>
         )}
