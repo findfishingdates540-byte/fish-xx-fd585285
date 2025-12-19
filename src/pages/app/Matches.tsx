@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MatchCard } from '@/components/matches/MatchCard';
 import { MatchFilters } from '@/components/matches/MatchFilters';
 import { DiscoverSidebar } from '@/components/discover/DiscoverSidebar';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,10 +12,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { useMatches } from '@/hooks/use-matches';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Matches() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 
@@ -103,21 +106,23 @@ export default function Matches() {
 
   return (
     <div className="flex min-h-screen w-full bg-accent/30 overflow-hidden">
-      <DiscoverSidebar
-        accountMode={accountMode}
-        discoveryMode="dating"
-        onDiscoveryModeChange={() => {}}
-        userName={profile?.display_name || 'User'}
-        userPhoto={profile?.photos?.[0]}
-        isPremium={profile?.is_premium}
-      />
+      {!isMobile && (
+        <DiscoverSidebar
+          accountMode={accountMode}
+          discoveryMode="dating"
+          onDiscoveryModeChange={() => {}}
+          userName={profile?.display_name || 'User'}
+          userPhoto={profile?.photos?.[0]}
+          isPremium={profile?.is_premium}
+        />
+      )}
 
-      <main className="flex-1 p-6 lg:p-8 overflow-auto lg:ml-60">
+      <main className={`flex-1 p-4 md:p-6 lg:p-8 overflow-auto ${!isMobile ? 'lg:ml-60' : 'pb-24'}`}>
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-4 md:mb-6">
           <div>
-            <h1 className="text-3xl font-bold">Your Catch</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl md:text-3xl font-bold">Your Catch</h1>
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               {matches.length > 0 
                 ? `You have ${matches.length} match${matches.length === 1 ? '' : 'es'}. Start a conversation!`
                 : 'Reel in a conversation with your latest matches.'}
@@ -136,7 +141,7 @@ export default function Matches() {
         </div>
 
         {/* Filters */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <MatchFilters
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -150,7 +155,7 @@ export default function Matches() {
           renderSkeleton()
         ) : filteredMatches.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
               {filteredMatches.map((match) => {
                 const online = isOnline(match.id);
                 const lastSeen = getLastSeen(match.id);
@@ -174,7 +179,7 @@ export default function Matches() {
                 );
               })}
             </div>
-            <p className="text-center text-muted-foreground mt-8">
+            <p className="text-center text-muted-foreground mt-6 md:mt-8">
               That's all your matches for now!
             </p>
           </>
@@ -186,6 +191,9 @@ export default function Matches() {
           </div>
         )}
       </main>
+
+      {/* Mobile Bottom Nav */}
+      {isMobile && <BottomNav accountMode={accountMode} />}
     </div>
   );
 }
