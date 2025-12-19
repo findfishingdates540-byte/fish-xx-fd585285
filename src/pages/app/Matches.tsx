@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Bell, Settings } from 'lucide-react';
+import { Bell, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MatchCard } from '@/components/matches/MatchCard';
 import { MatchFilters } from '@/components/matches/MatchFilters';
@@ -7,98 +7,14 @@ import { DiscoverSidebar } from '@/components/discover/DiscoverSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
-
-// Mock data for matches - will be replaced with real data
-const mockMatches = [
-  {
-    id: '1',
-    name: 'Sarah',
-    age: 26,
-    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-    bio: 'Love fly fishing on weekends. Looking for someone to share the adventure.',
-    isVerified: true,
-    isNew: false,
-    status: 'online' as const,
-  },
-  {
-    id: '2',
-    name: 'Mike',
-    age: 32,
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-    bio: 'Currently at Lake Tahoe. Bass fishing is great here!',
-    isVerified: false,
-    isNew: false,
-    status: 'gone_fishing' as const,
-  },
-  {
-    id: '3',
-    name: 'Jessica',
-    age: 29,
-    photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-    bio: 'Ask me about my biggest catch! Hint: It was a 12lb bass.',
-    isVerified: false,
-    isNew: false,
-    status: 'offline' as const,
-    lastSeen: '2h ago',
-  },
-  {
-    id: '4',
-    name: 'David',
-    age: 35,
-    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
-    bio: "Just got back from a trip to Alaska. Let's swap fishing stories!",
-    isVerified: false,
-    isNew: true,
-    status: 'online' as const,
-  },
-  {
-    id: '5',
-    name: 'Emily',
-    age: 24,
-    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
-    bio: 'New to fishing, looking for someone to teach me the ropes.',
-    isVerified: false,
-    isNew: false,
-    status: 'offline' as const,
-    lastSeen: '15m ago',
-  },
-  {
-    id: '6',
-    name: 'Chris',
-    age: 30,
-    photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
-    bio: "Saltwater enthusiast. Boat owner. Let's go!",
-    isVerified: false,
-    isNew: false,
-    status: 'gone_fishing' as const,
-  },
-  {
-    id: '7',
-    name: 'Amanda',
-    age: 27,
-    photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-    bio: 'Strictly Catch & Release 🐟',
-    isVerified: false,
-    isNew: false,
-    status: 'online' as const,
-  },
-  {
-    id: '8',
-    name: 'Tom',
-    age: 33,
-    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-    bio: 'Looking for a partner for the upcoming derby.',
-    isVerified: false,
-    isNew: false,
-    status: 'offline' as const,
-    lastSeen: '1d ago',
-  },
-];
+import { useMatches } from '@/hooks/use-matches';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Matches() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 
@@ -119,25 +35,71 @@ export default function Matches() {
 
   const accountMode = profile?.account_mode || 'both';
 
+  // Fetch real matches
+  const { matches, isLoading } = useMatches();
+
   // Get all match user IDs for online status tracking
-  const matchUserIds = useMemo(() => mockMatches.map(m => m.id), []);
+  const matchUserIds = useMemo(() => matches.map(m => m.id), [matches]);
   const { isOnline, getLastSeen } = useOnlineStatus(matchUserIds);
 
-  const filteredMatches = mockMatches.filter((match) =>
-    match.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter matches by search query and active filter
+  const filteredMatches = useMemo(() => {
+    let filtered = matches.filter((match) =>
+      match.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (activeFilter === 'new') {
+      filtered = filtered.filter(m => m.isNew);
+    } else if (activeFilter === 'online') {
+      filtered = filtered.filter(m => isOnline(m.id));
+    }
+
+    return filtered;
+  }, [matches, searchQuery, activeFilter, isOnline]);
+
+  const handleStartChat = (matchId: string) => {
+    navigate(`/app/messages/${matchId}`);
+  };
+
+  const handleSayHi = (matchId: string) => {
+    // Navigate to chat - could pre-fill with "Hi!" message in future
+    navigate(`/app/messages/${matchId}`);
+  };
+
+  const handleWave = (matchId: string) => {
+    // Navigate to chat - could send a wave emoji in future
+    navigate(`/app/messages/${matchId}`);
+  };
+
+  // Loading skeleton
+  const renderSkeleton = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="bg-background border border-border rounded-2xl p-6 flex flex-col items-center">
+          <Skeleton className="h-24 w-24 rounded-full mb-4" />
+          <Skeleton className="h-5 w-24 mb-2" />
+          <Skeleton className="h-3 w-16 mb-3" />
+          <Skeleton className="h-10 w-full mt-4" />
+        </div>
+      ))}
+    </div>
   );
 
-  const handleSayHi = (id: string) => {
-    console.log('Say Hi to:', id);
-  };
-
-  const handleStartChat = (id: string) => {
-    console.log('Start Chat with:', id);
-  };
-
-  const handleWave = (id: string) => {
-    console.log('Wave at:', id);
-  };
+  // Empty state
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-16">
+      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+        <Heart className="h-10 w-10 text-muted-foreground" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">No matches yet</h3>
+      <p className="text-muted-foreground text-center max-w-sm mb-4">
+        Keep swiping in Discover to find your perfect fishing partner!
+      </p>
+      <Button asChild>
+        <Link to="/app/discover">Go to Discover</Link>
+      </Button>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen w-full bg-accent/30 overflow-hidden">
@@ -156,7 +118,9 @@ export default function Matches() {
           <div>
             <h1 className="text-3xl font-bold">Your Catch</h1>
             <p className="text-muted-foreground mt-1">
-              Reel in a conversation with your latest matches.
+              {matches.length > 0 
+                ? `You have ${matches.length} match${matches.length === 1 ? '' : 'es'}. Start a conversation!`
+                : 'Reel in a conversation with your latest matches.'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -182,28 +146,43 @@ export default function Matches() {
         </div>
 
         {/* Matches Grid */}
-        {filteredMatches.length > 0 ? (
+        {isLoading ? (
+          renderSkeleton()
+        ) : filteredMatches.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredMatches.map((match) => (
-                <MatchCard
-                  key={match.id}
-                  {...match}
-                  status={isOnline(match.id) ? 'online' : match.status}
-                  lastSeen={!isOnline(match.id) ? formatLastSeen(getLastSeen(match.id)) || match.lastSeen : undefined}
-                  onSayHi={() => handleSayHi(match.id)}
-                  onStartChat={() => handleStartChat(match.id)}
-                  onWave={() => handleWave(match.id)}
-                />
-              ))}
+              {filteredMatches.map((match) => {
+                const online = isOnline(match.id);
+                const lastSeen = getLastSeen(match.id);
+                
+                return (
+                  <MatchCard
+                    key={match.id}
+                    id={match.id}
+                    name={match.name}
+                    age={match.age || 0}
+                    photo={match.photo}
+                    bio={match.bio}
+                    isVerified={match.isVerified}
+                    isNew={match.isNew}
+                    status={online ? 'online' : 'offline'}
+                    lastSeen={!online ? formatLastSeen(lastSeen) || undefined : undefined}
+                    onSayHi={() => handleSayHi(match.matchId)}
+                    onStartChat={() => handleStartChat(match.matchId)}
+                    onWave={() => handleWave(match.matchId)}
+                  />
+                );
+              })}
             </div>
             <p className="text-center text-muted-foreground mt-8">
               That's all your matches for now!
             </p>
           </>
+        ) : matches.length === 0 ? (
+          renderEmptyState()
         ) : (
           <div className="flex flex-col items-center justify-center py-16">
-            <p className="text-muted-foreground">No matches found.</p>
+            <p className="text-muted-foreground">No matches found for "{searchQuery}"</p>
           </div>
         )}
       </main>
