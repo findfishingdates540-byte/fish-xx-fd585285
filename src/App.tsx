@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail } from "./pages/app";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
+import UserProfile from "./pages/app/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
               {/* Shared routes (all account types) */}
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
+              <Route path="profile/:userId" element={<UserProfile />} />
               <Route path="settings" element={<Settings />} />
             </Route>
 
