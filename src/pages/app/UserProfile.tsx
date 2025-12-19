@@ -5,10 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MapPin, Fish, Award, UserPlus, MessageCircle, Check, Calendar } from 'lucide-react';
+import { 
+  ArrowLeft, MapPin, Fish, Award, UserPlus, MessageCircle, Check, 
+  Calendar, Share2, Heart, Anchor, Target, Clock, Star
+} from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -31,19 +35,21 @@ export default function UserProfile() {
     enabled: !!userId,
   });
 
-  const { data: catchCount = 0 } = useQuery({
-    queryKey: ['user-catches-count', userId],
+  const { data: catches = [] } = useQuery({
+    queryKey: ['user-catches', userId],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data } = await supabase
         .from('catches')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
-      return count || 0;
+        .select('*')
+        .eq('user_id', userId)
+        .order('caught_at', { ascending: false })
+        .limit(6);
+      return data || [];
     },
     enabled: !!userId,
   });
 
-  const { data: buddyStatus } = useQuery({
+  const { data: buddyStatus, refetch: refetchBuddyStatus } = useQuery({
     queryKey: ['buddy-status', userId, user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -80,6 +86,7 @@ export default function UserProfile() {
       
       if (error) throw error;
       toast.success('Buddy request sent!');
+      refetchBuddyStatus();
     } catch (error) {
       toast.error('Failed to send request');
     }
@@ -89,6 +96,11 @@ export default function UserProfile() {
     if (buddyStatus?.status === 'accepted') {
       navigate(`/app/buddy-chat/${buddyStatus.id}`);
     }
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Profile link copied!');
   };
 
   if (isLoading) {
@@ -115,158 +127,302 @@ export default function UserProfile() {
   const isPending = buddyStatus?.status === 'pending';
 
   return (
-    <div className="pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center gap-3 p-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="font-semibold text-lg">{profile.display_name || 'Profile'}</h1>
+    <div className="pb-20 bg-background min-h-screen">
+      {/* Breadcrumb Header */}
+      <div className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <button onClick={() => navigate('/app/buddies')} className="hover:text-foreground">
+              Buddies
+            </button>
+            <span>/</span>
+            <span className="text-foreground">{profile.display_name || 'Profile'}</span>
+          </div>
         </div>
       </div>
 
-      {/* Photo Gallery */}
-      <div className="relative aspect-square bg-muted">
-        {photos.length > 0 ? (
-          <>
-            <img
-              src={photos[currentPhotoIndex]}
-              alt={profile.display_name || 'User'}
-              className="w-full h-full object-cover"
-            />
-            {photos.length > 1 && (
-              <div className="absolute top-3 left-0 right-0 flex justify-center gap-1">
-                {photos.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentPhotoIndex(idx)}
-                    className={`h-1 rounded-full transition-all ${
-                      idx === currentPhotoIndex
-                        ? 'w-6 bg-background'
-                        : 'w-1 bg-background/50'
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Avatar className="h-32 w-32">
-              <AvatarFallback className="text-4xl">
-                {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-        )}
-      </div>
-
-      {/* Profile Info */}
-      <div className="p-4 space-y-4">
-        {/* Name and Location */}
-        <div className="flex items-start justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Title Section */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold">{profile.display_name || 'Anonymous'}</h2>
-            {profile.location_name && (
-              <p className="text-muted-foreground flex items-center gap-1 mt-1">
-                <MapPin className="w-4 h-4" />
-                {profile.location_name}
-              </p>
-            )}
-          </div>
-          <div className="text-right">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Fish className="w-5 h-5" />
-              <span className="text-lg font-semibold">{catchCount}</span>
+            <h1 className="text-3xl font-bold">{profile.display_name || 'Anonymous Angler'}</h1>
+            <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
+              <div className="flex items-center gap-1">
+                <Fish className="w-4 h-4 text-primary" />
+                <span className="font-medium text-foreground">{catches.length}</span>
+                <span>catches</span>
+              </div>
+              {profile.location_name && (
+                <>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{profile.location_name}</span>
+                  </div>
+                </>
+              )}
+              {profile.fishing_experience && (
+                <>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <Award className="w-4 h-4" />
+                    <span>{experienceLabels[profile.fishing_experience]}</span>
+                  </div>
+                </>
+              )}
             </div>
-            <span className="text-xs text-muted-foreground">catches</span>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          {isBuddy ? (
-            <>
-              <Button variant="outline" className="flex-1" disabled>
-                <Check className="w-4 h-4 mr-2" />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleShare}>
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+            {isBuddy ? (
+              <Button variant="default" size="sm" className="bg-primary">
+                <Heart className="w-4 h-4 mr-2 fill-current" />
                 Buddies
               </Button>
-              <Button variant="default" className="flex-1" onClick={handleMessage}>
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Message
+            ) : isPending ? (
+              <Button variant="outline" size="sm" disabled>
+                <Check className="w-4 h-4 mr-2" />
+                Requested
               </Button>
-            </>
-          ) : isPending ? (
-            <Button variant="outline" className="flex-1" disabled>
-              <Check className="w-4 h-4 mr-2" />
-              Request Sent
-            </Button>
-          ) : (
-            <Button variant="default" className="flex-1" onClick={handleSendRequest}>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Buddy
-            </Button>
-          )}
+            ) : (
+              <Button variant="default" size="sm" className="bg-primary" onClick={handleSendRequest}>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Add Buddy
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Bio */}
-        {profile.bio && (
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-2">About</h3>
-              <p className="text-muted-foreground">{profile.bio}</p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Photo Gallery */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <div className="md:col-span-3 relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+                {photos.length > 0 ? (
+                  <img
+                    src={photos[currentPhotoIndex]}
+                    alt={profile.display_name || 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Avatar className="h-32 w-32">
+                      <AvatarFallback className="text-4xl">
+                        {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                )}
+                {photos.length > 1 && (
+                  <button className="absolute bottom-3 left-3 bg-foreground/80 text-background text-xs px-3 py-1.5 rounded-md font-medium">
+                    View all photos
+                  </button>
+                )}
+              </div>
+              {photos.length > 1 && (
+                <div className="hidden md:flex flex-col gap-2">
+                  {photos.slice(1, 4).map((photo, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentPhotoIndex(idx + 1)}
+                      className={cn(
+                        "aspect-square rounded-lg overflow-hidden bg-muted",
+                        currentPhotoIndex === idx + 1 && "ring-2 ring-primary"
+                      )}
+                    >
+                      <img src={photo} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-        {/* Fishing Info */}
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            <h3 className="font-semibold">Fishing Profile</h3>
-            
-            {profile.fishing_experience && (
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-primary" />
-                <span className="font-medium">
-                  {experienceLabels[profile.fishing_experience] || profile.fishing_experience}
-                </span>
-                <span className="text-muted-foreground">Experience</span>
+            {/* About Section */}
+            {profile.bio && (
+              <div>
+                <h2 className="text-lg font-semibold mb-3">About</h2>
+                <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
               </div>
             )}
 
+            {/* Fishing Info Badges */}
+            <div className="flex flex-wrap gap-3">
+              {profile.fishing_experience && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Award className="w-4 h-4" />
+                  <span>{experienceLabels[profile.fishing_experience]} Angler</span>
+                </div>
+              )}
+              {profile.fishing_gear && profile.fishing_gear.length > 0 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Anchor className="w-4 h-4" />
+                  <span>{profile.fishing_gear.length} gear types</span>
+                </div>
+              )}
+            </div>
+
+            {/* Preferred Species */}
             {profile.preferred_species && profile.preferred_species.length > 0 && (
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Target Species</p>
-                <div className="flex flex-wrap gap-2">
+                <h2 className="text-lg font-semibold mb-3">Target Species</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {profile.preferred_species.map((species: string) => (
-                    <Badge key={species} variant="secondary">
-                      {species}
-                    </Badge>
+                    <Card key={species} className="overflow-hidden">
+                      <CardContent className="p-3 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Fish className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{species}</p>
+                          <p className="text-xs text-muted-foreground">Target species</p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* Fishing Gear */}
             {profile.fishing_gear && profile.fishing_gear.length > 0 && (
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Fishing Gear</p>
+                <h2 className="text-lg font-semibold mb-3">Fishing Gear</h2>
                 <div className="flex flex-wrap gap-2">
                   {profile.fishing_gear.map((gear: string) => (
-                    <Badge key={gear} variant="outline">
+                    <Badge key={gear} variant="secondary" className="px-3 py-1.5">
                       {gear}
                     </Badge>
                   ))}
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Member Since */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="w-4 h-4" />
-          <span>Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+            {/* Recent Catches */}
+            {catches.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold mb-3">Recent Catches</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {catches.slice(0, 6).map((catchItem: any) => (
+                    <Card key={catchItem.id} className="overflow-hidden">
+                      <div className="aspect-square bg-muted">
+                        {catchItem.photos?.[0] ? (
+                          <img 
+                            src={catchItem.photos[0]} 
+                            alt={catchItem.species_name || 'Catch'} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Fish className="w-8 h-8 text-muted-foreground/50" />
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-2">
+                        <p className="font-medium text-sm truncate">{catchItem.species_name || 'Unknown'}</p>
+                        {catchItem.weight_kg && (
+                          <p className="text-xs text-muted-foreground">{catchItem.weight_kg} kg</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Sidebar Widgets */}
+          <div className="space-y-4">
+            {/* Stats Card */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Fishing Stats</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total Catches</span>
+                    <span className="font-semibold">{catches.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Experience</span>
+                    <Badge variant="secondary">
+                      {experienceLabels[profile.fishing_experience || 'beginner']}
+                    </Badge>
+                  </div>
+                  {profile.preferred_species && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Target Species</span>
+                      <span className="font-semibold">{profile.preferred_species.length}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Member Info */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Member Info</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Joined</span>
+                    <span className="text-sm">
+                      {new Date(profile.created_at).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                  </div>
+                  {profile.last_active_at && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Last Active</span>
+                      <span className="text-sm">
+                        {new Date(profile.last_active_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Card */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-4">
+                <p className="text-sm font-medium mb-3">Connect with {profile.display_name?.split(' ')[0] || 'this angler'}</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Add as a buddy to plan trips together and share fishing spots.
+                </p>
+                {isBuddy ? (
+                  <Button className="w-full" onClick={handleMessage}>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Send Message
+                  </Button>
+                ) : isPending ? (
+                  <Button className="w-full" disabled variant="outline">
+                    <Check className="w-4 h-4 mr-2" />
+                    Request Pending
+                  </Button>
+                ) : (
+                  <Button className="w-full" onClick={handleSendRequest}>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Add Buddy
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
