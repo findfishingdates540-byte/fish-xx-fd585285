@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { isRecentlyActive } from '@/hooks/use-online-presence';
+import { useNavigate } from 'react-router-dom';
 
 interface BuddyCardProps {
   profile: {
@@ -32,14 +33,20 @@ export function BuddyCard({
   onSendRequest,
   onMessage 
 }: BuddyCardProps) {
+  const navigate = useNavigate();
+  
   const experienceLabels: Record<string, string> = {
     beginner: 'Beginner',
     intermediate: 'Intermediate',
     expert: 'Expert'
   };
 
+  const handleCardClick = () => {
+    navigate(`/app/profile/${profile.id}`);
+  };
+
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleCardClick}>
       <div className="aspect-square relative">
         <img
           src={profile.photos?.[0] || '/placeholder.svg'}
@@ -116,7 +123,7 @@ export function BuddyCard({
           </div>
         )}
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
           {isRequested ? (
             <Button variant="outline" className="flex-1" disabled>
               <Check className="w-4 h-4 mr-2" />
