@@ -22,6 +22,8 @@ interface ChatAreaProps {
   currentUserId: string;
   onSendMessage: (content: string) => void;
   onShowProfile?: () => void;
+  isTyping?: boolean;
+  onInputChange?: () => void;
 }
 
 const quickReplies = [
@@ -38,13 +40,15 @@ export function ChatArea({
   currentUserId,
   onSendMessage,
   onShowProfile,
+  isTyping,
+  onInputChange,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const handleSend = () => {
     if (newMessage.trim()) {
@@ -58,6 +62,11 @@ export function ChatArea({
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    onInputChange?.();
   };
 
   return (
@@ -78,7 +87,7 @@ export function ChatArea({
           <div className="cursor-pointer" onClick={onShowProfile}>
             <h2 className="font-semibold text-sm md:text-base">{matchName} 💕</h2>
             <p className={cn('text-xs', isOnline ? 'text-green-500' : 'text-muted-foreground')}>
-              {isOnline ? 'Active now' : 'Offline'}
+              {isTyping ? 'Typing...' : isOnline ? 'Active now' : 'Offline'}
             </p>
           </div>
         </div>
@@ -139,6 +148,26 @@ export function ChatArea({
             </div>
           );
         })}
+        
+        {/* Typing indicator */}
+        {isTyping && (
+          <div className="flex items-start">
+            <div className="flex items-end gap-2">
+              <Avatar className="h-8 w-8 flex-shrink-0">
+                <AvatarImage src={matchPhoto} alt={matchName} />
+                <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="px-4 py-3 rounded-2xl bg-accent rounded-bl-sm">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -151,7 +180,7 @@ export function ChatArea({
           <div className="flex-1 relative">
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="pr-10"
