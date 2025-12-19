@@ -27,20 +27,21 @@ interface NavItem {
   icon: React.ElementType;
   label: string;
   hasMessageBadge?: boolean;
+  hasMatchBadge?: boolean;
 }
 
 // Dating-specific nav items
 const datingNavItems: NavItem[] = [
   { to: '/app/discover', icon: Compass, label: 'Discover' },
   { to: '/app/likes', icon: Sparkles, label: 'Who Likes You' },
-  { to: '/app/matches', icon: Heart, label: 'Matches' },
+  { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
   { to: '/app/messages', icon: MessageSquare, label: 'Messages', hasMessageBadge: true },
 ];
 
 // Fishing/Both mode nav items
 const fishingNavItems: NavItem[] = [
   { to: '/app/discover', icon: Home, label: 'Home' },
-  { to: '/app/matches', icon: Heart, label: 'Matches' },
+  { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
   { to: '/app/spots', icon: MapPin, label: 'Fishing Map' },
   { to: '/app/messages', icon: MessageSquare, label: 'Messages', hasMessageBadge: true },
 ];
@@ -86,12 +87,32 @@ export function DiscoverSidebar({
     enabled: !!user?.id,
   });
 
-  // Real-time subscription for messages
+  // Fetch new matches count (within last 24 hours)
+  const { data: newMatchesCount = 0 } = useQuery({
+    queryKey: ["new-matches-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      const { count } = await supabase
+        .from("matches")
+        .select("*", { count: "exact", head: true })
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq("is_match", true)
+        .gte("matched_at", twentyFourHoursAgo);
+
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Real-time subscription for messages and matches
   useEffect(() => {
     if (!user?.id) return;
 
     const channel = supabase
-      .channel("messages-sidebar")
+      .channel("sidebar-updates")
       .on(
         "postgres_changes",
         {
@@ -101,6 +122,17 @@ export function DiscoverSidebar({
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["unread-messages-count", user.id] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "matches",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["new-matches-count", user.id] });
         }
       )
       .subscribe();
@@ -163,6 +195,13 @@ export function DiscoverSidebar({
                 className="h-5 min-w-5 flex items-center justify-center text-xs px-1.5"
               >
                 {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+              </Badge>
+            )}
+            {item.hasMatchBadge && newMatchesCount > 0 && (
+              <Badge 
+                className="h-5 min-w-5 flex items-center justify-center text-xs px-1.5 bg-primary"
+              >
+                {newMatchesCount > 99 ? "99+" : newMatchesCount}
               </Badge>
             )}
           </NavLink>

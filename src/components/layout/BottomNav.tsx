@@ -19,13 +19,14 @@ interface NavItem {
   label: string;
   hasBuddyBadge?: boolean;
   hasMessageBadge?: boolean;
+  hasMatchBadge?: boolean;
 }
 
 const getNavItems = (mode: AccountMode): NavItem[] => {
   if (mode === 'dating') {
     return [
       { to: '/app/discover', icon: Home, label: 'Discover' },
-      { to: '/app/likes', icon: Heart, label: 'Likes' },
+      { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
       { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
       { to: '/app/profile', icon: User, label: 'Profile' },
     ];
@@ -43,7 +44,7 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
   // Both mode - combined navigation
   return [
     { to: '/app/discover', icon: Home, label: 'Discover' },
-    { to: '/app/spots', icon: MapPin, label: 'Spots' },
+    { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
     { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     { to: '/app/profile', icon: User, label: 'Profile' },
   ];
@@ -99,12 +100,32 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
   });
 
-  // Real-time subscription for buddy requests
+  // Fetch new matches count (within last 24 hours)
+  const { data: newMatchesCount = 0 } = useQuery({
+    queryKey: ["new-matches-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      const { count } = await supabase
+        .from("matches")
+        .select("*", { count: "exact", head: true })
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq("is_match", true)
+        .gte("matched_at", twentyFourHoursAgo);
+
+      return count || 0;
+    },
+    enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
+  });
+
+  // Real-time subscriptions
   useEffect(() => {
-    if (!user?.id || (accountMode !== 'fishing' && accountMode !== 'both')) return;
+    if (!user?.id) return;
 
     const channel = supabase
-      .channel("buddy-requests-mobile-nav")
+      .channel("mobile-nav-updates")
       .on(
         "postgres_changes",
         {
@@ -117,19 +138,6 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] });
         }
       )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, accountMode, queryClient]);
-
-  // Real-time subscription for messages
-  useEffect(() => {
-    if (!user?.id || accountMode === 'fishing') return;
-
-    const channel = supabase
-      .channel("messages-mobile-nav")
       .on(
         "postgres_changes",
         {
@@ -141,16 +149,28 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           queryClient.invalidateQueries({ queryKey: ["unread-messages-count", user.id] });
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "matches",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["new-matches-count", user.id] });
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, accountMode, queryClient]);
+  }, [user?.id, queryClient]);
 
   const getBadgeCount = (item: NavItem): number => {
     if (item.hasBuddyBadge) return pendingRequestsCount;
     if (item.hasMessageBadge) return unreadMessagesCount;
+    if (item.hasMatchBadge) return newMatchesCount;
     return 0;
   };
 
