@@ -3,3 +3,4 @@ export { ProfileCard, type ProfileData } from './ProfileCard';
 export { SwipeActions } from './SwipeActions';
 export { RightSidebar } from './RightSidebar';
 export { ProfileDetailView, type ProfileDetailData } from './ProfileDetailView';
+export { MatchCelebrationModal } from './MatchCelebrationModal';

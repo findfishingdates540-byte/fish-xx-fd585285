@@ -2,8 +2,18 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 import type { ProfileData, ProfileDetailData } from '@/components/discover';
+
+export interface MatchedProfile {
+  id: string;
+  matchId: string;
+  name: string;
+  age: number | null;
+  photo: string;
+  distance?: string;
+  fishingType?: string;
+  bio?: string;
+}
 
 interface UserPreferences {
   interested_in: string[] | null;
@@ -134,6 +144,7 @@ export function useDiscoverProfiles() {
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipedIds, setSwipedIds] = useState<Set<string>>(new Set());
+  const [matchedProfile, setMatchedProfile] = useState<MatchedProfile | null>(null);
 
   // Fetch current user's preferences
   const { data: userPreferences } = useQuery({
@@ -229,6 +240,13 @@ export function useDiscoverProfiles() {
     mutationFn: async ({ targetUserId, liked, isSuperLike = false }: { targetUserId: string; liked: boolean; isSuperLike?: boolean }) => {
       if (!user?.id) throw new Error('Not authenticated');
 
+      // Get the target profile first for match celebration
+      const { data: targetProfile } = await supabase
+        .from('profiles')
+        .select('id, display_name, date_of_birth, photos, bio, fishing_experience, location_name, location_lat, location_lng')
+        .eq('id', targetUserId)
+        .maybeSingle();
+
       // Check if a match record already exists
       const { data: existing } = await supabase
         .from('matches')
@@ -236,12 +254,16 @@ export function useDiscoverProfiles() {
         .or(`and(user1_id.eq.${user.id},user2_id.eq.${targetUserId}),and(user1_id.eq.${targetUserId},user2_id.eq.${user.id})`)
         .maybeSingle();
 
+      let matchId: string;
+      let isMatch = false;
+
       if (existing) {
         // Update existing record
         const isUser1 = existing.user1_id === user.id;
         const updateField = isUser1 ? 'user1_liked' : 'user2_liked';
         const otherLiked = isUser1 ? existing.user2_liked : existing.user1_liked;
-        const isMatch = liked && otherLiked;
+        isMatch = liked && otherLiked;
+        matchId = existing.id;
 
         const { error } = await supabase
           .from('matches')
@@ -253,10 +275,9 @@ export function useDiscoverProfiles() {
           .eq('id', existing.id);
 
         if (error) throw error;
-        return { isMatch, targetUserId };
       } else {
         // Create new record (current user is always user1 for new records)
-        const { error } = await supabase
+        const { data: newMatch, error } = await supabase
           .from('matches')
           .insert({
             user1_id: user.id,
@@ -264,23 +285,49 @@ export function useDiscoverProfiles() {
             user1_liked: liked,
             user2_liked: false,
             is_match: false,
-          });
+          })
+          .select('id')
+          .single();
 
         if (error) throw error;
-        return { isMatch: false, targetUserId };
+        matchId = newMatch.id;
       }
+
+      // Calculate distance for matched profile
+      const distanceKm = userPreferences ? calculateDistance(
+        userPreferences.location_lat,
+        userPreferences.location_lng,
+        targetProfile?.location_lat || null,
+        targetProfile?.location_lng || null
+      ) : null;
+      const distanceMiles = distanceKm ? kmToMiles(distanceKm) : null;
+
+      return { 
+        isMatch, 
+        targetUserId, 
+        matchId,
+        matchProfile: targetProfile ? {
+          id: targetProfile.id,
+          matchId,
+          name: targetProfile.display_name || 'Anonymous',
+          age: calculateAge(targetProfile.date_of_birth),
+          photo: targetProfile.photos?.[0] || '',
+          distance: distanceMiles ? `${distanceMiles} miles away` : undefined,
+          fishingType: targetProfile.fishing_experience || undefined,
+          bio: targetProfile.bio || undefined,
+        } : null
+      };
     },
     onSuccess: (result) => {
       // Add to local swiped set to immediately exclude
       setSwipedIds(prev => new Set([...prev, result.targetUserId]));
       
-      if (result.isMatch) {
-        toast.success("It's a match! 🎉");
+      if (result.isMatch && result.matchProfile) {
+        setMatchedProfile(result.matchProfile);
       }
     },
     onError: (error) => {
       console.error('Swipe error:', error);
-      toast.error('Failed to record swipe');
     },
   });
 
@@ -322,6 +369,11 @@ export function useDiscoverProfiles() {
     refetch();
   }, [refetch]);
 
+  // Clear matched profile (close modal)
+  const clearMatchedProfile = useCallback(() => {
+    setMatchedProfile(null);
+  }, []);
+
   return {
     currentProfile: mappedProfile,
     currentDetailProfile: mappedDetailProfile,
@@ -333,5 +385,7 @@ export function useDiscoverProfiles() {
     handlePass,
     handleSuperLike,
     loadMoreProfiles,
+    matchedProfile,
+    clearMatchedProfile,
   };
 }
