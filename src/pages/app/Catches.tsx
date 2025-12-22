@@ -389,14 +389,14 @@ export default function Catches() {
               <div>
                 <Label htmlFor="spot">Fishing Spot (optional)</Label>
                 <Select
-                  value={formData.fishing_spot_id}
-                  onValueChange={(val) => setFormData({ ...formData, fishing_spot_id: val })}
+                  value={formData.fishing_spot_id || "none"}
+                  onValueChange={(val) => setFormData({ ...formData, fishing_spot_id: val === "none" ? "" : val })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a spot" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No spot selected</SelectItem>
+                    <SelectItem value="none">No spot selected</SelectItem>
                     {spots.map((spot) => (
                       <SelectItem key={spot.id} value={spot.id}>
                         {spot.name} {spot.location_name && `• ${spot.location_name}`}
