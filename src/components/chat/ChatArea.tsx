@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Smile, Image, MoreVertical, Phone, Video, ArrowLeft, User, Check, CheckCheck } from 'lucide-react';
+import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, Check, CheckCheck, X, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { MessageReactions } from './MessageReactions';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -13,6 +15,7 @@ interface Message {
   senderId: string;
   timestamp: string;
   isRead?: boolean;
+  imageUrl?: string | null;
 }
 
 interface ReactionSummary {
@@ -27,7 +30,7 @@ interface ChatAreaProps {
   isOnline?: boolean;
   messages: Message[];
   currentUserId: string;
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, imageUrl?: string) => void;
   onShowProfile?: () => void;
   isTyping?: boolean;
   onInputChange?: () => void;
@@ -55,17 +58,83 @@ export function ChatArea({
   onToggleReaction,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSend = () => {
-    if (newMessage.trim()) {
-      onSendMessage(newMessage.trim());
-      setNewMessage('');
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image must be less than 5MB');
+        return;
+      }
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
     }
+  };
+
+  const clearSelectedImage = () => {
+    setSelectedImage(null);
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('profile-photos')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('profile-photos')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
+  const handleSend = async () => {
+    if (!newMessage.trim() && !selectedImage) return;
+
+    let imageUrl: string | undefined;
+
+    if (selectedImage) {
+      setUploading(true);
+      const uploadedUrl = await uploadImage(selectedImage);
+      if (!uploadedUrl) {
+        toast.error('Failed to upload image');
+        setUploading(false);
+        return;
+      }
+      imageUrl = uploadedUrl;
+      clearSelectedImage();
+      setUploading(false);
+    }
+
+    onSendMessage(newMessage.trim() || '📷 Photo', imageUrl);
+    setNewMessage('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -147,13 +216,27 @@ export function ChatArea({
                 )}
                 <div
                   className={cn(
-                    'px-4 py-2.5 rounded-2xl',
+                    'rounded-2xl overflow-hidden',
+                    message.imageUrl ? '' : 'px-4 py-2.5',
                     isMine
                       ? 'bg-foreground text-background rounded-br-sm'
                       : 'bg-accent rounded-bl-sm'
                   )}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  {message.imageUrl && (
+                    <img 
+                      src={message.imageUrl} 
+                      alt="Shared image" 
+                      className="max-w-full max-h-64 object-cover cursor-pointer"
+                      onClick={() => window.open(message.imageUrl!, '_blank')}
+                    />
+                  )}
+                  {message.content && message.content !== '📷 Photo' && (
+                    <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
+                  )}
+                  {message.imageUrl && message.content === '📷 Photo' && (
+                    <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
+                  )}
                 </div>
               </div>
               
@@ -217,9 +300,41 @@ export function ChatArea({
 
       {/* Message Input */}
       <div className="p-3 md:p-4 border-t border-border bg-background flex-shrink-0">
+        {/* Image Preview */}
+        {imagePreview && (
+          <div className="relative inline-block mb-3">
+            <img 
+              src={imagePreview} 
+              alt="Selected" 
+              className="max-h-32 rounded-lg object-cover"
+            />
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+              onClick={clearSelectedImage}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+        
         <div className="flex items-center gap-2 mb-3">
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Image className="h-5 w-5" />
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageSelect}
+            accept="image/*"
+            className="hidden"
+          />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-muted-foreground"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
+            <ImageIcon className="h-5 w-5" />
           </Button>
           <div className="flex-1 relative">
             <Input
@@ -228,6 +343,7 @@ export function ChatArea({
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="pr-10"
+              disabled={uploading}
             />
             <Button
               variant="ghost"
@@ -239,10 +355,10 @@ export function ChatArea({
           </div>
           <Button
             onClick={handleSend}
-            disabled={!newMessage.trim()}
+            disabled={(!newMessage.trim() && !selectedImage) || uploading}
             className="bg-foreground hover:bg-foreground/90 text-background"
           >
-            <Send className="h-4 w-4" />
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
 
