@@ -8,6 +8,7 @@ interface NewMatch {
   name: string;
   photo: string;
   isOnline?: boolean;
+  lastActiveAt?: string | null;
 }
 
 interface Conversation {
@@ -18,6 +19,27 @@ interface Conversation {
   time: string;
   unreadCount?: number;
   isOnline?: boolean;
+  lastActiveAt?: string | null;
+}
+
+// Helper function to format last seen timestamp
+function formatLastSeen(timestamp: string | null, isOnline?: boolean): string {
+  if (isOnline) return 'Active now';
+  if (!timestamp) return '';
+  
+  const lastSeen = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - lastSeen.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 5) return 'Active now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  
+  return lastSeen.toLocaleDateString();
 }
 
 interface RightSidebarProps {
@@ -58,7 +80,7 @@ export function RightSidebar({
               <button
                 key={match.id}
                 onClick={() => onMatchClick?.(match.id)}
-                className="flex flex-col items-center gap-1.5 flex-shrink-0 hover:opacity-80 transition-opacity"
+                className="flex flex-col items-center gap-1 flex-shrink-0 hover:opacity-80 transition-opacity min-w-[60px]"
               >
                 <div className="relative">
                   <Avatar className="h-14 w-14 ring-2 ring-foreground ring-offset-2 ring-offset-background">
@@ -69,7 +91,10 @@ export function RightSidebar({
                     <span className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 border-2 border-background rounded-full" />
                   )}
                 </div>
-                <span className="text-xs font-medium">{match.name}</span>
+                <span className="text-xs font-medium truncate max-w-[60px]">{match.name}</span>
+                <span className={`text-[10px] ${match.isOnline ? 'text-green-500' : 'text-muted-foreground'}`}>
+                  {formatLastSeen(match.lastActiveAt || null, match.isOnline)}
+                </span>
               </button>
             ))}
           </div>
@@ -108,9 +133,14 @@ export function RightSidebar({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm ${convo.unreadCount && convo.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`}>
-                      {convo.name}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm ${convo.unreadCount && convo.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`}>
+                        {convo.name}
+                      </span>
+                      <span className={`text-[10px] ${convo.isOnline ? 'text-green-500' : 'text-muted-foreground'}`}>
+                        {formatLastSeen(convo.lastActiveAt || null, convo.isOnline)}
+                      </span>
+                    </div>
                     <span className="text-xs text-muted-foreground">{convo.time}</span>
                   </div>
                   <p className={`text-sm truncate ${convo.unreadCount && convo.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
