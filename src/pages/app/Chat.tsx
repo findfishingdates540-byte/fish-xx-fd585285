@@ -9,6 +9,7 @@ import { ProfileSidebar } from '@/components/chat/ProfileSidebar';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { useDatingConversations } from '@/hooks/use-dating-conversations';
 import { useDatingChat } from '@/hooks/use-dating-chat';
+import { useMessageReactions } from '@/hooks/use-message-reactions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageCircle } from 'lucide-react';
 import {
@@ -51,6 +52,9 @@ export default function Chat() {
     sendMessage, 
     handleInputChange 
   } = useDatingChat(matchId);
+
+  // Message reactions
+  const { getReactionSummary, toggleReaction } = useMessageReactions(matchId);
 
   // Get all user IDs for online status tracking
   const allUserIds = useMemo(() => {
@@ -143,6 +147,8 @@ export default function Chat() {
           onShowProfile={() => setShowProfile(true)}
           isTyping={isTyping}
           onInputChange={handleInputChange}
+          getReactionSummary={getReactionSummary}
+          onToggleReaction={toggleReaction}
         />
       )}
 

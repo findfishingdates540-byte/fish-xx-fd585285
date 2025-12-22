@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { MessageReactions } from './MessageReactions';
 
 interface Message {
   id: string;
@@ -12,6 +13,12 @@ interface Message {
   senderId: string;
   timestamp: string;
   isRead?: boolean;
+}
+
+interface ReactionSummary {
+  emoji: string;
+  count: number;
+  hasReacted: boolean;
 }
 
 interface ChatAreaProps {
@@ -24,6 +31,8 @@ interface ChatAreaProps {
   onShowProfile?: () => void;
   isTyping?: boolean;
   onInputChange?: () => void;
+  getReactionSummary?: (messageId: string) => ReactionSummary[];
+  onToggleReaction?: (messageId: string, emoji: string) => void;
 }
 
 const quickReplies = [
@@ -42,6 +51,8 @@ export function ChatArea({
   onShowProfile,
   isTyping,
   onInputChange,
+  getReactionSummary,
+  onToggleReaction,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -125,7 +136,7 @@ export function ChatArea({
           return (
             <div
               key={message.id}
-              className={cn('flex flex-col', isMine ? 'items-end' : 'items-start')}
+              className={cn('flex flex-col group', isMine ? 'items-end' : 'items-start')}
             >
               <div className="flex items-end gap-2 max-w-[70%]">
                 {!isMine && (
@@ -145,6 +156,19 @@ export function ChatArea({
                   <p className="text-sm">{message.content}</p>
                 </div>
               </div>
+              
+              {/* Reactions */}
+              {getReactionSummary && onToggleReaction && (
+                <div className={cn('mt-1', isMine ? 'pr-2' : 'pl-10')}>
+                  <MessageReactions
+                    messageId={message.id}
+                    reactions={getReactionSummary(message.id)}
+                    onToggleReaction={onToggleReaction}
+                    isMine={isMine}
+                  />
+                </div>
+              )}
+              
               <div className={cn(
                 'flex items-center gap-1 mt-1',
                 isMine ? 'px-2' : 'px-10'
