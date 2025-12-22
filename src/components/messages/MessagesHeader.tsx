@@ -1,24 +1,38 @@
-import { Bell } from 'lucide-react';
+import { Bell, Compass, Sparkles, Heart, MessageSquare, Home, MapPin } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import logoImage from '@/assets/logo.png';
+import datingLogoImage from '@/assets/dating-logo.png';
 
 interface MessagesHeaderProps {
   userName: string;
   userPhoto?: string;
   notificationCount?: number;
+  accountMode?: 'dating' | 'fishing' | 'both';
 }
 
-const navLinks = [
-  { to: '/app/matches', label: 'Matches' },
-  { to: '/app/spots', label: 'Fishing Spots' },
-  { to: '/app/messages', label: 'Messages' },
+// Dating-specific nav items
+const datingNavLinks = [
+  { to: '/app/discover', label: 'Discover', icon: Compass },
+  { to: '/app/likes', label: 'Who Likes You', icon: Sparkles },
+  { to: '/app/matches', label: 'Matches', icon: Heart },
+  { to: '/app/messages', label: 'Messages', icon: MessageSquare },
 ];
 
-export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: MessagesHeaderProps) {
+// Fishing/Both mode nav items  
+const fishingNavLinks = [
+  { to: '/app/discover', label: 'Home', icon: Home },
+  { to: '/app/matches', label: 'Matches', icon: Heart },
+  { to: '/app/spots', label: 'Fishing Map', icon: MapPin },
+  { to: '/app/messages', label: 'Messages', icon: MessageSquare },
+];
+
+export function MessagesHeader({ userName, userPhoto, notificationCount = 0, accountMode = 'dating' }: MessagesHeaderProps) {
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
+  const isDatingMode = accountMode === 'dating';
+  const navLinks = isDatingMode ? datingNavLinks : fishingNavLinks;
 
   return (
     <header className="border-b border-border bg-background">
@@ -26,8 +40,14 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: M
       <div className="h-16 px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
         <Link to="/app/discover" className="flex items-center gap-2">
-          <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
-          <span className="font-bold text-lg">Find Fishing Dates</span>
+          {isDatingMode ? (
+            <img src={datingLogoImage} alt="Find Fishing Dates" className="h-8 w-auto" />
+          ) : (
+            <>
+              <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
+              <span className="font-bold text-lg">Find Fishing Dates</span>
+            </>
+          )}
         </Link>
 
         {/* Navigation - Desktop only */}
@@ -38,13 +58,14 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: M
               to={link.to}
               className={({ isActive }) =>
                 cn(
-                  'text-sm font-medium transition-colors',
+                  'flex items-center gap-2 text-sm font-medium transition-colors',
                   isActive
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 )
               }
             >
+              <link.icon className="h-4 w-4" />
               {link.label}
             </NavLink>
           ))}
@@ -70,20 +91,21 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0 }: M
       </div>
 
       {/* Navigation row - Tablet/Mobile only */}
-      <nav className="hidden md:flex xl:hidden h-12 px-4 items-center justify-center gap-8 border-t border-border">
+      <nav className="hidden md:flex xl:hidden h-12 px-4 items-center justify-center gap-6 border-t border-border">
         {navLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
               cn(
-                'text-sm font-medium transition-colors',
+                'flex items-center gap-2 text-sm font-medium transition-colors',
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               )
             }
           >
+            <link.icon className="h-4 w-4" />
             {link.label}
           </NavLink>
         ))}
