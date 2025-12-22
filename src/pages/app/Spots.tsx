@@ -68,6 +68,7 @@ export default function Spots() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null);
+  const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapStyle, setMapStyle] = useState<'outdoors' | 'satellite' | 'streets'>('outdoors');
 
@@ -175,6 +176,7 @@ export default function Spots() {
       // Create custom marker element with image card
       const el = document.createElement("div");
       el.className = "spot-marker-card";
+      el.setAttribute("data-spot-id", spot.id);
       
       const spotImage = spot.photos?.[0] 
         ? `<img src="${spot.photos[0]}" style="width: 100%; height: 100%; object-fit: cover;" alt="${spot.name}" />`
@@ -462,9 +464,43 @@ export default function Spots() {
                   spot={spot}
                   distance={calculateDistance(spot.location_lat, spot.location_lng)}
                   isSelected={selectedSpot?.id === spot.id}
+                  isHovered={hoveredSpotId === spot.id}
                   isSaved={isSpotSaved(spot.id)}
                   onToggleSave={() => toggleSaveSpot(spot.id)}
                   onClick={() => handleSpotClick(spot)}
+                  onMouseEnter={() => {
+                    setHoveredSpotId(spot.id);
+                    // Highlight marker on map
+                    const markerEl = document.querySelector(`[data-spot-id="${spot.id}"]`) as HTMLElement;
+                    if (markerEl) {
+                      markerEl.style.zIndex = "1000";
+                      const card = markerEl.querySelector(".spot-card-marker") as HTMLElement;
+                      if (card) {
+                        card.style.transform = "scale(1.15)";
+                        card.style.boxShadow = "0 8px 24px rgba(59, 130, 246, 0.5)";
+                      }
+                    }
+                    // Pan map to show the spot
+                    if (map.current) {
+                      map.current.easeTo({
+                        center: [spot.location_lng, spot.location_lat],
+                        duration: 500,
+                      });
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredSpotId(null);
+                    // Reset marker
+                    const markerEl = document.querySelector(`[data-spot-id="${spot.id}"]`) as HTMLElement;
+                    if (markerEl) {
+                      markerEl.style.zIndex = "";
+                      const card = markerEl.querySelector(".spot-card-marker") as HTMLElement;
+                      if (card) {
+                        card.style.transform = "scale(1)";
+                        card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                      }
+                    }
+                  }}
                 />
               ))
             )}
@@ -550,12 +586,15 @@ interface SpotCardProps {
   spot: FishingSpot;
   distance: string;
   isSelected: boolean;
+  isHovered: boolean;
   isSaved: boolean;
   onToggleSave: () => void;
   onClick: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }
 
-function SpotCard({ spot, distance, isSelected, isSaved, onToggleSave, onClick }: SpotCardProps) {
+function SpotCard({ spot, distance, isSelected, isHovered, isSaved, onToggleSave, onClick, onMouseEnter, onMouseLeave }: SpotCardProps) {
   const navigate = useNavigate();
   const getCrowdLevel = (): { label: string; color: string } => {
     // Mock crowd level based on rating count
@@ -570,9 +609,11 @@ function SpotCard({ spot, distance, isSelected, isSaved, onToggleSave, onClick }
   return (
     <div
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={`rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md ${
         isSelected ? "ring-2 ring-primary" : ""
-      }`}
+      } ${isHovered ? "bg-accent/50" : ""}`}
     >
       {/* Image */}
       <div className="relative h-48 bg-muted">
