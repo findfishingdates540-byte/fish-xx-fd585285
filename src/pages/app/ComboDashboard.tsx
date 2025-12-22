@@ -3,12 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMode } from "@/contexts/ActiveModeContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
 import {
   LayoutDashboard,
   Users,
@@ -28,6 +32,7 @@ import {
   Star,
   SlidersHorizontal,
   Anchor,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -102,6 +107,112 @@ export default function ComboDashboard() {
   const [recentCatches, setRecentCatches] = useState<RecentCatch[]>([]);
   const [matchCount, setMatchCount] = useState(0);
   const [featuredSpot, setFeaturedSpot] = useState<FishingSpot | null>(null);
+
+  // Fetch notifications for desktop sidebar
+  const { data: recentMatches } = useQuery({
+    queryKey: ['recent-matches', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          matched_at,
+          user1_id,
+          user2_id,
+          user1:profiles!matches_user1_id_fkey(display_name, photos),
+          user2:profiles!matches_user2_id_fkey(display_name, photos)
+        `)
+        .eq('is_match', true)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .order('matched_at', { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: unreadMessages } = useQuery({
+    queryKey: ['unread-messages', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          sender_id,
+          sender:profiles!messages_sender_id_fkey(display_name, photos)
+        `)
+        .eq('is_read', false)
+        .neq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: tripInvites } = useQuery({
+    queryKey: ['trip-invites', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('trip_participants')
+        .select(`
+          id,
+          created_at,
+          status,
+          trip_id,
+          trip:fishing_trips(title, trip_date)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const totalNotifications = 
+    (recentMatches?.length || 0) + 
+    (unreadMessages?.length || 0) + 
+    (tripInvites?.length || 0);
+
+  const notifications = [
+    ...(recentMatches?.map((match: any) => {
+      const otherUser = match.user1_id === user?.id ? match.user2 : match.user1;
+      return {
+        id: `match-${match.id}`,
+        type: 'match' as const,
+        title: 'New Match!',
+        message: `You matched with ${otherUser?.display_name || 'Someone'}`,
+        time: match.matched_at,
+        link: '/app/matches',
+        icon: Heart,
+      };
+    }) || []),
+    ...(unreadMessages?.map((msg: any) => ({
+      id: `msg-${msg.id}`,
+      type: 'message' as const,
+      title: 'New Message',
+      message: `${msg.sender?.display_name || 'Someone'}: ${msg.content?.slice(0, 30)}...`,
+      time: msg.created_at,
+      link: '/app/messages',
+      icon: MessageSquare,
+    })) || []),
+    ...(tripInvites?.map((invite: any) => ({
+      id: `trip-${invite.id}`,
+      type: 'trip' as const,
+      title: 'Trip Invitation',
+      message: `You're invited to "${invite.trip?.title || 'a fishing trip'}"`,
+      time: invite.created_at,
+      link: '/app/trips',
+      icon: Calendar,
+    })) || []),
+  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
   useEffect(() => {
     if (user) {
@@ -227,18 +338,67 @@ export default function ComboDashboard() {
     <div className="flex flex-col lg:flex-row min-h-screen bg-muted/30">
       {/* Sidebar - Hidden on mobile */}
       <aside className="hidden lg:flex w-60 border-r bg-card flex-col sticky top-0 h-screen">
-        {/* Logo */}
+        {/* Logo & Notifications */}
         <div className="p-4 border-b">
-          <Link to="/app" className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={logo} alt="Find Fishing Dates" />
-              <AvatarFallback>FF</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold text-sm">Find Fishing Dates</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
-            </div>
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link to="/app" className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={logo} alt="Find Fishing Dates" />
+                <AvatarFallback>FF</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-sm">Find Fishing Dates</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
+              </div>
+            </Link>
+            
+            {/* Notification Bell */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                  <Bell className="h-5 w-5" />
+                  {totalNotifications > 0 && (
+                    <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full animate-pulse" />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0">
+                <div className="p-3 border-b border-border">
+                  <h4 className="font-semibold text-sm">Notifications</h4>
+                </div>
+                <ScrollArea className="h-[300px]">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-muted-foreground text-sm">
+                      No new notifications
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border">
+                      {notifications.map((notification) => (
+                        <Link
+                          key={notification.id}
+                          to={notification.link}
+                          className="flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex-shrink-0 mt-0.5">
+                            <notification.icon className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{notification.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         {/* Nav Items */}
