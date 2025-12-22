@@ -77,10 +77,12 @@ export function AppLayout() {
   // Check if we're on the combo dashboard - it has its own layout
   const isComboDashboard = location.pathname === '/app/dashboard';
   
-  // List of shared routes that should not show the BothHeader for combo users
-  // These pages have their own layout or don't need the full navigation header
+  // List of routes that should not show the BothHeader for combo users
+  // These pages either have their own sidebar (dating pages) or don't need the full navigation header
   const sharedRoutes = ['/app/settings', '/app/profile'];
+  const datingRoutes = ['/app/discover', '/app/matches', '/app/likes', '/app/messages'];
   const isSharedRoute = sharedRoutes.some(route => location.pathname.startsWith(route));
+  const isDatingRoute = datingRoutes.some(route => location.pathname.startsWith(route));
 
   // Determine which desktop header to show
   const renderDesktopHeader = () => {
@@ -90,9 +92,12 @@ export function AppLayout() {
     if (accountMode === 'fishing') {
       return <FishingHeader />;
     }
-    // Both mode - show ComboSharedHeader on shared routes, BothHeader otherwise
+    // Both mode - show ComboSharedHeader on shared routes, nothing on dating routes (they have DiscoverSidebar)
     if (isSharedRoute) {
       return <ComboSharedHeader />;
+    }
+    if (isDatingRoute) {
+      return null; // Dating pages have their own DiscoverSidebar
     }
     return <BothHeader />;
   };

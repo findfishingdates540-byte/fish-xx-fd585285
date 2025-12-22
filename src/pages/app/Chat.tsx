@@ -127,6 +127,7 @@ export default function Chat() {
         selectedId={matchId}
         onSelect={handleSelectConversation}
         unreadCount={conversations.reduce((sum, c) => sum + c.unreadCount, 0)}
+        accountMode={profile?.account_mode || 'dating'}
       />
 
       {/* Chat Area */}
