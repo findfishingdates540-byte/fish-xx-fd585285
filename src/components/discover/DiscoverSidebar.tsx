@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft } from 'lucide-react';
+import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft, LayoutDashboard, Anchor } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import logoImage from '@/assets/logo.png';
@@ -57,6 +58,9 @@ export function DiscoverSidebar({
 }: DiscoverSidebarProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Get active mode context for combo users
+  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
 
   // Fetch unread messages count
   const { data: unreadMessagesCount = 0 } = useQuery({
@@ -144,37 +148,71 @@ export function DiscoverSidebar({
   }, [user?.id, queryClient]);
 
   const getModeLabel = () => {
-    // Use accountMode for the label to show correct mode for combo users
+    // Use activeMode for combo users to show their current active mode
+    if (isComboUser) {
+      switch (activeMode) {
+        case 'dating':
+          return 'DATING MODE';
+        case 'fishing':
+          return 'FISHING MODE';
+        case 'unified':
+        default:
+          return 'COMBO MODE';
+      }
+    }
+    // Non-combo users
     switch (accountMode) {
       case 'dating':
         return 'DATING MODE';
       case 'fishing':
         return 'FISHING MODE';
-      case 'both':
+      default:
         return 'COMBO MODE';
     }
   };
 
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
-  const isComboMode = accountMode === 'both';
   const isDatingMode = accountMode === 'dating';
   // Combo mode users see dating nav items when in dating section
-  const navItems = isDatingMode || isComboMode ? datingNavItems : fishingNavItems;
+  const navItems = isDatingMode || isComboUser ? datingNavItems : fishingNavItems;
 
   return (
     <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
-      {/* Back to Dashboard for Combo Users */}
-      {isComboMode && (
-        <Button variant="ghost" size="sm" asChild className="gap-2 mb-4 justify-start -ml-2">
-          <Link to="/app/dashboard">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
+      {/* Mode Switcher for Combo Users */}
+      {isComboUser && (
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2 mb-2">
+            <Link to="/app/dashboard">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
+          <div className="flex bg-muted rounded-lg p-1 gap-1">
+            {[
+              { value: 'unified' as ActiveMode, label: 'All', icon: LayoutDashboard },
+              { value: 'dating' as ActiveMode, label: 'Dating', icon: Heart },
+              { value: 'fishing' as ActiveMode, label: 'Fishing', icon: Anchor },
+            ].map((mode) => (
+              <button
+                key={mode.value}
+                onClick={() => setActiveMode(mode.value)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
+                  activeMode === mode.value
+                    ? "bg-background text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <mode.icon className="h-3 w-3" />
+                {mode.label}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Logo */}
-      <div className="mb-8">
+      <div className={cn("mb-8", isComboUser && "mb-6")}>
         <div className="flex items-center gap-2">
           <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
           <span className="font-bold text-lg">Find Fishing Dates</span>
@@ -217,8 +255,8 @@ export function DiscoverSidebar({
           </NavLink>
         ))}
 
-        {/* Discovery Mode Section */}
-        {accountMode === 'both' && (
+        {/* Discovery Mode Section - Only for account mode 'both' but not using activeMode context */}
+        {accountMode === 'both' && !isComboUser && (
           <div className="pt-6">
             <p className="text-xs font-semibold text-muted-foreground px-4 mb-3">DISCOVERY</p>
             <div className="flex flex-wrap gap-2 px-2">

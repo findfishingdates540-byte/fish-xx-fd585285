@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveMode } from "@/contexts/ActiveModeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
-
-type ViewMode = "unified" | "dating" | "fishing";
 
 interface UserProfileData {
   id: string;
@@ -95,7 +94,7 @@ const sidebarItems = [
 export default function ComboDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>("unified");
+  const { activeMode, setActiveMode } = useActiveMode();
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [nearbyAnglers, setNearbyAnglers] = useState<ProfileData[]>([]);
@@ -309,7 +308,7 @@ export default function ComboDashboard() {
               </p>
             </div>
 
-            {/* View Mode Toggle */}
+            {/* View Mode Toggle - Connected to ActiveModeContext */}
             <div className="flex bg-muted rounded-full p-1">
               {[
                 { value: "unified", label: "Unified View", icon: LayoutDashboard },
@@ -318,10 +317,10 @@ export default function ComboDashboard() {
               ].map((mode) => (
                 <button
                   key={mode.value}
-                  onClick={() => setViewMode(mode.value as ViewMode)}
+                  onClick={() => setActiveMode(mode.value as 'unified' | 'dating' | 'fishing')}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors",
-                    viewMode === mode.value
+                    activeMode === mode.value
                       ? "bg-background text-primary shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   )}
@@ -379,7 +378,7 @@ export default function ComboDashboard() {
           <main className="flex-1">
             <AnimatePresence mode="wait">
               {/* New Anglers Near You - Show in unified and dating modes */}
-              {(viewMode === "unified" || viewMode === "dating") && (
+              {(activeMode === "unified" || activeMode === "dating") && (
                 <motion.div
                   key="anglers"
                   initial={{ opacity: 0, y: 20 }}
@@ -458,13 +457,13 @@ export default function ComboDashboard() {
               )}
 
               {/* Fishing Spots Grid - Show in unified and fishing modes */}
-              {(viewMode === "unified" || viewMode === "fishing") && hotSpots.length > 0 && (
+              {(activeMode === "unified" || activeMode === "fishing") && hotSpots.length > 0 && (
                 <motion.div
                   key="spots"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, ease: "easeOut", delay: viewMode === "unified" ? 0.1 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut", delay: activeMode === "unified" ? 0.1 : 0 }}
                   className="mb-6"
                 >
                   <div className="flex items-center justify-between mb-4">
@@ -515,13 +514,13 @@ export default function ComboDashboard() {
               )}
 
               {/* Recent Catch Activity - Show in unified and fishing modes */}
-              {(viewMode === "unified" || viewMode === "fishing") && recentCatches.length > 0 && (
+              {(activeMode === "unified" || activeMode === "fishing") && recentCatches.length > 0 && (
                 <motion.div
                   key="catches"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, ease: "easeOut", delay: viewMode === "unified" ? 0.2 : 0.1 }}
+                  transition={{ duration: 0.3, ease: "easeOut", delay: activeMode === "unified" ? 0.2 : 0.1 }}
                   className="mb-6"
                 >
                   <div className="flex items-center justify-between mb-4">

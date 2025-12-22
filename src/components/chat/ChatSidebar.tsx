@@ -1,9 +1,10 @@
-import { Heart, MapPin, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Heart, MapPin, MessageSquare, ArrowLeft, LayoutDashboard, Anchor } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
 import logoImage from '@/assets/logo.png';
 
 interface Conversation {
@@ -30,30 +31,65 @@ const navItems = [
 ];
 
 export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount = 0, accountMode = 'dating' }: ChatSidebarProps) {
-  const isComboMode = accountMode === 'both';
-  const modeLabel = isComboMode ? 'Combo Mode' : 'Dating Mode';
+  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
+  
+  const getModeLabel = () => {
+    if (isComboUser) {
+      switch (activeMode) {
+        case 'dating':
+          return 'Dating Mode';
+        case 'fishing':
+          return 'Fishing Mode';
+        case 'unified':
+        default:
+          return 'Combo Mode';
+      }
+    }
+    return accountMode === 'both' ? 'Combo Mode' : 'Dating Mode';
+  };
 
   return (
     <aside className="hidden md:flex flex-col w-72 h-screen border-r border-border bg-background flex-shrink-0">
-      {/* Back to Dashboard for Combo Users */}
-      {isComboMode && (
+      {/* Mode Switcher for Combo Users */}
+      {isComboUser && (
         <div className="px-4 pt-4">
-          <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2">
+          <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2 mb-2">
             <Link to="/app/dashboard">
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Link>
           </Button>
+          <div className="flex bg-muted rounded-lg p-1 gap-1">
+            {[
+              { value: 'unified' as ActiveMode, label: 'All', icon: LayoutDashboard },
+              { value: 'dating' as ActiveMode, label: 'Dating', icon: Heart },
+              { value: 'fishing' as ActiveMode, label: 'Fishing', icon: Anchor },
+            ].map((mode) => (
+              <button
+                key={mode.value}
+                onClick={() => setActiveMode(mode.value)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
+                  activeMode === mode.value
+                    ? "bg-background text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <mode.icon className="h-3 w-3" />
+                {mode.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Logo */}
-      <div className={cn("p-6 border-b border-border", isComboMode && "pt-2")}>
+      <div className={cn("p-6 border-b border-border", isComboUser && "pt-2")}>
         <div className="flex items-center gap-2">
           <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
           <div>
             <span className="font-bold text-lg block">Find Fishing Dates</span>
-            <span className="text-xs text-primary">{modeLabel}</span>
+            <span className="text-xs text-primary">{getModeLabel()}</span>
           </div>
         </div>
       </div>
