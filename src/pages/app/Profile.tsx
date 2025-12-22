@@ -537,7 +537,7 @@ export default function Profile() {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Distance</p>
                   <p className="text-sm font-medium">
-                    Within {profile?.max_distance_km || 50} km
+                    Within {profile?.max_distance_miles || 50} miles
                   </p>
                 </div>
                 <div>

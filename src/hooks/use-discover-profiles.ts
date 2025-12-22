@@ -19,7 +19,7 @@ interface UserPreferences {
   interested_in: string[] | null;
   min_age_preference: number;
   max_age_preference: number;
-  max_distance_km: number;
+  max_distance_miles: number;
   location_lat: number | null;
   location_lng: number | null;
   gender: string | null;
@@ -153,7 +153,7 @@ export function useDiscoverProfiles() {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('interested_in, min_age_preference, max_age_preference, max_distance_km, location_lat, location_lng, gender')
+        .select('interested_in, min_age_preference, max_age_preference, max_distance_miles, location_lat, location_lng, gender')
         .eq('id', user.id)
         .single();
       
@@ -228,7 +228,7 @@ export function useDiscoverProfiles() {
         );
         if (!distanceKm) return true; // Include if no location set
         // Convert user's max distance from miles to km for comparison
-        const maxDistanceKm = userPreferences.max_distance_km * 1.60934;
+        const maxDistanceKm = userPreferences.max_distance_miles * 1.60934;
         return distanceKm <= maxDistanceKm;
       });
 
