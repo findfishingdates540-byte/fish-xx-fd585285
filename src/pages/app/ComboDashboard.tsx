@@ -274,13 +274,23 @@ export default function ComboDashboard() {
             <Fish className="h-4 w-4" />
             Log Catch
           </Button>
-          <Link
-            to="/app/settings"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <Settings className="h-5 w-5" />
-            <span>Settings</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/app/settings"
+              className="flex-1 flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <Settings className="h-5 w-5" />
+              <span>Settings</span>
+            </Link>
+            <Link to="/app/profile" className="flex-shrink-0">
+              <Avatar className="h-9 w-9 border-2 border-primary/20 hover:border-primary transition-colors">
+                <AvatarImage src={userProfile?.photos?.[0]} className="object-cover" />
+                <AvatarFallback className="text-xs">
+                  {userProfile?.display_name?.[0]?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          </div>
         </div>
       </aside>
 
