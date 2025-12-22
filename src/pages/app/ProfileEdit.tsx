@@ -11,6 +11,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { SelectableCard } from "@/components/ui/selectable-card";
 import { ImageCropModal } from "@/components/ui/image-crop-modal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ProfilePromptEditor, type ProfilePrompt } from "@/components/profile";
+import { InterestSelector } from "@/components/profile";
 import { toast } from "sonner";
 import { 
   User, 
@@ -24,15 +33,31 @@ import {
   Plus,
   X,
   Loader2,
-  ImageIcon
+  ImageIcon,
+  Ruler,
+  Wine,
+  Cigarette,
+  GraduationCap,
+  Briefcase,
+  Star,
+  Brain,
+  MessageCircle
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type AccountMode = Database["public"]["Enums"]["account_mode"];
 type GenderType = Database["public"]["Enums"]["gender_type"];
 type LookingForType = Database["public"]["Enums"]["looking_for_type"];
+type DrinkingHabit = Database["public"]["Enums"]["drinking_habit"];
+type SmokingHabit = Database["public"]["Enums"]["smoking_habit"];
+type PersonalityType = Database["public"]["Enums"]["personality_type"];
 
 const SUPABASE_URL = "https://zjmnlelqoiclkbrqefyv.supabase.co";
+
+const ZODIAC_SIGNS = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+];
 
 export default function ProfileEdit() {
   const { user } = useAuth();
@@ -46,7 +71,7 @@ export default function ProfileEdit() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Form state
+  // Form state - Basic
   const [displayName, setDisplayName] = useState("");
   const [locationName, setLocationName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -58,6 +83,17 @@ export default function ProfileEdit() {
   const [maxDistance, setMaxDistance] = useState(50);
   const [photos, setPhotos] = useState<string[]>([]);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
+  
+  // New profile fields
+  const [heightCm, setHeightCm] = useState<number | null>(null);
+  const [drinking, setDrinking] = useState<DrinkingHabit | null>(null);
+  const [smoking, setSmoking] = useState<SmokingHabit | null>(null);
+  const [education, setEducation] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [zodiacSign, setZodiacSign] = useState("");
+  const [personalityType, setPersonalityType] = useState<PersonalityType | null>(null);
+  const [interests, setInterests] = useState<string[]>([]);
+  const [promptResponses, setPromptResponses] = useState<ProfilePrompt[]>([]);
   
   // Crop modal state
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -96,6 +132,17 @@ export default function ProfileEdit() {
       setMaxDistance(data.max_distance_km || 50);
       setPhotos(data.photos || []);
       setCoverPhoto((data as any).cover_photo || null);
+      
+      // New fields
+      setHeightCm((data as any).height_cm || null);
+      setDrinking((data as any).drinking || null);
+      setSmoking((data as any).smoking || null);
+      setEducation((data as any).education || "");
+      setOccupation((data as any).occupation || "");
+      setZodiacSign((data as any).zodiac_sign || "");
+      setPersonalityType((data as any).personality_type || null);
+      setInterests((data as any).interests || []);
+      setPromptResponses((data as any).prompt_responses || []);
     }
     setLoading(false);
   };
@@ -298,6 +345,15 @@ export default function ProfileEdit() {
         max_distance_km: maxDistance,
         photos: photos,
         cover_photo: coverPhoto,
+        height_cm: heightCm,
+        drinking: drinking,
+        smoking: smoking,
+        education: education || null,
+        occupation: occupation || null,
+        zodiac_sign: zodiacSign || null,
+        personality_type: personalityType,
+        interests: interests,
+        prompt_responses: promptResponses,
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
@@ -595,6 +651,170 @@ export default function ProfileEdit() {
                     {bio.length}/300
                   </p>
                 </div>
+
+                {/* Height, Education, Occupation */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="height" className="flex items-center gap-2">
+                      <Ruler className="h-4 w-4" />
+                      Height (cm)
+                    </Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      value={heightCm || ""}
+                      onChange={(e) => setHeightCm(e.target.value ? parseInt(e.target.value) : null)}
+                      placeholder="175"
+                      className="mt-1.5"
+                      min={100}
+                      max={250}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="education" className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4" />
+                      Education
+                    </Label>
+                    <Input
+                      id="education"
+                      value={education}
+                      onChange={(e) => setEducation(e.target.value)}
+                      placeholder="Bachelor's Degree"
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="occupation" className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      Occupation
+                    </Label>
+                    <Input
+                      id="occupation"
+                      value={occupation}
+                      onChange={(e) => setOccupation(e.target.value)}
+                      placeholder="Software Engineer"
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Lifestyle */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Wine className="h-5 w-5 text-primary" />
+                  Lifestyle
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="flex items-center gap-2 mb-1.5">
+                      <Wine className="h-4 w-4" />
+                      Drinking
+                    </Label>
+                    <Select value={drinking || ""} onValueChange={(v) => setDrinking(v as DrinkingHabit)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">Never</SelectItem>
+                        <SelectItem value="socially">Socially</SelectItem>
+                        <SelectItem value="regularly">Regularly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="flex items-center gap-2 mb-1.5">
+                      <Cigarette className="h-4 w-4" />
+                      Smoking
+                    </Label>
+                    <Select value={smoking || ""} onValueChange={(v) => setSmoking(v as SmokingHabit)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">Never</SelectItem>
+                        <SelectItem value="sometimes">Sometimes</SelectItem>
+                        <SelectItem value="regularly">Regularly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="flex items-center gap-2 mb-1.5">
+                      <Star className="h-4 w-4" />
+                      Zodiac Sign
+                    </Label>
+                    <Select value={zodiacSign} onValueChange={setZodiacSign}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ZODIAC_SIGNS.map((sign) => (
+                          <SelectItem key={sign} value={sign}>{sign}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="flex items-center gap-2 mb-1.5">
+                      <Brain className="h-4 w-4" />
+                      Personality Type
+                    </Label>
+                    <Select value={personalityType || ""} onValueChange={(v) => setPersonalityType(v as PersonalityType)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="introvert">Introvert</SelectItem>
+                        <SelectItem value="extrovert">Extrovert</SelectItem>
+                        <SelectItem value="ambivert">Ambivert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Interests & Hobbies */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Interests & Hobbies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <InterestSelector
+                  selected={interests}
+                  onChange={setInterests}
+                  maxSelections={10}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Profile Prompts */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MessageCircle className="h-5 w-5 text-primary" />
+                  Profile Prompts
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Answer prompts to help others get to know you better
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ProfilePromptEditor
+                  prompts={promptResponses}
+                  onChange={setPromptResponses}
+                  maxPrompts={3}
+                />
               </CardContent>
             </Card>
 
