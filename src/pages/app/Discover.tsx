@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDiscoverProfiles } from '@/hooks/use-discover-profiles';
 import {
@@ -22,6 +22,7 @@ export default function Discover() {
   const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>(
     accountMode === 'both' ? 'combo' : accountMode
   );
@@ -144,6 +145,46 @@ export default function Discover() {
     },
     enabled: !!user?.id,
   });
+
+  // Real-time subscriptions for sidebar updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('sidebar-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          const match = payload.new as any;
+          // If a new match is created involving the current user
+          if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
+            queryClient.invalidateQueries({ queryKey: ['recent-matches-sidebar', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          // Refresh conversations when new message arrives
+          queryClient.invalidateQueries({ queryKey: ['recent-conversations-sidebar', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const onPass = async () => {
     await handlePass();
