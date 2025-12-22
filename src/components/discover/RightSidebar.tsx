@@ -7,6 +7,7 @@ interface NewMatch {
   id: string;
   name: string;
   photo: string;
+  isOnline?: boolean;
 }
 
 interface Conversation {
@@ -16,6 +17,7 @@ interface Conversation {
   lastMessage: string;
   time: string;
   unreadCount?: number;
+  isOnline?: boolean;
 }
 
 interface RightSidebarProps {
@@ -58,10 +60,15 @@ export function RightSidebar({
                 onClick={() => onMatchClick?.(match.id)}
                 className="flex flex-col items-center gap-1.5 flex-shrink-0 hover:opacity-80 transition-opacity"
               >
-                <Avatar className="h-14 w-14 ring-2 ring-foreground ring-offset-2 ring-offset-background">
-                  <AvatarImage src={match.photo} alt={match.name} />
-                  <AvatarFallback>{match.name.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-14 w-14 ring-2 ring-foreground ring-offset-2 ring-offset-background">
+                    <AvatarImage src={match.photo} alt={match.name} />
+                    <AvatarFallback>{match.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  {match.isOnline && (
+                    <span className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 border-2 border-background rounded-full" />
+                  )}
+                </div>
                 <span className="text-xs font-medium">{match.name}</span>
               </button>
             ))}
@@ -90,6 +97,9 @@ export function RightSidebar({
                     <AvatarImage src={convo.photo} alt={convo.name} />
                     <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
                   </Avatar>
+                  {convo.isOnline && (
+                    <span className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 border-2 border-background rounded-full" />
+                  )}
                   {convo.unreadCount && convo.unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full flex items-center justify-center">
                       {convo.unreadCount > 9 ? '9+' : convo.unreadCount}

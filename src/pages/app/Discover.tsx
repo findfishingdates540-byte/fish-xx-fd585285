@@ -72,8 +72,8 @@ export default function Discover() {
           matched_at,
           user1_id,
           user2_id,
-          user1:profiles!matches_user1_id_fkey(display_name, photos),
-          user2:profiles!matches_user2_id_fkey(display_name, photos)
+          user1:profiles!matches_user1_id_fkey(display_name, photos, last_active_at),
+          user2:profiles!matches_user2_id_fkey(display_name, photos, last_active_at)
         `)
         .eq('is_match', true)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
@@ -81,12 +81,18 @@ export default function Discover() {
         .order('matched_at', { ascending: false })
         .limit(10);
       
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
       return (data || []).map((match: any) => {
         const otherUser = match.user1_id === user.id ? match.user2 : match.user1;
+        const lastActive = otherUser?.last_active_at ? new Date(otherUser.last_active_at) : null;
+        const isOnline = lastActive ? lastActive > fiveMinutesAgo : false;
+        
         return {
           id: match.id,
           name: otherUser?.display_name || 'Someone',
           photo: otherUser?.photos?.[0] || '',
+          isOnline,
         };
       });
     },
@@ -106,13 +112,15 @@ export default function Discover() {
           id,
           user1_id,
           user2_id,
-          user1:profiles!matches_user1_id_fkey(display_name, photos),
-          user2:profiles!matches_user2_id_fkey(display_name, photos)
+          user1:profiles!matches_user1_id_fkey(display_name, photos, last_active_at),
+          user2:profiles!matches_user2_id_fkey(display_name, photos, last_active_at)
         `)
         .eq('is_match', true)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
       
       if (!matchesData || matchesData.length === 0) return [];
+
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
       // Get latest message and unread count for each match
       const conversationsWithMessages = await Promise.all(
@@ -137,6 +145,8 @@ export default function Discover() {
           if (!lastMessage) return null;
 
           const otherUser = match.user1_id === user.id ? match.user2 : match.user1;
+          const lastActive = otherUser?.last_active_at ? new Date(otherUser.last_active_at) : null;
+          const isOnline = lastActive ? lastActive > fiveMinutesAgo : false;
           
           return {
             id: match.id,
@@ -145,6 +155,7 @@ export default function Discover() {
             lastMessage: lastMessage.content.slice(0, 30) + (lastMessage.content.length > 30 ? '...' : ''),
             time: formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: false }),
             unreadCount: unreadCount || 0,
+            isOnline,
           };
         })
       );
