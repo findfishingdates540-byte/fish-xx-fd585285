@@ -172,104 +172,119 @@ export default function Spots() {
       // Extend bounds to include this spot
       bounds.extend([spot.location_lng, spot.location_lat]);
 
-      // Create custom marker element
+      // Create custom marker element with image card
       const el = document.createElement("div");
-      el.className = "spot-marker";
+      el.className = "spot-marker-card";
+      
+      const spotImage = spot.photos?.[0] 
+        ? `<img src="${spot.photos[0]}" style="width: 100%; height: 100%; object-fit: cover;" alt="${spot.name}" />`
+        : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; font-size: 20px;">🎣</div>`;
+      
+      const rating = spot.rating_avg?.toFixed(1) || "New";
+      const address = spot.location_name || "Location";
+      
       el.innerHTML = `
-        <div style="
-          width: 36px;
-          height: 36px;
+        <div class="spot-card-marker" style="
+          width: 160px;
           background: white;
-          border: 2px solid #000;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          border-radius: 12px;
+          overflow: hidden;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-          transition: transform 0.2s ease;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          transition: all 0.2s ease;
+          transform-origin: bottom center;
         ">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
-            <circle cx="12" cy="9" r="2.5"/>
-          </svg>
+          <div style="
+            width: 100%;
+            height: 80px;
+            position: relative;
+            overflow: hidden;
+          ">
+            ${spotImage}
+            <div style="
+              position: absolute;
+              top: 6px;
+              right: 6px;
+              background: rgba(0,0,0,0.7);
+              color: white;
+              padding: 2px 6px;
+              border-radius: 4px;
+              font-size: 11px;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              gap: 3px;
+            ">
+              <span style="color: #fbbf24;">★</span>
+              ${rating}
+            </div>
+          </div>
+          <div style="padding: 8px;">
+            <div style="
+              font-weight: 600;
+              font-size: 13px;
+              color: #1f2937;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              margin-bottom: 2px;
+            ">${spot.name}</div>
+            <div style="
+              font-size: 11px;
+              color: #6b7280;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            ">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
+              </svg>
+              ${address}
+            </div>
+          </div>
+          <div style="
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid white;
+            margin: 0 auto;
+            position: relative;
+            top: -1px;
+          "></div>
         </div>
       `;
 
       el.addEventListener("mouseenter", () => {
-        el.querySelector("div")?.setAttribute("style", `
-          width: 36px;
-          height: 36px;
-          background: #000;
-          border: 2px solid #000;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-          transform: scale(1.1);
-          transition: transform 0.2s ease;
-        `);
-        const svg = el.querySelector("svg");
-        if (svg) svg.setAttribute("stroke", "white");
+        const card = el.querySelector(".spot-card-marker") as HTMLElement;
+        if (card) {
+          card.style.transform = "scale(1.05)";
+          card.style.boxShadow = "0 8px 20px rgba(0,0,0,0.25)";
+        }
       });
 
       el.addEventListener("mouseleave", () => {
-        el.querySelector("div")?.setAttribute("style", `
-          width: 36px;
-          height: 36px;
-          background: white;
-          border: 2px solid #000;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-          transform: scale(1);
-          transition: transform 0.2s ease;
-        `);
-        const svg = el.querySelector("svg");
-        if (svg) svg.setAttribute("stroke", "currentColor");
+        const card = el.querySelector(".spot-card-marker") as HTMLElement;
+        if (card) {
+          card.style.transform = "scale(1)";
+          card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+        }
       });
 
       el.addEventListener("click", () => {
         setSelectedSpot(spot);
-        
-        // Show popup
-        if (popupRef.current) {
-          popupRef.current.remove();
+        if (map.current) {
+          map.current.flyTo({
+            center: [spot.location_lng, spot.location_lat],
+            zoom: 14,
+          });
         }
-
-        const popupContent = `
-          <div style="padding: 8px; min-width: 180px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="width: 40px; height: 40px; border-radius: 8px; background: #f0f0f0; overflow: hidden;">
-                ${spot.photos?.[0] 
-                  ? `<img src="${spot.photos[0]}" style="width: 100%; height: 100%; object-fit: cover;" />`
-                  : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">🎣</div>`
-                }
-              </div>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">${spot.name}</div>
-                <div style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: #666;">
-                  <span style="color: #fbbf24;">★</span>
-                  <span>${spot.rating_avg?.toFixed(1) || "N/A"}</span>
-                  ${spot.species_available?.[0] ? `<span>• ${spot.species_available[0]}</span>` : ""}
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-
-        popupRef.current = new mapboxgl.Popup({ offset: 25, closeButton: false })
-          .setLngLat([spot.location_lng, spot.location_lat])
-          .setHTML(popupContent)
-          .addTo(map.current!);
       });
 
-      const marker = new mapboxgl.Marker(el)
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([spot.location_lng, spot.location_lat])
         .addTo(map.current!);
 
