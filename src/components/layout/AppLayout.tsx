@@ -65,11 +65,23 @@ function AppLayoutContent() {
     return null;
   };
 
-  // Combo dashboard has its own full layout with sidebar
+  // Combo dashboard has its own full layout with sidebar on desktop, but uses mobile components
   if (isComboDashboard) {
     return (
       <div className="min-h-screen bg-background">
-        <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+        {/* Mobile Header for Dashboard */}
+        <div className="lg:hidden">
+          <AppHeader />
+        </div>
+        
+        <main className="pb-16 lg:pb-0">
+          <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+        </main>
+
+        {/* Mobile Bottom Nav for Dashboard */}
+        <div className="lg:hidden">
+          <BottomNav accountMode={effectiveMode} />
+        </div>
       </div>
     );
   }
