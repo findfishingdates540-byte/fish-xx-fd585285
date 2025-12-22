@@ -40,6 +40,9 @@ import {
   Calendar,
   MessageSquare,
   Send,
+  Camera,
+  X,
+  Loader2,
 } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -78,6 +81,7 @@ interface SpotReview {
   id: string;
   rating: number;
   review: string | null;
+  photos: string[] | null;
   created_at: string;
   user_id: string;
   profiles?: {
@@ -136,6 +140,9 @@ export default function SpotDetail() {
   const [hoverRating, setHoverRating] = useState(0);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [userReview, setUserReview] = useState<SpotReview | null>(null);
+  const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
+  const [reviewPhotoPreviewUrls, setReviewPhotoPreviewUrls] = useState<string[]>([]);
+  const reviewPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const isSaved = id ? isSpotSaved(id) : false;
 
@@ -175,6 +182,7 @@ export default function SpotDetail() {
               id,
               rating,
               review,
+              photos,
               created_at,
               user_id,
               profiles:user_id (
@@ -271,6 +279,57 @@ export default function SpotDetail() {
     }
   };
 
+  const handleReviewPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + reviewPhotos.length > 4) {
+      toast.error("Maximum 4 photos per review");
+      return;
+    }
+
+    setReviewPhotos((prev) => [...prev, ...files]);
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReviewPhotoPreviewUrls((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeReviewPhoto = (index: number) => {
+    setReviewPhotos((prev) => prev.filter((_, i) => i !== index));
+    setReviewPhotoPreviewUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadReviewPhotos = async (): Promise<string[]> => {
+    if (!user || reviewPhotos.length === 0) return [];
+
+    const uploadedUrls: string[] = [];
+
+    for (const photo of reviewPhotos) {
+      const fileExt = photo.name.split(".").pop();
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("review-photos")
+        .upload(fileName, photo);
+
+      if (error) {
+        console.error("Upload error:", error);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("review-photos")
+        .getPublicUrl(data.path);
+
+      uploadedUrls.push(urlData.publicUrl);
+    }
+
+    return uploadedUrls;
+  };
+
   const handleSubmitReview = async () => {
     if (!user || !id || newRating === 0) {
       toast.error("Please select a rating");
@@ -279,11 +338,21 @@ export default function SpotDetail() {
 
     setSubmittingReview(true);
     try {
+      // Upload photos first
+      const photoUrls = await uploadReviewPhotos();
+
       if (userReview) {
-        // Update existing review
+        // Update existing review - merge existing photos with new ones
+        const existingPhotos = userReview.photos || [];
+        const allPhotos = [...existingPhotos, ...photoUrls];
+        
         const { error } = await supabase
           .from("spot_ratings")
-          .update({ rating: newRating, review: newReview || null })
+          .update({ 
+            rating: newRating, 
+            review: newReview || null,
+            photos: allPhotos.length > 0 ? allPhotos : null
+          })
           .eq("id", userReview.id);
 
         if (error) throw error;
@@ -297,11 +366,16 @@ export default function SpotDetail() {
             user_id: user.id,
             rating: newRating,
             review: newReview || null,
+            photos: photoUrls.length > 0 ? photoUrls : null,
           });
 
         if (error) throw error;
         toast.success("Review submitted!");
       }
+
+      // Clear photo state
+      setReviewPhotos([]);
+      setReviewPhotoPreviewUrls([]);
 
       // Refetch reviews
       const { data: reviewsData } = await supabase
@@ -310,6 +384,7 @@ export default function SpotDetail() {
           id,
           rating,
           review,
+          photos,
           created_at,
           user_id,
           profiles:user_id (
@@ -637,12 +712,54 @@ export default function SpotDetail() {
                     className="mb-3 resize-none"
                     rows={3}
                   />
+                  
+                  {/* Photo Upload */}
+                  <div className="mb-4">
+                    <p className="text-sm text-muted-foreground mb-2">Add photos (max 4)</p>
+                    <div className="flex flex-wrap gap-2">
+                      {reviewPhotoPreviewUrls.map((url, index) => (
+                        <div key={index} className="relative w-16 h-16 rounded-lg overflow-hidden">
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeReviewPhoto(index)}
+                            className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center"
+                          >
+                            <X className="h-3 w-3 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                      {reviewPhotos.length < 4 && (
+                        <button
+                          type="button"
+                          onClick={() => reviewPhotoInputRef.current?.click()}
+                          className="w-16 h-16 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                        >
+                          <Camera className="h-4 w-4" />
+                          <span className="text-[10px] mt-0.5">Add</span>
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      ref={reviewPhotoInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleReviewPhotoSelect}
+                      className="hidden"
+                    />
+                  </div>
+                  
                   <Button 
                     onClick={handleSubmitReview} 
                     disabled={newRating === 0 || submittingReview}
                     className="gap-2"
                   >
-                    <Send className="h-4 w-4" />
+                    {submittingReview ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                     {submittingReview ? "Submitting..." : userReview ? "Update Review" : "Submit Review"}
                   </Button>
                 </div>
@@ -702,7 +819,25 @@ export default function SpotDetail() {
                               ))}
                             </div>
                             {review.review && (
-                              <p className="text-sm text-muted-foreground">{review.review}</p>
+                              <p className="text-sm text-muted-foreground mb-2">{review.review}</p>
+                            )}
+                            {/* Review Photos */}
+                            {review.photos && review.photos.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {review.photos.map((photoUrl, index) => (
+                                  <div 
+                                    key={index} 
+                                    className="w-20 h-20 rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => window.open(photoUrl, '_blank')}
+                                  >
+                                    <img 
+                                      src={photoUrl} 
+                                      alt={`Review photo ${index + 1}`} 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
