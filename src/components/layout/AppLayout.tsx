@@ -75,6 +75,11 @@ export function AppLayout() {
   
   // Check if we're on the combo dashboard - it has its own layout
   const isComboDashboard = location.pathname === '/app/dashboard';
+  
+  // List of shared routes that should not show the BothHeader for combo users
+  // These pages have their own layout or don't need the full navigation header
+  const sharedRoutes = ['/app/settings', '/app/profile'];
+  const isSharedRoute = sharedRoutes.some(route => location.pathname.startsWith(route));
 
   // Determine which desktop header to show
   const renderDesktopHeader = () => {
@@ -84,7 +89,10 @@ export function AppLayout() {
     if (accountMode === 'fishing') {
       return <FishingHeader />;
     }
-    // Both mode
+    // Both mode - don't show BothHeader on shared routes to avoid overlap
+    if (isSharedRoute) {
+      return null;
+    }
     return <BothHeader />;
   };
 
