@@ -41,9 +41,9 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
     ];
   }
 
-  // Both mode - combined navigation
+  // Both mode - dashboard-centric navigation
   return [
-    { to: '/app/discover', icon: Home, label: 'Discover' },
+    { to: '/app/dashboard', icon: Home, label: 'Home' },
     { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
     { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     { to: '/app/profile', icon: User, label: 'Profile' },
