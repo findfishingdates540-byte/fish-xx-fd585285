@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 
 const bothNavItems = [
-  { to: "/app/discover", label: "Discover" },
+  { to: "/app/dashboard", label: "Dashboard" },
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/catches", label: "Catches" },
@@ -56,7 +56,7 @@ export function BothHeader() {
         {/* Left side - Logo and Nav */}
         <div className="flex items-center gap-8">
           {/* Logo */}
-          <Link to="/app/discover" className="flex items-center gap-2">
+          <Link to="/app/dashboard" className="flex items-center gap-2">
             <img src={logo} alt="FindFish Date" className="h-8 w-8 rounded" />
             <span className="font-bold text-lg">FindFish Date</span>
           </Link>
