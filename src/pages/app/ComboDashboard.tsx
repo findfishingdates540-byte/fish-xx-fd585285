@@ -226,7 +226,7 @@ export default function ComboDashboard() {
   return (
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar */}
-      <aside className="w-60 border-r bg-card flex flex-col">
+      <aside className="w-60 border-r bg-card flex flex-col sticky top-0 h-screen">
         {/* Logo */}
         <div className="p-4 border-b">
           <Link to="/app" className="flex items-center gap-3">
