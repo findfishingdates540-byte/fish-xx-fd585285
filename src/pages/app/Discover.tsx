@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDiscoverProfiles } from '@/hooks/use-discover-profiles';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   DiscoverSidebar,
   ProfileCard,
@@ -14,6 +15,7 @@ import {
 } from '@/components/discover';
 import { RefreshCw, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { formatDistanceToNow } from 'date-fns';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
@@ -27,6 +29,7 @@ export default function Discover() {
     accountMode === 'both' ? 'combo' : accountMode
   );
   const [showDetailView, setShowDetailView] = useState(false);
+  const isMobile = useIsMobile();
 
   const {
     currentProfile,
@@ -284,36 +287,69 @@ export default function Discover() {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden lg:ml-60">
-          <div className="w-full max-w-sm">
-            {isLoading ? (
-              renderLoading()
-            ) : noMoreProfiles || !currentProfile ? (
-              renderEmptyState()
-            ) : (
-              <>
-                <div onClick={handleProfileClick} className="cursor-pointer">
-                  <ProfileCard profile={currentProfile} />
-                </div>
+          {isMobile ? (
+            <PullToRefresh 
+              onRefresh={async () => { await loadMoreProfiles(); }}
+              className="w-full max-w-sm h-full flex flex-col items-center justify-center"
+              disabled={isLoading}
+            >
+              <div className="w-full">
+                {isLoading ? (
+                  renderLoading()
+                ) : noMoreProfiles || !currentProfile ? (
+                  renderEmptyState()
+                ) : (
+                  <>
+                    <div onClick={handleProfileClick} className="cursor-pointer">
+                      <ProfileCard profile={currentProfile} />
+                    </div>
 
-                {/* Swipe Actions */}
-                <div className="mt-6">
-                  <SwipeActions
-                    onRewind={() => {}} // Rewind requires storing history - future enhancement
-                    onPass={onPass}
-                    onSuperLike={onSuperLike}
-                    onLike={onLike}
-                    canRewind={false}
-                  />
-                </div>
+                    {/* Swipe Actions */}
+                    <div className="mt-6">
+                      <SwipeActions
+                        onRewind={() => {}} // Rewind requires storing history - future enhancement
+                        onPass={onPass}
+                        onSuperLike={onSuperLike}
+                        onLike={onLike}
+                        canRewind={false}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </PullToRefresh>
+          ) : (
+            <div className="w-full max-w-sm">
+              {isLoading ? (
+                renderLoading()
+              ) : noMoreProfiles || !currentProfile ? (
+                renderEmptyState()
+              ) : (
+                <>
+                  <div onClick={handleProfileClick} className="cursor-pointer">
+                    <ProfileCard profile={currentProfile} />
+                  </div>
 
-                {/* Keyboard hint - Desktop */}
-                <p className="hidden lg:block text-center text-sm text-muted-foreground mt-4">
-                  Use <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> and{' '}
-                  <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> to navigate
-                </p>
-              </>
-            )}
-          </div>
+                  {/* Swipe Actions */}
+                  <div className="mt-6">
+                    <SwipeActions
+                      onRewind={() => {}} // Rewind requires storing history - future enhancement
+                      onPass={onPass}
+                      onSuperLike={onSuperLike}
+                      onLike={onLike}
+                      canRewind={false}
+                    />
+                  </div>
+
+                  {/* Keyboard hint - Desktop */}
+                  <p className="hidden lg:block text-center text-sm text-muted-foreground mt-4">
+                    Use <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> and{' '}
+                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> to navigate
+                  </p>
+                </>
+              )}
+            </div>
+          )}
         </main>
 
         {/* Right Sidebar - Desktop Only */}
