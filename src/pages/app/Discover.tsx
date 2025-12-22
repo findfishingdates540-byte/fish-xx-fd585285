@@ -93,7 +93,7 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
-  // Fetch recent conversations with last message
+  // Fetch recent conversations with last message and unread count
   const { data: conversations } = useQuery({
     queryKey: ['recent-conversations-sidebar', user?.id],
     queryFn: async () => {
@@ -114,15 +114,24 @@ export default function Discover() {
       
       if (!matchesData || matchesData.length === 0) return [];
 
-      // Get latest message for each match
+      // Get latest message and unread count for each match
       const conversationsWithMessages = await Promise.all(
         matchesData.map(async (match: any) => {
+          // Get latest message
           const { data: messages } = await supabase
             .from('messages')
             .select('content, created_at, sender_id')
             .eq('match_id', match.id)
             .order('created_at', { ascending: false })
             .limit(1);
+          
+          // Get unread count
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('match_id', match.id)
+            .eq('is_read', false)
+            .neq('sender_id', user.id);
           
           const lastMessage = messages?.[0];
           if (!lastMessage) return null;
@@ -135,6 +144,7 @@ export default function Discover() {
             photo: otherUser?.photos?.[0] || '',
             lastMessage: lastMessage.content.slice(0, 30) + (lastMessage.content.length > 30 ? '...' : ''),
             time: formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: false }),
+            unreadCount: unreadCount || 0,
           };
         })
       );
