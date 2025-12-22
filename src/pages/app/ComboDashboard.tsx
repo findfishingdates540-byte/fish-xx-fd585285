@@ -275,13 +275,6 @@ export default function ComboDashboard() {
             Log Catch
           </Button>
           <div className="flex items-center gap-2">
-            <Link
-              to="/app/settings"
-              className="flex-1 flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <Settings className="h-5 w-5" />
-              <span>Settings</span>
-            </Link>
             <Link to="/app/profile" className="flex-shrink-0">
               <Avatar className="h-9 w-9 border-2 border-primary/20 hover:border-primary transition-colors">
                 <AvatarImage src={userProfile?.photos?.[0]} className="object-cover" />
@@ -289,6 +282,13 @@ export default function ComboDashboard() {
                   {userProfile?.display_name?.[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
+            </Link>
+            <Link
+              to="/app/settings"
+              className="flex-1 flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <Settings className="h-5 w-5" />
+              <span>Settings</span>
             </Link>
           </div>
         </div>
