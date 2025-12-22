@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMode } from "@/contexts/ActiveModeContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +99,7 @@ const sidebarItems = [
 export default function ComboDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { activeMode, setActiveMode } = useActiveMode();
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
@@ -132,6 +133,7 @@ export default function ComboDashboard() {
     enabled: !!user?.id,
   });
 
+  // Dating messages (unread)
   const { data: unreadMessages } = useQuery({
     queryKey: ['unread-messages', user?.id],
     queryFn: async () => {
@@ -149,6 +151,37 @@ export default function ComboDashboard() {
         .neq('sender_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Buddy messages (unread) - for fishing mode
+  const { data: unreadBuddyMessages } = useQuery({
+    queryKey: ['unread-buddy-messages', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // First get user's buddy relationships
+      const { data: buddies } = await supabase
+        .from('fishing_buddies')
+        .select('id')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+      
+      if (!buddies || buddies.length === 0) return [];
+      
+      const buddyIds = buddies.map(b => b.id);
+      
+      const { data } = await supabase
+        .from('buddy_messages')
+        .select('id, content, created_at, sender_id, buddy_id')
+        .in('buddy_id', buddyIds)
+        .eq('is_read', false)
+        .neq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
       return data || [];
     },
     enabled: !!user?.id,
@@ -176,9 +209,13 @@ export default function ComboDashboard() {
     enabled: !!user?.id,
   });
 
+  // Total message count for sidebar badge (dating + buddy)
+  const totalMessageCount = (unreadMessages?.length || 0) + (unreadBuddyMessages?.length || 0);
+
   const totalNotifications = 
     (recentMatches?.length || 0) + 
     (unreadMessages?.length || 0) + 
+    (unreadBuddyMessages?.length || 0) +
     (tripInvites?.length || 0);
 
   const notifications = [
@@ -203,6 +240,15 @@ export default function ComboDashboard() {
       link: '/app/messages',
       icon: MessageSquare,
     })) || []),
+    ...(unreadBuddyMessages?.map((msg: any) => ({
+      id: `buddy-msg-${msg.id}`,
+      type: 'buddy_message' as const,
+      title: 'New Buddy Message',
+      message: `${msg.content?.slice(0, 30)}...`,
+      time: msg.created_at,
+      link: '/app/buddy-messages',
+      icon: Users,
+    })) || []),
     ...(tripInvites?.map((invite: any) => ({
       id: `trip-${invite.id}`,
       type: 'trip' as const,
@@ -213,6 +259,84 @@ export default function ComboDashboard() {
       icon: Calendar,
     })) || []),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+  // Real-time subscriptions for notifications
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('Setting up real-time notification subscriptions for combo dashboard');
+
+    const channel = supabase
+      .channel('combo-dashboard-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          console.log('Match update received:', payload);
+          const match = payload.new as any;
+          if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
+            queryClient.invalidateQueries({ queryKey: ['recent-matches', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          console.log('New message received:', payload);
+          const message = payload.new as any;
+          if (message.sender_id !== user.id) {
+            queryClient.invalidateQueries({ queryKey: ['unread-messages', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'buddy_messages',
+        },
+        (payload) => {
+          console.log('New buddy message received:', payload);
+          const message = payload.new as any;
+          if (message.sender_id !== user.id) {
+            queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'trip_participants',
+        },
+        (payload) => {
+          console.log('Trip invitation received:', payload);
+          const invite = payload.new as any;
+          if (invite.user_id === user.id) {
+            queryClient.invalidateQueries({ queryKey: ['trip-invites', user.id] });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Combo dashboard notification subscription status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up combo dashboard notification subscriptions');
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   useEffect(() => {
     if (user) {
@@ -419,6 +543,11 @@ export default function ComboDashboard() {
               {item.label === "Matches" && matchCount > 0 && (
                 <Badge variant="secondary" className="ml-auto bg-primary text-primary-foreground text-xs">
                   {matchCount}
+                </Badge>
+              )}
+              {item.label === "Messages" && totalMessageCount > 0 && (
+                <Badge variant="secondary" className="ml-auto bg-destructive text-destructive-foreground text-xs">
+                  {totalMessageCount}
                 </Badge>
               )}
             </Link>
