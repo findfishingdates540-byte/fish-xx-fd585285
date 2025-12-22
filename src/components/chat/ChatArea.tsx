@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, Check, CheckCheck, X, Loader2 } from 'lucide-react';
+import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, Check, CheckCheck, X, Loader2, Mic, Square } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { MessageReactions } from './MessageReactions';
+import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
 
 interface Message {
   id: string;
@@ -16,6 +18,7 @@ interface Message {
   timestamp: string;
   isRead?: boolean;
   imageUrl?: string | null;
+  audioUrl?: string | null;
 }
 
 interface ReactionSummary {
@@ -30,7 +33,7 @@ interface ChatAreaProps {
   isOnline?: boolean;
   messages: Message[];
   currentUserId: string;
-  onSendMessage: (content: string, imageUrl?: string) => void;
+  onSendMessage: (content: string, imageUrl?: string, audioUrl?: string) => void;
   onShowProfile?: () => void;
   isTyping?: boolean;
   onInputChange?: () => void;
@@ -63,6 +66,8 @@ export function ChatArea({
   const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { isRecording, recordingDuration, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -115,6 +120,25 @@ export function ChatArea({
     return data.publicUrl;
   };
 
+  const uploadAudio = async (blob: Blob): Promise<string | null> => {
+    const fileName = `${currentUserId}/voice_${Date.now()}.webm`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('profile-photos')
+      .upload(fileName, blob, { contentType: blob.type });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('profile-photos')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
   const handleSend = async () => {
     if (!newMessage.trim() && !selectedImage) return;
 
@@ -135,6 +159,35 @@ export function ChatArea({
 
     onSendMessage(newMessage.trim() || '📷 Photo', imageUrl);
     setNewMessage('');
+  };
+
+  const handleVoiceRecord = async () => {
+    if (isRecording) {
+      setUploading(true);
+      const audioBlob = await stopRecording();
+      
+      if (audioBlob) {
+        const audioUrl = await uploadAudio(audioBlob);
+        if (audioUrl) {
+          onSendMessage('🎤 Voice message', undefined, audioUrl);
+        } else {
+          toast.error('Failed to upload voice message');
+        }
+      }
+      setUploading(false);
+    } else {
+      try {
+        await startRecording();
+      } catch (error) {
+        toast.error('Could not access microphone');
+      }
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -223,6 +276,11 @@ export function ChatArea({
                       : 'bg-accent rounded-bl-sm'
                   )}
                 >
+                  {message.audioUrl && (
+                    <div className="px-4 py-2.5">
+                      <VoiceMessagePlayer audioUrl={message.audioUrl} isMine={isMine} />
+                    </div>
+                  )}
                   {message.imageUrl && (
                     <img 
                       src={message.imageUrl} 
@@ -231,7 +289,7 @@ export function ChatArea({
                       onClick={() => window.open(message.imageUrl!, '_blank')}
                     />
                   )}
-                  {message.content && message.content !== '📷 Photo' && (
+                  {message.content && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
                     <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
                   )}
                   {message.imageUrl && message.content === '📷 Photo' && (
@@ -319,6 +377,23 @@ export function ChatArea({
           </div>
         )}
         
+        {/* Recording indicator */}
+        {isRecording && (
+          <div className="flex items-center gap-3 mb-3 p-3 bg-destructive/10 rounded-lg">
+            <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
+            <span className="text-sm font-medium">Recording... {formatDuration(recordingDuration)}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={cancelRecording}
+              className="ml-auto text-destructive"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Cancel
+            </Button>
+          </div>
+        )}
+        
         <div className="flex items-center gap-2 mb-3">
           <input
             type="file"
@@ -332,9 +407,21 @@ export function ChatArea({
             size="icon" 
             className="text-muted-foreground"
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || isRecording}
           >
             <ImageIcon className="h-5 w-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "text-muted-foreground",
+              isRecording && "text-destructive bg-destructive/10"
+            )}
+            onClick={handleVoiceRecord}
+            disabled={uploading}
+          >
+            {isRecording ? <Square className="h-4 w-4" /> : <Mic className="h-5 w-5" />}
           </Button>
           <div className="flex-1 relative">
             <Input
@@ -343,7 +430,7 @@ export function ChatArea({
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="pr-10"
-              disabled={uploading}
+              disabled={uploading || isRecording}
             />
             <Button
               variant="ghost"
@@ -355,7 +442,7 @@ export function ChatArea({
           </div>
           <Button
             onClick={handleSend}
-            disabled={(!newMessage.trim() && !selectedImage) || uploading}
+            disabled={(!newMessage.trim() && !selectedImage) || uploading || isRecording}
             className="bg-foreground hover:bg-foreground/90 text-background"
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

@@ -183,9 +183,9 @@ export function useDatingChat(matchId: string | undefined) {
     typingTimeoutRef.current = setTimeout(() => updateTypingStatus(false), 2000);
   }, [updateTypingStatus]);
 
-  const sendMessage = useCallback(async (content: string, imageUrl?: string) => {
+  const sendMessage = useCallback(async (content: string, imageUrl?: string, audioUrl?: string) => {
     if (!user || !matchId || sending || !matchProfile) return;
-    if (!content.trim() && !imageUrl) return;
+    if (!content.trim() && !imageUrl && !audioUrl) return;
 
     updateTypingStatus(false);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -198,7 +198,8 @@ export function useDatingChat(matchId: string | undefined) {
         match_id: matchId,
         sender_id: user.id,
         content: content.trim(),
-        image_url: imageUrl || null
+        image_url: imageUrl || null,
+        audio_url: audioUrl || null
       });
 
     if (error) {
@@ -249,6 +250,7 @@ export function useDatingChat(matchId: string | undefined) {
       timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isRead: msg.is_read,
       imageUrl: msg.image_url,
+      audioUrl: (msg as any).audio_url,
     }));
   }, [messages]);
 
