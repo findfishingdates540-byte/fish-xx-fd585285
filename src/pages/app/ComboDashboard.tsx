@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMode } from "@/contexts/ActiveModeContext";
@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
+import { playNotificationSound, playBuddyRequestSound } from "@/utils/notification-sound";
 import {
   LayoutDashboard,
   Users,
@@ -36,6 +37,23 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
+
+// Browser notification helpers
+const requestNotificationPermission = async () => {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+};
+
+const showBrowserNotification = (title: string, body: string, icon?: string) => {
+  if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+    new Notification(title, {
+      body,
+      icon: icon || '/favicon.png',
+      badge: '/favicon.png',
+    });
+  }
+};
 
 interface UserProfileData {
   id: string;
@@ -108,6 +126,12 @@ export default function ComboDashboard() {
   const [recentCatches, setRecentCatches] = useState<RecentCatch[]>([]);
   const [matchCount, setMatchCount] = useState(0);
   const [featuredSpot, setFeaturedSpot] = useState<FishingSpot | null>(null);
+  const previousNotificationCountRef = useRef<number>(0);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   // Fetch notifications for desktop sidebar
   const { data: recentMatches } = useQuery({
@@ -260,7 +284,7 @@ export default function ComboDashboard() {
     })) || []),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
-  // Real-time subscriptions for notifications
+  // Real-time subscriptions for notifications with sound and browser notifications
   useEffect(() => {
     if (!user?.id) return;
 
@@ -280,6 +304,9 @@ export default function ComboDashboard() {
           const match = payload.new as any;
           if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
             queryClient.invalidateQueries({ queryKey: ['recent-matches', user.id] });
+            // Play sound and show browser notification
+            playNotificationSound();
+            showBrowserNotification('New Match!', 'You have a new match on Find Fishing Dates!');
           }
         }
       )
@@ -295,6 +322,9 @@ export default function ComboDashboard() {
           const message = payload.new as any;
           if (message.sender_id !== user.id) {
             queryClient.invalidateQueries({ queryKey: ['unread-messages', user.id] });
+            // Play sound and show browser notification
+            playNotificationSound();
+            showBrowserNotification('New Message', 'You have a new message!');
           }
         }
       )
@@ -310,6 +340,9 @@ export default function ComboDashboard() {
           const message = payload.new as any;
           if (message.sender_id !== user.id) {
             queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages', user.id] });
+            // Play buddy sound and show browser notification
+            playBuddyRequestSound();
+            showBrowserNotification('New Buddy Message', 'You have a new message from a fishing buddy!');
           }
         }
       )
@@ -325,6 +358,9 @@ export default function ComboDashboard() {
           const invite = payload.new as any;
           if (invite.user_id === user.id) {
             queryClient.invalidateQueries({ queryKey: ['trip-invites', user.id] });
+            // Play sound and show browser notification
+            playNotificationSound();
+            showBrowserNotification('Trip Invitation', 'You have been invited to a fishing trip!');
           }
         }
       )
