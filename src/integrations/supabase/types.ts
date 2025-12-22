@@ -523,14 +523,18 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           display_name: string | null
+          drinking: Database["public"]["Enums"]["drinking_habit"] | null
+          education: string | null
           email: string | null
           fishing_experience:
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear: string[] | null
           gender: Database["public"]["Enums"]["gender_type"] | null
+          height_cm: number | null
           id: string
           interested_in: Database["public"]["Enums"]["gender_type"][] | null
+          interests: string[] | null
           is_active: boolean | null
           is_premium: boolean | null
           is_verified: boolean | null
@@ -543,11 +547,18 @@ export type Database = {
           max_age_preference: number | null
           max_distance_km: number | null
           min_age_preference: number | null
+          occupation: string | null
           onboarding_completed: boolean | null
+          personality_type:
+            | Database["public"]["Enums"]["personality_type"]
+            | null
           photos: string[] | null
           preferred_species: string[] | null
           premium_expires_at: string | null
+          prompt_responses: Json | null
+          smoking: Database["public"]["Enums"]["smoking_habit"] | null
           updated_at: string
+          zodiac_sign: string | null
         }
         Insert: {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
@@ -556,14 +567,18 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
+          drinking?: Database["public"]["Enums"]["drinking_habit"] | null
+          education?: string | null
           email?: string | null
           fishing_experience?:
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear?: string[] | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          height_cm?: number | null
           id: string
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
+          interests?: string[] | null
           is_active?: boolean | null
           is_premium?: boolean | null
           is_verified?: boolean | null
@@ -576,11 +591,18 @@ export type Database = {
           max_age_preference?: number | null
           max_distance_km?: number | null
           min_age_preference?: number | null
+          occupation?: string | null
           onboarding_completed?: boolean | null
+          personality_type?:
+            | Database["public"]["Enums"]["personality_type"]
+            | null
           photos?: string[] | null
           preferred_species?: string[] | null
           premium_expires_at?: string | null
+          prompt_responses?: Json | null
+          smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           updated_at?: string
+          zodiac_sign?: string | null
         }
         Update: {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
@@ -589,14 +611,18 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
+          drinking?: Database["public"]["Enums"]["drinking_habit"] | null
+          education?: string | null
           email?: string | null
           fishing_experience?:
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear?: string[] | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          height_cm?: number | null
           id?: string
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
+          interests?: string[] | null
           is_active?: boolean | null
           is_premium?: boolean | null
           is_verified?: boolean | null
@@ -609,11 +635,18 @@ export type Database = {
           max_age_preference?: number | null
           max_distance_km?: number | null
           min_age_preference?: number | null
+          occupation?: string | null
           onboarding_completed?: boolean | null
+          personality_type?:
+            | Database["public"]["Enums"]["personality_type"]
+            | null
           photos?: string[] | null
           preferred_species?: string[] | null
           premium_expires_at?: string | null
+          prompt_responses?: Json | null
+          smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           updated_at?: string
+          zodiac_sign?: string | null
         }
         Relationships: []
       }
@@ -877,6 +910,7 @@ export type Database = {
     Enums: {
       account_mode: "dating" | "fishing" | "both"
       app_role: "admin" | "moderator" | "user"
+      drinking_habit: "never" | "socially" | "regularly"
       fishing_experience: "beginner" | "intermediate" | "advanced" | "expert"
       gender_type:
         | "male"
@@ -886,6 +920,8 @@ export type Database = {
         | "prefer_not_to_say"
       looking_for_type: "relationship" | "casual" | "friends" | "fishing_buddy"
       matching_style: "mutual" | "women_first"
+      personality_type: "introvert" | "extrovert" | "ambivert"
+      smoking_habit: "never" | "sometimes" | "regularly"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1015,6 +1051,7 @@ export const Constants = {
     Enums: {
       account_mode: ["dating", "fishing", "both"],
       app_role: ["admin", "moderator", "user"],
+      drinking_habit: ["never", "socially", "regularly"],
       fishing_experience: ["beginner", "intermediate", "advanced", "expert"],
       gender_type: [
         "male",
@@ -1025,6 +1062,8 @@ export const Constants = {
       ],
       looking_for_type: ["relationship", "casual", "friends", "fishing_buddy"],
       matching_style: ["mutual", "women_first"],
+      personality_type: ["introvert", "extrovert", "ambivert"],
+      smoking_habit: ["never", "sometimes", "regularly"],
     },
   },
 } as const

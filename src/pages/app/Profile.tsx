@@ -1,16 +1,21 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Share2, Pencil, Heart, Fish, Layers, CheckCircle2, Instagram, Globe, Camera, Star } from 'lucide-react';
+import { 
+  MapPin, Share2, Pencil, Heart, Fish, Layers, CheckCircle2, 
+  Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
+  GraduationCap, Briefcase, Brain, MessageCircle
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProfilePromptDisplay, InterestDisplay, type ProfilePrompt } from '@/components/profile';
 import { cn } from '@/lib/utils';
+
 const accountModes = [{
   id: 'dating',
   label: 'Dating',
@@ -27,89 +32,111 @@ const accountModes = [{
   icon: Layers,
   color: 'text-primary'
 }] as const;
+
 const experienceLevelMap: Record<string, number> = {
   beginner: 25,
   intermediate: 50,
   advanced: 75,
   expert: 100
 };
+
 export default function Profile() {
-  const {
-    user
-  } = useAuth();
-  const {
-    data: profile,
-    isLoading
-  } = useQuery({
+  const { user } = useAuth();
+  const { data: profile, isLoading } = useQuery({
     queryKey: ['profile-full', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const {
-        data,
-        error
-      } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
       if (error) throw error;
       return data;
     },
     enabled: !!user?.id
   });
 
-  // Calculate age from date_of_birth
   const calculateAge = (dob: string | null) => {
     if (!dob) return null;
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || m === 0 && today.getDate() < birthDate.getDate()) {
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
     return age;
   };
+
+  const formatHeight = (cm: number | null) => {
+    if (!cm) return null;
+    const feet = Math.floor(cm / 30.48);
+    const inches = Math.round((cm % 30.48) / 2.54);
+    return `${feet}'${inches}" (${cm}cm)`;
+  };
+
   const age = calculateAge(profile?.date_of_birth || null);
   const initials = profile?.display_name?.charAt(0)?.toUpperCase() || 'U';
   const avatarUrl = profile?.photos?.[0] || '';
   const coverPhoto = profile?.photos?.[1] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200';
+  
+  // Type assertions for new fields
+  const heightCm = (profile as any)?.height_cm as number | null;
+  const drinking = (profile as any)?.drinking as string | null;
+  const smoking = (profile as any)?.smoking as string | null;
+  const education = (profile as any)?.education as string | null;
+  const occupation = (profile as any)?.occupation as string | null;
+  const zodiacSign = (profile as any)?.zodiac_sign as string | null;
+  const personalityType = (profile as any)?.personality_type as string | null;
+  const interests = (profile as any)?.interests as string[] | null;
+  const promptResponses = (profile as any)?.prompt_responses as ProfilePrompt[] | null;
+
   if (isLoading) {
-    return <div className="min-h-screen bg-muted/30">
+    return (
+      <div className="min-h-screen bg-muted/30">
         <Skeleton className="h-64 w-full" />
         <div className="max-w-6xl mx-auto px-4 -mt-16">
           <Skeleton className="h-32 w-32 rounded-full" />
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen bg-muted/30 pb-8">
+
+  return (
+    <div className="min-h-screen bg-muted/30 pb-8">
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 pt-4">
         <div className="relative h-56 md:h-72 overflow-hidden rounded-3xl">
           <img src={coverPhoto} alt="Cover" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           
-          {/* Profile Info inside banner */}
           <div className="absolute inset-x-0 bottom-4 flex flex-col items-center md:flex-row md:items-end md:justify-between px-4 md:px-6 gap-3">
-            {/* Avatar and Name */}
             <div className="flex flex-col items-center md:flex-row md:items-end gap-3 md:gap-4">
               <div className="relative">
                 <Avatar className="h-24 w-24 md:h-28 md:w-28 border-4 border-white shadow-lg">
                   <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
                   <AvatarFallback className="text-2xl md:text-3xl bg-muted">{initials}</AvatarFallback>
                 </Avatar>
-                {profile?.is_verified && <div className="absolute bottom-1 right-1 h-6 w-6 bg-primary rounded-full flex items-center justify-center border-2 border-white">
+                {profile?.is_verified && (
+                  <div className="absolute bottom-1 right-1 h-6 w-6 bg-primary rounded-full flex items-center justify-center border-2 border-white">
                     <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
-                  </div>}
+                  </div>
+                )}
               </div>
               <div className="text-center md:text-left md:mb-2">
                 <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-md">
                   {profile?.display_name || 'User'}{age ? `, ${age}` : ''}
                 </h1>
-                {profile?.location_name && <div className="flex items-center justify-center md:justify-start gap-1 text-white/90 mt-0.5">
+                {profile?.location_name && (
+                  <div className="flex items-center justify-center md:justify-start gap-1 text-white/90 mt-0.5">
                     <MapPin className="h-4 w-4" />
                     <span className="text-sm">{profile.location_name}</span>
-                  </div>}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white">
                 <Share2 className="h-4 w-4 mr-2" />
@@ -128,8 +155,6 @@ export default function Profile() {
 
       {/* Main Content Grid */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
-
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-3 space-y-6">
@@ -142,18 +167,29 @@ export default function Profile() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {accountModes.map(mode => {
-                const Icon = mode.icon;
-                const isActive = profile?.account_mode === mode.id;
-                return <div key={mode.id} className={cn('flex items-center justify-between p-3 rounded-lg border transition-colors', isActive ? 'bg-primary/5 border-primary' : 'border-transparent')}>
+                  const Icon = mode.icon;
+                  const isActive = profile?.account_mode === mode.id;
+                  return (
+                    <div 
+                      key={mode.id} 
+                      className={cn(
+                        'flex items-center justify-between p-3 rounded-lg border transition-colors', 
+                        isActive ? 'bg-primary/5 border-primary' : 'border-transparent'
+                      )}
+                    >
                       <div className="flex items-center gap-3">
                         <div className={cn('p-2 rounded-lg bg-muted', isActive && 'bg-primary/10')}>
                           <Icon className={cn('h-4 w-4', mode.color)} />
                         </div>
                         <span className="font-medium">{mode.label}</span>
                       </div>
-                      <div className={cn('h-4 w-4 rounded-full border-2', isActive ? 'bg-primary border-primary' : 'border-muted-foreground/30')} />
-                    </div>;
-              })}
+                      <div className={cn(
+                        'h-4 w-4 rounded-full border-2', 
+                        isActive ? 'bg-primary border-primary' : 'border-muted-foreground/30'
+                      )} />
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
 
@@ -168,13 +204,85 @@ export default function Profile() {
                 <p className="text-sm text-muted-foreground mb-4">
                   {profile?.bio || 'No bio added yet. Tell others about yourself!'}
                 </p>
-                {profile?.preferred_species && profile.preferred_species.length > 0 && <div className="flex flex-wrap gap-2">
-                    {profile.preferred_species.slice(0, 4).map(interest => <Badge key={interest} variant="secondary" className="text-xs">
+                {profile?.preferred_species && profile.preferred_species.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {profile.preferred_species.slice(0, 4).map(interest => (
+                      <Badge key={interest} variant="secondary" className="text-xs">
                         #{interest}
-                      </Badge>)}
-                  </div>}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* The Basics */}
+            {(heightCm || education || occupation) && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                    The Basics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {heightCm && (
+                    <div className="flex items-center gap-3">
+                      <Ruler className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{formatHeight(heightCm)}</span>
+                    </div>
+                  )}
+                  {education && (
+                    <div className="flex items-center gap-3">
+                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{education}</span>
+                    </div>
+                  )}
+                  {occupation && (
+                    <div className="flex items-center gap-3">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{occupation}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Lifestyle */}
+            {(drinking || smoking || zodiacSign || personalityType) && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                    Lifestyle
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {drinking && (
+                    <div className="flex items-center gap-3">
+                      <Wine className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm capitalize">{drinking === 'never' ? 'Non-drinker' : `Drinks ${drinking}`}</span>
+                    </div>
+                  )}
+                  {smoking && (
+                    <div className="flex items-center gap-3">
+                      <Cigarette className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm capitalize">{smoking === 'never' ? 'Non-smoker' : `Smokes ${smoking}`}</span>
+                    </div>
+                  )}
+                  {zodiacSign && (
+                    <div className="flex items-center gap-3">
+                      <Star className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{zodiacSign}</span>
+                    </div>
+                  )}
+                  {personalityType && (
+                    <div className="flex items-center gap-3">
+                      <Brain className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm capitalize">{personalityType}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Connected Accounts */}
             <Card>
@@ -233,20 +341,54 @@ export default function Profile() {
               </CardContent>
             </Card>
 
+            {/* Interests & Hobbies */}
+            {interests && interests.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold">Interests & Hobbies</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <InterestDisplay interests={interests} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Profile Prompts */}
+            {promptResponses && promptResponses.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                    About Me
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ProfilePromptDisplay prompts={promptResponses} />
+                </CardContent>
+              </Card>
+            )}
+
             {/* My Photos */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <CardTitle className="text-lg font-semibold">My Photos</CardTitle>
-                <Button variant="link" size="sm" className="text-primary p-0 h-auto">
-                  <Camera className="h-4 w-4 mr-1" />
-                  Add Photo
+                <Button variant="link" size="sm" className="text-primary p-0 h-auto" asChild>
+                  <Link to="/app/profile/edit">
+                    <Camera className="h-4 w-4 mr-1" />
+                    Add Photo
+                  </Link>
                 </Button>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-2">
-                  {profile?.photos && profile.photos.length > 0 ? profile.photos.slice(0, 6).map((photo, index) => <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                  {profile?.photos && profile.photos.length > 0 ? (
+                    profile.photos.slice(0, 6).map((photo, index) => (
+                      <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
                         <img src={photo} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-                      </div>) : <>
+                      </div>
+                    ))
+                  ) : (
+                    <>
                       <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
                         <Camera className="h-6 w-6 text-muted-foreground/50" />
                       </div>
@@ -256,7 +398,8 @@ export default function Profile() {
                       <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
                         <Camera className="h-6 w-6 text-muted-foreground/50" />
                       </div>
-                    </>}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -325,8 +468,9 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            {/* Fishing Style - Only show for fishing/combo modes */}
-            {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && <Card className="border-blue-200 dark:border-blue-900/30">
+            {/* Fishing Style */}
+            {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
+              <Card className="border-blue-200 dark:border-blue-900/30">
                 <CardHeader className="flex flex-row items-center justify-between pb-3">
                   <div className="flex items-center gap-2">
                     <Fish className="h-5 w-5 text-blue-500" />
@@ -342,7 +486,9 @@ export default function Profile() {
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Favorite Species</p>
                     <div className="flex flex-wrap gap-2">
-                      {profile?.preferred_species?.slice(0, 3).map(species => <Badge key={species} variant="secondary">{species}</Badge>) || <span className="text-sm text-muted-foreground">Not specified</span>}
+                      {profile?.preferred_species?.slice(0, 3).map(species => (
+                        <Badge key={species} variant="secondary">{species}</Badge>
+                      )) || <span className="text-sm text-muted-foreground">Not specified</span>}
                     </div>
                   </div>
                   <div>
@@ -355,10 +501,12 @@ export default function Profile() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>}
+              </Card>
+            )}
 
             {/* Go Premium CTA */}
-            {!profile?.is_premium && <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-0">
+            {!profile?.is_premium && (
+              <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-0">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
@@ -375,9 +523,11 @@ export default function Profile() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>}
+              </Card>
+            )}
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }

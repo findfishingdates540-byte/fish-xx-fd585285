@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { X, Heart, MapPin, Camera, ChevronLeft, ChevronRight, Shield, Flag, Fish, Trophy, Anchor, CheckCircle } from 'lucide-react';
+import { X, Heart, MapPin, Camera, ChevronLeft, ChevronRight, Shield, Flag, Fish, Trophy, Anchor, CheckCircle, Ruler, Wine, Cigarette, GraduationCap, Briefcase, Star, Brain, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
+import { ProfilePrompt } from '@/components/profile';
 
 export interface ProfileDetailData {
   id: string;
@@ -16,12 +17,18 @@ export interface ProfileDetailData {
   isVerified?: boolean;
   isActive?: boolean;
   height?: string;
+  heightCm?: number;
   smoker?: string;
   drinker?: string;
+  education?: string;
+  occupation?: string;
+  zodiacSign?: string;
+  personalityType?: string;
   targetSpecies?: string;
   bestCatch?: string;
   ride?: string;
   interests?: string[];
+  promptResponses?: ProfilePrompt[];
 }
 
 interface ProfileDetailViewProps {
@@ -46,6 +53,16 @@ export function ProfileDetailView({ profile, onClose, onPass, onSuperLike, onLik
       setCurrentPhotoIndex(currentPhotoIndex - 1);
     }
   };
+
+  const formatHeight = (cm?: number) => {
+    if (!cm) return profile.height || null;
+    const feet = Math.floor(cm / 30.48);
+    const inches = Math.round((cm % 30.48) / 2.54);
+    return `${feet}'${inches}"`;
+  };
+
+  const hasLifestyleInfo = profile.drinker || profile.smoker || profile.zodiacSign || profile.personalityType;
+  const hasBasicsInfo = profile.heightCm || profile.education || profile.occupation;
 
   return (
     <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
@@ -132,18 +149,18 @@ export function ProfileDetailView({ profile, onClose, onPass, onSuperLike, onLik
                 )}
               </div>
 
-              {/* Stats */}
+              {/* Stats - Height, Smoker, Drinker */}
               <div className="grid grid-cols-3 gap-4 py-4 border-y border-border">
                 <div className="text-center">
-                  <p className="font-semibold">{profile.height || '—'}</p>
+                  <p className="font-semibold">{formatHeight(profile.heightCm) || '—'}</p>
                   <p className="text-xs text-muted-foreground uppercase">Height</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold">{profile.smoker || '—'}</p>
+                  <p className="font-semibold capitalize">{profile.smoker || '—'}</p>
                   <p className="text-xs text-muted-foreground uppercase">Smoker</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold">{profile.drinker || '—'}</p>
+                  <p className="font-semibold capitalize">{profile.drinker || '—'}</p>
                   <p className="text-xs text-muted-foreground uppercase">Drinker</p>
                 </div>
               </div>
@@ -197,6 +214,92 @@ export function ProfileDetailView({ profile, onClose, onPass, onSuperLike, onLik
           </h2>
           <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
         </div>
+
+        {/* The Basics & Lifestyle */}
+        {(hasBasicsInfo || hasLifestyleInfo) && (
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {/* The Basics */}
+            {hasBasicsInfo && (
+              <div className="bg-background border border-border rounded-2xl p-6">
+                <h2 className="font-semibold mb-4">The Basics</h2>
+                <div className="space-y-3">
+                  {profile.heightCm && (
+                    <div className="flex items-center gap-3">
+                      <Ruler className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{formatHeight(profile.heightCm)}</span>
+                    </div>
+                  )}
+                  {profile.education && (
+                    <div className="flex items-center gap-3">
+                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{profile.education}</span>
+                    </div>
+                  )}
+                  {profile.occupation && (
+                    <div className="flex items-center gap-3">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{profile.occupation}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Lifestyle */}
+            {hasLifestyleInfo && (
+              <div className="bg-background border border-border rounded-2xl p-6">
+                <h2 className="font-semibold mb-4">Lifestyle</h2>
+                <div className="space-y-3">
+                  {profile.drinker && (
+                    <div className="flex items-center gap-3">
+                      <Wine className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm capitalize">{profile.drinker === 'never' ? 'Non-drinker' : `Drinks ${profile.drinker}`}</span>
+                    </div>
+                  )}
+                  {profile.smoker && (
+                    <div className="flex items-center gap-3">
+                      <Cigarette className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm capitalize">{profile.smoker === 'never' ? 'Non-smoker' : `Smokes ${profile.smoker}`}</span>
+                    </div>
+                  )}
+                  {profile.zodiacSign && (
+                    <div className="flex items-center gap-3">
+                      <Star className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{profile.zodiacSign}</span>
+                    </div>
+                  )}
+                  {profile.personalityType && (
+                    <div className="flex items-center gap-3">
+                      <Brain className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm capitalize">{profile.personalityType}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Profile Prompts */}
+        {profile.promptResponses && profile.promptResponses.length > 0 && (
+          <div className="mb-6 space-y-4">
+            {profile.promptResponses.filter(p => p.answer).map((prompt, index) => (
+              <Card key={index}>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <MessageCircle className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-primary">{prompt.question}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{prompt.answer}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Fishing Stats */}
         {(profile.targetSpecies || profile.bestCatch || profile.ride) && (
