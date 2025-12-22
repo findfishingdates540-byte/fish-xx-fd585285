@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import {
   Star,
   MapPin,
@@ -36,6 +38,8 @@ import {
   Scale,
   Ruler,
   Calendar,
+  MessageSquare,
+  Send,
 } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -70,6 +74,18 @@ interface SpotCatch {
   } | null;
 }
 
+interface SpotReview {
+  id: string;
+  rating: number;
+  review: string | null;
+  created_at: string;
+  user_id: string;
+  profiles?: {
+    display_name: string | null;
+    photos: string[] | null;
+  } | null;
+}
+
 // Mock weather data - in production this would come from a weather API
 const mockWeather = {
   temp: 72,
@@ -94,15 +110,6 @@ const mockSpecies = [
   { name: "Mackinaw", rarity: "Rare", depth: "Deep water", image: "🎣" },
 ];
 
-// Mock ratings distribution
-const mockRatings = {
-  5: 75,
-  4: 15,
-  3: 5,
-  2: 3,
-  1: 2,
-};
-
 const amenities = [
   { id: "boat", label: "Boat Launch", icon: Anchor },
   { id: "ada", label: "ADA Accessible", icon: Accessibility },
@@ -121,8 +128,14 @@ export default function SpotDetail() {
 
   const [spot, setSpot] = useState<FishingSpot | null>(null);
   const [catches, setCatches] = useState<SpotCatch[]>([]);
+  const [reviews, setReviews] = useState<SpotReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
+  const [newReview, setNewReview] = useState("");
+  const [newRating, setNewRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [userReview, setUserReview] = useState<SpotReview | null>(null);
 
   const isSaved = id ? isSpotSaved(id) : false;
 
@@ -131,8 +144,8 @@ export default function SpotDetail() {
       if (!id) return;
 
       try {
-        // Fetch spot and catches in parallel
-        const [spotRes, catchesRes] = await Promise.all([
+        // Fetch spot, catches, and reviews in parallel
+        const [spotRes, catchesRes, reviewsRes] = await Promise.all([
           supabase
             .from("fishing_spots")
             .select("*")
@@ -156,11 +169,39 @@ export default function SpotDetail() {
             .eq("fishing_spot_id", id)
             .order("caught_at", { ascending: false })
             .limit(10),
+          supabase
+            .from("spot_ratings")
+            .select(`
+              id,
+              rating,
+              review,
+              created_at,
+              user_id,
+              profiles:user_id (
+                display_name,
+                photos
+              )
+            `)
+            .eq("spot_id", id)
+            .order("created_at", { ascending: false })
+            .limit(20),
         ]);
 
         if (spotRes.error) throw spotRes.error;
         setSpot(spotRes.data);
         setCatches((catchesRes.data as SpotCatch[]) || []);
+        const reviewsData = (reviewsRes.data as SpotReview[]) || [];
+        setReviews(reviewsData);
+        
+        // Check if current user has already reviewed
+        if (user) {
+          const existingReview = reviewsData.find(r => r.user_id === user.id);
+          if (existingReview) {
+            setUserReview(existingReview);
+            setNewRating(existingReview.rating);
+            setNewReview(existingReview.review || "");
+          }
+        }
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -169,7 +210,7 @@ export default function SpotDetail() {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, user]);
 
   // Initialize mini map
   useEffect(() => {
@@ -229,6 +270,87 @@ export default function SpotDetail() {
       default: return <Sun className="h-5 w-5 text-amber-500" />;
     }
   };
+
+  const handleSubmitReview = async () => {
+    if (!user || !id || newRating === 0) {
+      toast.error("Please select a rating");
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      if (userReview) {
+        // Update existing review
+        const { error } = await supabase
+          .from("spot_ratings")
+          .update({ rating: newRating, review: newReview || null })
+          .eq("id", userReview.id);
+
+        if (error) throw error;
+        toast.success("Review updated!");
+      } else {
+        // Create new review
+        const { error } = await supabase
+          .from("spot_ratings")
+          .insert({
+            spot_id: id,
+            user_id: user.id,
+            rating: newRating,
+            review: newReview || null,
+          });
+
+        if (error) throw error;
+        toast.success("Review submitted!");
+      }
+
+      // Refetch reviews
+      const { data: reviewsData } = await supabase
+        .from("spot_ratings")
+        .select(`
+          id,
+          rating,
+          review,
+          created_at,
+          user_id,
+          profiles:user_id (
+            display_name,
+            photos
+          )
+        `)
+        .eq("spot_id", id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      setReviews((reviewsData as SpotReview[]) || []);
+      const existingReview = reviewsData?.find((r: any) => r.user_id === user.id);
+      setUserReview(existingReview as SpotReview || null);
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      toast.error("Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  // Calculate actual rating distribution
+  const getRatingDistribution = () => {
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach(r => {
+      if (r.rating >= 1 && r.rating <= 5) {
+        distribution[r.rating as keyof typeof distribution]++;
+      }
+    });
+    const total = reviews.length || 1;
+    return {
+      5: Math.round((distribution[5] / total) * 100),
+      4: Math.round((distribution[4] / total) * 100),
+      3: Math.round((distribution[3] / total) * 100),
+      2: Math.round((distribution[2] / total) * 100),
+      1: Math.round((distribution[1] / total) * 100),
+    };
+  };
+
+  const ratingDistribution = getRatingDistribution();
 
   if (loading) {
     return (
@@ -433,8 +555,15 @@ export default function SpotDetail() {
 
             {/* Reviews & Ratings */}
             <div className="bg-background rounded-xl p-6 border">
-              <h2 className="text-lg font-semibold mb-4">Reviews & Ratings</h2>
-              <div className="flex gap-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Reviews & Ratings</h2>
+                <Badge variant="secondary" className="gap-1">
+                  <MessageSquare className="h-3 w-3" />
+                  {reviews.length} reviews
+                </Badge>
+              </div>
+              
+              <div className="flex gap-8 mb-6">
                 <div className="text-center">
                   <div className="text-5xl font-bold">{spot.rating_avg?.toFixed(1) || "N/A"}</div>
                   <div className="text-sm text-muted-foreground">/ 5</div>
@@ -460,17 +589,133 @@ export default function SpotDetail() {
                       <span className="w-3 text-sm text-muted-foreground">{rating}</span>
                       <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary rounded-full"
-                          style={{ width: `${mockRatings[rating as keyof typeof mockRatings]}%` }}
+                          className="h-full bg-primary rounded-full transition-all"
+                          style={{ width: `${ratingDistribution[rating as keyof typeof ratingDistribution]}%` }}
                         />
                       </div>
                       <span className="w-10 text-xs text-muted-foreground text-right">
-                        {mockRatings[rating as keyof typeof mockRatings]}%
+                        {ratingDistribution[rating as keyof typeof ratingDistribution]}%
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Write a Review */}
+              {user ? (
+                <div className="border-t pt-4 mb-6">
+                  <h3 className="font-medium mb-3">
+                    {userReview ? "Update your review" : "Write a review"}
+                  </h3>
+                  <div className="flex items-center gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setNewRating(star)}
+                        className="p-0.5 transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`h-6 w-6 ${
+                            star <= (hoverRating || newRating)
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="text-sm text-muted-foreground ml-2">
+                      {newRating > 0 ? `${newRating} star${newRating !== 1 ? "s" : ""}` : "Select rating"}
+                    </span>
+                  </div>
+                  <Textarea
+                    placeholder="Share your experience at this spot... (optional)"
+                    value={newReview}
+                    onChange={(e) => setNewReview(e.target.value)}
+                    className="mb-3 resize-none"
+                    rows={3}
+                  />
+                  <Button 
+                    onClick={handleSubmitReview} 
+                    disabled={newRating === 0 || submittingReview}
+                    className="gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    {submittingReview ? "Submitting..." : userReview ? "Update Review" : "Submit Review"}
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-t pt-4 mb-6">
+                  <p className="text-sm text-muted-foreground">
+                    <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to leave a review
+                  </p>
+                </div>
+              )}
+
+              {/* Reviews List */}
+              {reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review) => {
+                    const profile = review.profiles;
+                    const avatarUrl = profile?.photos?.[0];
+                    const initials = profile?.display_name?.charAt(0)?.toUpperCase() || "U";
+                    const isOwnReview = user?.id === review.user_id;
+                    
+                    return (
+                      <div 
+                        key={review.id} 
+                        className={`p-4 rounded-lg ${isOwnReview ? "bg-primary/5 border border-primary/20" : "bg-muted/30"}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={avatarUrl || undefined} />
+                            <AvatarFallback>{initials}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm">
+                                  {profile?.display_name || "Anonymous"}
+                                  {isOwnReview && <Badge variant="secondary" className="ml-2 text-xs">You</Badge>}
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(review.created_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-0.5 mb-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`h-3.5 w-3.5 ${
+                                    star <= review.rating
+                                      ? "fill-amber-400 text-amber-400"
+                                      : "text-muted-foreground"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            {review.review && (
+                              <p className="text-sm text-muted-foreground">{review.review}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No reviews yet. Be the first to review this spot!</p>
+                </div>
+              )}
             </div>
 
             {/* Recent Catches at this Spot */}
