@@ -224,17 +224,17 @@ export default function ComboDashboard() {
 
   return (
     <div className="flex min-h-screen bg-muted/30">
-      {/* Sidebar */}
-      <aside className="w-60 border-r bg-card flex flex-col">
+      {/* Sidebar - Fixed, non-scrollable */}
+      <aside className="w-60 border-r bg-card flex flex-col h-screen sticky top-0 shrink-0 overflow-hidden">
         {/* Logo */}
         <div className="p-4 border-b">
-          <Link to="/app" className="flex items-center gap-3">
+          <Link to="/app/dashboard" className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={logo} alt="FindFish" />
               <AvatarFallback>FF</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-sm">Find Fishing Dates</p>
+              <p className="font-semibold text-sm">FindFish</p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
             </div>
           </Link>
@@ -265,7 +265,7 @@ export default function ComboDashboard() {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-3 border-t">
+        <div className="p-3 border-t mt-auto">
           <Button
             className="w-full mb-3 gap-2"
             onClick={() => navigate("/app/catches")}
@@ -284,8 +284,8 @@ export default function ComboDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
+      <main className="flex-1 overflow-auto min-w-0">
+        <div className="p-8 max-w-4xl">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
