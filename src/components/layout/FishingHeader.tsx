@@ -100,7 +100,7 @@ export function FishingHeader() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link to="/app/spots" className="flex items-center gap-2">
-            <img src={logo} alt="Find Fishing Dates" className="h-8 w-8 rounded" />
+            <img src={logo} alt="Find Fishing Dates" className="h-8 w-auto rounded" />
             <span className="font-bold text-lg">Find Fishing Dates</span>
           </Link>
 
