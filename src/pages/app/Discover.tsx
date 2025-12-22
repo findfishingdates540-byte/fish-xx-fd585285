@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,12 +14,14 @@ import {
 } from '@/components/discover';
 import { RefreshCw, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatDistanceToNow } from 'date-fns';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
 export default function Discover() {
   const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>(
     accountMode === 'both' ? 'combo' : accountMode
   );
@@ -54,14 +56,94 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
-  // Mock data for sidebar (will be wired up in Phase 2 & 3)
-  const mockMatches = [
-    { id: '1', name: 'Sarah', photo: '' },
-    { id: '2', name: 'Jake', photo: '' },
-  ];
-  const mockConversations = [
-    { id: '1', name: 'David W.', photo: '', lastMessage: 'Hey!', time: '12m' },
-  ];
+  // Fetch recent matches (last 7 days)
+  const { data: recentMatches } = useQuery({
+    queryKey: ['recent-matches-sidebar', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const { data } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          matched_at,
+          user1_id,
+          user2_id,
+          user1:profiles!matches_user1_id_fkey(display_name, photos),
+          user2:profiles!matches_user2_id_fkey(display_name, photos)
+        `)
+        .eq('is_match', true)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .gte('matched_at', sevenDaysAgo.toISOString())
+        .order('matched_at', { ascending: false })
+        .limit(10);
+      
+      return (data || []).map((match: any) => {
+        const otherUser = match.user1_id === user.id ? match.user2 : match.user1;
+        return {
+          id: match.id,
+          name: otherUser?.display_name || 'Someone',
+          photo: otherUser?.photos?.[0] || '',
+        };
+      });
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch recent conversations with last message
+  const { data: conversations } = useQuery({
+    queryKey: ['recent-conversations-sidebar', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // First get all matches
+      const { data: matchesData } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          user1_id,
+          user2_id,
+          user1:profiles!matches_user1_id_fkey(display_name, photos),
+          user2:profiles!matches_user2_id_fkey(display_name, photos)
+        `)
+        .eq('is_match', true)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      
+      if (!matchesData || matchesData.length === 0) return [];
+
+      // Get latest message for each match
+      const conversationsWithMessages = await Promise.all(
+        matchesData.map(async (match: any) => {
+          const { data: messages } = await supabase
+            .from('messages')
+            .select('content, created_at, sender_id')
+            .eq('match_id', match.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          const lastMessage = messages?.[0];
+          if (!lastMessage) return null;
+
+          const otherUser = match.user1_id === user.id ? match.user2 : match.user1;
+          
+          return {
+            id: match.id,
+            name: otherUser?.display_name || 'Someone',
+            photo: otherUser?.photos?.[0] || '',
+            lastMessage: lastMessage.content.slice(0, 30) + (lastMessage.content.length > 30 ? '...' : ''),
+            time: formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: false }),
+          };
+        })
+      );
+
+      return conversationsWithMessages
+        .filter(Boolean)
+        .slice(0, 5);
+    },
+    enabled: !!user?.id,
+  });
 
   const onPass = async () => {
     await handlePass();
@@ -172,10 +254,12 @@ export default function Discover() {
 
         {/* Right Sidebar - Desktop Only */}
         <RightSidebar
-          newMatches={mockMatches}
-          newMatchCount={0}
-          conversations={mockConversations}
+          newMatches={recentMatches || []}
+          newMatchCount={recentMatches?.length || 0}
+          conversations={conversations || []}
           isPremium={profile?.is_premium || false}
+          onMatchClick={(matchId) => navigate(`/app/chat/${matchId}`)}
+          onConversationClick={(matchId) => navigate(`/app/chat/${matchId}`)}
         />
       </div>
 
