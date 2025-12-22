@@ -93,6 +93,7 @@ export default function Discover() {
           name: otherUser?.display_name || 'Someone',
           photo: otherUser?.photos?.[0] || '',
           isOnline,
+          lastActiveAt: otherUser?.last_active_at || null,
         };
       });
     },
@@ -156,6 +157,7 @@ export default function Discover() {
             time: formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: false }),
             unreadCount: unreadCount || 0,
             isOnline,
+            lastActiveAt: otherUser?.last_active_at || null,
           };
         })
       );
