@@ -22,6 +22,8 @@ interface RightSidebarProps {
   newMatchCount?: number;
   conversations: Conversation[];
   isPremium?: boolean;
+  onMatchClick?: (matchId: string) => void;
+  onConversationClick?: (matchId: string) => void;
 }
 
 export function RightSidebar({
@@ -29,6 +31,8 @@ export function RightSidebar({
   newMatchCount = 0,
   conversations,
   isPremium,
+  onMatchClick,
+  onConversationClick,
 }: RightSidebarProps) {
   return (
     <aside className="hidden xl:flex flex-col w-72 h-screen border-l border-border bg-background p-6">
@@ -43,17 +47,25 @@ export function RightSidebar({
           )}
         </div>
 
-        <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1">
-          {newMatches.map((match) => (
-            <div key={match.id} className="flex flex-col items-center gap-1.5 flex-shrink-0">
-              <Avatar className="h-14 w-14 ring-2 ring-foreground ring-offset-2 ring-offset-background">
-                <AvatarImage src={match.photo} alt={match.name} />
-                <AvatarFallback>{match.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <span className="text-xs font-medium">{match.name}</span>
-            </div>
-          ))}
-        </div>
+        {newMatches.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No new matches yet</p>
+        ) : (
+          <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1">
+            {newMatches.map((match) => (
+              <button
+                key={match.id}
+                onClick={() => onMatchClick?.(match.id)}
+                className="flex flex-col items-center gap-1.5 flex-shrink-0 hover:opacity-80 transition-opacity"
+              >
+                <Avatar className="h-14 w-14 ring-2 ring-foreground ring-offset-2 ring-offset-background">
+                  <AvatarImage src={match.photo} alt={match.name} />
+                  <AvatarFallback>{match.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-xs font-medium">{match.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Conversations */}
@@ -62,26 +74,31 @@ export function RightSidebar({
           CONVERSATIONS
         </h3>
 
-        <div className="space-y-1 overflow-y-auto max-h-[calc(100vh-400px)]">
-          {conversations.map((convo) => (
-            <button
-              key={convo.id}
-              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors text-left"
-            >
-              <Avatar className="h-12 w-12 flex-shrink-0">
-                <AvatarImage src={convo.photo} alt={convo.name} />
-                <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-sm">{convo.name}</span>
-                  <span className="text-xs text-muted-foreground">{convo.time}</span>
+        {conversations.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No conversations yet</p>
+        ) : (
+          <div className="space-y-1 overflow-y-auto max-h-[calc(100vh-400px)]">
+            {conversations.map((convo) => (
+              <button
+                key={convo.id}
+                onClick={() => onConversationClick?.(convo.id)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors text-left"
+              >
+                <Avatar className="h-12 w-12 flex-shrink-0">
+                  <AvatarImage src={convo.photo} alt={convo.name} />
+                  <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-sm">{convo.name}</span>
+                    <span className="text-xs text-muted-foreground">{convo.time}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
                 </div>
-                <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
-              </div>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Premium CTA */}
