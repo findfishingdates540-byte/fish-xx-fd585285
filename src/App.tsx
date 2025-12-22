@@ -19,7 +19,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard } from "./pages/app";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
@@ -65,6 +65,7 @@ const App = () => (
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
               <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>} />
               <Route path="buddy-chat/:buddyId" element={<FishingRoute><BuddyChat /></FishingRoute>} />
+              <Route path="buddy-trip/:buddyId/:spotId" element={<FishingRoute><BuddyTripInvite /></FishingRoute>} />
               <Route path="trips" element={<FishingRoute><Trips /></FishingRoute>} />
               <Route path="trips/new" element={<FishingRoute><TripPlanner /></FishingRoute>} />
               <Route path="trips/:id" element={<FishingRoute><TripDetail /></FishingRoute>} />
