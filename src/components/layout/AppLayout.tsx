@@ -1,4 +1,4 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ import { useMessageNotifications } from '@/hooks/use-message-notifications';
 
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
   
   // Track online presence for the current user
   useOnlinePresence();
@@ -71,6 +72,9 @@ export function AppLayout() {
   }
 
   const accountMode = profile?.account_mode || 'both';
+  
+  // Check if we're on the combo dashboard - it has its own layout
+  const isComboDashboard = location.pathname === '/app/dashboard';
 
   // Determine which desktop header to show
   const renderDesktopHeader = () => {
@@ -83,6 +87,15 @@ export function AppLayout() {
     // Both mode
     return <BothHeader />;
   };
+
+  // Combo dashboard has its own full layout with sidebar
+  if (isComboDashboard) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Outlet context={{ accountMode }} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
