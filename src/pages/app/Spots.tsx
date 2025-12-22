@@ -22,6 +22,7 @@ import {
   Map,
   Mountain,
   Satellite,
+  CalendarPlus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BuddySelectionDialog } from "@/components/buddies/BuddySelectionDialog";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -596,6 +598,8 @@ interface SpotCardProps {
 
 function SpotCard({ spot, distance, isSelected, isHovered, isSaved, onToggleSave, onClick, onMouseEnter, onMouseLeave }: SpotCardProps) {
   const navigate = useNavigate();
+  const [buddyDialogOpen, setBuddyDialogOpen] = useState(false);
+
   const getCrowdLevel = (): { label: string; color: string } => {
     // Mock crowd level based on rating count
     const count = spot.rating_count || 0;
@@ -606,91 +610,118 @@ function SpotCard({ spot, distance, isSelected, isHovered, isSaved, onToggleSave
 
   const crowd = getCrowdLevel();
 
+  const handleSelectBuddy = (buddyId: string) => {
+    setBuddyDialogOpen(false);
+    navigate(`/app/buddy-trip/${buddyId}/${spot.id}`);
+  };
+
   return (
-    <div
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      className={`rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md ${
-        isSelected ? "ring-2 ring-primary" : ""
-      } ${isHovered ? "bg-accent/50" : ""}`}
-    >
-      {/* Image */}
-      <div className="relative h-48 bg-muted">
-        {spot.photos?.[0] ? (
-          <img
-            src={spot.photos[0]}
-            alt={spot.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Fish className="h-12 w-12 text-muted-foreground" />
-          </div>
-        )}
-
-        {/* Crowd Badge */}
-        <Badge className={`absolute top-3 left-3 ${crowd.color} text-white border-0`}>
-          {crowd.label}
-        </Badge>
-
-        {/* Favorite Button */}
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSave();
-          }}
-          className={`absolute top-3 right-3 w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${
-            isSaved 
-              ? "bg-red-500 text-white hover:bg-red-600" 
-              : "bg-background/80 hover:bg-background"
-          }`}
-        >
-          <Heart className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-1">
-          <h3 className="font-semibold text-lg">{spot.name}</h3>
-          <div className="flex items-center gap-1 text-amber-500">
-            <Star className="h-4 w-4 fill-current" />
-            <span className="font-medium">{spot.rating_avg?.toFixed(1) || "N/A"}</span>
-          </div>
-        </div>
-
-        <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
-          <MapPin className="h-3 w-3" />
-          {distance} • {spot.location_name || "Freshwater"}
-        </p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {spot.species_available?.slice(0, 2).map((species) => (
-            <Badge key={species} variant="secondary" className="text-xs">
-              {species}
-            </Badge>
-          ))}
-          {spot.is_verified && (
-            <Badge variant="outline" className="text-xs text-primary border-primary">
-              Verified
-            </Badge>
+    <>
+      <div
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        className={`rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md ${
+          isSelected ? "ring-2 ring-primary" : ""
+        } ${isHovered ? "bg-accent/50" : ""}`}
+      >
+        {/* Image */}
+        <div className="relative h-48 bg-muted">
+          {spot.photos?.[0] ? (
+            <img
+              src={spot.photos[0]}
+              alt={spot.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Fish className="h-12 w-12 text-muted-foreground" />
+            </div>
           )}
+
+          {/* Crowd Badge */}
+          <Badge className={`absolute top-3 left-3 ${crowd.color} text-white border-0`}>
+            {crowd.label}
+          </Badge>
+
+          {/* Favorite Button */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSave();
+            }}
+            className={`absolute top-3 right-3 w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors ${
+              isSaved 
+                ? "bg-red-500 text-white hover:bg-red-600" 
+                : "bg-background/80 hover:bg-background"
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+          </button>
         </div>
 
-        {/* View Details Button */}
-        <Button 
-          variant="outline" 
-          className="w-full"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/app/spots/${spot.id}`);
-          }}
-        >
-          View Details
-        </Button>
+        {/* Content */}
+        <div className="p-4">
+          <div className="flex items-start justify-between mb-1">
+            <h3 className="font-semibold text-lg">{spot.name}</h3>
+            <div className="flex items-center gap-1 text-amber-500">
+              <Star className="h-4 w-4 fill-current" />
+              <span className="font-medium">{spot.rating_avg?.toFixed(1) || "N/A"}</span>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
+            <MapPin className="h-3 w-3" />
+            {distance} • {spot.location_name || "Freshwater"}
+          </p>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            {spot.species_available?.slice(0, 2).map((species) => (
+              <Badge key={species} variant="secondary" className="text-xs">
+                {species}
+              </Badge>
+            ))}
+            {spot.is_verified && (
+              <Badge variant="outline" className="text-xs text-primary border-primary">
+                Verified
+              </Badge>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/app/spots/${spot.id}`);
+              }}
+            >
+              View Details
+            </Button>
+            <Button 
+              variant="secondary"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setBuddyDialogOpen(true);
+              }}
+              title="Plan Trip with Buddy"
+            >
+              <CalendarPlus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <BuddySelectionDialog
+        open={buddyDialogOpen}
+        onOpenChange={setBuddyDialogOpen}
+        onSelectBuddy={handleSelectBuddy}
+        spotName={spot.name}
+      />
+    </>
   );
 }
