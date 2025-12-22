@@ -909,52 +909,50 @@ export default function ComboDashboard() {
                     <Skeleton className="h-12 w-20 bg-white/20" />
                     <Skeleton className="h-4 w-full bg-white/20" />
                   </div>
-                ) : weatherData ? (
+                ) : (
                   <>
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <p className="text-xs opacity-80">Current Location</p>
                         <p className="font-semibold flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
-                          {weatherData.location || userProfile?.location_name || "Unknown"}
+                          {weatherData?.location || userProfile?.location_name || "--"}
                         </p>
                       </div>
-                      {weatherData.condition.toLowerCase().includes('clear') ? (
+                      {weatherData?.condition?.toLowerCase().includes('clear') ? (
                         <Sun className="h-10 w-10 text-yellow-300" />
-                      ) : weatherData.condition.toLowerCase().includes('cloud') ? (
+                      ) : weatherData?.condition?.toLowerCase().includes('cloud') ? (
                         <Cloud className="h-10 w-10 text-white/80" />
-                      ) : (
+                      ) : weatherData?.condition?.toLowerCase().includes('rain') ? (
                         <Droplets className="h-10 w-10 text-blue-200" />
+                      ) : (
+                        <Sun className="h-10 w-10 text-yellow-300 opacity-50" />
                       )}
                     </div>
                     <div className="mb-3">
-                      <span className="text-5xl font-bold">{weatherData.temperature}°</span>
+                      <span className="text-5xl font-bold">{weatherData?.temperature ?? "--"}°</span>
                     </div>
                     <p className="text-sm opacity-90 flex items-center gap-2">
                       <Cloud className="h-4 w-4" />
-                      {weatherData.condition} • <Wind className="h-4 w-4" /> {weatherData.wind.speed}mph {getWindDirection(weatherData.wind.direction)}
+                      {weatherData?.condition || "--"} • <Wind className="h-4 w-4" /> {weatherData?.wind?.speed ?? "--"}mph {weatherData?.wind?.direction ? getWindDirection(weatherData.wind.direction) : "--"}
                     </p>
                     <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/20">
                       <div className="text-center">
                         <p className="text-xs opacity-70">Bite Rating</p>
-                        <p className={`font-semibold ${getFishingConditions(weatherData).color.replace('text-', 'text-')}`}>
-                          {getFishingConditions(weatherData).rating}
+                        <p className={`font-semibold ${weatherData ? getFishingConditions(weatherData).color : ''}`}>
+                          {weatherData ? getFishingConditions(weatherData).rating : "--"}
                         </p>
                       </div>
                       <div className="text-center">
                         <p className="text-xs opacity-70">Pressure</p>
-                        <p className="font-semibold">{(weatherData.pressure * 0.02953).toFixed(1)}in</p>
+                        <p className="font-semibold">{weatherData?.pressure ? (weatherData.pressure * 0.02953).toFixed(1) : "--"}in</p>
                       </div>
                       <div className="text-center">
                         <p className="text-xs opacity-70">Humidity</p>
-                        <p className="font-semibold">{weatherData.humidity}%</p>
+                        <p className="font-semibold">{weatherData?.humidity ?? "--"}%</p>
                       </div>
                     </div>
                   </>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm opacity-80">Weather data unavailable</p>
-                  </div>
                 )}
               </CardContent>
             </Card>
