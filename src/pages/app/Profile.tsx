@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ProfilePromptDisplay, InterestDisplay, type ProfilePrompt } from '@/components/profile';
+import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
 import { cn } from '@/lib/utils';
 
 const accountModes = [{
@@ -158,6 +158,24 @@ export default function Profile() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-3 space-y-6">
+            {/* Profile Completion */}
+            <ProfileCompletionCard 
+              profile={{
+                display_name: profile?.display_name,
+                bio: profile?.bio,
+                photos: profile?.photos,
+                location_name: profile?.location_name,
+                date_of_birth: profile?.date_of_birth,
+                height_cm: heightCm,
+                education: education,
+                occupation: occupation,
+                drinking: drinking,
+                smoking: smoking,
+                interests: interests,
+                prompt_responses: promptResponses,
+              }} 
+            />
+
             {/* Current Mode */}
             <Card>
               <CardHeader className="pb-3">
