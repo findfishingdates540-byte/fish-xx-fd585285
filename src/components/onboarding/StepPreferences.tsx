@@ -30,12 +30,9 @@ export function StepPreferences({
   showGenderPreference = true,
   showAgeRange = true,
 }: StepPreferencesProps) {
-  const toggleGenderPreference = (value: Gender) => {
-    if (interestedIn.includes(value)) {
-      setInterestedIn(interestedIn.filter((v) => v !== value));
-    } else {
-      setInterestedIn([...interestedIn, value]);
-    }
+  const selectGenderPreference = (value: Gender) => {
+    // Single selection only - replace the current selection
+    setInterestedIn([value]);
   };
 
   return (
@@ -51,7 +48,7 @@ export function StepPreferences({
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => toggleGenderPreference(option.value)}
+                  onClick={() => selectGenderPreference(option.value)}
                   className={cn(
                     "px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200",
                     isSelected
@@ -94,7 +91,7 @@ export function StepPreferences({
         <div className="flex items-center justify-between">
           <Label className="text-foreground font-medium">Maximum Distance</Label>
           <span className="text-sm font-medium text-foreground">
-            {maxDistance} km
+            {maxDistance} miles
           </span>
         </div>
         <Slider
@@ -106,8 +103,8 @@ export function StepPreferences({
           className="w-full"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>5 km</span>
-          <span>200 km</span>
+          <span>5 miles</span>
+          <span>200 miles</span>
         </div>
       </div>
     </div>

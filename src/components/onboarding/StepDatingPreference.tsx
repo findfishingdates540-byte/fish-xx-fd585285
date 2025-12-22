@@ -47,12 +47,9 @@ export function StepDatingPreference({
     ? allLookingForOptions.filter(opt => opt.value !== 'fishing_buddy')
     : allLookingForOptions;
 
-  const toggleGenderPreference = (value: Gender) => {
-    if (interestedIn.includes(value)) {
-      setInterestedIn(interestedIn.filter((g) => g !== value));
-    } else {
-      setInterestedIn([...interestedIn, value]);
-    }
+  const selectGenderPreference = (value: Gender) => {
+    // Single selection only - replace the current selection
+    setInterestedIn([value]);
   };
 
   const toggleLookingFor = (value: LookingFor) => {
@@ -78,7 +75,7 @@ export function StepDatingPreference({
               <button
                 key={option.value}
                 type="button"
-                onClick={() => toggleGenderPreference(option.value)}
+                onClick={() => selectGenderPreference(option.value)}
                 className={`py-3 px-4 rounded-xl border-2 font-medium transition-colors ${
                   isSelected
                     ? 'border-primary bg-primary text-primary-foreground'
@@ -150,7 +147,7 @@ export function StepDatingPreference({
         <div className="flex justify-between items-center">
           <Label className="text-sm font-medium text-foreground">Maximum Distance</Label>
           <span className="text-sm font-medium text-primary">
-            {maxDistance} km
+            {maxDistance} miles
           </span>
         </div>
         <div className="px-2">
