@@ -15,6 +15,7 @@ interface Conversation {
   photo: string;
   lastMessage: string;
   time: string;
+  unreadCount?: number;
 }
 
 interface RightSidebarProps {
@@ -84,16 +85,27 @@ export function RightSidebar({
                 onClick={() => onConversationClick?.(convo.id)}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors text-left"
               >
-                <Avatar className="h-12 w-12 flex-shrink-0">
-                  <AvatarImage src={convo.photo} alt={convo.name} />
-                  <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <div className="relative flex-shrink-0">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={convo.photo} alt={convo.name} />
+                    <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  {convo.unreadCount && convo.unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full flex items-center justify-center">
+                      {convo.unreadCount > 9 ? '9+' : convo.unreadCount}
+                    </span>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">{convo.name}</span>
+                    <span className={`text-sm ${convo.unreadCount && convo.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`}>
+                      {convo.name}
+                    </span>
                     <span className="text-xs text-muted-foreground">{convo.time}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
+                  <p className={`text-sm truncate ${convo.unreadCount && convo.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                    {convo.lastMessage}
+                  </p>
                 </div>
               </button>
             ))}
