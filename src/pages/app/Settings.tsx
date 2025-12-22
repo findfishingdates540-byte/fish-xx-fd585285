@@ -221,11 +221,11 @@ export default function Settings() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/app/dashboard")}
           className="mb-4 gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          Back to Dashboard
         </Button>
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
