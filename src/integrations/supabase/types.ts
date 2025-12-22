@@ -52,6 +52,7 @@ export type Database = {
       }
       buddy_messages: {
         Row: {
+          audio_url: string | null
           buddy_id: string
           content: string
           created_at: string
@@ -61,6 +62,7 @@ export type Database = {
           sender_id: string
         }
         Insert: {
+          audio_url?: string | null
           buddy_id: string
           content: string
           created_at?: string
@@ -70,6 +72,7 @@ export type Database = {
           sender_id: string
         }
         Update: {
+          audio_url?: string | null
           buddy_id?: string
           content?: string
           created_at?: string
@@ -466,6 +469,7 @@ export type Database = {
       }
       messages: {
         Row: {
+          audio_url: string | null
           content: string
           created_at: string
           id: string
@@ -475,6 +479,7 @@ export type Database = {
           sender_id: string
         }
         Insert: {
+          audio_url?: string | null
           content: string
           created_at?: string
           id?: string
@@ -484,6 +489,7 @@ export type Database = {
           sender_id: string
         }
         Update: {
+          audio_url?: string | null
           content?: string
           created_at?: string
           id?: string

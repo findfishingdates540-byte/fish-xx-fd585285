@@ -84,8 +84,8 @@ export default function Chat() {
     navigate(`/app/messages/${id}`);
   };
 
-  const handleSendMessage = (content: string, imageUrl?: string) => {
-    sendMessage(content, imageUrl);
+  const handleSendMessage = (content: string, imageUrl?: string, audioUrl?: string) => {
+    sendMessage(content, imageUrl, audioUrl);
   };
 
   // Loading state for chat area
