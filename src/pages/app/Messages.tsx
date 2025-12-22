@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 export default function Messages() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -98,6 +99,7 @@ export default function Messages() {
           userName={profile?.display_name || 'User'}
           userPhoto={profile?.photos?.[0]}
           notificationCount={totalUnread}
+          accountMode={accountMode}
         />
       </div>
 
