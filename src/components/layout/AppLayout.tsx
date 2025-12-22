@@ -1,5 +1,6 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { ActiveModeProvider, useActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppHeader } from './AppHeader';
@@ -13,9 +14,9 @@ import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
 import { useMessageNotifications } from '@/hooks/use-message-notifications';
 
-export function AppLayout() {
-  const { user, loading: authLoading } = useAuth();
+function AppLayoutContent() {
   const location = useLocation();
+  const { effectiveMode, isComboUser } = useActiveMode();
   
   // Track online presence for the current user
   useOnlinePresence();
@@ -25,6 +26,80 @@ export function AppLayout() {
 
   // Listen for new message notifications
   useMessageNotifications();
+  
+  // Check if we're on the combo dashboard - it has its own layout
+  const isComboDashboard = location.pathname === '/app/dashboard';
+  
+  // Routes that have their own sidebars (dating pages) or special layouts
+  const datingRoutes = ['/app/discover', '/app/matches', '/app/likes', '/app/messages'];
+  const sharedRoutes = ['/app/settings', '/app/profile'];
+  const isDatingRoute = datingRoutes.some(route => location.pathname.startsWith(route));
+  const isSharedRoute = sharedRoutes.some(route => location.pathname.startsWith(route));
+
+  // Determine which desktop header to show based on effective mode
+  const renderDesktopHeader = () => {
+    // Dating mode (or combo user in dating-only mode) - no header, pages have sidebar
+    if (effectiveMode === 'dating') {
+      return null;
+    }
+    
+    // Fishing mode
+    if (effectiveMode === 'fishing') {
+      return <FishingHeader />;
+    }
+    
+    // Combo mode (unified view)
+    if (effectiveMode === 'both') {
+      // On shared routes, show ComboSharedHeader
+      if (isSharedRoute) {
+        return <ComboSharedHeader />;
+      }
+      // On dating routes, pages have their own sidebar (DiscoverSidebar)
+      if (isDatingRoute) {
+        return null;
+      }
+      // Default to BothHeader for combo dashboard and fishing routes
+      return <BothHeader />;
+    }
+    
+    return null;
+  };
+
+  // Combo dashboard has its own full layout with sidebar
+  if (isComboDashboard) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Desktop Header */}
+      <div className="hidden lg:block">
+        {renderDesktopHeader()}
+      </div>
+
+      {/* Mobile Header */}
+      <div className="lg:hidden">
+        <AppHeader />
+      </div>
+      
+      <main className="pb-16 lg:pb-0">
+        <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+      </main>
+
+      {/* Mobile Bottom Nav - uses effective mode */}
+      <div className="lg:hidden">
+        <BottomNav accountMode={effectiveMode} />
+      </div>
+    </div>
+  );
+}
+
+export function AppLayout() {
+  const { user, loading: authLoading } = useAuth();
 
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile-mode', user?.id],
@@ -72,65 +147,11 @@ export function AppLayout() {
     return <Navigate to="/onboarding" replace />;
   }
 
-  const accountMode = profile?.account_mode || 'both';
-  
-  // Check if we're on the combo dashboard - it has its own layout
-  const isComboDashboard = location.pathname === '/app/dashboard';
-  
-  // List of routes that should not show the BothHeader for combo users
-  // These pages either have their own sidebar (dating pages) or don't need the full navigation header
-  const sharedRoutes = ['/app/settings', '/app/profile'];
-  const datingRoutes = ['/app/discover', '/app/matches', '/app/likes', '/app/messages'];
-  const isSharedRoute = sharedRoutes.some(route => location.pathname.startsWith(route));
-  const isDatingRoute = datingRoutes.some(route => location.pathname.startsWith(route));
-
-  // Determine which desktop header to show
-  const renderDesktopHeader = () => {
-    if (accountMode === 'dating') {
-      return null; // No header for dating mode
-    }
-    if (accountMode === 'fishing') {
-      return <FishingHeader />;
-    }
-    // Both mode - show ComboSharedHeader on shared routes, nothing on dating routes (they have DiscoverSidebar)
-    if (isSharedRoute) {
-      return <ComboSharedHeader />;
-    }
-    if (isDatingRoute) {
-      return null; // Dating pages have their own DiscoverSidebar
-    }
-    return <BothHeader />;
-  };
-
-  // Combo dashboard has its own full layout with sidebar
-  if (isComboDashboard) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Outlet context={{ accountMode }} />
-      </div>
-    );
-  }
+  const baseAccountMode = profile?.account_mode || 'both';
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Desktop Header */}
-      <div className="hidden lg:block">
-        {renderDesktopHeader()}
-      </div>
-
-      {/* Mobile Header */}
-      <div className="lg:hidden">
-        <AppHeader />
-      </div>
-      
-      <main className="pb-16 lg:pb-0">
-        <Outlet context={{ accountMode }} />
-      </main>
-
-      {/* Mobile Bottom Nav */}
-      <div className="lg:hidden">
-        <BottomNav accountMode={accountMode} />
-      </div>
-    </div>
+    <ActiveModeProvider baseAccountMode={baseAccountMode}>
+      <AppLayoutContent />
+    </ActiveModeProvider>
   );
 }
