@@ -218,16 +218,18 @@ export function useDiscoverProfiles() {
                age <= userPreferences.max_age_preference;
       });
 
-      // Filter by distance in memory
+      // Filter by distance in memory (user preference is in miles, convert to km for comparison)
       const withDistance = filtered.filter(profile => {
-        const distance = calculateDistance(
+        const distanceKm = calculateDistance(
           userPreferences.location_lat,
           userPreferences.location_lng,
           profile.location_lat,
           profile.location_lng
         );
-        if (!distance) return true; // Include if no location set
-        return distance <= userPreferences.max_distance_km;
+        if (!distanceKm) return true; // Include if no location set
+        // Convert user's max distance from miles to km for comparison
+        const maxDistanceKm = userPreferences.max_distance_km * 1.60934;
+        return distanceKm <= maxDistanceKm;
       });
 
       return withDistance;
