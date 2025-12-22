@@ -19,7 +19,16 @@ import {
   Navigation,
   RefreshCw,
   Fish,
+  Map,
+  Mountain,
+  Satellite,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -60,6 +69,13 @@ export default function Spots() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapStyle, setMapStyle] = useState<'outdoors' | 'satellite' | 'streets'>('outdoors');
+
+  const MAP_STYLES = {
+    outdoors: { id: 'mapbox://styles/mapbox/outdoors-v12', label: 'Terrain', icon: Mountain },
+    satellite: { id: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satellite', icon: Satellite },
+    streets: { id: 'mapbox://styles/mapbox/streets-v12', label: 'Streets', icon: Map },
+  };
 
   // Fetch fishing spots
   useEffect(() => {
@@ -110,7 +126,7 @@ export default function Spots() {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/outdoors-v12",
+      style: MAP_STYLES[mapStyle].id,
       center: userLocation ? [userLocation.lng, userLocation.lat] : [-98.5795, 39.8283],
       zoom: userLocation ? 10 : 4,
     });
@@ -124,7 +140,7 @@ export default function Spots() {
       map.current?.remove();
       map.current = null;
     };
-  }, [token, userLocation]);
+  }, [token, userLocation, mapStyle]);
 
   // Filter spots
   const filteredSpots = spots.filter((spot) => {
@@ -291,6 +307,21 @@ export default function Spots() {
     console.log("Search area bounds:", bounds);
   };
 
+  const handleStyleChange = (style: 'outdoors' | 'satellite' | 'streets') => {
+    if (map.current && style !== mapStyle) {
+      // Store current view
+      const center = map.current.getCenter();
+      const zoom = map.current.getZoom();
+      
+      // Remove old map
+      map.current.remove();
+      map.current = null;
+      
+      // Set new style - this will trigger the useEffect to reinitialize the map
+      setMapStyle(style);
+    }
+  };
+
   const handleSpotClick = (spot: FishingSpot) => {
     setSelectedSpot(spot);
     if (map.current) {
@@ -453,6 +484,37 @@ export default function Spots() {
           >
             <Navigation className="h-4 w-4" />
           </Button>
+          
+          {/* Map Style Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="bg-background shadow-md"
+              >
+                {(() => {
+                  const CurrentIcon = MAP_STYLES[mapStyle].icon;
+                  return <CurrentIcon className="h-4 w-4" />;
+                })()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              {(Object.entries(MAP_STYLES) as [keyof typeof MAP_STYLES, typeof MAP_STYLES[keyof typeof MAP_STYLES]][]).map(([key, style]) => {
+                const Icon = style.icon;
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => handleStyleChange(key)}
+                    className={mapStyle === key ? "bg-accent" : ""}
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {style.label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Add Spot FAB */}
