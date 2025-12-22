@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { playNotificationSound, playBuddyRequestSound } from "@/utils/notification-sound";
+import { useWeather, getWindDirection, getFishingConditions } from "@/hooks/use-weather";
 import {
   LayoutDashboard,
   Users,
@@ -232,6 +233,12 @@ export default function ComboDashboard() {
     },
     enabled: !!user?.id,
   });
+
+  // Fetch weather data
+  const { data: weatherData, isLoading: weatherLoading } = useWeather(
+    userProfile?.location_name ? null : null, // We could parse lat/lng from location if available
+    null
+  );
 
   // Total message count for sidebar badge (dating + buddy)
   const totalMessageCount = (unreadMessages?.length || 0) + (unreadBuddyMessages?.length || 0);
@@ -896,37 +903,59 @@ export default function ComboDashboard() {
             {/* Weather Widget */}
             <Card className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white border-0">
               <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="text-xs opacity-80">Current Location</p>
-                    <p className="font-semibold flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      {userProfile?.location_name || "Lake Tahoe, CA"}
+                {weatherLoading ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-4 w-24 bg-white/20" />
+                    <Skeleton className="h-12 w-20 bg-white/20" />
+                    <Skeleton className="h-4 w-full bg-white/20" />
+                  </div>
+                ) : weatherData ? (
+                  <>
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="text-xs opacity-80">Current Location</p>
+                        <p className="font-semibold flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {weatherData.location || userProfile?.location_name || "Unknown"}
+                        </p>
+                      </div>
+                      {weatherData.condition.toLowerCase().includes('clear') ? (
+                        <Sun className="h-10 w-10 text-yellow-300" />
+                      ) : weatherData.condition.toLowerCase().includes('cloud') ? (
+                        <Cloud className="h-10 w-10 text-white/80" />
+                      ) : (
+                        <Droplets className="h-10 w-10 text-blue-200" />
+                      )}
+                    </div>
+                    <div className="mb-3">
+                      <span className="text-5xl font-bold">{weatherData.temperature}°</span>
+                    </div>
+                    <p className="text-sm opacity-90 flex items-center gap-2">
+                      <Cloud className="h-4 w-4" />
+                      {weatherData.condition} • <Wind className="h-4 w-4" /> {weatherData.wind.speed}mph {getWindDirection(weatherData.wind.direction)}
                     </p>
+                    <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/20">
+                      <div className="text-center">
+                        <p className="text-xs opacity-70">Bite Rating</p>
+                        <p className={`font-semibold ${getFishingConditions(weatherData).color.replace('text-', 'text-')}`}>
+                          {getFishingConditions(weatherData).rating}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs opacity-70">Pressure</p>
+                        <p className="font-semibold">{(weatherData.pressure * 0.02953).toFixed(1)}in</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs opacity-70">Humidity</p>
+                        <p className="font-semibold">{weatherData.humidity}%</p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm opacity-80">Weather data unavailable</p>
                   </div>
-                  <Sun className="h-10 w-10 text-yellow-300" />
-                </div>
-                <div className="mb-3">
-                  <span className="text-5xl font-bold">72°</span>
-                </div>
-                <p className="text-sm opacity-90 flex items-center gap-2">
-                  <Cloud className="h-4 w-4" />
-                  Clear Sky • <Wind className="h-4 w-4" /> 4mph NW
-                </p>
-                <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/20">
-                  <div className="text-center">
-                    <p className="text-xs opacity-70">Bite Rating</p>
-                    <p className="font-semibold text-green-300">High</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs opacity-70">Pressure</p>
-                    <p className="font-semibold">30.1in</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs opacity-70">Water Temp</p>
-                    <p className="font-semibold">65°F</p>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
