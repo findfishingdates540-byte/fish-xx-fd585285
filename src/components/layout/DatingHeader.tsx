@@ -55,7 +55,7 @@ export function DatingHeader() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link to="/app/discover" className="flex items-center gap-2">
-            <img src={logo} alt="FindFish Date" className="h-8 w-8 rounded" />
+            <img src={logo} alt="Find Fishing Dates" className="h-8 w-8 rounded" />
           </Link>
 
           {/* Navigation */}

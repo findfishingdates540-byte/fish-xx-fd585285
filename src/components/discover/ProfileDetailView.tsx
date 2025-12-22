@@ -70,7 +70,7 @@ export function ProfileDetailView({ profile, onClose, onPass, onSuperLike, onLik
       <header className="sticky top-0 bg-background border-b border-border z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <span className="font-bold text-lg">FindFish Date</span>
+            <span className="font-bold text-lg">Find Fishing Dates</span>
             <nav className="hidden md:flex items-center gap-6 text-sm">
               <span className="text-primary font-medium flex items-center gap-1">
                 <Heart className="h-4 w-4 fill-primary" /> Discover

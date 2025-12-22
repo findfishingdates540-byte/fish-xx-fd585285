@@ -231,7 +231,7 @@ export default function ComboDashboard() {
         <div className="p-4 border-b">
           <Link to="/app" className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={logo} alt="FindFish" />
+              <AvatarImage src={logo} alt="Find Fishing Dates" />
               <AvatarFallback>FF</AvatarFallback>
             </Avatar>
             <div>
