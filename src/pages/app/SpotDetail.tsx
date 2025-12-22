@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { Lightbox } from "@/components/ui/lightbox";
 import { toast } from "sonner";
 import {
   Star,
@@ -142,6 +143,9 @@ export default function SpotDetail() {
   const [userReview, setUserReview] = useState<SpotReview | null>(null);
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
   const [reviewPhotoPreviewUrls, setReviewPhotoPreviewUrls] = useState<string[]>([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const reviewPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const isSaved = id ? isSpotSaved(id) : false;
@@ -828,7 +832,11 @@ export default function SpotDetail() {
                                   <div 
                                     key={index} 
                                     className="w-20 h-20 rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
-                                    onClick={() => window.open(photoUrl, '_blank')}
+                                    onClick={() => {
+                                      setLightboxImages(review.photos!);
+                                      setLightboxIndex(index);
+                                      setLightboxOpen(true);
+                                    }}
                                   >
                                     <img 
                                       src={photoUrl} 
@@ -851,6 +859,14 @@ export default function SpotDetail() {
                   <p className="text-sm">No reviews yet. Be the first to review this spot!</p>
                 </div>
               )}
+
+              {/* Lightbox for review photos */}
+              <Lightbox
+                images={lightboxImages}
+                initialIndex={lightboxIndex}
+                open={lightboxOpen}
+                onOpenChange={setLightboxOpen}
+              />
             </div>
 
             {/* Recent Catches at this Spot */}
