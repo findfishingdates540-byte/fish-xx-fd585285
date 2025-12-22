@@ -110,7 +110,7 @@ export default function Spots() {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
+      style: "mapbox://styles/mapbox/outdoors-v12",
       center: userLocation ? [userLocation.lng, userLocation.lat] : [-98.5795, 39.8283],
       zoom: userLocation ? 10 : 4,
     });
