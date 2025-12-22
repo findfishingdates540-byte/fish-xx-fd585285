@@ -3,3 +3,4 @@ export * from './ChatArea';
 export * from './ProfileSidebar';
 export * from './MessageReactions';
 export * from './VoiceMessagePlayer';
+export * from './WaveformVisualizer';

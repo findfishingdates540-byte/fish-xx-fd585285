@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { WaveformVisualizer } from './WaveformVisualizer';
 
 interface VoiceMessagePlayerProps {
   audioUrl: string;
@@ -12,11 +13,33 @@ export function VoiceMessagePlayer({ audioUrl, isMine }: VoiceMessagePlayerProps
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [waveformLevels, setWaveformLevels] = useState<number[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     const audio = new Audio(audioUrl);
     audioRef.current = audio;
+
+    // Generate pseudo-random waveform based on audio URL (for visual consistency)
+    const generateWaveform = () => {
+      const seed = audioUrl.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const bars = 24;
+      const levels: number[] = [];
+      
+      for (let i = 0; i < bars; i++) {
+        // Create a varied but consistent waveform pattern
+        const base = 0.3;
+        const variation = Math.sin((seed + i * 7) * 0.5) * 0.3 + 
+                         Math.sin((seed + i * 13) * 0.3) * 0.2 +
+                         Math.cos((seed + i * 5) * 0.7) * 0.15;
+        levels.push(Math.max(0.15, Math.min(0.95, base + variation + 0.3)));
+      }
+      
+      setWaveformLevels(levels);
+    };
+
+    generateWaveform();
 
     audio.addEventListener('loadedmetadata', () => {
       setDuration(audio.duration);
@@ -34,6 +57,9 @@ export function VoiceMessagePlayer({ audioUrl, isMine }: VoiceMessagePlayerProps
     return () => {
       audio.pause();
       audio.src = '';
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, [audioUrl]);
 
@@ -58,14 +84,14 @@ export function VoiceMessagePlayer({ audioUrl, isMine }: VoiceMessagePlayerProps
 
   return (
     <div className={cn(
-      'flex items-center gap-2 min-w-[160px]',
+      'flex items-center gap-2 min-w-[180px]',
       isMine ? 'flex-row-reverse' : 'flex-row'
     )}>
       <Button
         variant="ghost"
         size="icon"
         className={cn(
-          'h-8 w-8 rounded-full',
+          'h-9 w-9 rounded-full flex-shrink-0',
           isMine 
             ? 'bg-background/20 hover:bg-background/30 text-background' 
             : 'bg-foreground/10 hover:bg-foreground/20'
@@ -80,19 +106,14 @@ export function VoiceMessagePlayer({ audioUrl, isMine }: VoiceMessagePlayerProps
       </Button>
       
       <div className="flex-1 flex flex-col gap-1">
-        {/* Waveform visualization (simplified as progress bar) */}
-        <div className={cn(
-          'h-2 rounded-full overflow-hidden',
-          isMine ? 'bg-background/20' : 'bg-foreground/10'
-        )}>
-          <div 
-            className={cn(
-              'h-full transition-all duration-100',
-              isMine ? 'bg-background/60' : 'bg-foreground/40'
-            )}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <WaveformVisualizer
+          levels={waveformLevels}
+          isPlaying={isPlaying}
+          progress={progress}
+          className="h-6"
+          barClassName={isMine ? 'bg-background/30' : 'bg-foreground/20'}
+          activeBarClassName={isMine ? 'bg-background/80' : 'bg-foreground/60'}
+        />
         
         <span className={cn(
           'text-[10px]',

@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { MessageReactions } from './MessageReactions';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
+import { WaveformVisualizer } from './WaveformVisualizer';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
@@ -67,7 +68,7 @@ export function ChatArea({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { isRecording, recordingDuration, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
+  const { isRecording, recordingDuration, audioLevels, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -377,16 +378,24 @@ export function ChatArea({
           </div>
         )}
         
-        {/* Recording indicator */}
+        {/* Recording indicator with waveform */}
         {isRecording && (
           <div className="flex items-center gap-3 mb-3 p-3 bg-destructive/10 rounded-lg">
-            <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
-            <span className="text-sm font-medium">Recording... {formatDuration(recordingDuration)}</span>
+            <div className="w-3 h-3 bg-destructive rounded-full animate-pulse flex-shrink-0" />
+            <div className="flex-1 flex items-center gap-3">
+              <WaveformVisualizer
+                levels={audioLevels.length > 0 ? audioLevels : Array(20).fill(0.15)}
+                className="flex-1 h-8"
+                barClassName="bg-destructive/40"
+                activeBarClassName="bg-destructive"
+              />
+              <span className="text-sm font-medium tabular-nums flex-shrink-0">{formatDuration(recordingDuration)}</span>
+            </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={cancelRecording}
-              className="ml-auto text-destructive"
+              className="text-destructive flex-shrink-0"
             >
               <X className="h-4 w-4 mr-1" />
               Cancel
