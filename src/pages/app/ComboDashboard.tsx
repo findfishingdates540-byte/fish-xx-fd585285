@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Users,
@@ -366,157 +367,193 @@ export default function ComboDashboard() {
         {/* Two-column layout for remaining content */}
         <div className="flex flex-1 px-6 pb-6 gap-6">
           <main className="flex-1">
+            <AnimatePresence mode="wait">
+              {/* New Anglers Near You - Show in unified and dating modes */}
+              {(viewMode === "unified" || viewMode === "dating") && (
+                <motion.div
+                  key="anglers"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="mb-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-destructive" />
+                      New Anglers Near You
+                    </h2>
+                    <Button variant="link" className="text-primary" onClick={() => navigate("/app/discover")}>
+                      View All
+                    </Button>
+                  </div>
 
-          {/* New Anglers Near You - Show in unified and dating modes */}
-          {(viewMode === "unified" || viewMode === "dating") && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-destructive" />
-                  New Anglers Near You
-                </h2>
-                <Button variant="link" className="text-primary" onClick={() => navigate("/app/discover")}>
-                  View All
-                </Button>
-              </div>
+                  <div className="space-y-4">
+                    {nearbyAnglers.slice(0, 3).map((angler, index) => (
+                      <motion.div
+                        key={angler.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <Card className="overflow-hidden">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                              <Avatar className="h-20 w-20 rounded-lg">
+                                <AvatarImage src={angler.photos?.[0]} className="object-cover" />
+                                <AvatarFallback className="rounded-lg">
+                                  {angler.display_name?.[0] || "?"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h3 className="font-semibold">
+                                      {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground capitalize">
+                                      {angler.fishing_experience || "Fishing Enthusiast"}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+                                      <X className="h-5 w-5" />
+                                    </Button>
+                                    <Button size="icon" className="rounded-full h-10 w-10 bg-destructive hover:bg-destructive/90">
+                                      <Heart className="h-5 w-5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {angler.preferred_species?.slice(0, 2).map((species, i) => (
+                                    <Badge key={i} variant="secondary" className="text-xs">
+                                      {species}
+                                    </Badge>
+                                  ))}
+                                  {angler.fishing_gear?.slice(0, 1).map((gear, i) => (
+                                    <Badge key={i} variant="outline" className="text-xs text-primary border-primary/30 bg-primary/5">
+                                      <Fish className="h-3 w-3 mr-1" />
+                                      {gear}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
-              <div className="space-y-4">
-                {nearbyAnglers.slice(0, 3).map((angler) => (
-                  <Card key={angler.id} className="overflow-hidden">
+              {/* Fishing Spots Grid - Show in unified and fishing modes */}
+              {(viewMode === "unified" || viewMode === "fishing") && hotSpots.length > 0 && (
+                <motion.div
+                  key="spots"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut", delay: viewMode === "unified" ? 0.1 : 0 }}
+                  className="mb-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      Popular Fishing Spots
+                    </h2>
+                    <Button variant="link" className="text-primary" onClick={() => navigate("/app/spots")}>
+                      View All
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {hotSpots.map((spot, index) => (
+                      <motion.div
+                        key={spot.id}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/app/spots/${spot.id}`)}>
+                          <div className="relative h-32">
+                            <img
+                              src={spot.photos?.[0] || "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400"}
+                              alt={spot.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 text-white px-2 py-1 rounded-full text-xs">
+                              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                              {spot.rating_avg?.toFixed(1) || "4.5"}
+                            </div>
+                          </div>
+                          <CardContent className="p-3">
+                            <h3 className="font-semibold text-sm mb-1">{spot.name}</h3>
+                            <div className="flex flex-wrap gap-1">
+                              {spot.species_available?.slice(0, 2).map((species, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">
+                                  {species}
+                                </Badge>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Recent Catch Activity - Show in unified and fishing modes */}
+              {(viewMode === "unified" || viewMode === "fishing") && recentCatches.length > 0 && (
+                <motion.div
+                  key="catches"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut", delay: viewMode === "unified" ? 0.2 : 0.1 }}
+                  className="mb-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Fish className="h-5 w-5 text-primary" />
+                      Recent Catch Activity
+                    </h2>
+                    <Button variant="link" className="text-primary" onClick={() => navigate("/app/catches")}>
+                      View All
+                    </Button>
+                  </div>
+                  
+                  <Card>
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-20 w-20 rounded-lg">
-                          <AvatarImage src={angler.photos?.[0]} className="object-cover" />
-                          <AvatarFallback className="rounded-lg">
-                            {angler.display_name?.[0] || "?"}
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={recentCatches[0].profile?.photos?.[0]} />
+                          <AvatarFallback>
+                            {recentCatches[0].profile?.display_name?.[0] || "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-semibold">
-                                {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
-                              </h3>
-                              <p className="text-sm text-muted-foreground capitalize">
-                                {angler.fishing_experience || "Fishing Enthusiast"}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
-                                <X className="h-5 w-5" />
-                              </Button>
-                              <Button size="icon" className="rounded-full h-10 w-10 bg-destructive hover:bg-destructive/90">
-                                <Heart className="h-5 w-5" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {angler.preferred_species?.slice(0, 2).map((species, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {species}
-                              </Badge>
-                            ))}
-                            {angler.fishing_gear?.slice(0, 1).map((gear, i) => (
-                              <Badge key={i} variant="outline" className="text-xs text-primary border-primary/30 bg-primary/5">
-                                <Fish className="h-3 w-3 mr-1" />
-                                {gear}
-                              </Badge>
-                            ))}
-                          </div>
+                          <p className="text-sm font-medium">
+                            {recentCatches[0].profile?.display_name || "Someone"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Just logged a catch • {formatTimeAgo(recentCatches[0].created_at)}
+                          </p>
                         </div>
                       </div>
+                      {recentCatches[0].photos?.[0] && (
+                        <img
+                          src={recentCatches[0].photos[0]}
+                          alt="Recent catch"
+                          className="w-full h-48 object-cover rounded-lg mt-3"
+                        />
+                      )}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Fishing Spots Grid - Show in unified and fishing modes */}
-          {(viewMode === "unified" || viewMode === "fishing") && hotSpots.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Popular Fishing Spots
-                </h2>
-                <Button variant="link" className="text-primary" onClick={() => navigate("/app/spots")}>
-                  View All
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {hotSpots.map((spot) => (
-                  <Card key={spot.id} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/app/spots/${spot.id}`)}>
-                    <div className="relative h-32">
-                      <img
-                        src={spot.photos?.[0] || "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400"}
-                        alt={spot.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 text-white px-2 py-1 rounded-full text-xs">
-                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                        {spot.rating_avg?.toFixed(1) || "4.5"}
-                      </div>
-                    </div>
-                    <CardContent className="p-3">
-                      <h3 className="font-semibold text-sm mb-1">{spot.name}</h3>
-                      <div className="flex flex-wrap gap-1">
-                        {spot.species_available?.slice(0, 2).map((species, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {species}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Recent Catch Activity - Show in unified and fishing modes */}
-          {(viewMode === "unified" || viewMode === "fishing") && recentCatches.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Fish className="h-5 w-5 text-primary" />
-                  Recent Catch Activity
-                </h2>
-                <Button variant="link" className="text-primary" onClick={() => navigate("/app/catches")}>
-                  View All
-                </Button>
-              </div>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={recentCatches[0].profile?.photos?.[0]} />
-                      <AvatarFallback>
-                        {recentCatches[0].profile?.display_name?.[0] || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {recentCatches[0].profile?.display_name || "Someone"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Just logged a catch • {formatTimeAgo(recentCatches[0].created_at)}
-                      </p>
-                    </div>
-                  </div>
-                  {recentCatches[0].photos?.[0] && (
-                    <img
-                      src={recentCatches[0].photos[0]}
-                      alt="Recent catch"
-                      className="w-full h-48 object-cover rounded-lg mt-3"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </main>
 
           {/* Right Sidebar - Now inside the two-column layout */}
