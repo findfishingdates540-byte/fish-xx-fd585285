@@ -40,15 +40,6 @@ interface DiscoverProfile {
   fishing_gear: string[] | null;
   is_verified: boolean | null;
   is_active: boolean | null;
-  height_cm: number | null;
-  smoking: string | null;
-  drinking: string | null;
-  education: string | null;
-  occupation: string | null;
-  zodiac_sign: string | null;
-  personality_type: string | null;
-  interests: string[] | null;
-  prompt_responses: { question: string; answer: string }[] | null;
 }
 
 // Calculate age from date of birth
@@ -143,16 +134,8 @@ function mapToProfileDetailData(
     ...basicData,
     isVerified: profile.is_verified || false,
     isActive: profile.is_active || false,
-    heightCm: profile.height_cm || undefined,
-    smoker: profile.smoking || undefined,
-    drinker: profile.drinking || undefined,
-    education: profile.education || undefined,
-    occupation: profile.occupation || undefined,
-    zodiacSign: profile.zodiac_sign || undefined,
-    personalityType: profile.personality_type || undefined,
     targetSpecies: profile.preferred_species?.join(', ') || undefined,
-    interests: profile.interests || profile.preferred_species || [],
-    promptResponses: profile.prompt_responses?.filter(p => p.answer) || [],
+    interests: profile.preferred_species || [],
   };
 }
 
@@ -207,7 +190,7 @@ export function useDiscoverProfiles() {
       // Build the query
       let query = supabase
         .from('profiles')
-        .select('id, display_name, date_of_birth, location_name, location_lat, location_lng, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, is_verified, is_active, height_cm, smoking, drinking, education, occupation, zodiac_sign, personality_type, interests, prompt_responses')
+        .select('id, display_name, date_of_birth, location_name, location_lat, location_lng, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, is_verified, is_active')
         .eq('is_active', true)
         .neq('id', user.id)
         .not('photos', 'is', null);
