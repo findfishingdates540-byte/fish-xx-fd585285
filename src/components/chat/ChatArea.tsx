@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Smile, Image, MoreVertical, Phone, Video, ArrowLeft, User } from 'lucide-react';
+import { Send, Smile, Image, MoreVertical, Phone, Video, ArrowLeft, User, Check, CheckCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -117,8 +117,11 @@ export function ChatArea({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const isMine = message.senderId === currentUserId;
+          const isLastInGroup = index === messages.length - 1 || 
+            messages[index + 1]?.senderId !== message.senderId;
+          
           return (
             <div
               key={message.id}
@@ -142,9 +145,26 @@ export function ChatArea({
                   <p className="text-sm">{message.content}</p>
                 </div>
               </div>
-              <span className="text-xs text-muted-foreground mt-1 px-10">
-                {message.timestamp}
-              </span>
+              <div className={cn(
+                'flex items-center gap-1 mt-1',
+                isMine ? 'px-2' : 'px-10'
+              )}>
+                <span className="text-xs text-muted-foreground">
+                  {message.timestamp}
+                </span>
+                {isMine && (
+                  <span className={cn(
+                    'flex items-center',
+                    message.isRead ? 'text-primary' : 'text-muted-foreground'
+                  )}>
+                    {message.isRead ? (
+                      <CheckCheck className="h-3.5 w-3.5" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5" />
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
