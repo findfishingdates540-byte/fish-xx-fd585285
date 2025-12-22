@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   MapPin, Share2, Pencil, Heart, Fish, Layers, CheckCircle2, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
-  GraduationCap, Briefcase, Brain, MessageCircle
+  GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -53,6 +53,43 @@ export default function Profile() {
         .single();
       if (error) throw error;
       return data;
+    },
+    enabled: !!user?.id
+  });
+
+  // Fetch dating stats
+  const { data: datingStats } = useQuery({
+    queryKey: ['dating-stats', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { matches: 0, likesReceived: 0, conversations: 0 };
+      
+      // Get total matches
+      const { count: matchCount } = await supabase
+        .from('matches')
+        .select('*', { count: 'exact', head: true })
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq('is_match', true);
+      
+      // Get likes received (where other user liked you)
+      const { count: likesCount } = await supabase
+        .from('matches')
+        .select('*', { count: 'exact', head: true })
+        .or(`and(user1_id.eq.${user.id},user2_liked.eq.true),and(user2_id.eq.${user.id},user1_liked.eq.true)`);
+      
+      // Get conversations (matches with at least one message)
+      const { data: matchesWithMessages } = await supabase
+        .from('matches')
+        .select('id, messages(id)')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq('is_match', true);
+      
+      const conversationsCount = matchesWithMessages?.filter(m => (m.messages as any[])?.length > 0).length || 0;
+
+      return {
+        matches: matchCount || 0,
+        likesReceived: likesCount || 0,
+        conversations: conversationsCount
+      };
     },
     enabled: !!user?.id
   });
@@ -330,31 +367,68 @@ export default function Profile() {
 
           {/* Center Column */}
           <div className="lg:col-span-5 space-y-6">
+            {/* Dating Stats - Only show for dating/combo modes */}
+            {(profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
+              <Card className="border-pink-200 dark:border-pink-900/30">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-pink-500" />
+                    <CardTitle className="text-lg font-semibold">Dating Stats</CardTitle>
+                  </div>
+                  <Button variant="link" size="sm" className="text-primary p-0 h-auto" asChild>
+                    <Link to="/app/matches">View All</Link>
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-pink-50 dark:bg-pink-950/20 rounded-xl">
+                      <Heart className="h-5 w-5 mx-auto mb-2 text-pink-500" />
+                      <p className="text-2xl font-bold">{datingStats?.matches || 0}</p>
+                      <p className="text-xs text-muted-foreground">Matches</p>
+                    </div>
+                    <div className="text-center p-4 bg-pink-50 dark:bg-pink-950/20 rounded-xl">
+                      <Sparkles className="h-5 w-5 mx-auto mb-2 text-amber-500" />
+                      <p className="text-2xl font-bold">{datingStats?.likesReceived || 0}</p>
+                      <p className="text-xs text-muted-foreground">Likes Received</p>
+                    </div>
+                    <div className="text-center p-4 bg-pink-50 dark:bg-pink-950/20 rounded-xl">
+                      <MessageCircle className="h-5 w-5 mx-auto mb-2 text-blue-500" />
+                      <p className="text-2xl font-bold">{datingStats?.conversations || 0}</p>
+                      <p className="text-xs text-muted-foreground">Conversations</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Activity Stats - Only show for fishing/combo modes */}
             {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
-              <Card>
+              <Card className="border-blue-200 dark:border-blue-900/30">
                 <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <CardTitle className="text-lg font-semibold">Activity Stats</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Fish className="h-5 w-5 text-blue-500" />
+                    <CardTitle className="text-lg font-semibold">Fishing Stats</CardTitle>
+                  </div>
                   <Button variant="link" size="sm" className="text-primary p-0 h-auto">
                     View All
                   </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-muted/50 rounded-xl">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl">
                       <Fish className="h-5 w-5 mx-auto mb-2 text-blue-500" />
                       <p className="text-2xl font-bold">0</p>
                       <p className="text-xs text-muted-foreground">Catches</p>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-xl">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl">
                       <MapPin className="h-5 w-5 mx-auto mb-2 text-emerald-500" />
                       <p className="text-2xl font-bold">0</p>
                       <p className="text-xs text-muted-foreground">Spots</p>
                     </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-xl">
-                      <Heart className="h-5 w-5 mx-auto mb-2 text-pink-500" />
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl">
+                      <Users className="h-5 w-5 mx-auto mb-2 text-purple-500" />
                       <p className="text-2xl font-bold">0</p>
-                      <p className="text-xs text-muted-foreground">Matches</p>
+                      <p className="text-xs text-muted-foreground">Buddies</p>
                     </div>
                   </div>
                 </CardContent>
