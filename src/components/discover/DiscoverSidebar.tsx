@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft } from 'lucide-react';
+import { NavLink, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -143,32 +144,41 @@ export function DiscoverSidebar({
   }, [user?.id, queryClient]);
 
   const getModeLabel = () => {
-    switch (discoveryMode) {
+    // Use accountMode for the label to show correct mode for combo users
+    switch (accountMode) {
       case 'dating':
         return 'DATING MODE';
       case 'fishing':
         return 'FISHING MODE';
-      case 'combo':
+      case 'both':
         return 'COMBO MODE';
     }
   };
 
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
+  const isComboMode = accountMode === 'both';
   const isDatingMode = accountMode === 'dating';
-  const navItems = isDatingMode ? datingNavItems : fishingNavItems;
+  // Combo mode users see dating nav items when in dating section
+  const navItems = isDatingMode || isComboMode ? datingNavItems : fishingNavItems;
 
   return (
     <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
+      {/* Back to Dashboard for Combo Users */}
+      {isComboMode && (
+        <Button variant="ghost" size="sm" asChild className="gap-2 mb-4 justify-start -ml-2">
+          <Link to="/app/dashboard">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Link>
+        </Button>
+      )}
+
       {/* Logo */}
       <div className="mb-8">
-        {isDatingMode ? (
-          <img src={datingLogoImage} alt="Find Fishing Dates" className="h-12 w-auto" />
-        ) : (
-          <div className="flex items-center gap-2">
-            <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
-            <span className="font-bold text-lg">Find Fishing Dates</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
+          <span className="font-bold text-lg">Find Fishing Dates</span>
+        </div>
         <p className="text-xs text-muted-foreground mt-1">{getModeLabel()}</p>
       </div>
 

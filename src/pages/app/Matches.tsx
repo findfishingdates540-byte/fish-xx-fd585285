@@ -109,7 +109,7 @@ export default function Matches() {
       {!isMobile && (
         <DiscoverSidebar
           accountMode={accountMode}
-          discoveryMode="dating"
+          discoveryMode={accountMode === 'both' ? 'combo' : 'dating'}
           onDiscoveryModeChange={() => {}}
           userName={profile?.display_name || 'User'}
           userPhoto={profile?.photos?.[0]}

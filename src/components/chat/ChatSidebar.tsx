@@ -1,8 +1,9 @@
-import { Heart, MapPin, MessageSquare } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { Heart, MapPin, MessageSquare, ArrowLeft } from 'lucide-react';
+import { NavLink, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import logoImage from '@/assets/logo.png';
 
 interface Conversation {
@@ -19,6 +20,7 @@ interface ChatSidebarProps {
   selectedId?: string;
   onSelect: (id: string) => void;
   unreadCount?: number;
+  accountMode?: 'dating' | 'fishing' | 'both';
 }
 
 const navItems = [
@@ -27,16 +29,31 @@ const navItems = [
   { to: '/app/messages', icon: MessageSquare, label: 'Messages', showBadge: true },
 ];
 
-export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount = 0 }: ChatSidebarProps) {
+export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount = 0, accountMode = 'dating' }: ChatSidebarProps) {
+  const isComboMode = accountMode === 'both';
+  const modeLabel = isComboMode ? 'Combo Mode' : 'Dating Mode';
+
   return (
     <aside className="hidden md:flex flex-col w-72 h-screen border-r border-border bg-background flex-shrink-0">
+      {/* Back to Dashboard for Combo Users */}
+      {isComboMode && (
+        <div className="px-4 pt-4">
+          <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2">
+            <Link to="/app/dashboard">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
+        </div>
+      )}
+
       {/* Logo */}
-      <div className="p-6 border-b border-border">
+      <div className={cn("p-6 border-b border-border", isComboMode && "pt-2")}>
         <div className="flex items-center gap-2">
           <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
           <div>
             <span className="font-bold text-lg block">Find Fishing Dates</span>
-            <span className="text-xs text-primary">Dating Mode</span>
+            <span className="text-xs text-primary">{modeLabel}</span>
           </div>
         </div>
       </div>
