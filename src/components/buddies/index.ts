@@ -3,3 +3,4 @@ export { BuddyFilters } from './BuddyFilters';
 export { BuddyRequestCard } from './BuddyRequestCard';
 export { MyBuddyCard } from './MyBuddyCard';
 export { SpotSelectionDialog } from './SpotSelectionDialog';
+export { BuddySelectionDialog } from './BuddySelectionDialog';

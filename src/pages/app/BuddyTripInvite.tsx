@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { format, addDays } from "date-fns";
 import { useWeather, getWindDirection, getFishingConditions } from "@/hooks/use-weather";
+import { sendTripInvitationNotification } from "@/hooks/use-trip-notifications";
 import {
   MapPin,
   MessageSquare,
@@ -145,6 +146,7 @@ export default function BuddyTripInvite() {
 
       const selectedTime = timeSlots.find(t => t.id === selectedTimeSlot);
       const startTime = selectedTime?.label.split(" - ")[0] || "09:00 AM";
+      const tripTitle = `Trip to ${spot.name} with ${buddy?.display_name || "Buddy"}`;
 
       // Create the trip
       const { data: trip, error: tripError } = await supabase
@@ -152,7 +154,7 @@ export default function BuddyTripInvite() {
         .insert({
           user_id: user.id,
           trip_type: "buddies",
-          title: `Trip to ${spot.name} with ${buddy?.display_name || "Buddy"}`,
+          title: tripTitle,
           trip_date: format(selectedDate, "yyyy-MM-dd"),
           start_time: startTime,
           location_name: spot.name,
@@ -167,16 +169,31 @@ export default function BuddyTripInvite() {
 
       if (tripError) throw tripError;
 
-      // Invite the buddy
+      // Invite the buddy with "invited" status
       const { error: inviteError } = await supabase
         .from("trip_participants")
         .insert({
           trip_id: trip.id,
           user_id: buddyId,
-          status: "pending",
+          status: "invited",
         });
 
       if (inviteError) throw inviteError;
+
+      // Fetch current user's display name for the notification
+      const { data: currentUserProfile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .single();
+
+      // Send push notification to the buddy
+      await sendTripInvitationNotification(
+        buddyId,
+        currentUserProfile?.display_name || "A buddy",
+        tripTitle,
+        spot.name
+      );
 
       return trip;
     },
