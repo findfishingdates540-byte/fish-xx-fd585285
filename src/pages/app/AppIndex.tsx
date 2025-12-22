@@ -14,6 +14,10 @@ export default function AppIndex() {
     return <Navigate to="/app/spots" replace />;
   }
 
-  // Dating and Both modes default to discover
+  if (accountMode === 'both') {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  // Dating mode defaults to discover
   return <Navigate to="/app/discover" replace />;
 }

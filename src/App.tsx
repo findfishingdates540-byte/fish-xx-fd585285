@@ -19,7 +19,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard } from "./pages/app";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
@@ -69,6 +69,9 @@ const App = () => (
               <Route path="trips/new" element={<FishingRoute><TripPlanner /></FishingRoute>} />
               <Route path="trips/:id" element={<FishingRoute><TripDetail /></FishingRoute>} />
               <Route path="trips/:id/edit" element={<FishingRoute><TripPlanner /></FishingRoute>} />
+              
+              {/* Combo mode dashboard */}
+              <Route path="dashboard" element={<ComboDashboard />} />
               
               {/* Shared routes (all account types) */}
               <Route path="profile" element={<Profile />} />

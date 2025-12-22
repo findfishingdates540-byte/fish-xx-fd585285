@@ -14,3 +14,4 @@ export { default as Settings } from './Settings';
 export { default as Trips } from './Trips';
 export { default as TripPlanner } from './TripPlanner';
 export { default as TripDetail } from './TripDetail';
+export { default as ComboDashboard } from './ComboDashboard';
