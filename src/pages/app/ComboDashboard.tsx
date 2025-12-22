@@ -283,9 +283,10 @@ export default function ComboDashboard() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-auto flex flex-col">
+        {/* Full-width Header Section */}
+        <div className="p-6 pb-0">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -360,6 +361,11 @@ export default function ComboDashboard() {
               </div>
             </Card>
           )}
+        </div>
+
+        {/* Two-column layout for remaining content */}
+        <div className="flex flex-1 px-6 pb-6 gap-6">
+          <main className="flex-1">
 
           {/* New Anglers Near You */}
           <div className="mb-6">
@@ -454,93 +460,94 @@ export default function ComboDashboard() {
               </Card>
             )}
           </div>
-        </div>
-      </main>
+          </main>
 
-      {/* Right Sidebar */}
-      <aside className="w-80 border-l bg-card hidden lg:block">
-        {/* Weather Widget */}
-        <Card className="m-4 bg-gradient-to-br from-cyan-500 to-blue-600 text-white border-0">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <p className="text-xs opacity-80">Current Location</p>
-                <p className="font-semibold flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {userProfile?.location_name || "Lake Tahoe, CA"}
-                </p>
-              </div>
-              <Sun className="h-10 w-10 text-yellow-300" />
-            </div>
-            <div className="mb-3">
-              <span className="text-5xl font-bold">72°</span>
-            </div>
-            <p className="text-sm opacity-90 flex items-center gap-2">
-              <Cloud className="h-4 w-4" />
-              Clear Sky • <Wind className="h-4 w-4" /> 4mph NW
-            </p>
-            <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/20">
-              <div className="text-center">
-                <p className="text-xs opacity-70">Bite Rating</p>
-                <p className="font-semibold text-green-300">High</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs opacity-70">Pressure</p>
-                <p className="font-semibold">30.1in</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs opacity-70">Water Temp</p>
-                <p className="font-semibold">65°F</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Local Hot Spots */}
-        <Card className="mx-4 mb-4">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary" />
-                Local Hot Spots
-              </CardTitle>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {hotSpots.map((spot) => (
-              <Link
-                key={spot.id}
-                to={`/app/spots/${spot.id}`}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
-              >
-                <img
-                  src={spot.photos?.[0] || "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=100"}
-                  alt={spot.name}
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{spot.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    Known for: {spot.species_available?.slice(0, 2).join(", ") || "Various fish"}
-                  </p>
-                  <Badge variant="secondary" className="text-xs mt-1">
-                    Active Now
-                  </Badge>
+          {/* Right Sidebar - Now inside the two-column layout */}
+          <aside className="w-80 hidden lg:block space-y-4">
+            {/* Weather Widget */}
+            <Card className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white border-0">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="text-xs opacity-80">Current Location</p>
+                    <p className="font-semibold flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      {userProfile?.location_name || "Lake Tahoe, CA"}
+                    </p>
+                  </div>
+                  <Sun className="h-10 w-10 text-yellow-300" />
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1 text-amber-500">
-                    <span className="text-sm font-medium">{spot.rating_avg?.toFixed(1) || "4.5"}</span>
-                    <Star className="h-3 w-3 fill-current" />
+                <div className="mb-3">
+                  <span className="text-5xl font-bold">72°</span>
+                </div>
+                <p className="text-sm opacity-90 flex items-center gap-2">
+                  <Cloud className="h-4 w-4" />
+                  Clear Sky • <Wind className="h-4 w-4" /> 4mph NW
+                </p>
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/20">
+                  <div className="text-center">
+                    <p className="text-xs opacity-70">Bite Rating</p>
+                    <p className="font-semibold text-green-300">High</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs opacity-70">Pressure</p>
+                    <p className="font-semibold">30.1in</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs opacity-70">Water Temp</p>
+                    <p className="font-semibold">65°F</p>
                   </div>
                 </div>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
-      </aside>
+              </CardContent>
+            </Card>
+
+            {/* Local Hot Spots */}
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Local Hot Spots
+                  </CardTitle>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {hotSpots.map((spot) => (
+                  <Link
+                    key={spot.id}
+                    to={`/app/spots/${spot.id}`}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <img
+                      src={spot.photos?.[0] || "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=100"}
+                      alt={spot.name}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{spot.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Known for: {spot.species_available?.slice(0, 2).join(", ") || "Various fish"}
+                      </p>
+                      <Badge variant="secondary" className="text-xs mt-1">
+                        Active Now
+                      </Badge>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 text-amber-500">
+                        <span className="text-sm font-medium">{spot.rating_avg?.toFixed(1) || "4.5"}</span>
+                        <Star className="h-3 w-3 fill-current" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }
