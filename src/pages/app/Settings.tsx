@@ -28,7 +28,6 @@ import {
   Trash2,
   Star,
   LogOut,
-  ArrowLeft,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -217,16 +216,6 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/app/dashboard")}
-          className="mb-4 gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
-        </Button>
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
           <aside className="w-full lg:w-64 flex-shrink-0">
