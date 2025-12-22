@@ -201,7 +201,7 @@ export default function Onboarding() {
         if (data.min_age_preference && data.max_age_preference) {
           setAgeRange([data.min_age_preference, data.max_age_preference]);
         }
-        if (data.max_distance_km) setMaxDistance(data.max_distance_km);
+        if (data.max_distance_miles) setMaxDistance(data.max_distance_miles);
       }
 
       setLoading(false);
@@ -291,7 +291,7 @@ export default function Onboarding() {
         date_of_birth: dateOfBirth,
         photos,
         location_name: locationName || null,
-        max_distance_km: maxDistance,
+        max_distance_miles: maxDistance,
         onboarding_completed: true,
       };
 

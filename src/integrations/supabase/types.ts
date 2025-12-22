@@ -545,7 +545,7 @@ export type Database = {
           looking_for: Database["public"]["Enums"]["looking_for_type"][] | null
           matching_style: Database["public"]["Enums"]["matching_style"] | null
           max_age_preference: number | null
-          max_distance_km: number | null
+          max_distance_miles: number | null
           min_age_preference: number | null
           occupation: string | null
           onboarding_completed: boolean | null
@@ -589,7 +589,7 @@ export type Database = {
           looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
           matching_style?: Database["public"]["Enums"]["matching_style"] | null
           max_age_preference?: number | null
-          max_distance_km?: number | null
+          max_distance_miles?: number | null
           min_age_preference?: number | null
           occupation?: string | null
           onboarding_completed?: boolean | null
@@ -633,7 +633,7 @@ export type Database = {
           looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
           matching_style?: Database["public"]["Enums"]["matching_style"] | null
           max_age_preference?: number | null
-          max_distance_km?: number | null
+          max_distance_miles?: number | null
           min_age_preference?: number | null
           occupation?: string | null
           onboarding_completed?: boolean | null

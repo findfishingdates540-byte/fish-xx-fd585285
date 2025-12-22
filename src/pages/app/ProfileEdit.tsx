@@ -129,7 +129,7 @@ export default function ProfileEdit() {
       setInterestedIn((data.interested_in as GenderType[]) || []);
       setLookingFor((data.looking_for as LookingForType[]) || []);
       setAgeRange([data.min_age_preference || 18, data.max_age_preference || 50]);
-      setMaxDistance(data.max_distance_km || 50);
+      setMaxDistance(data.max_distance_miles || 50);
       setPhotos(data.photos || []);
       setCoverPhoto((data as any).cover_photo || null);
       
@@ -342,7 +342,7 @@ export default function ProfileEdit() {
         looking_for: lookingFor,
         min_age_preference: ageRange[0],
         max_age_preference: ageRange[1],
-        max_distance_km: maxDistance,
+        max_distance_miles: maxDistance,
         photos: photos,
         cover_photo: coverPhoto,
         height_cm: heightCm,

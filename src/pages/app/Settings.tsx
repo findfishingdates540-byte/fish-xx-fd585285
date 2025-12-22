@@ -102,7 +102,7 @@ export default function Settings() {
       setPhotos(data.photos || []);
       setIsVerified(data.is_verified || false);
       setIsPremium(data.is_premium || false);
-      setMaxDistance(data.max_distance_km || 50);
+      setMaxDistance(data.max_distance_miles || 50);
       setAgeRange([data.min_age_preference || 18, data.max_age_preference || 50]);
     }
     setLoading(false);
@@ -163,7 +163,7 @@ export default function Settings() {
         display_name: displayName,
         bio: bio,
         account_mode: accountMode,
-        max_distance_km: maxDistance,
+        max_distance_miles: maxDistance,
         min_age_preference: ageRange[0],
         max_age_preference: ageRange[1],
         updated_at: new Date().toISOString(),
