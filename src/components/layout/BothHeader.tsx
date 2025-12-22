@@ -57,8 +57,8 @@ export function BothHeader() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link to="/app/dashboard" className="flex items-center gap-3">
-            <img src={logo} alt="FindFish Date" className="h-8 w-auto object-contain rounded" />
-            <span className="font-bold text-lg">FindFish Date</span>
+            <img src={logo} alt="Find Fish Date" className="h-8 w-auto object-contain rounded" />
+            <span className="font-bold text-lg">Find Fish Date</span>
           </Link>
 
           {/* Navigation */}
