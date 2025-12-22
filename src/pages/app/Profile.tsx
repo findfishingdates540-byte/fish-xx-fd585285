@@ -1,11 +1,12 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   MapPin, Share2, Pencil, Heart, Fish, Layers, CheckCircle2, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
-  GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users
+  GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
+  ArrowLeft
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const experienceLevelMap: Record<string, number> = {
 
 export default function Profile() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile-full', user?.id],
     queryFn: async () => {
@@ -142,8 +144,21 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-muted/30 pb-8">
+      {/* Back Button */}
+      <div className="max-w-6xl mx-auto px-4 pt-4 pb-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => navigate(-1)}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
+
       {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-4 pt-4">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="relative h-56 md:h-72 overflow-hidden rounded-3xl">
           <img src={coverPhoto} alt="Cover" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -212,41 +227,6 @@ export default function Profile() {
                 prompt_responses: promptResponses,
               }} 
             />
-
-            {/* Current Mode */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  Current Mode
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {accountModes.map(mode => {
-                  const Icon = mode.icon;
-                  const isActive = profile?.account_mode === mode.id;
-                  return (
-                    <div 
-                      key={mode.id} 
-                      className={cn(
-                        'flex items-center justify-between p-3 rounded-lg border transition-colors', 
-                        isActive ? 'bg-primary/5 border-primary' : 'border-transparent'
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn('p-2 rounded-lg bg-muted', isActive && 'bg-primary/10')}>
-                          <Icon className={cn('h-4 w-4', mode.color)} />
-                        </div>
-                        <span className="font-medium">{mode.label}</span>
-                      </div>
-                      <div className={cn(
-                        'h-4 w-4 rounded-full border-2', 
-                        isActive ? 'bg-primary border-primary' : 'border-muted-foreground/30'
-                      )} />
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
 
             {/* About Me */}
             <Card>
@@ -559,6 +539,44 @@ export default function Profile() {
                     {profile?.interested_in?.join(', ')?.replace(/_/g, ' ') || 'Not specified'}
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Current Mode */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  Current Mode
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/app/profile/edit">Edit</Link>
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {accountModes.map(mode => {
+                  const Icon = mode.icon;
+                  const isActive = profile?.account_mode === mode.id;
+                  return (
+                    <div 
+                      key={mode.id} 
+                      className={cn(
+                        'flex items-center justify-between p-3 rounded-lg border transition-colors', 
+                        isActive ? 'bg-primary/5 border-primary' : 'border-transparent'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn('p-2 rounded-lg bg-muted', isActive && 'bg-primary/10')}>
+                          <Icon className={cn('h-4 w-4', mode.color)} />
+                        </div>
+                        <span className="font-medium">{mode.label}</span>
+                      </div>
+                      <div className={cn(
+                        'h-4 w-4 rounded-full border-2', 
+                        isActive ? 'bg-primary border-primary' : 'border-muted-foreground/30'
+                      )} />
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
 
