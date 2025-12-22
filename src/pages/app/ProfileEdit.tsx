@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { SelectableCard } from "@/components/ui/selectable-card";
+import { ImageCropModal } from "@/components/ui/image-crop-modal";
 import { toast } from "sonner";
 import { 
   User, 
@@ -57,6 +58,11 @@ export default function ProfileEdit() {
   const [maxDistance, setMaxDistance] = useState(50);
   const [photos, setPhotos] = useState<string[]>([]);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
+  
+  // Crop modal state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropType, setCropType] = useState<"profile" | "banner">("profile");
 
   useEffect(() => {
     if (user) {
@@ -94,9 +100,10 @@ export default function ProfileEdit() {
     setLoading(false);
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle file selection - opens crop modal
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, type: "profile" | "banner") => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
 
     // Validate file
     if (!file.type.startsWith("image/")) {
@@ -108,14 +115,45 @@ export default function ProfileEdit() {
       return;
     }
 
+    // Create object URL and open crop modal
+    const imageUrl = URL.createObjectURL(file);
+    setCropImageSrc(imageUrl);
+    setCropType(type);
+    setCropModalOpen(true);
+
+    // Clear file input
+    if (type === "profile" && fileInputRef.current) {
+      fileInputRef.current.value = "";
+    } else if (type === "banner" && bannerInputRef.current) {
+      bannerInputRef.current.value = "";
+    }
+  };
+
+  // Handle cropped image upload
+  const handleCroppedImageUpload = async (croppedBlob: Blob) => {
+    if (!user) return;
+
+    if (cropType === "profile") {
+      await uploadProfilePhoto(croppedBlob);
+    } else {
+      await uploadBannerPhoto(croppedBlob);
+    }
+
+    // Clean up
+    if (cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
+    }
+  };
+
+  const uploadProfilePhoto = async (blob: Blob) => {
     setUploadingPhoto(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user!.id}/${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from("profile-photos")
-        .upload(fileName, file);
+        .upload(fileName, blob, { contentType: "image/jpeg" });
 
       if (uploadError) throw uploadError;
 
@@ -127,7 +165,7 @@ export default function ProfileEdit() {
       await supabase
         .from("profiles")
         .update({ photos: newPhotos })
-        .eq("id", user.id);
+        .eq("id", user!.id);
 
       toast.success("Photo uploaded successfully");
     } catch (error) {
@@ -135,9 +173,42 @@ export default function ProfileEdit() {
       toast.error("Failed to upload photo");
     } finally {
       setUploadingPhoto(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+    }
+  };
+
+  const uploadBannerPhoto = async (blob: Blob) => {
+    setUploadingBanner(true);
+    try {
+      const fileName = `${user!.id}/banner_${Date.now()}.jpg`;
+
+      // Remove old banner if exists
+      if (coverPhoto) {
+        const oldPath = coverPhoto.split("/profile-photos/")[1];
+        if (oldPath) {
+          await supabase.storage.from("profile-photos").remove([oldPath]);
+        }
       }
+
+      const { error: uploadError } = await supabase.storage
+        .from("profile-photos")
+        .upload(fileName, blob, { contentType: "image/jpeg" });
+
+      if (uploadError) throw uploadError;
+
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/profile-photos/${fileName}`;
+      setCoverPhoto(publicUrl);
+
+      await supabase
+        .from("profiles")
+        .update({ cover_photo: publicUrl } as any)
+        .eq("id", user!.id);
+
+      toast.success("Banner uploaded successfully");
+    } catch (error) {
+      console.error("Banner upload error:", error);
+      toast.error("Failed to upload banner");
+    } finally {
+      setUploadingBanner(false);
     }
   };
 
@@ -164,58 +235,6 @@ export default function ProfileEdit() {
     } catch (error) {
       console.error("Remove error:", error);
       toast.error("Failed to remove photo");
-    }
-  };
-
-  const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be less than 5MB");
-      return;
-    }
-
-    setUploadingBanner(true);
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/banner_${Date.now()}.${fileExt}`;
-
-      // Remove old banner if exists
-      if (coverPhoto) {
-        const oldPath = coverPhoto.split("/profile-photos/")[1];
-        if (oldPath) {
-          await supabase.storage.from("profile-photos").remove([oldPath]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from("profile-photos")
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/profile-photos/${fileName}`;
-      setCoverPhoto(publicUrl);
-
-      await supabase
-        .from("profiles")
-        .update({ cover_photo: publicUrl } as any)
-        .eq("id", user.id);
-
-      toast.success("Banner uploaded successfully");
-    } catch (error) {
-      console.error("Banner upload error:", error);
-      toast.error("Failed to upload banner");
-    } finally {
-      setUploadingBanner(false);
-      if (bannerInputRef.current) {
-        bannerInputRef.current.value = "";
-      }
     }
   };
 
@@ -381,7 +400,7 @@ export default function ProfileEdit() {
             ref={bannerInputRef}
             type="file"
             accept="image/*"
-            onChange={handleBannerUpload}
+            onChange={(e) => handleFileSelect(e, "banner")}
             className="hidden"
           />
 
@@ -439,7 +458,7 @@ export default function ProfileEdit() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            onChange={handlePhotoUpload}
+            onChange={(e) => handleFileSelect(e, "profile")}
             className="hidden"
           />
         </div>
@@ -772,6 +791,25 @@ export default function ProfileEdit() {
           </div>
         </div>
       </div>
+
+      {/* Image Crop Modal */}
+      {cropImageSrc && (
+        <ImageCropModal
+          open={cropModalOpen}
+          onClose={() => {
+            setCropModalOpen(false);
+            if (cropImageSrc) {
+              URL.revokeObjectURL(cropImageSrc);
+              setCropImageSrc(null);
+            }
+          }}
+          imageSrc={cropImageSrc}
+          onCropComplete={handleCroppedImageUpload}
+          aspectRatio={cropType === "banner" ? 21 / 9 : 1}
+          title={cropType === "banner" ? "Crop Cover Photo" : "Crop Profile Photo"}
+          cropShape={cropType === "profile" ? "round" : "rect"}
+        />
+      )}
     </div>
   );
 }
