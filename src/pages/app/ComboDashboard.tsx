@@ -338,71 +338,71 @@ export default function ComboDashboard() {
     <div className="flex flex-col lg:flex-row min-h-screen bg-muted/30">
       {/* Sidebar - Hidden on mobile */}
       <aside className="hidden lg:flex w-60 border-r bg-card flex-col sticky top-0 h-screen">
-        {/* Logo & Notifications */}
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <Link to="/app" className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={logo} alt="Find Fishing Dates" />
-                <AvatarFallback>FF</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-semibold text-sm">Find Fishing Dates</p>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
-              </div>
-            </Link>
-            
-            {/* Notification Bell */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-9 w-9">
-                  <Bell className="h-5 w-5" />
-                  {totalNotifications > 0 && (
-                    <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full animate-pulse" />
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0">
-                <div className="p-3 border-b border-border">
-                  <h4 className="font-semibold text-sm">Notifications</h4>
-                </div>
-                <ScrollArea className="h-[300px]">
-                  {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-muted-foreground text-sm">
-                      No new notifications
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-border">
-                      {notifications.map((notification) => (
-                        <Link
-                          key={notification.id}
-                          to={notification.link}
-                          className="flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex-shrink-0 mt-0.5">
-                            <notification.icon className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{notification.title}</p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {notification.message}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
-                            </p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
-          </div>
+        <div className="p-4 border-b flex items-center justify-between">
+          <Link to="/app" className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={logo} alt="Find Fishing Dates" />
+              <AvatarFallback>FF</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold text-sm">Find Fishing Dates</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
+            </div>
+          </Link>
         </div>
 
         {/* Nav Items */}
         <nav className="flex-1 p-3">
+          {/* Notification Bell at top of nav */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+                <Bell className="h-5 w-5" />
+                <span>Notifications</span>
+                {totalNotifications > 0 && (
+                  <Badge variant="secondary" className="ml-auto bg-destructive text-destructive-foreground text-xs">
+                    {totalNotifications}
+                  </Badge>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" side="right" className="w-80 p-0">
+              <div className="p-3 border-b border-border">
+                <h4 className="font-semibold text-sm">Notifications</h4>
+              </div>
+              <ScrollArea className="h-[300px]">
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-muted-foreground text-sm">
+                    No new notifications
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {notifications.map((notification) => (
+                      <Link
+                        key={notification.id}
+                        to={notification.link}
+                        className="flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-shrink-0 mt-0.5">
+                          <notification.icon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{notification.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
+
           {sidebarItems.map((item) => (
             <Link
               key={item.label}
