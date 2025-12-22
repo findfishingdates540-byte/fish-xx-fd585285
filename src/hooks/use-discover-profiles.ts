@@ -363,11 +363,14 @@ export function useDiscoverProfiles() {
   const hasMoreProfiles = profiles && currentIndex < profiles.length;
   const noMoreProfiles = profiles && currentIndex >= profiles.length;
 
-  // Refetch when we run out
-  const loadMoreProfiles = useCallback(() => {
+  // Refetch when we run out - invalidate cache to get fresh data
+  const loadMoreProfiles = useCallback(async () => {
     setCurrentIndex(0);
+    // Invalidate swiped profiles cache to get fresh data from server
+    await queryClient.invalidateQueries({ queryKey: ['swiped-profiles', user?.id] });
+    await queryClient.invalidateQueries({ queryKey: ['discover-profiles', user?.id] });
     refetch();
-  }, [refetch]);
+  }, [refetch, queryClient, user?.id]);
 
   // Clear matched profile (close modal)
   const clearMatchedProfile = useCallback(() => {
