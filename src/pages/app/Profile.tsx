@@ -330,34 +330,36 @@ export default function Profile() {
 
           {/* Center Column */}
           <div className="lg:col-span-5 space-y-6">
-            {/* Activity Stats */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-lg font-semibold">Activity Stats</CardTitle>
-                <Button variant="link" size="sm" className="text-primary p-0 h-auto">
-                  View All
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-muted/50 rounded-xl">
-                    <Fish className="h-5 w-5 mx-auto mb-2 text-blue-500" />
-                    <p className="text-2xl font-bold">0</p>
-                    <p className="text-xs text-muted-foreground">Catches</p>
+            {/* Activity Stats - Only show for fishing/combo modes */}
+            {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <CardTitle className="text-lg font-semibold">Activity Stats</CardTitle>
+                  <Button variant="link" size="sm" className="text-primary p-0 h-auto">
+                    View All
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-muted/50 rounded-xl">
+                      <Fish className="h-5 w-5 mx-auto mb-2 text-blue-500" />
+                      <p className="text-2xl font-bold">0</p>
+                      <p className="text-xs text-muted-foreground">Catches</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-xl">
+                      <MapPin className="h-5 w-5 mx-auto mb-2 text-emerald-500" />
+                      <p className="text-2xl font-bold">0</p>
+                      <p className="text-xs text-muted-foreground">Spots</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-xl">
+                      <Heart className="h-5 w-5 mx-auto mb-2 text-pink-500" />
+                      <p className="text-2xl font-bold">0</p>
+                      <p className="text-xs text-muted-foreground">Matches</p>
+                    </div>
                   </div>
-                  <div className="text-center p-4 bg-muted/50 rounded-xl">
-                    <MapPin className="h-5 w-5 mx-auto mb-2 text-emerald-500" />
-                    <p className="text-2xl font-bold">0</p>
-                    <p className="text-xs text-muted-foreground">Spots</p>
-                  </div>
-                  <div className="text-center p-4 bg-muted/50 rounded-xl">
-                    <Heart className="h-5 w-5 mx-auto mb-2 text-pink-500" />
-                    <p className="text-2xl font-bold">0</p>
-                    <p className="text-xs text-muted-foreground">Matches</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Interests & Hobbies */}
             {interests && interests.length > 0 && (
