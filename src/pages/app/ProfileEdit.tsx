@@ -369,13 +369,9 @@ export default function ProfileEdit() {
     navigate("/app/profile");
   };
 
-  const toggleGenderPreference = (gender: GenderType) => {
-    setInterestedIn((prev) => {
-      if (prev.includes(gender)) {
-        return prev.filter((g) => g !== gender);
-      }
-      return [...prev, gender];
-    });
+  const selectGenderPreference = (gender: GenderType) => {
+    // Single selection only - replace the current selection
+    setInterestedIn([gender]);
   };
 
   const toggleLookingFor = (option: LookingForType) => {
@@ -836,7 +832,7 @@ export default function ProfileEdit() {
                         <SelectableCard
                           key={option.value}
                           selected={interestedIn.includes(option.value)}
-                          onClick={() => toggleGenderPreference(option.value)}
+                          onClick={() => selectGenderPreference(option.value)}
                           className="py-3"
                         >
                           <span className="text-sm font-medium">{option.label}</span>
@@ -890,7 +886,7 @@ export default function ProfileEdit() {
                     <div className="flex justify-between items-center mb-3">
                       <Label className="text-sm font-medium">Maximum Distance</Label>
                       <span className="text-sm text-muted-foreground">
-                        {maxDistance} km
+                        {maxDistance} miles
                       </span>
                     </div>
                     <Slider
