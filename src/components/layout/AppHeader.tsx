@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, Heart, MessageCircle, Calendar } from 'lucide-react';
+import { Bell, Heart, MessageCircle, Calendar, LayoutDashboard, Anchor } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 // Request browser notification permission
 const requestNotificationPermission = async () => {
@@ -52,6 +54,9 @@ export function AppHeader() {
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
+  
+  // Get active mode context for combo users
+  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
 
   // Request notification permission on mount
   useEffect(() => {
@@ -291,6 +296,12 @@ export function AppHeader() {
     })) || []),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
+  const modeOptions: { value: ActiveMode; icon: React.ElementType; label: string }[] = [
+    { value: 'unified', icon: LayoutDashboard, label: 'All' },
+    { value: 'dating', icon: Heart, label: 'Dating' },
+    { value: 'fishing', icon: Anchor, label: 'Fishing' },
+  ];
+
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 px-4">
@@ -299,6 +310,27 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* Mode Switcher for Combo Users */}
+          {isComboUser && (
+            <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
+              {modeOptions.map((mode) => (
+                <button
+                  key={mode.value}
+                  onClick={() => setActiveMode(mode.value)}
+                  className={cn(
+                    "flex items-center justify-center p-1.5 rounded-full transition-colors",
+                    activeMode === mode.value
+                      ? "bg-background text-primary shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  title={mode.label}
+                >
+                  <mode.icon className="h-4 w-4" />
+                </button>
+              ))}
+            </div>
+          )}
+
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
