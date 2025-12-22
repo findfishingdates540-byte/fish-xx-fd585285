@@ -206,26 +206,27 @@ export default function ComboDashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <div className="w-60 border-r bg-card p-4">
+      <div className="flex flex-col lg:flex-row min-h-screen bg-background">
+        {/* Desktop Sidebar Skeleton */}
+        <div className="hidden lg:block w-60 border-r bg-card p-4">
           <Skeleton className="h-12 w-full mb-8" />
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className="h-10 w-full mb-2" />
           ))}
         </div>
-        <div className="flex-1 p-6">
-          <Skeleton className="h-8 w-64 mb-6" />
-          <Skeleton className="h-64 w-full mb-6" />
-          <Skeleton className="h-48 w-full" />
+        <div className="flex-1 p-4 lg:p-6">
+          <Skeleton className="h-8 w-48 lg:w-64 mb-6" />
+          <Skeleton className="h-48 lg:h-64 w-full mb-6" />
+          <Skeleton className="h-32 lg:h-48 w-full" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      {/* Sidebar */}
-      <aside className="w-60 border-r bg-card flex flex-col sticky top-0 h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-muted/30">
+      {/* Sidebar - Hidden on mobile */}
+      <aside className="hidden lg:flex w-60 border-r bg-card flex-col sticky top-0 h-screen">
         {/* Logo */}
         <div className="p-4 border-b">
           <Link to="/app" className="flex items-center gap-3">
@@ -296,20 +297,20 @@ export default function ComboDashboard() {
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto flex flex-col">
         {/* Full-width Header Section */}
-        <div className="p-6 pb-0">
+        <div className="p-4 lg:p-6 pb-0">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-xl lg:text-2xl font-bold">
                 {getGreeting()}, {userProfile?.display_name?.split(' ')[0] || 'Angler'}!
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm lg:text-base text-muted-foreground">
                 Conditions look perfect for fishing today.
               </p>
             </div>
 
-            {/* View Mode Toggle - Connected to ActiveModeContext */}
-            <div className="flex bg-muted rounded-full p-1">
+            {/* View Mode Toggle - Hidden on mobile (uses AppHeader switcher) */}
+            <div className="hidden lg:flex bg-muted rounded-full p-1">
               {[
                 { value: "unified", label: "Unified View", icon: LayoutDashboard },
                 { value: "dating", label: "Dating Only", icon: Heart },
@@ -374,8 +375,8 @@ export default function ComboDashboard() {
         </div>
 
         {/* Two-column layout for remaining content */}
-        <div className="flex flex-1 px-6 pb-6 gap-6">
-          <main className="flex-1">
+        <div className="flex flex-1 px-4 lg:px-6 pb-6 gap-6">
+          <main className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
               {/* New Anglers Near You - Show in unified and dating modes */}
               {(activeMode === "unified" || activeMode === "dating") && (
@@ -406,34 +407,34 @@ export default function ComboDashboard() {
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                       >
                         <Card className="overflow-hidden">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
-                              <Avatar className="h-20 w-20 rounded-lg">
+                          <CardContent className="p-3 sm:p-4">
+                            <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                              <Avatar className="h-14 w-14 sm:h-20 sm:w-20 rounded-lg flex-shrink-0">
                                 <AvatarImage src={angler.photos?.[0]} className="object-cover" />
                                 <AvatarFallback className="rounded-lg">
                                   {angler.display_name?.[0] || "?"}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <h3 className="font-semibold">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <h3 className="font-semibold truncate">
                                       {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
                                     </h3>
-                                    <p className="text-sm text-muted-foreground capitalize">
+                                    <p className="text-sm text-muted-foreground capitalize truncate">
                                       {angler.fishing_experience || "Fishing Enthusiast"}
                                     </p>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
-                                      <X className="h-5 w-5" />
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <Button variant="outline" size="icon" className="rounded-full h-8 w-8 sm:h-10 sm:w-10">
+                                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
                                     </Button>
-                                    <Button size="icon" className="rounded-full h-10 w-10 bg-destructive hover:bg-destructive/90">
-                                      <Heart className="h-5 w-5" />
+                                    <Button size="icon" className="rounded-full h-8 w-8 sm:h-10 sm:w-10 bg-destructive hover:bg-destructive/90">
+                                      <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
                                     </Button>
                                   </div>
                                 </div>
-                                <div className="flex flex-wrap gap-2 mt-2">
+                                <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
                                   {angler.preferred_species?.slice(0, 2).map((species, i) => (
                                     <Badge key={i} variant="secondary" className="text-xs">
                                       {species}
@@ -476,7 +477,7 @@ export default function ComboDashboard() {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {hotSpots.map((spot, index) => (
                       <motion.div
                         key={spot.id}
