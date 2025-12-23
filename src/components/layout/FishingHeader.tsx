@@ -21,9 +21,9 @@ import { NotificationCenter } from "@/components/notifications/NotificationCente
 const fishingNavItems = [
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
-  { to: "/app/buddies", label: "Buddies", hasBadge: true },
+  { to: "/app/buddies", label: "Buddies", badgeType: "buddyRequests" as const },
   { to: "/app/catches", label: "Catches" },
-  { to: "/app/buddy-messages", label: "Messages" },
+  { to: "/app/buddy-messages", label: "Messages", badgeType: "unreadMessages" as const },
 ];
 
 export function FishingHeader() {
@@ -60,11 +60,40 @@ export function FishingHeader() {
     enabled: !!user?.id,
   });
 
-  // Real-time subscription for buddy requests
+  // Fetch unread buddy messages count
+  const { data: unreadMessagesCount = 0 } = useQuery({
+    queryKey: ["unread-buddy-messages-header", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      // Get all buddy relationships where user is involved
+      const { data: buddies } = await supabase
+        .from("fishing_buddies")
+        .select("id")
+        .eq("status", "accepted")
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+      
+      if (!buddies || buddies.length === 0) return 0;
+      
+      const buddyIds = buddies.map(b => b.id);
+      
+      const { count } = await supabase
+        .from("buddy_messages")
+        .select("*", { count: "exact", head: true })
+        .in("buddy_id", buddyIds)
+        .neq("sender_id", user.id)
+        .eq("is_read", false);
+      
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Real-time subscription for buddy requests and messages
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase
+    const buddyChannel = supabase
       .channel("buddy-requests-realtime")
       .on(
         "postgres_changes",
@@ -75,14 +104,29 @@ export function FishingHeader() {
           filter: `recipient_id=eq.${user.id}`,
         },
         () => {
-          // Invalidate and refetch the pending requests count
           queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] });
         }
       )
       .subscribe();
 
+    const messagesChannel = supabase
+      .channel("buddy-messages-header-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "buddy_messages",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["unread-buddy-messages-header", user.id] });
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(buddyChannel);
+      supabase.removeChannel(messagesChannel);
     };
   }, [user?.id, queryClient]);
 
@@ -119,12 +163,20 @@ export function FishingHeader() {
                 }
               >
                 {item.label}
-                {item.hasBadge && pendingRequestsCount > 0 && (
+                {item.badgeType === "buddyRequests" && pendingRequestsCount > 0 && (
                   <Badge 
                     variant="destructive" 
                     className="absolute -top-2 -right-4 h-5 min-w-5 flex items-center justify-center text-xs px-1"
                   >
                     {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                  </Badge>
+                )}
+                {item.badgeType === "unreadMessages" && unreadMessagesCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-4 h-5 min-w-5 flex items-center justify-center text-xs px-1"
+                  >
+                    {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
                   </Badge>
                 )}
               </NavLink>
