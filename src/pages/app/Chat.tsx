@@ -74,7 +74,8 @@ export default function Chat() {
       lastMessage: convo.lastMessage || 'No messages yet',
       time: convo.time,
       isOnline: isOnline(convo.matchedUserId),
-      lastSeen: !isOnline(convo.matchedUserId) ? formatLastSeen(getLastSeen(convo.matchedUserId)) : undefined
+      lastSeen: !isOnline(convo.matchedUserId) ? formatLastSeen(getLastSeen(convo.matchedUserId)) : undefined,
+      type: 'date' as const,
     })), [conversations, isOnline, getLastSeen]);
 
   // Check if current match is online
@@ -150,6 +151,7 @@ export default function Chat() {
           onInputChange={handleInputChange}
           getReactionSummary={getReactionSummary}
           onToggleReaction={toggleReaction}
+          chatType="date"
         />
       )}
 
@@ -158,7 +160,7 @@ export default function Chat() {
         <div className="hidden xl:block w-80 h-screen border-l border-border flex-shrink-0">
           <ProfileSidebar
             name={matchProfile.display_name || 'Anonymous'}
-            age={0}
+            age={25}
             photo={matchProfile.photos?.[0] || ''}
             isOnline={isMatchOnline}
             location={matchProfile.location_name || ''}
@@ -166,6 +168,7 @@ export default function Chat() {
             interests={matchProfile.preferred_species || []}
             photos={matchProfile.photos || []}
             className="h-full"
+            chatType="date"
           />
         </div>
       )}
@@ -179,7 +182,7 @@ export default function Chat() {
             </SheetHeader>
             <ProfileSidebar
               name={matchProfile.display_name || 'Anonymous'}
-              age={0}
+              age={25}
               photo={matchProfile.photos?.[0] || ''}
               isOnline={isMatchOnline}
               location={matchProfile.location_name || ''}
@@ -187,6 +190,7 @@ export default function Chat() {
               interests={matchProfile.preferred_species || []}
               photos={matchProfile.photos || []}
               className="h-full"
+              chatType="date"
             />
           </SheetContent>
         </Sheet>

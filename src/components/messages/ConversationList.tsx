@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, SquarePen, Check, CheckCheck } from 'lucide-react';
+import { Search, SquarePen, Fish } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SwipeableConversationItem } from './SwipeableConversationItem';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface Conversation {
   id: string;
@@ -18,6 +19,14 @@ interface Conversation {
   isOnline?: boolean;
   isRead?: boolean;
   lastSeen?: string;
+  type?: 'date' | 'buddy';
+}
+
+interface NewBite {
+  id: string;
+  name: string;
+  photo: string;
+  isNew?: boolean;
 }
 
 interface ConversationListProps {
@@ -26,9 +35,10 @@ interface ConversationListProps {
   onSelect: (id: string) => void;
   onMarkRead?: (id: string) => void;
   onDelete?: (id: string) => void;
+  newBites?: NewBite[];
 }
 
-type FilterType = 'all' | 'unread' | 'buddies';
+type FilterType = 'all' | 'unread' | 'dates' | 'buddies';
 
 export function ConversationList({ 
   conversations, 
@@ -36,6 +46,7 @@ export function ConversationList({
   onSelect,
   onMarkRead,
   onDelete,
+  newBites = [],
 }: ConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
@@ -45,6 +56,12 @@ export function ConversationList({
     const matchesSearch = convo.name.toLowerCase().includes(searchQuery.toLowerCase());
     if (activeFilter === 'unread') {
       return matchesSearch && (convo.unreadCount ?? 0) > 0;
+    }
+    if (activeFilter === 'dates') {
+      return matchesSearch && convo.type !== 'buddy';
+    }
+    if (activeFilter === 'buddies') {
+      return matchesSearch && convo.type === 'buddy';
     }
     return matchesSearch;
   });
@@ -60,6 +77,43 @@ export function ConversationList({
           </Button>
         </div>
 
+        {/* New Bites Section */}
+        {newBites.length > 0 && (
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+              <Fish className="h-4 w-4" />
+              New Bites
+            </h3>
+            <ScrollArea className="w-full whitespace-nowrap">
+              <div className="flex gap-3 pb-2">
+                {newBites.map((bite) => (
+                  <button
+                    key={bite.id}
+                    onClick={() => onSelect(bite.id)}
+                    className="flex flex-col items-center gap-1 group"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-14 w-14 ring-2 ring-primary ring-offset-2 ring-offset-background transition-transform group-hover:scale-105">
+                        <AvatarImage src={bite.photo} alt={bite.name} />
+                        <AvatarFallback>{bite.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      {bite.isNew && (
+                        <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full flex items-center justify-center">
+                          <span className="text-[10px] text-primary-foreground font-bold">!</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground truncate max-w-[60px]">
+                      {bite.name.split(' ')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+        )}
+
         {/* Search */}
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -72,11 +126,12 @@ export function ConversationList({
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {[
-            { key: 'all' as FilterType, label: 'All Chats' },
+            { key: 'all' as FilterType, label: 'All' },
             { key: 'unread' as FilterType, label: 'Unread' },
-            { key: 'buddies' as FilterType, label: 'Dates' },
+            { key: 'dates' as FilterType, label: 'Dating' },
+            { key: 'buddies' as FilterType, label: 'Fishing' },
           ].map((filter) => (
             <Button
               key={filter.key}
@@ -135,7 +190,19 @@ export function ConversationList({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
-                  <span className="font-semibold text-sm">{convo.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{convo.name}</span>
+                    {convo.type === 'buddy' ? (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50">
+                        <Fish className="h-2.5 w-2.5 mr-0.5" />
+                        BUDDY
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-pink-400/50 text-pink-600">
+                        💕 DATE
+                      </Badge>
+                    )}
+                  </div>
                   <span className="text-xs text-primary">{convo.time}</span>
                 </div>
                 {!convo.isOnline && convo.lastSeen && (
@@ -153,9 +220,9 @@ export function ConversationList({
                       {convo.unreadCount}
                     </Badge>
                   ) : convo.isRead ? (
-                    <CheckCheck className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="text-sm flex-shrink-0" title="Read">🎣</span>
                   ) : (
-                    <Check className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground text-xs flex-shrink-0">Sent</span>
                   )}
                 </div>
               </div>
