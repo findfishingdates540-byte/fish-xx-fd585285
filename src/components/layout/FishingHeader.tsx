@@ -13,16 +13,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Settings, LogOut, User } from "lucide-react";
+import { Search, Settings, LogOut, User, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const fishingNavItems = [
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/buddies", label: "Buddies", hasBadge: true },
   { to: "/app/catches", label: "Catches" },
-  { to: "/app/profile", label: "Profile" },
+  { to: "/app/buddy-messages", label: "Messages" },
 ];
 
 export function FishingHeader() {
@@ -131,7 +132,7 @@ export function FishingHeader() {
           </nav>
         </div>
 
-        {/* Right side - Search and Profile */}
+        {/* Right side - Search, Notifications, and Profile */}
         <div className="flex items-center gap-4">
           {/* Search */}
           <div className="hidden sm:flex relative">
@@ -141,6 +142,9 @@ export function FishingHeader() {
               className="pl-9 w-48 lg:w-64 bg-muted/50 border-0 focus-visible:ring-1"
             />
           </div>
+
+          {/* Notifications */}
+          <NotificationCenter />
 
           {/* Profile Dropdown */}
           <DropdownMenu>
