@@ -13,6 +13,7 @@ import {
 import { Settings, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const datingNavItems = [
   { to: "/app/discover", label: "Discover" },
@@ -77,8 +78,11 @@ export function DatingHeader() {
           </nav>
         </div>
 
-        {/* Right side - Profile */}
+        {/* Right side - Notifications and Profile */}
         <div className="flex items-center gap-4">
+          {/* Notifications */}
+          <NotificationCenter mode="dating" />
+
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

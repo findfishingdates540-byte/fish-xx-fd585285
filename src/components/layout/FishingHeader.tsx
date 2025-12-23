@@ -196,7 +196,7 @@ export function FishingHeader() {
           </div>
 
           {/* Notifications */}
-          <NotificationCenter />
+          <NotificationCenter mode="fishing" />
 
           {/* Profile Dropdown */}
           <DropdownMenu>

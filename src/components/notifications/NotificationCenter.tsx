@@ -25,112 +25,131 @@ interface Notification {
   isRead?: boolean;
 }
 
-export function NotificationCenter() {
+export type NotificationMode = 'dating' | 'fishing' | 'both';
+
+interface NotificationCenterProps {
+  mode?: NotificationMode;
+}
+
+export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
+
+  const showDating = mode === 'dating' || mode === 'both';
+  const showFishing = mode === 'fishing' || mode === 'both';
 
   // Real-time subscriptions for instant notification updates
   useEffect(() => {
     if (!user?.id) return;
 
-    console.log('Setting up real-time notification subscriptions');
+    console.log('Setting up real-time notification subscriptions for mode:', mode);
 
-    const channel = supabase
-      .channel('notification-center-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'matches',
-        },
-        (payload) => {
-          const match = payload.new as any;
-          if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
-            console.log('New match detected via realtime');
-            queryClient.invalidateQueries({ queryKey: ['recent-matches-notif', user.id] });
+    const channel = supabase.channel('notification-center-realtime');
+
+    // Only subscribe to dating-related tables if showing dating
+    if (showDating) {
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'matches',
+          },
+          (payload) => {
+            const match = payload.new as any;
+            if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
+              console.log('New match detected via realtime');
+              queryClient.invalidateQueries({ queryKey: ['recent-matches-notif', user.id] });
+            }
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-        },
-        (payload) => {
-          const message = payload.new as any;
-          if (message.sender_id !== user.id) {
-            console.log('New message detected via realtime');
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+          },
+          (payload) => {
+            const message = payload.new as any;
+            if (message.sender_id !== user.id) {
+              console.log('New message detected via realtime');
+              queryClient.invalidateQueries({ queryKey: ['unread-messages-notif', user.id] });
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'messages',
+          },
+          () => {
             queryClient.invalidateQueries({ queryKey: ['unread-messages-notif', user.id] });
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['unread-messages-notif', user.id] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'buddy_messages',
-        },
-        (payload) => {
-          const message = payload.new as any;
-          if (message.sender_id !== user.id) {
-            console.log('New buddy message detected via realtime');
+        );
+    }
+
+    // Only subscribe to fishing-related tables if showing fishing
+    if (showFishing) {
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'buddy_messages',
+          },
+          (payload) => {
+            const message = payload.new as any;
+            if (message.sender_id !== user.id) {
+              console.log('New buddy message detected via realtime');
+              queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif', user.id] });
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'buddy_messages',
+          },
+          () => {
             queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif', user.id] });
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'buddy_messages',
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif', user.id] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'trip_participants',
-        },
-        (payload) => {
-          const invite = payload.new as any;
-          if (invite.user_id === user.id) {
-            console.log('New trip invite detected via realtime');
-            queryClient.invalidateQueries({ queryKey: ['trip-invites-notif', user.id] });
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'trip_participants',
+          },
+          (payload) => {
+            const invite = payload.new as any;
+            if (invite.user_id === user.id) {
+              console.log('New trip invite detected via realtime');
+              queryClient.invalidateQueries({ queryKey: ['trip-invites-notif', user.id] });
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Notification center realtime subscription status:', status);
-      });
+        );
+    }
+
+    channel.subscribe((status) => {
+      console.log('Notification center realtime subscription status:', status);
+    });
 
     return () => {
       console.log('Cleaning up notification center realtime subscriptions');
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, mode, showDating, showFishing]);
 
-  // Fetch recent matches
+  // Fetch recent matches (only for dating mode)
   const { data: recentMatches } = useQuery({
     queryKey: ['recent-matches-notif', user?.id],
     queryFn: async () => {
@@ -151,10 +170,10 @@ export function NotificationCenter() {
         .limit(10);
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && showDating,
   });
 
-  // Fetch unread dating messages
+  // Fetch unread dating messages (only for dating mode)
   const { data: unreadMessages } = useQuery({
     queryKey: ['unread-messages-notif', user?.id],
     queryFn: async () => {
@@ -175,10 +194,10 @@ export function NotificationCenter() {
         .limit(10);
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && showDating,
   });
 
-  // Fetch unread buddy messages
+  // Fetch unread buddy messages (only for fishing mode)
   const { data: unreadBuddyMessages } = useQuery({
     queryKey: ['unread-buddy-messages-notif', user?.id],
     queryFn: async () => {
@@ -213,10 +232,10 @@ export function NotificationCenter() {
       
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && showFishing,
   });
 
-  // Fetch trip invitations
+  // Fetch trip invitations (only for fishing mode)
   const { data: tripInvites } = useQuery({
     queryKey: ['trip-invites-notif', user?.id],
     queryFn: async () => {
@@ -253,56 +272,64 @@ export function NotificationCenter() {
       
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && showFishing,
   });
 
-  // Build notifications list
-  const matchNotifications: Notification[] = (recentMatches || []).map((match: any) => {
-    const otherUser = match.user1_id === user?.id ? match.user2 : match.user1;
-    return {
-      id: `match-${match.id}`,
-      type: 'match',
-      title: 'New Match!',
-      message: `You matched with ${otherUser?.display_name || 'Someone'}`,
-      time: match.matched_at,
-      link: '/app/matches',
-      icon: Heart,
-      photo: otherUser?.photos?.[0],
-    };
-  });
+  // Build notifications list based on mode
+  const matchNotifications: Notification[] = showDating 
+    ? (recentMatches || []).map((match: any) => {
+        const otherUser = match.user1_id === user?.id ? match.user2 : match.user1;
+        return {
+          id: `match-${match.id}`,
+          type: 'match',
+          title: 'New Match!',
+          message: `You matched with ${otherUser?.display_name || 'Someone'}`,
+          time: match.matched_at,
+          link: '/app/matches',
+          icon: Heart,
+          photo: otherUser?.photos?.[0],
+        };
+      })
+    : [];
 
-  const messageNotifications: Notification[] = (unreadMessages || []).map((msg: any) => ({
-    id: `msg-${msg.id}`,
-    type: 'message',
-    title: 'New Message',
-    message: `${msg.sender?.display_name || 'Someone'}: ${msg.content?.slice(0, 40)}${msg.content?.length > 40 ? '...' : ''}`,
-    time: msg.created_at,
-    link: `/app/messages/${msg.match_id}`,
-    icon: MessageCircle,
-    photo: msg.sender?.photos?.[0],
-  }));
+  const messageNotifications: Notification[] = showDating
+    ? (unreadMessages || []).map((msg: any) => ({
+        id: `msg-${msg.id}`,
+        type: 'message',
+        title: 'New Message',
+        message: `${msg.sender?.display_name || 'Someone'}: ${msg.content?.slice(0, 40)}${msg.content?.length > 40 ? '...' : ''}`,
+        time: msg.created_at,
+        link: `/app/messages/${msg.match_id}`,
+        icon: MessageCircle,
+        photo: msg.sender?.photos?.[0],
+      }))
+    : [];
 
-  const buddyMessageNotifications: Notification[] = (unreadBuddyMessages || []).map((msg: any) => ({
-    id: `buddy-msg-${msg.id}`,
-    type: 'buddy_message',
-    title: 'Buddy Message',
-    message: `${msg.sender?.display_name || 'A buddy'}: ${msg.content?.slice(0, 40)}${msg.content?.length > 40 ? '...' : ''}`,
-    time: msg.created_at,
-    link: `/app/buddy-chat/${msg.buddy_id}`,
-    icon: Users,
-    photo: msg.sender?.photos?.[0],
-  }));
+  const buddyMessageNotifications: Notification[] = showFishing
+    ? (unreadBuddyMessages || []).map((msg: any) => ({
+        id: `buddy-msg-${msg.id}`,
+        type: 'buddy_message',
+        title: 'Buddy Message',
+        message: `${msg.sender?.display_name || 'A buddy'}: ${msg.content?.slice(0, 40)}${msg.content?.length > 40 ? '...' : ''}`,
+        time: msg.created_at,
+        link: `/app/buddy-chat/${msg.buddy_id}`,
+        icon: Users,
+        photo: msg.sender?.photos?.[0],
+      }))
+    : [];
 
-  const tripNotifications: Notification[] = (tripInvites || []).map((invite: any) => ({
-    id: `trip-${invite.id}`,
-    type: 'trip',
-    title: 'Trip Invitation',
-    message: `${invite.owner?.display_name || 'Someone'} invited you to "${invite.trip?.title || 'a fishing trip'}"`,
-    time: invite.created_at,
-    link: `/app/trips/${invite.trip_id}`,
-    icon: Calendar,
-    photo: invite.owner?.photos?.[0],
-  }));
+  const tripNotifications: Notification[] = showFishing
+    ? (tripInvites || []).map((invite: any) => ({
+        id: `trip-${invite.id}`,
+        type: 'trip',
+        title: 'Trip Invitation',
+        message: `${invite.owner?.display_name || 'Someone'} invited you to "${invite.trip?.title || 'a fishing trip'}"`,
+        time: invite.created_at,
+        link: `/app/trips/${invite.trip_id}`,
+        icon: Calendar,
+        photo: invite.owner?.photos?.[0],
+      }))
+    : [];
 
   const allNotifications = [
     ...matchNotifications,
@@ -312,7 +339,9 @@ export function NotificationCenter() {
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
   const totalCount = allNotifications.length;
-  const messageCount = messageNotifications.length + buddyMessageNotifications.length;
+  const datingMessageCount = messageNotifications.length;
+  const buddyMessageCount = buddyMessageNotifications.length;
+  const messageCount = datingMessageCount + buddyMessageCount;
   const matchCount = matchNotifications.length;
   const tripCount = tripNotifications.length;
 
@@ -329,31 +358,39 @@ export function NotificationCenter() {
     if (!user?.id) return;
 
     try {
-      // Mark dating messages as read
-      await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .neq('sender_id', user.id);
-
-      // Mark buddy messages as read
-      const { data: buddies } = await supabase
-        .from('fishing_buddies')
-        .select('id')
-        .eq('status', 'accepted')
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
-
-      if (buddies && buddies.length > 0) {
-        const buddyIds = buddies.map(b => b.id);
+      // Mark dating messages as read (only if showing dating)
+      if (showDating) {
         await supabase
-          .from('buddy_messages')
+          .from('messages')
           .update({ is_read: true })
-          .in('buddy_id', buddyIds)
           .neq('sender_id', user.id);
       }
 
+      // Mark buddy messages as read (only if showing fishing)
+      if (showFishing) {
+        const { data: buddies } = await supabase
+          .from('fishing_buddies')
+          .select('id')
+          .eq('status', 'accepted')
+          .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+
+        if (buddies && buddies.length > 0) {
+          const buddyIds = buddies.map(b => b.id);
+          await supabase
+            .from('buddy_messages')
+            .update({ is_read: true })
+            .in('buddy_id', buddyIds)
+            .neq('sender_id', user.id);
+        }
+      }
+
       // Invalidate queries to refresh the notification counts
-      queryClient.invalidateQueries({ queryKey: ['unread-messages-notif'] });
-      queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif'] });
+      if (showDating) {
+        queryClient.invalidateQueries({ queryKey: ['unread-messages-notif'] });
+      }
+      if (showFishing) {
+        queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif'] });
+      }
     } catch (error) {
       console.error('Error marking notifications as read:', error);
     }
@@ -397,6 +434,13 @@ export function NotificationCenter() {
     </Link>
   );
 
+  // Determine which tabs to show based on mode
+  const getTabColumns = () => {
+    if (mode === 'fishing') return 3; // All, Messages (buddy), Trips
+    if (mode === 'dating') return 3;  // All, Messages (dating), Matches
+    return 4; // All, Messages, Matches, Trips
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -418,7 +462,7 @@ export function NotificationCenter() {
       <PopoverContent align="end" className="w-96 p-0">
         <Tabs defaultValue="all" className="w-full">
           <div className="p-3 border-b border-border">
-            <TabsList className="w-full grid grid-cols-4">
+            <TabsList className={cn("w-full grid", `grid-cols-${getTabColumns()}`)}>
               <TabsTrigger value="all" className="text-xs relative">
                 All
                 {totalCount > 0 && (
@@ -431,18 +475,22 @@ export function NotificationCenter() {
                   <span className="text-[10px]">{messageCount}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="matches" className="text-xs">
-                <Heart className="h-3 w-3 mr-1" />
-                {matchCount > 0 && (
-                  <span className="text-[10px]">{matchCount}</span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="trips" className="text-xs">
-                <Calendar className="h-3 w-3 mr-1" />
-                {tripCount > 0 && (
-                  <span className="text-[10px]">{tripCount}</span>
-                )}
-              </TabsTrigger>
+              {showDating && (
+                <TabsTrigger value="matches" className="text-xs">
+                  <Heart className="h-3 w-3 mr-1" />
+                  {matchCount > 0 && (
+                    <span className="text-[10px]">{matchCount}</span>
+                  )}
+                </TabsTrigger>
+              )}
+              {showFishing && (
+                <TabsTrigger value="trips" className="text-xs">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {tripCount > 0 && (
+                    <span className="text-[10px]">{tripCount}</span>
+                  )}
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -478,35 +526,39 @@ export function NotificationCenter() {
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="matches" className="m-0">
-            <ScrollArea className="h-[350px]">
-              {matchCount === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  <Heart className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No new matches</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {matchNotifications.map(renderNotificationItem)}
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
+          {showDating && (
+            <TabsContent value="matches" className="m-0">
+              <ScrollArea className="h-[350px]">
+                {matchCount === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <Heart className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No new matches</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {matchNotifications.map(renderNotificationItem)}
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          )}
 
-          <TabsContent value="trips" className="m-0">
-            <ScrollArea className="h-[350px]">
-              {tripCount === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No trip invitations</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {tripNotifications.map(renderNotificationItem)}
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
+          {showFishing && (
+            <TabsContent value="trips" className="m-0">
+              <ScrollArea className="h-[350px]">
+                {tripCount === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No trip invitations</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {tripNotifications.map(renderNotificationItem)}
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Footer with Mark All Read + Links */}
@@ -523,18 +575,22 @@ export function NotificationCenter() {
             </Button>
           )}
           <div className="flex gap-2">
-            <Link 
-              to="/app/messages" 
-              className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
-            >
-              Dating Messages
-            </Link>
-            <Link 
-              to="/app/buddy-messages" 
-              className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
-            >
-              Buddy Messages
-            </Link>
+            {showDating && (
+              <Link 
+                to="/app/messages" 
+                className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
+              >
+                Dating Messages
+              </Link>
+            )}
+            {showFishing && (
+              <Link 
+                to="/app/buddy-messages" 
+                className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
+              >
+                Buddy Messages
+              </Link>
+            )}
           </div>
         </div>
       </PopoverContent>
