@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { playNotificationSound, playBuddyRequestSound } from "@/utils/notification-sound";
 import { useWeather, getWindDirection, getFishingConditions } from "@/hooks/use-weather";
+import { NotificationCenter } from "@/components/notifications";
 import {
   LayoutDashboard,
   Users,
@@ -34,7 +34,6 @@ import {
   Star,
   SlidersHorizontal,
   Anchor,
-  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -520,56 +519,6 @@ export default function ComboDashboard() {
 
         {/* Nav Items */}
         <nav className="flex-1 p-3">
-          {/* Notification Bell at top of nav */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 text-muted-foreground hover:bg-muted hover:text-foreground">
-                <Bell className="h-5 w-5" />
-                <span>Notifications</span>
-                {totalNotifications > 0 && (
-                  <Badge variant="secondary" className="ml-auto bg-destructive text-destructive-foreground text-xs">
-                    {totalNotifications}
-                  </Badge>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" side="right" className="w-80 p-0">
-              <div className="p-3 border-b border-border">
-                <h4 className="font-semibold text-sm">Notifications</h4>
-              </div>
-              <ScrollArea className="h-[300px]">
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-muted-foreground text-sm">
-                    No new notifications
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {notifications.map((notification) => (
-                      <Link
-                        key={notification.id}
-                        to={notification.link}
-                        className="flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex-shrink-0 mt-0.5">
-                          <notification.icon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{notification.title}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
-
           {sidebarItems.map((item) => (
             <Link
               key={item.label}
@@ -641,27 +590,30 @@ export default function ComboDashboard() {
               </p>
             </div>
 
-            {/* View Mode Toggle - Hidden on mobile (uses AppHeader switcher) */}
-            <div className="hidden lg:flex bg-muted rounded-full p-1">
-              {[
-                { value: "unified", label: "Unified View", icon: LayoutDashboard },
-                { value: "dating", label: "Dating Only", icon: Heart },
-                { value: "fishing", label: "Fishing Spots", icon: Anchor },
-              ].map((mode) => (
-                <button
-                  key={mode.value}
-                  onClick={() => setActiveMode(mode.value as 'unified' | 'dating' | 'fishing')}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors",
-                    activeMode === mode.value
-                      ? "bg-background text-primary shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <mode.icon className="h-4 w-4" />
-                  {mode.label}
-                </button>
-              ))}
+            {/* View Mode Toggle + Notification Bell - Hidden on mobile (uses AppHeader switcher) */}
+            <div className="hidden lg:flex items-center gap-3">
+              <div className="bg-muted rounded-full p-1 flex">
+                {[
+                  { value: "unified", label: "Unified View", icon: LayoutDashboard },
+                  { value: "dating", label: "Dating Only", icon: Heart },
+                  { value: "fishing", label: "Fishing Spots", icon: Anchor },
+                ].map((mode) => (
+                  <button
+                    key={mode.value}
+                    onClick={() => setActiveMode(mode.value as 'unified' | 'dating' | 'fishing')}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors",
+                      activeMode === mode.value
+                        ? "bg-background text-primary shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <mode.icon className="h-4 w-4" />
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+              <NotificationCenter />
             </div>
           </div>
 
