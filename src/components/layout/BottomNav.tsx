@@ -20,6 +20,7 @@ interface NavItem {
   hasBuddyBadge?: boolean;
   hasMessageBadge?: boolean;
   hasMatchBadge?: boolean;
+  hasBuddyMessageBadge?: boolean;
 }
 
 const getNavItems = (mode: AccountMode): NavItem[] => {
@@ -35,8 +36,8 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
   if (mode === 'fishing') {
     return [
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
-      { to: '/app/catches', icon: Fish, label: 'Catches' },
-      { to: '/app/buddies', icon: Heart, label: 'Buddies', hasBuddyBadge: true },
+      { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
+      { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessageBadge: true },
       { to: '/app/profile', icon: User, label: 'Profile' },
     ];
   }
@@ -120,6 +121,36 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
   });
 
+  // Fetch unread buddy messages count
+  const { data: unreadBuddyMessagesCount = 0 } = useQuery({
+    queryKey: ["unread-buddy-messages-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      // First get all buddy relationships
+      const { data: buddies } = await supabase
+        .from("fishing_buddies")
+        .select("id")
+        .eq("status", "accepted")
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+
+      if (!buddies || buddies.length === 0) return 0;
+
+      const buddyIds = buddies.map(b => b.id);
+      
+      // Count unread buddy messages
+      const { count } = await supabase
+        .from("buddy_messages")
+        .select("*", { count: "exact", head: true })
+        .in("buddy_id", buddyIds)
+        .neq("sender_id", user.id)
+        .eq("is_read", false);
+
+      return count || 0;
+    },
+    enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
+  });
+
   // Real-time subscriptions
   useEffect(() => {
     if (!user?.id) return;
@@ -160,6 +191,17 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           queryClient.invalidateQueries({ queryKey: ["new-matches-count", user.id] });
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "buddy_messages",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["unread-buddy-messages-count", user.id] });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -171,6 +213,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     if (item.hasBuddyBadge) return pendingRequestsCount;
     if (item.hasMessageBadge) return unreadMessagesCount;
     if (item.hasMatchBadge) return newMatchesCount;
+    if (item.hasBuddyMessageBadge) return unreadBuddyMessagesCount;
     return 0;
   };
 

@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, Heart, MessageCircle, Calendar, LayoutDashboard, Anchor } from 'lucide-react';
+import { Heart, LayoutDashboard, Anchor } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 // Request browser notification permission
@@ -263,39 +260,6 @@ export function AppHeader() {
     previousCountRef.current = totalNotifications;
   }, [totalNotifications]);
 
-  const notifications = [
-    ...(recentMatches?.map((match: any) => {
-      const otherUser = match.user1_id === user?.id ? match.user2 : match.user1;
-      return {
-        id: `match-${match.id}`,
-        type: 'match' as const,
-        title: 'New Match!',
-        message: `You matched with ${otherUser?.display_name || 'Someone'}`,
-        time: match.matched_at,
-        link: '/app/matches',
-        icon: Heart,
-      };
-    }) || []),
-    ...(unreadMessages?.map((msg: any) => ({
-      id: `msg-${msg.id}`,
-      type: 'message' as const,
-      title: 'New Message',
-      message: `${msg.sender?.display_name || 'Someone'}: ${msg.content?.slice(0, 30)}...`,
-      time: msg.created_at,
-      link: '/app/messages',
-      icon: MessageCircle,
-    })) || []),
-    ...(tripInvites?.map((invite: any) => ({
-      id: `trip-${invite.id}`,
-      type: 'trip' as const,
-      title: 'Trip Invitation',
-      message: `You're invited to "${invite.trip?.title || 'a fishing trip'}"`,
-      time: invite.created_at,
-      link: '/app/trips',
-      icon: Calendar,
-    })) || []),
-  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-
   const modeOptions: { value: ActiveMode; icon: React.ElementType; label: string }[] = [
     { value: 'unified', icon: LayoutDashboard, label: 'All' },
     { value: 'dating', icon: Heart, label: 'Dating' },
@@ -331,51 +295,7 @@ export function AppHeader() {
             </div>
           )}
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                {totalNotifications > 0 && (
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full animate-pulse" />
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-80 p-0">
-              <div className="p-3 border-b border-border">
-                <h4 className="font-semibold text-sm">Notifications</h4>
-              </div>
-              <ScrollArea className="h-[300px]">
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-muted-foreground text-sm">
-                    No new notifications
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {notifications.map((notification) => (
-                      <Link
-                        key={notification.id}
-                        to={notification.link}
-                        className="flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex-shrink-0 mt-0.5">
-                          <notification.icon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{notification.title}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
+          <NotificationCenter />
 
           <Link to="/app/profile">
             <Avatar className="h-8 w-8 border border-border">
