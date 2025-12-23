@@ -30,6 +30,106 @@ export function NotificationCenter() {
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
 
+  // Real-time subscriptions for instant notification updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('Setting up real-time notification subscriptions');
+
+    const channel = supabase
+      .channel('notification-center-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          const match = payload.new as any;
+          if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
+            console.log('New match detected via realtime');
+            queryClient.invalidateQueries({ queryKey: ['recent-matches-notif', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const message = payload.new as any;
+          if (message.sender_id !== user.id) {
+            console.log('New message detected via realtime');
+            queryClient.invalidateQueries({ queryKey: ['unread-messages-notif', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['unread-messages-notif', user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'buddy_messages',
+        },
+        (payload) => {
+          const message = payload.new as any;
+          if (message.sender_id !== user.id) {
+            console.log('New buddy message detected via realtime');
+            queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif', user.id] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'buddy_messages',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif', user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'trip_participants',
+        },
+        (payload) => {
+          const invite = payload.new as any;
+          if (invite.user_id === user.id) {
+            console.log('New trip invite detected via realtime');
+            queryClient.invalidateQueries({ queryKey: ['trip-invites-notif', user.id] });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Notification center realtime subscription status:', status);
+      });
+
+    return () => {
+      console.log('Cleaning up notification center realtime subscriptions');
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   // Fetch recent matches
   const { data: recentMatches } = useQuery({
     queryKey: ['recent-matches-notif', user?.id],
