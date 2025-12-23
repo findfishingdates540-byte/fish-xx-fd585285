@@ -14,6 +14,7 @@ import {
 import { Search, Settings, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const bothNavItems = [
   { to: "/app/dashboard", label: "Dashboard" },
@@ -80,7 +81,7 @@ export function BothHeader() {
           </nav>
         </div>
 
-        {/* Right side - Search and Profile */}
+        {/* Right side - Search, Notifications, and Profile */}
         <div className="flex items-center gap-4">
           {/* Search */}
           <div className="hidden sm:flex relative">
@@ -90,6 +91,9 @@ export function BothHeader() {
               className="pl-9 w-48 lg:w-64 bg-muted/50 border-0 focus-visible:ring-1"
             />
           </div>
+
+          {/* Notifications */}
+          <NotificationCenter mode="both" />
 
           {/* Profile Dropdown */}
           <DropdownMenu>
