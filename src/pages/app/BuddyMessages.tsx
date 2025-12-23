@@ -1,14 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Search, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Search, MessageCircle, Fish, ArrowLeft, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BuddyConversation {
   buddyId: string;
+  buddyUserId: string;
   buddyProfile: {
     id: string;
     display_name: string | null;
@@ -23,8 +29,10 @@ interface BuddyConversation {
 }
 
 export default function BuddyMessages() {
+  const { buddyId } = useParams<{ buddyId?: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [conversations, setConversations] = useState<BuddyConversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -33,6 +41,30 @@ export default function BuddyMessages() {
     if (user) {
       fetchConversations();
     }
+  }, [user]);
+
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('buddy-messages-list')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'buddy_messages',
+        },
+        () => {
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const fetchConversations = async () => {
@@ -93,6 +125,7 @@ export default function BuddyMessages() {
 
         conversationData.push({
           buddyId: buddy.id,
+          buddyUserId: otherUserId,
           buddyProfile: profile,
           lastMessage: lastMessages?.[0],
           unreadCount: unreadCount || 0
@@ -113,6 +146,10 @@ export default function BuddyMessages() {
       setLoading(false);
     }
   };
+
+  // Get online status for all buddies
+  const buddyUserIds = useMemo(() => conversations.map(c => c.buddyUserId), [conversations]);
+  const { isOnline, getLastSeen } = useOnlineStatus(buddyUserIds);
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -135,6 +172,12 @@ export default function BuddyMessages() {
     conv.buddyProfile.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+
+  const handleSelectConversation = (id: string) => {
+    navigate(`/app/buddy-chat/${id}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] p-4">
@@ -143,79 +186,142 @@ export default function BuddyMessages() {
     );
   }
 
+  // Empty state
+  if (conversations.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-8 text-center">
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Users className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">No fishing buddies yet</h3>
+        <p className="text-muted-foreground max-w-sm mb-6">
+          Connect with other anglers to start chatting and plan fishing trips together!
+        </p>
+        <Button onClick={() => navigate('/app/buddies')}>
+          <Fish className="h-4 w-4 mr-2" />
+          Find Buddies
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="container max-w-2xl mx-auto p-4 pb-24 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Buddy Messages</h1>
-        <p className="text-muted-foreground">Chat with your fishing buddies</p>
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header */}
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {isMobile && (
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            )}
+            <div>
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                <Fish className="h-5 w-5" />
+                Buddy Messages
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {conversations.length} {conversations.length === 1 ? 'buddy' : 'buddies'}
+                {totalUnread > 0 && ` • ${totalUnread} unread`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search buddies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-        <Input
-          placeholder="Search conversations..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      {/* Conversation List */}
+      <ScrollArea className="flex-1">
+        <div className="divide-y divide-border">
+          {filteredConversations.map((conv) => {
+            const online = isOnline(conv.buddyUserId);
+            const lastSeen = getLastSeen(conv.buddyUserId);
+            
+            return (
+              <button
+                key={conv.buddyId}
+                onClick={() => handleSelectConversation(conv.buddyId)}
+                className={cn(
+                  "w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-accent/50",
+                  conv.unreadCount > 0 && "bg-accent/30"
+                )}
+              >
+                {/* Avatar with online indicator */}
+                <div className="relative flex-shrink-0">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={conv.buddyProfile.photos?.[0]} className="object-cover" />
+                    <AvatarFallback>
+                      {conv.buddyProfile.display_name?.charAt(0)?.toUpperCase() || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className={cn(
+                    "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
+                    online ? "bg-green-500" : "bg-muted-foreground/30"
+                  )} />
+                </div>
 
-      {filteredConversations.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>No buddy conversations yet</p>
-          <p className="text-sm">Start chatting with your fishing buddies!</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filteredConversations.map((conv) => (
-            <button
-              key={conv.buddyId}
-              onClick={() => navigate(`/app/buddy-chat/${conv.buddyId}`)}
-              className={cn(
-                "w-full p-4 rounded-lg border flex items-center gap-4 hover:bg-muted/50 transition-colors text-left",
-                conv.unreadCount > 0 && "bg-muted/30"
-              )}
-            >
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={conv.buddyProfile.photos?.[0]} className="object-cover" />
-                <AvatarFallback>
-                  {conv.buddyProfile.display_name?.charAt(0)?.toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className={cn(
-                    "font-medium",
-                    conv.unreadCount > 0 && "font-semibold"
-                  )}>
-                    {conv.buddyProfile.display_name || 'Anonymous'}
-                  </span>
-                  {conv.lastMessage && (
-                    <span className="text-xs text-muted-foreground">
-                      {formatTime(conv.lastMessage.created_at)}
-                    </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "font-semibold text-sm",
+                        conv.unreadCount > 0 && "font-bold"
+                      )}>
+                        {conv.buddyProfile.display_name || 'Anonymous'}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50">
+                        <Fish className="h-2.5 w-2.5 mr-0.5" />
+                        BUDDY
+                      </Badge>
+                    </div>
+                    {conv.lastMessage && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatTime(conv.lastMessage.created_at)}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {!online && lastSeen && (
+                    <p className="text-xs text-muted-foreground mb-0.5">
+                      {formatLastSeen(lastSeen)}
+                    </p>
                   )}
+                  
+                  <div className="flex items-center justify-between">
+                    <p className={cn(
+                      "text-sm truncate pr-2",
+                      conv.unreadCount > 0 ? "text-foreground font-medium" : "text-muted-foreground"
+                    )}>
+                      {conv.lastMessage?.sender_id === user?.id && (
+                        <span className="text-muted-foreground">You: </span>
+                      )}
+                      {conv.lastMessage?.content || 'No messages yet'}
+                    </p>
+                    {conv.unreadCount > 0 ? (
+                      <Badge className="bg-primary text-primary-foreground text-xs h-5 min-w-[20px] flex items-center justify-center">
+                        {conv.unreadCount}
+                      </Badge>
+                    ) : conv.lastMessage?.sender_id === user?.id ? (
+                      <span className="text-sm flex-shrink-0" title="Sent">🎣</span>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className={cn(
-                    "text-sm truncate",
-                    conv.unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
-                  )}>
-                    {conv.lastMessage?.content || 'No messages yet'}
-                  </p>
-                  {conv.unreadCount > 0 && (
-                    <span className="bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center ml-2">
-                      {conv.unreadCount}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
-      )}
+      </ScrollArea>
     </div>
   );
 }

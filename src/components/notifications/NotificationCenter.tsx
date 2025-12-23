@@ -1,0 +1,380 @@
+import { Bell, Heart, MessageCircle, Calendar, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+interface Notification {
+  id: string;
+  type: 'match' | 'message' | 'buddy_message' | 'trip';
+  title: string;
+  message: string;
+  time: string;
+  link: string;
+  icon: React.ElementType;
+  photo?: string;
+  isRead?: boolean;
+}
+
+export function NotificationCenter() {
+  const { user } = useAuth();
+
+  // Fetch recent matches
+  const { data: recentMatches } = useQuery({
+    queryKey: ['recent-matches-notif', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          matched_at,
+          user1_id,
+          user2_id,
+          user1:profiles!matches_user1_id_fkey(display_name, photos),
+          user2:profiles!matches_user2_id_fkey(display_name, photos)
+        `)
+        .eq('is_match', true)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .order('matched_at', { ascending: false })
+        .limit(10);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch unread dating messages
+  const { data: unreadMessages } = useQuery({
+    queryKey: ['unread-messages-notif', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          sender_id,
+          match_id,
+          sender:profiles!messages_sender_id_fkey(display_name, photos)
+        `)
+        .eq('is_read', false)
+        .neq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch unread buddy messages
+  const { data: unreadBuddyMessages } = useQuery({
+    queryKey: ['unread-buddy-messages-notif', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // First get buddy relationships
+      const { data: buddies } = await supabase
+        .from('fishing_buddies')
+        .select('id, requester_id, recipient_id')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+
+      if (!buddies || buddies.length === 0) return [];
+
+      const buddyIds = buddies.map(b => b.id);
+
+      const { data } = await supabase
+        .from('buddy_messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          sender_id,
+          buddy_id,
+          sender:profiles!buddy_messages_sender_id_fkey(display_name, photos)
+        `)
+        .in('buddy_id', buddyIds)
+        .eq('is_read', false)
+        .neq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch trip invitations
+  const { data: tripInvites } = useQuery({
+    queryKey: ['trip-invites-notif', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('trip_participants')
+        .select(`
+          id,
+          created_at,
+          status,
+          trip_id,
+          trip:fishing_trips(title, trip_date, user_id)
+        `)
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'invited'])
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      // Get trip owner profiles
+      if (data && data.length > 0) {
+        const ownerIds = [...new Set(data.map((d: any) => d.trip?.user_id).filter(Boolean))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, photos')
+          .in('id', ownerIds);
+        
+        const profileMap = new Map(profiles?.map(p => [p.id, p]));
+        
+        return data.map((d: any) => ({
+          ...d,
+          owner: profileMap.get(d.trip?.user_id)
+        }));
+      }
+      
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Build notifications list
+  const matchNotifications: Notification[] = (recentMatches || []).map((match: any) => {
+    const otherUser = match.user1_id === user?.id ? match.user2 : match.user1;
+    return {
+      id: `match-${match.id}`,
+      type: 'match',
+      title: 'New Match!',
+      message: `You matched with ${otherUser?.display_name || 'Someone'}`,
+      time: match.matched_at,
+      link: '/app/matches',
+      icon: Heart,
+      photo: otherUser?.photos?.[0],
+    };
+  });
+
+  const messageNotifications: Notification[] = (unreadMessages || []).map((msg: any) => ({
+    id: `msg-${msg.id}`,
+    type: 'message',
+    title: 'New Message',
+    message: `${msg.sender?.display_name || 'Someone'}: ${msg.content?.slice(0, 40)}${msg.content?.length > 40 ? '...' : ''}`,
+    time: msg.created_at,
+    link: `/app/messages/${msg.match_id}`,
+    icon: MessageCircle,
+    photo: msg.sender?.photos?.[0],
+  }));
+
+  const buddyMessageNotifications: Notification[] = (unreadBuddyMessages || []).map((msg: any) => ({
+    id: `buddy-msg-${msg.id}`,
+    type: 'buddy_message',
+    title: 'Buddy Message',
+    message: `${msg.sender?.display_name || 'A buddy'}: ${msg.content?.slice(0, 40)}${msg.content?.length > 40 ? '...' : ''}`,
+    time: msg.created_at,
+    link: `/app/buddy-chat/${msg.buddy_id}`,
+    icon: Users,
+    photo: msg.sender?.photos?.[0],
+  }));
+
+  const tripNotifications: Notification[] = (tripInvites || []).map((invite: any) => ({
+    id: `trip-${invite.id}`,
+    type: 'trip',
+    title: 'Trip Invitation',
+    message: `${invite.owner?.display_name || 'Someone'} invited you to "${invite.trip?.title || 'a fishing trip'}"`,
+    time: invite.created_at,
+    link: `/app/trips/${invite.trip_id}`,
+    icon: Calendar,
+    photo: invite.owner?.photos?.[0],
+  }));
+
+  const allNotifications = [
+    ...matchNotifications,
+    ...messageNotifications,
+    ...buddyMessageNotifications,
+    ...tripNotifications,
+  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+  const totalCount = allNotifications.length;
+  const messageCount = messageNotifications.length + buddyMessageNotifications.length;
+  const matchCount = matchNotifications.length;
+  const tripCount = tripNotifications.length;
+
+  const renderNotificationItem = (notification: Notification) => (
+    <Link
+      key={notification.id}
+      to={notification.link}
+      className="flex items-start gap-3 p-3 hover:bg-accent/50 transition-colors"
+    >
+      <div className="flex-shrink-0 mt-0.5">
+        {notification.photo ? (
+          <img 
+            src={notification.photo} 
+            alt="" 
+            className="h-10 w-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
+            <notification.icon className="h-5 w-5 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium">{notification.title}</p>
+          {notification.type === 'buddy_message' && (
+            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+              🎣 Buddy
+            </Badge>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {notification.message}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {formatDistanceToNow(new Date(notification.time), { addSuffix: true })}
+        </p>
+      </div>
+    </Link>
+  );
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {totalCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center text-[10px] px-1"
+            >
+              {totalCount > 99 ? '99+' : totalCount}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-96 p-0">
+        <Tabs defaultValue="all" className="w-full">
+          <div className="p-3 border-b border-border">
+            <TabsList className="w-full grid grid-cols-4">
+              <TabsTrigger value="all" className="text-xs relative">
+                All
+                {totalCount > 0 && (
+                  <span className="ml-1 text-[10px] text-muted-foreground">({totalCount})</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="messages" className="text-xs relative">
+                <MessageCircle className="h-3 w-3 mr-1" />
+                {messageCount > 0 && (
+                  <span className="text-[10px]">{messageCount}</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="text-xs">
+                <Heart className="h-3 w-3 mr-1" />
+                {matchCount > 0 && (
+                  <span className="text-[10px]">{matchCount}</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="trips" className="text-xs">
+                <Calendar className="h-3 w-3 mr-1" />
+                {tripCount > 0 && (
+                  <span className="text-[10px]">{tripCount}</span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="all" className="m-0">
+            <ScrollArea className="h-[350px]">
+              {allNotifications.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No notifications</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {allNotifications.map(renderNotificationItem)}
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="messages" className="m-0">
+            <ScrollArea className="h-[350px]">
+              {messageCount === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No new messages</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {[...messageNotifications, ...buddyMessageNotifications]
+                    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+                    .map(renderNotificationItem)}
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="matches" className="m-0">
+            <ScrollArea className="h-[350px]">
+              {matchCount === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <Heart className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No new matches</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {matchNotifications.map(renderNotificationItem)}
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="trips" className="m-0">
+            <ScrollArea className="h-[350px]">
+              {tripCount === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No trip invitations</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {tripNotifications.map(renderNotificationItem)}
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+
+        {/* Footer Links */}
+        <div className="p-2 border-t border-border flex gap-2">
+          <Link 
+            to="/app/messages" 
+            className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
+          >
+            Dating Messages
+          </Link>
+          <Link 
+            to="/app/buddy-messages" 
+            className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
+          >
+            Buddy Messages
+          </Link>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
