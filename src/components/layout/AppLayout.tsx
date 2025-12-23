@@ -6,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
 import { FishingHeader } from './FishingHeader';
-import { DatingHeader } from './DatingHeader';
 import { BothHeader } from './BothHeader';
 import { ComboSharedHeader } from './ComboSharedHeader';
 import { Skeleton } from '@/components/ui/skeleton';
