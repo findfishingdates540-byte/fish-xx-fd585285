@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import {
   User,
   Smartphone,
@@ -28,6 +29,7 @@ import {
   Trash2,
   Star,
   LogOut,
+  BellRing,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -556,47 +558,16 @@ export default function Settings() {
 
             {/* Notifications Tab */}
             {activeTab === "notifications" && (
-              <Card>
-                <CardContent className="p-6 space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-1">Notification Preferences</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Choose what notifications you want to receive.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="font-medium text-sm">New Matches</p>
-                        <p className="text-xs text-muted-foreground">Get notified when you have a new match</p>
-                      </div>
-                      <Switch checked={newMatches} onCheckedChange={setNewMatches} />
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="font-medium text-sm">Messages</p>
-                        <p className="text-xs text-muted-foreground">Get notified when you receive a message</p>
-                      </div>
-                      <Switch checked={messages} onCheckedChange={setMessages} />
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="font-medium text-sm">Likes</p>
-                        <p className="text-xs text-muted-foreground">Get notified when someone likes you</p>
-                      </div>
-                      <Switch checked={likes} onCheckedChange={setLikes} />
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-t pt-4">
-                      <div>
-                        <p className="font-medium text-sm">Marketing</p>
-                        <p className="text-xs text-muted-foreground">Receive tips, offers, and updates</p>
-                      </div>
-                      <Switch checked={marketing} onCheckedChange={setMarketing} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <NotificationsTab
+                newMatches={newMatches}
+                setNewMatches={setNewMatches}
+                messages={messages}
+                setMessages={setMessages}
+                likes={likes}
+                setLikes={setLikes}
+                marketing={marketing}
+                setMarketing={setMarketing}
+              />
             )}
 
             {/* Privacy Tab */}
@@ -682,6 +653,138 @@ export default function Settings() {
           </main>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Notifications Tab Component with Push Notifications
+interface NotificationsTabProps {
+  newMatches: boolean;
+  setNewMatches: (v: boolean) => void;
+  messages: boolean;
+  setMessages: (v: boolean) => void;
+  likes: boolean;
+  setLikes: (v: boolean) => void;
+  marketing: boolean;
+  setMarketing: (v: boolean) => void;
+}
+
+function NotificationsTab({
+  newMatches,
+  setNewMatches,
+  messages,
+  setMessages,
+  likes,
+  setLikes,
+  marketing,
+  setMarketing,
+}: NotificationsTabProps) {
+  const {
+    isSupported,
+    isSubscribed,
+    isLoading,
+    permission,
+    vapidKeyLoaded,
+    subscribe,
+    unsubscribe,
+  } = usePushNotifications();
+
+  const handlePushToggle = async (enabled: boolean) => {
+    if (enabled) {
+      await subscribe();
+    } else {
+      await unsubscribe();
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Push Notifications Card */}
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <div>
+            <h3 className="font-semibold mb-1 flex items-center gap-2">
+              <BellRing className="h-5 w-5" />
+              Push Notifications
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Receive alerts even when the app is closed or in the background.
+            </p>
+          </div>
+
+          {!isSupported ? (
+            <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground">
+              Push notifications are not supported in this browser. Try using Chrome, Firefox, or Edge.
+            </div>
+          ) : !vapidKeyLoaded ? (
+            <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading notification settings...
+            </div>
+          ) : (
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="font-medium text-sm">Enable Push Notifications</p>
+                <p className="text-xs text-muted-foreground">
+                  {isSubscribed
+                    ? "You'll receive alerts for matches, messages & trips"
+                    : permission === 'denied'
+                    ? "Notifications blocked. Enable in browser settings."
+                    : "Get notified instantly on your device"}
+                </p>
+              </div>
+              <Switch
+                checked={isSubscribed}
+                onCheckedChange={handlePushToggle}
+                disabled={isLoading || permission === 'denied'}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* In-App Notifications Card */}
+      <Card>
+        <CardContent className="p-6 space-y-6">
+          <div>
+            <h3 className="font-semibold mb-1">In-App Notifications</h3>
+            <p className="text-sm text-muted-foreground">
+              Choose what notifications you want to receive while using the app.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="font-medium text-sm">New Matches</p>
+                <p className="text-xs text-muted-foreground">Get notified when you have a new match</p>
+              </div>
+              <Switch checked={newMatches} onCheckedChange={setNewMatches} />
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="font-medium text-sm">Messages</p>
+                <p className="text-xs text-muted-foreground">Get notified when you receive a message</p>
+              </div>
+              <Switch checked={messages} onCheckedChange={setMessages} />
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="font-medium text-sm">Likes</p>
+                <p className="text-xs text-muted-foreground">Get notified when someone likes you</p>
+              </div>
+              <Switch checked={likes} onCheckedChange={setLikes} />
+            </div>
+            <div className="flex items-center justify-between py-2 border-t pt-4">
+              <div>
+                <p className="font-medium text-sm">Marketing</p>
+                <p className="text-xs text-muted-foreground">Receive tips, offers, and updates</p>
+              </div>
+              <Switch checked={marketing} onCheckedChange={setMarketing} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

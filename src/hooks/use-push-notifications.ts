@@ -3,10 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-// You'll need to set this from your VAPID_PUBLIC_KEY secret
-// For now using a placeholder - replace with actual key from edge function
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY'; // Will be fetched from config
-
 function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
@@ -29,6 +25,7 @@ export function usePushNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [vapidKey, setVapidKey] = useState<string | null>(null);
 
   // Check if push notifications are supported
   useEffect(() => {
@@ -39,6 +36,25 @@ export function usePushNotifications() {
       setPermission(Notification.permission);
     }
   }, []);
+
+  // Fetch VAPID public key
+  useEffect(() => {
+    const fetchVapidKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-vapid-key');
+        if (error) throw error;
+        if (data?.publicKey) {
+          setVapidKey(data.publicKey);
+        }
+      } catch (error) {
+        console.error('Error fetching VAPID key:', error);
+      }
+    };
+
+    if (isSupported) {
+      fetchVapidKey();
+    }
+  }, [isSupported]);
 
   // Register service worker and check subscription status
   useEffect(() => {
@@ -58,7 +74,14 @@ export function usePushNotifications() {
   }, [isSupported, user?.id]);
 
   const subscribe = useCallback(async () => {
-    if (!isSupported || !user?.id) return false;
+    if (!isSupported || !user?.id || !vapidKey) {
+      toast({
+        title: 'Not available',
+        description: 'Push notifications are not configured yet',
+        variant: 'destructive',
+      });
+      return false;
+    }
 
     setIsLoading(true);
 
@@ -82,7 +105,7 @@ export function usePushNotifications() {
       // Subscribe to push
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
       const subscriptionJson = subscription.toJSON();
@@ -119,7 +142,7 @@ export function usePushNotifications() {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported, user?.id, toast]);
+  }, [isSupported, user?.id, vapidKey, toast]);
 
   const unsubscribe = useCallback(async () => {
     if (!isSupported || !user?.id) return false;
@@ -166,6 +189,7 @@ export function usePushNotifications() {
     isSubscribed,
     isLoading,
     permission,
+    vapidKeyLoaded: !!vapidKey,
     subscribe,
     unsubscribe,
   };
