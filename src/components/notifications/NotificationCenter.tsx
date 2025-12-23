@@ -256,12 +256,15 @@ export function NotificationCenter() {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {totalCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center text-[10px] px-1"
-            >
-              {totalCount > 99 ? '99+' : totalCount}
-            </Badge>
+            <>
+              <span className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full bg-destructive animate-ping opacity-75" />
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center text-[10px] px-1"
+              >
+                {totalCount > 99 ? '99+' : totalCount}
+              </Badge>
+            </>
           )}
         </Button>
       </PopoverTrigger>
