@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Heart, LayoutDashboard, Anchor } from 'lucide-react';
+import { Heart, LayoutDashboard, Anchor, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-
+import { Badge } from '@/components/ui/badge';
 // Request browser notification permission
 const requestNotificationPermission = async () => {
   if ('Notification' in window && Notification.permission === 'default') {
@@ -273,7 +273,7 @@ export function AppHeader() {
           Find Fishing Dates
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {/* Mode Switcher for Combo Users */}
           {isComboUser && (
             <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
@@ -294,6 +294,23 @@ export function AppHeader() {
               ))}
             </div>
           )}
+
+          {/* Messages Link */}
+          <Link 
+            to="/app/messages" 
+            className="relative p-2 rounded-full hover:bg-muted transition-colors"
+            title="Messages"
+          >
+            <MessageCircle className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+            {(unreadMessages?.length || 0) > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-0.5 -right-0.5 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
+              >
+                {(unreadMessages?.length || 0) > 9 ? "9+" : unreadMessages?.length}
+              </Badge>
+            )}
+          </Link>
 
           <NotificationCenter />
 
