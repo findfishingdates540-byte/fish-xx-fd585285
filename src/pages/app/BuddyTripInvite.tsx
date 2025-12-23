@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { format, addDays } from "date-fns";
 import { useWeather, getWindDirection, getFishingConditions } from "@/hooks/use-weather";
 import { sendTripInvitationNotification } from "@/hooks/use-trip-notifications";
+import { TripInviteSuccessModal } from "@/components/trips";
 import {
   MapPin,
   MessageSquare,
@@ -88,6 +89,7 @@ export default function BuddyTripInvite() {
   const [activities, setActivities] = useState(defaultActivities);
   const [note, setNote] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Generate next 4 days for date picker
   const dateOptions = Array.from({ length: 4 }, (_, i) => addDays(new Date(), i));
@@ -200,11 +202,7 @@ export default function BuddyTripInvite() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-trips"] });
       queryClient.invalidateQueries({ queryKey: ["trip-invitations"] });
-      toast({
-        title: "Invitation Sent!",
-        description: `Your trip invite has been sent to ${buddy?.display_name || "your buddy"}.`,
-      });
-      navigate("/app/trips");
+      setShowSuccessModal(true);
     },
     onError: (error: Error) => {
       toast({
@@ -614,6 +612,19 @@ export default function BuddyTripInvite() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <TripInviteSuccessModal
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        buddyName={buddy?.display_name || "Your buddy"}
+        buddyPhoto={buddy?.photos?.[0]}
+        spotName={spot?.name || "Fishing spot"}
+        spotLat={spot?.location_lat}
+        spotLng={spot?.location_lng}
+        tripDate={selectedDate}
+        tripTime={selectedTimeLabel}
+      />
     </div>
   );
 }
