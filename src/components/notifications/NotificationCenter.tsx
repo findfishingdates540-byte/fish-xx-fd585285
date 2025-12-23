@@ -1,15 +1,17 @@
-import { Bell, Heart, MessageCircle, Calendar, Users } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Bell, Heart, MessageCircle, Calendar, Users, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { playNotificationSound } from '@/utils/notification-sound';
 
 interface Notification {
   id: string;
@@ -25,6 +27,8 @@ interface Notification {
 
 export function NotificationCenter() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const previousCountRef = useRef<number>(0);
 
   // Fetch recent matches
   const { data: recentMatches } = useQuery({
@@ -212,6 +216,49 @@ export function NotificationCenter() {
   const matchCount = matchNotifications.length;
   const tripCount = tripNotifications.length;
 
+  // Play sound when new notifications arrive
+  useEffect(() => {
+    if (totalCount > previousCountRef.current && previousCountRef.current > 0) {
+      playNotificationSound();
+    }
+    previousCountRef.current = totalCount;
+  }, [totalCount]);
+
+  // Mark all messages as read
+  const handleMarkAllRead = async () => {
+    if (!user?.id) return;
+
+    try {
+      // Mark dating messages as read
+      await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .neq('sender_id', user.id);
+
+      // Mark buddy messages as read
+      const { data: buddies } = await supabase
+        .from('fishing_buddies')
+        .select('id')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+
+      if (buddies && buddies.length > 0) {
+        const buddyIds = buddies.map(b => b.id);
+        await supabase
+          .from('buddy_messages')
+          .update({ is_read: true })
+          .in('buddy_id', buddyIds)
+          .neq('sender_id', user.id);
+      }
+
+      // Invalidate queries to refresh the notification counts
+      queryClient.invalidateQueries({ queryKey: ['unread-messages-notif'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif'] });
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+  };
+
   const renderNotificationItem = (notification: Notification) => (
     <Link
       key={notification.id}
@@ -362,20 +409,33 @@ export function NotificationCenter() {
           </TabsContent>
         </Tabs>
 
-        {/* Footer Links */}
-        <div className="p-2 border-t border-border flex gap-2">
-          <Link 
-            to="/app/messages" 
-            className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
-          >
-            Dating Messages
-          </Link>
-          <Link 
-            to="/app/buddy-messages" 
-            className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
-          >
-            Buddy Messages
-          </Link>
+        {/* Footer with Mark All Read + Links */}
+        <div className="p-2 border-t border-border">
+          {totalCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full mb-2 text-xs gap-2"
+              onClick={handleMarkAllRead}
+            >
+              <Check className="h-3 w-3" />
+              Mark all as read
+            </Button>
+          )}
+          <div className="flex gap-2">
+            <Link 
+              to="/app/messages" 
+              className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
+            >
+              Dating Messages
+            </Link>
+            <Link 
+              to="/app/buddy-messages" 
+              className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
+            >
+              Buddy Messages
+            </Link>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
