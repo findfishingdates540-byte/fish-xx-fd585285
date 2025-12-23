@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -5,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Calendar, Clock, CalendarCheck, X, Fish } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import confetti from 'canvas-confetti';
 
 interface TripInviteSuccessModalProps {
   open: boolean;
@@ -31,6 +33,36 @@ export function TripInviteSuccessModal({
 }: TripInviteSuccessModalProps) {
   const navigate = useNavigate();
 
+  // Trigger confetti when modal opens
+  useEffect(() => {
+    if (open) {
+      const duration = 2000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.6 },
+          colors: ['#0EA5E9', '#22C55E', '#F97316', '#8B5CF6'],
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.6 },
+          colors: ['#0EA5E9', '#22C55E', '#F97316', '#8B5CF6'],
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
+    }
+  }, [open]);
+
   const handleViewTrips = () => {
     navigate('/app/trips');
     onClose();
@@ -40,11 +72,6 @@ export function TripInviteSuccessModal({
     onClose();
     navigate(-1);
   };
-
-  // Generate static map URL
-  const mapUrl = spotLat && spotLng 
-    ? `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+0ea5e9(${spotLng},${spotLat})/${spotLng},${spotLat},11,0/400x200@2x?access_token=pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNscXBsaXNtZTAxMDkycXBpbzVwbWNlMWEifQ.placeholder`
-    : null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
