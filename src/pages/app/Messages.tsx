@@ -50,8 +50,17 @@ export default function Messages() {
       time: convo.time,
       unreadCount: convo.unreadCount,
       isOnline: isOnline(convo.matchedUserId),
-      lastSeen: !isOnline(convo.matchedUserId) ? formatLastSeen(getLastSeen(convo.matchedUserId)) : undefined
+      lastSeen: !isOnline(convo.matchedUserId) ? formatLastSeen(getLastSeen(convo.matchedUserId)) : undefined,
+      type: 'date' as const,
     })), [conversations, isOnline, getLastSeen]);
+
+  // New bites - recent matches without messages
+  const newBites = useMemo(() => 
+    conversations
+      .filter(c => !c.lastMessage)
+      .slice(0, 5)
+      .map(c => ({ id: c.id, name: c.name, photo: c.photo, isNew: true })),
+    [conversations]);
 
   const handleSelectConversation = (id: string) => {
     navigate(`/app/messages/${id}`);
@@ -120,6 +129,7 @@ export default function Messages() {
               conversations={conversationsWithStatus}
               selectedId={undefined}
               onSelect={handleSelectConversation}
+              newBites={newBites}
             />
             {/* Empty State / Chat Area */}
             <EmptyMessages />

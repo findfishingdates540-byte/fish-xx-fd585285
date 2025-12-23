@@ -1,4 +1,4 @@
-import { MapPin, Heart, Briefcase, Sparkles } from 'lucide-react';
+import { MapPin, Heart, Briefcase, Fish, Camera, Music, Coffee, Dumbbell, Book, Plane, Gamepad2, Utensils, Palette, TreesIcon as Trees, Flag } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,30 @@ interface ProfileSidebarProps {
   interests?: string[];
   photos?: string[];
   className?: string;
+  favoriteSpot?: { name: string; location?: string };
+  recentCatches?: { photo: string; species?: string }[];
+  chatType?: 'date' | 'buddy';
 }
+
+// Map interests to icons
+const interestIcons: Record<string, React.ReactNode> = {
+  'Photography': <Camera className="h-4 w-4" />,
+  'Music': <Music className="h-4 w-4" />,
+  'Coffee': <Coffee className="h-4 w-4" />,
+  'Fitness': <Dumbbell className="h-4 w-4" />,
+  'Reading': <Book className="h-4 w-4" />,
+  'Travel': <Plane className="h-4 w-4" />,
+  'Gaming': <Gamepad2 className="h-4 w-4" />,
+  'Cooking': <Utensils className="h-4 w-4" />,
+  'Art': <Palette className="h-4 w-4" />,
+  'Hiking': <Trees className="h-4 w-4" />,
+  'Fishing': <Fish className="h-4 w-4" />,
+  'Sports': <Flag className="h-4 w-4" />,
+};
+
+const getInterestIcon = (interest: string) => {
+  return interestIcons[interest] || <Heart className="h-4 w-4" />;
+};
 
 export function ProfileSidebar({
   name,
@@ -26,22 +49,32 @@ export function ProfileSidebar({
   interests = [],
   photos = [],
   className,
+  favoriteSpot,
+  recentCatches = [],
+  chatType = 'date',
 }: ProfileSidebarProps) {
   return (
     <aside className={cn("flex flex-col bg-background overflow-y-auto", className)}>
-      <div className="p-6">
-        {/* Profile Photo */}
-        <div className="flex justify-center mb-4">
-          <Avatar className="h-28 w-28 ring-4 ring-accent">
-            <AvatarImage src={photo} alt={name} className="object-cover" />
-            <AvatarFallback className="text-3xl">{name.charAt(0)}</AvatarFallback>
-          </Avatar>
-        </div>
-
-        {/* Name & Status */}
-        <div className="text-center mb-4">
-          <h3 className="text-xl font-bold">{name} 💕</h3>
-          <div className="flex items-center justify-center gap-2 mt-1">
+      {/* Hero Photo Section */}
+      <div className="relative h-48 w-full overflow-hidden">
+        <img
+          src={photo}
+          alt={name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        
+        {/* Name overlay at bottom */}
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-xl font-bold text-foreground">{name}</h3>
+            {chatType === 'date' ? (
+              <span className="text-lg">💕</span>
+            ) : (
+              <span className="text-lg">🎣</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
             {isOnline ? (
               <Badge className="bg-green-500 text-white text-xs">ONLINE</Badge>
             ) : (
@@ -50,16 +83,18 @@ export function ProfileSidebar({
             <span className="text-muted-foreground text-sm">• {age} yrs</span>
           </div>
         </div>
+      </div>
 
+      <div className="p-6">
         {/* Quick Info */}
         <div className="grid grid-cols-3 gap-2 mb-6">
           <div className="flex flex-col items-center p-3 rounded-xl border border-border">
             <MapPin className="h-5 w-5 text-primary mb-1" />
-            <span className="text-xs text-muted-foreground">{location || 'Unknown'}</span>
+            <span className="text-xs text-muted-foreground text-center truncate w-full">{location || 'Unknown'}</span>
           </div>
           <div className="flex flex-col items-center p-3 rounded-xl border border-border">
             <Briefcase className="h-5 w-5 text-primary mb-1" />
-            <span className="text-xs text-muted-foreground">Dating</span>
+            <span className="text-xs text-muted-foreground">{chatType === 'date' ? 'Dating' : 'Buddy'}</span>
           </div>
           <div className="flex flex-col items-center p-3 rounded-xl border border-border">
             <Heart className="h-5 w-5 text-primary mb-1" />
@@ -77,18 +112,76 @@ export function ProfileSidebar({
           </p>
         </div>
 
-        {/* Interests */}
+        {/* Interests with Icons */}
         {interests.length > 0 && (
           <div className="mb-6">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               Interests
             </h4>
-            <div className="flex flex-wrap gap-2">
-              {interests.map((interest) => (
-                <Badge key={interest} variant="secondary" className="text-xs">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  {interest}
-                </Badge>
+            <div className="grid grid-cols-2 gap-2">
+              {interests.slice(0, 6).map((interest) => (
+                <div
+                  key={interest}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-accent/50"
+                >
+                  <div className="text-primary">
+                    {getInterestIcon(interest)}
+                  </div>
+                  <span className="text-xs text-foreground truncate">{interest}</span>
+                </div>
+              ))}
+            </div>
+            {interests.length > 6 && (
+              <p className="text-xs text-muted-foreground mt-2">+{interests.length - 6} more</p>
+            )}
+          </div>
+        )}
+
+        {/* Favorite Spot */}
+        {favoriteSpot && (
+          <div className="mb-6">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Favorite Spot
+            </h4>
+            <div className="rounded-xl border border-border overflow-hidden">
+              <div className="h-20 bg-muted flex items-center justify-center">
+                <MapPin className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <div className="p-3">
+                <p className="text-sm font-medium">{favoriteSpot.name}</p>
+                {favoriteSpot.location && (
+                  <p className="text-xs text-muted-foreground">{favoriteSpot.location}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Catches */}
+        {recentCatches.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Recent Catches
+            </h4>
+            <div className="grid grid-cols-3 gap-2">
+              {recentCatches.slice(0, 3).map((catchItem, index) => (
+                <div
+                  key={index}
+                  className="aspect-square rounded-xl overflow-hidden bg-accent relative group"
+                >
+                  <img
+                    src={catchItem.photo}
+                    alt={catchItem.species || 'Catch'}
+                    className="w-full h-full object-cover"
+                  />
+                  {catchItem.species && (
+                    <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-xs text-background font-medium text-center px-1">
+                        {catchItem.species}
+                      </span>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -129,9 +222,14 @@ export function ProfileSidebar({
           <Button variant="outline" className="w-full border-border">
             View Full Profile
           </Button>
-          <Button variant="ghost" className="w-full text-destructive hover:text-destructive">
-            Block & Report
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+              Block
+            </Button>
+            <Button variant="ghost" className="text-destructive hover:text-destructive">
+              Report
+            </Button>
+          </div>
         </div>
       </div>
     </aside>

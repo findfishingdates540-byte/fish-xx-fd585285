@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, Check, CheckCheck, X, Loader2, Mic, Square } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, X, Loader2, Mic, Square, MapPin } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { MessageReactions } from './MessageReactions';
@@ -11,6 +12,7 @@ import { WaveformVisualizer } from './WaveformVisualizer';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
 
 interface Message {
   id: string;
@@ -20,6 +22,7 @@ interface Message {
   isRead?: boolean;
   imageUrl?: string | null;
   audioUrl?: string | null;
+  createdAt?: string;
 }
 
 interface ReactionSummary {
@@ -40,6 +43,8 @@ interface ChatAreaProps {
   onInputChange?: () => void;
   getReactionSummary?: (messageId: string) => ReactionSummary[];
   onToggleReaction?: (messageId: string, emoji: string) => void;
+  chatType?: 'date' | 'buddy';
+  distance?: string;
 }
 
 const quickReplies = [
@@ -47,6 +52,18 @@ const quickReplies = [
   { emoji: '🎣', text: 'Go fishing?' },
   { emoji: '📍', text: 'Favorite spot?' },
 ];
+
+// Helper to group messages by date
+function getDateLabel(dateStr: string): string {
+  try {
+    const date = parseISO(dateStr);
+    if (isToday(date)) return 'Today';
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'MMMM d, yyyy');
+  } catch {
+    return '';
+  }
+}
 
 export function ChatArea({
   matchName,
@@ -60,6 +77,8 @@ export function ChatArea({
   onInputChange,
   getReactionSummary,
   onToggleReaction,
+  chatType = 'date',
+  distance,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -73,6 +92,25 @@ export function ChatArea({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  // Group messages by date for day dividers
+  const messagesWithDividers = useMemo(() => {
+    const result: { type: 'divider' | 'message'; date?: string; message?: Message }[] = [];
+    let lastDate = '';
+
+    messages.forEach((msg) => {
+      const msgDate = msg.createdAt || new Date().toISOString();
+      const dateLabel = getDateLabel(msgDate);
+      
+      if (dateLabel && dateLabel !== lastDate) {
+        result.push({ type: 'divider', date: dateLabel });
+        lastDate = dateLabel;
+      }
+      result.push({ type: 'message', message: msg });
+    });
+
+    return result;
+  }, [messages]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -203,6 +241,11 @@ export function ChatArea({
     onInputChange?.();
   };
 
+  // Check if a message contains shared location
+  const isLocationMessage = (content: string) => {
+    return content.startsWith('📍 Shared location:') || content.includes('Shared a fishing spot');
+  };
+
   return (
     <div className="flex-1 flex flex-col h-screen bg-background min-w-0">
       {/* Chat Header */}
@@ -214,14 +257,32 @@ export function ChatArea({
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
-          <Avatar className="h-9 w-9 md:h-10 md:w-10" onClick={onShowProfile}>
+          <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer" onClick={onShowProfile}>
             <AvatarImage src={matchPhoto} alt={matchName} />
             <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="cursor-pointer" onClick={onShowProfile}>
-            <h2 className="font-semibold text-sm md:text-base">{matchName} 💕</h2>
-            <p className={cn('text-xs', isOnline ? 'text-green-500' : 'text-muted-foreground')}>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-sm md:text-base">{matchName}</h2>
+              {chatType === 'date' ? (
+                <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] px-1.5 py-0 h-4">
+                  💕 DATE
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50">
+                  🎣 BUDDY
+                </Badge>
+              )}
+            </div>
+            <p className={cn('text-xs flex items-center gap-1', isOnline ? 'text-green-500' : 'text-muted-foreground')}>
               {isTyping ? 'Typing...' : isOnline ? 'Active now' : 'Offline'}
+              {distance && (
+                <>
+                  <span className="text-muted-foreground">•</span>
+                  <MapPin className="h-3 w-3" />
+                  <span>{distance}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -245,16 +306,25 @@ export function ChatArea({
       {/* Match Banner */}
       <div className="px-4 md:px-6 py-2 md:py-3 bg-accent/50 border-b border-border flex-shrink-0">
         <p className="text-xs md:text-sm text-center text-muted-foreground">
-          <span className="text-primary">💕</span> You matched with {matchName}!
+          <span className="text-primary">{chatType === 'date' ? '💕' : '🎣'}</span> You {chatType === 'date' ? 'matched' : 'connected'} with {matchName}!
         </p>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-        {messages.map((message, index) => {
+        {messagesWithDividers.map((item, index) => {
+          if (item.type === 'divider') {
+            return (
+              <div key={`divider-${index}`} className="flex items-center justify-center my-4">
+                <div className="bg-muted px-4 py-1.5 rounded-full">
+                  <span className="text-xs font-medium text-muted-foreground">{item.date}</span>
+                </div>
+              </div>
+            );
+          }
+
+          const message = item.message!;
           const isMine = message.senderId === currentUserId;
-          const isLastInGroup = index === messages.length - 1 || 
-            messages[index + 1]?.senderId !== message.senderId;
           
           return (
             <div
@@ -274,7 +344,8 @@ export function ChatArea({
                     message.imageUrl ? '' : 'px-4 py-2.5',
                     isMine
                       ? 'bg-foreground text-background rounded-br-sm'
-                      : 'bg-accent rounded-bl-sm'
+                      : 'bg-accent rounded-bl-sm',
+                    isLocationMessage(message.content) && 'p-0'
                   )}
                 >
                   {message.audioUrl && (
@@ -290,7 +361,19 @@ export function ChatArea({
                       onClick={() => window.open(message.imageUrl!, '_blank')}
                     />
                   )}
-                  {message.content && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
+                  {/* Location Card */}
+                  {isLocationMessage(message.content) && !message.audioUrl && !message.imageUrl && (
+                    <div className="bg-accent rounded-2xl overflow-hidden min-w-[200px]">
+                      <div className="h-24 bg-muted flex items-center justify-center">
+                        <MapPin className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <div className="p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Shared Location</p>
+                        <p className="text-sm font-medium">{message.content.replace('📍 Shared location: ', '')}</p>
+                      </div>
+                    </div>
+                  )}
+                  {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
                     <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
                   )}
                   {message.imageUrl && message.content === '📷 Photo' && (
@@ -320,14 +403,10 @@ export function ChatArea({
                 </span>
                 {isMine && (
                   <span className={cn(
-                    'flex items-center',
+                    'flex items-center text-sm',
                     message.isRead ? 'text-primary' : 'text-muted-foreground'
                   )}>
-                    {message.isRead ? (
-                      <CheckCheck className="h-3.5 w-3.5" />
-                    ) : (
-                      <Check className="h-3.5 w-3.5" />
-                    )}
+                    {message.isRead ? '🎣' : '·'}
                   </span>
                 )}
               </div>
