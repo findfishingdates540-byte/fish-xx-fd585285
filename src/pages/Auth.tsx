@@ -55,9 +55,11 @@ const Auth = () => {
           return;
         }
         
-        // Check if fishing/both users need to pay or have expired subscription
+        // Check if fishing/both users need to pay or have expired subscription (with 3-day grace period)
         const requiresPremium = data.account_mode === 'fishing' || data.account_mode === 'both';
-        const isPremiumExpired = data.premium_expires_at && new Date(data.premium_expires_at) < new Date();
+        const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+        const isPremiumExpired = data.premium_expires_at && 
+          new Date(data.premium_expires_at).getTime() + gracePeriodMs < Date.now();
         const hasPremiumAccess = data.is_premium && !isPremiumExpired;
         
         if (requiresPremium && !hasPremiumAccess) {

@@ -158,9 +158,11 @@ export function AppLayout() {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Check if fishing/both users have valid premium access (not expired)
+  // Check if fishing/both users have valid premium access (with 3-day grace period after expiration)
   const requiresPremium = profile?.account_mode === 'fishing' || profile?.account_mode === 'both';
-  const isPremiumExpired = profile?.premium_expires_at && new Date(profile.premium_expires_at) < new Date();
+  const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+  const isPremiumExpired = profile?.premium_expires_at && 
+    new Date(profile.premium_expires_at).getTime() + gracePeriodMs < Date.now();
   const hasPremiumAccess = profile?.is_premium && !isPremiumExpired;
   
   if (requiresPremium && !hasPremiumAccess) {
