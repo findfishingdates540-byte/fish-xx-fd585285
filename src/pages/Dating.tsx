@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, MessageCircle, Users, MapPin, Shield, Star, Check, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import datingHero from '@/assets/dating-hero.jpg';
 import coupleFishing from '@/assets/couple-fishing.jpg';
 import datingCouple1 from '@/assets/dating-couple-1.jpg';
 import datingCouple2 from '@/assets/dating-couple-2.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
+import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
 const Dating = () => {
   return (
@@ -13,10 +15,15 @@ const Dating = () => {
       <PublicHeader />
 
       {/* Hero Section */}
-      <header className="pt-32 pb-20 px-6">
+      <header className="pt-32 pb-20 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
+            <motion.div 
+              className="space-y-8"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Dating Features</span>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
                 Find Love on the Water
@@ -31,73 +38,90 @@ const Dating = () => {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-            </div>
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
+            </motion.div>
+            <motion.div 
+              className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
               <img src={datingHero} alt="Romantic fishing date" className="w-full h-full object-cover" />
-            </div>
+            </motion.div>
           </div>
         </div>
       </header>
 
       {/* How It Works */}
-      <section className="py-24 px-6 section-muted">
+      <section className="py-24 px-6 section-muted overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <ScrollReveal className="text-center mb-16">
             <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">How It Works</span>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
               Finding Love Made Simple
             </h2>
-          </div>
+          </ScrollReveal>
           
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold">
+          <StaggerContainer className="grid md:grid-cols-4 gap-8" staggerDelay={0.15}>
+            <StaggerItem className="text-center space-y-4">
+              <motion.div 
+                className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold"
+                whileHover={{ scale: 1.1 }}
+              >
                 1
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-foreground">Create Your Profile</h3>
               <p className="text-muted-foreground">
                 Share your fishing interests, favorite spots, and what you're looking for in a partner.
               </p>
-            </div>
+            </StaggerItem>
             
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold">
+            <StaggerItem className="text-center space-y-4">
+              <motion.div 
+                className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold"
+                whileHover={{ scale: 1.1 }}
+              >
                 2
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-foreground">Discover Matches</h3>
               <p className="text-muted-foreground">
                 Browse profiles of fishing enthusiasts who match your preferences and interests.
               </p>
-            </div>
+            </StaggerItem>
             
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold">
+            <StaggerItem className="text-center space-y-4">
+              <motion.div 
+                className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold"
+                whileHover={{ scale: 1.1 }}
+              >
                 3
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-foreground">Connect & Chat</h3>
               <p className="text-muted-foreground">
                 When you both like each other, start chatting and get to know each other better.
               </p>
-            </div>
+            </StaggerItem>
             
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold">
+            <StaggerItem className="text-center space-y-4">
+              <motion.div 
+                className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold"
+                whileHover={{ scale: 1.1 }}
+              >
                 4
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-foreground">Plan Your Date</h3>
               <p className="text-muted-foreground">
                 Use our fishing spots feature to plan the perfect first date on the water.
               </p>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
       {/* Dating Features */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
-            <div className="space-y-8">
+            <ScrollReveal direction="left" className="space-y-8">
               <h2 className="text-4xl md:text-5xl font-bold text-foreground">
                 Smart Matching Algorithm
               </h2>
@@ -134,24 +158,24 @@ const Dating = () => {
                   </div>
                 </li>
               </ul>
-            </div>
+            </ScrollReveal>
             <div className="grid grid-cols-2 gap-4">
-              <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                <img src={datingCouple1} alt="Couple on fishing date" className="w-full h-full object-cover" />
-              </div>
-              <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg mt-12">
-                <img src={datingCouple2} alt="Happy fishing couple" className="w-full h-full object-cover" />
-              </div>
+              <ScrollReveal delay={0.1} className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
+                <img src={datingCouple1} alt="Couple on fishing date" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </ScrollReveal>
+              <ScrollReveal delay={0.2} className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg mt-12">
+                <img src={datingCouple2} alt="Happy fishing couple" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </ScrollReveal>
             </div>
           </div>
           
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1">
+            <ScrollReveal direction="left" className="order-2 lg:order-1">
               <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl">
-                <img src={coupleFishing} alt="Couple fishing together" className="w-full h-full object-cover" />
+                <img src={coupleFishing} alt="Couple fishing together" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
               </div>
-            </div>
-            <div className="space-y-8 order-1 lg:order-2">
+            </ScrollReveal>
+            <ScrollReveal direction="right" className="space-y-8 order-1 lg:order-2">
               <h2 className="text-4xl md:text-5xl font-bold text-foreground">
                 Safe & Secure Dating
               </h2>
@@ -159,37 +183,37 @@ const Dating = () => {
                 Your safety is our priority. We've built comprehensive safety features to ensure 
                 you can focus on finding love without worry.
               </p>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
+              <StaggerContainer className="grid grid-cols-2 gap-6" staggerDelay={0.1}>
+                <StaggerItem className="space-y-2">
                   <Shield className="w-8 h-8 text-foreground" />
                   <h4 className="font-semibold text-foreground">Profile Verification</h4>
                   <p className="text-sm text-muted-foreground">Verified profiles for authentic connections</p>
-                </div>
-                <div className="space-y-2">
+                </StaggerItem>
+                <StaggerItem className="space-y-2">
                   <MessageCircle className="w-8 h-8 text-foreground" />
                   <h4 className="font-semibold text-foreground">In-App Messaging</h4>
                   <p className="text-sm text-muted-foreground">Keep conversations within the app</p>
-                </div>
-                <div className="space-y-2">
+                </StaggerItem>
+                <StaggerItem className="space-y-2">
                   <Users className="w-8 h-8 text-foreground" />
                   <h4 className="font-semibold text-foreground">Block & Report</h4>
                   <p className="text-sm text-muted-foreground">Easy tools to manage unwanted contact</p>
-                </div>
-                <div className="space-y-2">
+                </StaggerItem>
+                <StaggerItem className="space-y-2">
                   <MapPin className="w-8 h-8 text-foreground" />
                   <h4 className="font-semibold text-foreground">Location Privacy</h4>
                   <p className="text-sm text-muted-foreground">Control what location info you share</p>
-                </div>
-              </div>
-            </div>
+                </StaggerItem>
+              </StaggerContainer>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
       {/* Matching Styles */}
-      <section className="py-24 px-6 section-muted">
+      <section className="py-24 px-6 section-muted overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <ScrollReveal className="text-center mb-16">
             <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Choose Your Style</span>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
               Dating Your Way
@@ -197,59 +221,71 @@ const Dating = () => {
             <p className="text-xl text-muted-foreground mt-4 max-w-2xl mx-auto">
               We offer different matching styles to suit your preferences and comfort level.
             </p>
-          </div>
+          </ScrollReveal>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Heart className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Mutual Matching</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Both people need to like each other before a connection is made. Traditional swiping 
-                with instant matches when there's mutual interest.
-              </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-foreground" />
-                  Equal opportunity for everyone
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-foreground" />
-                  Instant match notifications
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-foreground" />
-                  Both parties are interested
-                </li>
-              </ul>
-            </div>
+          <StaggerContainer className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto" staggerDelay={0.15}>
+            <StaggerItem>
+              <motion.div 
+                className="bg-background rounded-3xl p-8 space-y-4 border border-border h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                  <Heart className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Mutual Matching</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Both people need to like each other before a connection is made. Traditional swiping 
+                  with instant matches when there's mutual interest.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-foreground" />
+                    Equal opportunity for everyone
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-foreground" />
+                    Instant match notifications
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-foreground" />
+                    Both parties are interested
+                  </li>
+                </ul>
+              </motion.div>
+            </StaggerItem>
             
-            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Women First</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Women make the first move. Only women can initiate conversations, giving them 
-                more control over their dating experience.
-              </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-foreground" />
-                  Women control the conversation
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-foreground" />
-                  Less unwanted messages
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-foreground" />
-                  More intentional connections
-                </li>
-              </ul>
-            </div>
-          </div>
+            <StaggerItem>
+              <motion.div 
+                className="bg-background rounded-3xl p-8 space-y-4 border border-border h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                  <Sparkles className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Women First</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Women make the first move. Only women can initiate conversations, giving them 
+                  more control over their dating experience.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-foreground" />
+                    Women control the conversation
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-foreground" />
+                    Less unwanted messages
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-foreground" />
+                    More intentional connections
+                  </li>
+                </ul>
+              </motion.div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -305,8 +341,8 @@ const Dating = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-6 section-dark">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-24 px-6 section-dark overflow-hidden">
+        <ScrollReveal className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8">
             Your fishing date is waiting
           </h2>
@@ -319,7 +355,7 @@ const Dating = () => {
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
-        </div>
+        </ScrollReveal>
       </section>
 
       <PublicFooter />

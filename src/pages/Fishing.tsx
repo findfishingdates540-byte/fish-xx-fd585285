@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Fish, MapPin, Camera, Users, Trophy, Compass, Anchor, Check, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import fishingHero from '@/assets/fishing-hero.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
 import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
 import heroFishing1 from '@/assets/hero-fishing-1.jpg';
 import heroFishing2 from '@/assets/hero-fishing-2.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
+import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
 const Fishing = () => {
   return (
@@ -14,10 +16,15 @@ const Fishing = () => {
       <PublicHeader />
 
       {/* Hero Section */}
-      <header className="pt-32 pb-20 px-6">
+      <header className="pt-32 pb-20 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
+            <motion.div 
+              className="space-y-8"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Fishing Features</span>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
                 Your Fishing Companion
@@ -32,10 +39,15 @@ const Fishing = () => {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-            </div>
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
+            </motion.div>
+            <motion.div 
+              className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
               <img src={fishingHero} alt="Group of friends fishing" className="w-full h-full object-cover" />
-            </div>
+            </motion.div>
           </div>
         </div>
       </header>

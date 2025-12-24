@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Users, Target, Award, Globe, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import aboutHero from '@/assets/about-hero.jpg';
 import coupleFishing from '@/assets/couple-fishing.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
+import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
 const About = () => {
   return (
@@ -12,10 +14,15 @@ const About = () => {
       <PublicHeader />
 
       {/* Hero Section */}
-      <header className="pt-32 pb-20 px-6">
+      <header className="pt-32 pb-20 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
+            <motion.div 
+              className="space-y-8"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">About Us</span>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
                 Where Passion Meets Connection
@@ -24,18 +31,23 @@ const About = () => {
                 We built Find Fishing Dates because we believe the best relationships start with shared passions. 
                 When you love fishing, you deserve to find someone who loves it too.
               </p>
-            </div>
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
+            </motion.div>
+            <motion.div 
+              className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
               <img src={aboutHero} alt="Couple fishing together at sunset" className="w-full h-full object-cover" />
-            </div>
+            </motion.div>
           </div>
         </div>
       </header>
 
       {/* Our Story Section */}
-      <section className="py-24 px-6 section-muted">
+      <section className="py-24 px-6 section-muted overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="max-w-3xl mx-auto text-center space-y-8">
+          <ScrollReveal className="max-w-3xl mx-auto text-center space-y-8">
             <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Our Story</span>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground">
               Born from a Love of Fishing
@@ -57,108 +69,144 @@ const About = () => {
                 to ocean shores, united by a shared passion for the sport.
               </p>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Mission & Values */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <ScrollReveal className="text-center mb-16">
             <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">What We Stand For</span>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
               Our Mission & Values
             </h2>
-          </div>
+          </ScrollReveal>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-muted rounded-3xl p-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
-                <Heart className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Authentic Connections</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                We believe in real connections built on shared passions. No games, no gimmicks—just genuine 
-                people looking for meaningful relationships.
-              </p>
-            </div>
+          <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" staggerDelay={0.1}>
+            <StaggerItem>
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
+                  <Heart className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Authentic Connections</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We believe in real connections built on shared passions. No games, no gimmicks—just genuine 
+                  people looking for meaningful relationships.
+                </p>
+              </motion.div>
+            </StaggerItem>
             
-            <div className="bg-muted rounded-3xl p-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
-                <Users className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Inclusive Community</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Our platform welcomes everyone. We're LGBTQ+ friendly and support all forms of connection—romantic, 
-                platonic, and everything in between.
-              </p>
-            </div>
+            <StaggerItem>
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
+                  <Users className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Inclusive Community</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Our platform welcomes everyone. We're LGBTQ+ friendly and support all forms of connection—romantic, 
+                  platonic, and everything in between.
+                </p>
+              </motion.div>
+            </StaggerItem>
             
-            <div className="bg-muted rounded-3xl p-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
-                <Target className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Passion-First Matching</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Our matching algorithm prioritizes shared fishing interests, experience levels, and preferred 
-                fishing styles to create the most compatible connections.
-              </p>
-            </div>
+            <StaggerItem>
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
+                  <Target className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Passion-First Matching</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Our matching algorithm prioritizes shared fishing interests, experience levels, and preferred 
+                  fishing styles to create the most compatible connections.
+                </p>
+              </motion.div>
+            </StaggerItem>
             
-            <div className="bg-muted rounded-3xl p-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
-                <Award className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Quality Over Quantity</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                We focus on helping you find the right connections, not endless swiping. Every match is 
-                meaningful and based on genuine compatibility.
-              </p>
-            </div>
+            <StaggerItem>
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
+                  <Award className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Quality Over Quantity</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We focus on helping you find the right connections, not endless swiping. Every match is 
+                  meaningful and based on genuine compatibility.
+                </p>
+              </motion.div>
+            </StaggerItem>
             
-            <div className="bg-muted rounded-3xl p-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
-                <Globe className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Conservation Minded</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                We encourage sustainable fishing practices and give back to conservation efforts. 
-                Protecting our waterways means protecting our passion.
-              </p>
-            </div>
+            <StaggerItem>
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
+                  <Globe className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Conservation Minded</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We encourage sustainable fishing practices and give back to conservation efforts. 
+                  Protecting our waterways means protecting our passion.
+                </p>
+              </motion.div>
+            </StaggerItem>
             
-            <div className="bg-muted rounded-3xl p-8 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Always Improving</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                We're constantly listening to our community and improving our platform. Your feedback 
-                shapes the future of Find Fishing Dates.
-              </p>
-            </div>
-          </div>
+            <StaggerItem>
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
+                  <Sparkles className="w-7 h-7 text-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">Always Improving</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We're constantly listening to our community and improving our platform. Your feedback 
+                  shapes the future of Find Fishing Dates.
+                </p>
+              </motion.div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
       {/* Team/Community Section */}
-      <section className="py-24 px-6 section-muted">
+      <section className="py-24 px-6 section-muted overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-6">
+              <ScrollReveal delay={0.1} className="space-y-6">
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={coupleFishing} alt="Happy couple fishing" className="w-full h-full object-cover" />
+                  <img src={coupleFishing} alt="Happy couple fishing" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
-              </div>
-              <div className="space-y-6 pt-12">
+              </ScrollReveal>
+              <ScrollReveal delay={0.2} className="space-y-6 pt-12">
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={fishingBuddies1} alt="Fishing friends" className="w-full h-full object-cover" />
+                  <img src={fishingBuddies1} alt="Fishing friends" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
-              </div>
+              </ScrollReveal>
             </div>
             
-            <div className="space-y-8">
+            <ScrollReveal direction="right" className="space-y-8">
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Our Community</span>
               <h2 className="text-4xl md:text-5xl font-bold text-foreground">
                 Built by Anglers, for Anglers
@@ -168,32 +216,32 @@ const About = () => {
                 From bass fishing in freshwater lakes to deep-sea adventures, we've done it all—and we 
                 built Find Fishing Dates to help you find someone to share those experiences with.
               </p>
-              <div className="grid grid-cols-2 gap-8">
-                <div>
+              <StaggerContainer className="grid grid-cols-2 gap-8" staggerDelay={0.1}>
+                <StaggerItem>
                   <p className="text-4xl font-bold text-foreground">50K+</p>
                   <p className="text-muted-foreground">Active members</p>
-                </div>
-                <div>
+                </StaggerItem>
+                <StaggerItem>
                   <p className="text-4xl font-bold text-foreground">10K+</p>
                   <p className="text-muted-foreground">Successful matches</p>
-                </div>
-                <div>
+                </StaggerItem>
+                <StaggerItem>
                   <p className="text-4xl font-bold text-foreground">50+</p>
                   <p className="text-muted-foreground">States covered</p>
-                </div>
-                <div>
+                </StaggerItem>
+                <StaggerItem>
                   <p className="text-4xl font-bold text-foreground">500+</p>
                   <p className="text-muted-foreground">Fishing dates daily</p>
-                </div>
-              </div>
-            </div>
+                </StaggerItem>
+              </StaggerContainer>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-6 section-dark">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-24 px-6 section-dark overflow-hidden">
+        <ScrollReveal className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8">
             Ready to join our community?
           </h2>
@@ -206,7 +254,7 @@ const About = () => {
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
-        </div>
+        </ScrollReveal>
       </section>
 
       <PublicFooter />
