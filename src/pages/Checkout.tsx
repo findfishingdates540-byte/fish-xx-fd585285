@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,8 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Lock, Shield, Loader2, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import logo from '@/assets/logo.png';
+import { STRIPE_PUBLISHABLE_KEY } from '@/lib/stripe';
 
-type PaymentMethod = 'card' | 'paypal' | 'google';
+// Initialize Stripe
+const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
 interface PlanInfo {
   id: string;
@@ -44,66 +48,113 @@ const plans: Record<string, PlanInfo> = {
   },
 };
 
-export default function Checkout() {
-  const [searchParams] = useSearchParams();
+// Card element styling
+const cardElementOptions = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#424770',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      '::placeholder': {
+        color: '#aab7c4',
+      },
+      iconColor: '#666EE8',
+    },
+    invalid: {
+      color: '#ef4444',
+      iconColor: '#ef4444',
+    },
+  },
+  hidePostalCode: true,
+};
+
+interface CheckoutFormProps {
+  planId: string;
+  billing: string;
+  plan: PlanInfo;
+  price: number;
+  total: number;
+  isAnnual: boolean;
+}
+
+function CheckoutForm({ planId, billing, plan, price, total, isAnnual }: CheckoutFormProps) {
+  const stripe = useStripe();
+  const elements = useElements();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const planId = searchParams.get('plan') || 'trophy';
-  const billing = searchParams.get('billing') || 'monthly';
-  const isAnnual = billing === 'annual';
-  
-  const plan = plans[planId] || plans.trophy;
-  const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
-  const tax = 0;
-  const total = price + tax;
-
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [isLoadingIntent, setIsLoadingIntent] = useState(true);
+  const [cardError, setCardError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
     nameOnCard: '',
     streetAddress: '',
     city: '',
     zipCode: '',
   });
 
+  // Fetch payment intent on mount
+  useEffect(() => {
+    const fetchPaymentIntent = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoadingIntent(true);
+        const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+          body: { planId, billing },
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (data?.clientSecret) {
+          setClientSecret(data.clientSecret);
+        } else {
+          throw new Error('No client secret returned');
+        }
+      } catch (err: any) {
+        console.error('Error creating payment intent:', err);
+        toast({
+          title: "Error",
+          description: err.message || "Failed to initialize payment. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingIntent(false);
+      }
+    };
+
+    fetchPaymentIntent();
+  }, [user, planId, billing, toast]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    // Format card number with spaces
-    if (name === 'cardNumber') {
-      const formatted = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-      setFormData(prev => ({ ...prev, [name]: formatted.slice(0, 19) }));
-      return;
-    }
-    
-    // Format expiry date
-    if (name === 'expiryDate') {
-      const cleaned = value.replace(/\D/g, '');
-      if (cleaned.length >= 2) {
-        setFormData(prev => ({ ...prev, [name]: `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}` }));
-      } else {
-        setFormData(prev => ({ ...prev, [name]: cleaned }));
-      }
-      return;
-    }
-    
-    // Limit CVV
-    if (name === 'cvv') {
-      setFormData(prev => ({ ...prev, [name]: value.slice(0, 4) }));
-      return;
-    }
-    
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCardChange = (event: any) => {
+    if (event.error) {
+      setCardError(event.error.message);
+    } else {
+      setCardError(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!stripe || !elements || !clientSecret) {
+      toast({
+        title: "Not ready",
+        description: "Payment system is still loading. Please wait.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!user) {
       toast({
         title: "Please log in",
@@ -114,33 +165,75 @@ export default function Checkout() {
       return;
     }
 
-    setIsProcessing(true);
-
-    // Simulate payment processing (replace with actual Stripe integration)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Update user's premium status
-    const { error } = await supabase
-      .from('profiles')
-      .update({ 
-        is_premium: true,
-        premium_expires_at: new Date(Date.now() + (isAnnual ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString()
-      })
-      .eq('id', user.id);
-
-    if (error) {
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
       toast({
-        title: "Payment failed",
-        description: "There was an error processing your payment. Please try again.",
+        title: "Error",
+        description: "Card element not found. Please refresh the page.",
         variant: "destructive",
       });
-      setIsProcessing(false);
       return;
     }
 
-    // Redirect to payment success page
-    navigate(`/payment-success?plan=${planId}&billing=${billing}&amount=${total.toFixed(2)}`);
+    setIsProcessing(true);
+
+    try {
+      // Confirm the payment
+      const { error: paymentError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: formData.nameOnCard,
+            address: {
+              line1: formData.streetAddress,
+              city: formData.city,
+              postal_code: formData.zipCode,
+            },
+          },
+        },
+      });
+
+      if (paymentError) {
+        throw new Error(paymentError.message || 'Payment failed');
+      }
+
+      if (paymentIntent?.status === 'succeeded') {
+        // Activate the subscription
+        const { data, error } = await supabase.functions.invoke('create-subscription', {
+          body: {
+            paymentIntentId: paymentIntent.id,
+            planId,
+            billing,
+          },
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Failed to activate subscription');
+        }
+
+        toast({
+          title: "Payment successful!",
+          description: "Your subscription has been activated.",
+        });
+
+        // Redirect to success page
+        navigate(`/payment-success?plan=${planId}&billing=${billing}&amount=${total.toFixed(2)}`);
+      } else {
+        throw new Error('Payment was not completed');
+      }
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      toast({
+        title: "Payment failed",
+        description: err.message || "There was an error processing your payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
+  const tax = 0;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -173,104 +266,37 @@ export default function Checkout() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Payment Method Tabs */}
-              <div className="border-b border-border">
-                <div className="flex gap-8">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('card')}
-                    className={`flex items-center gap-2 pb-4 border-b-2 transition-colors ${
-                      paymentMethod === 'card' 
-                        ? 'border-primary text-primary' 
-                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    Credit Card
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('paypal')}
-                    className={`flex items-center gap-2 pb-4 border-b-2 transition-colors ${
-                      paymentMethod === 'paypal' 
-                        ? 'border-primary text-primary' 
-                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z"/>
-                    </svg>
-                    PayPal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('google')}
-                    className={`flex items-center gap-2 pb-4 border-b-2 transition-colors ${
-                      paymentMethod === 'google' 
-                        ? 'border-primary text-primary' 
-                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    Google Pay
-                  </button>
-                </div>
+            {isLoadingIntent ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <span className="ml-3 text-muted-foreground">Initializing payment...</span>
               </div>
-
-              {paymentMethod === 'card' && (
-                <div className="space-y-6">
-                  {/* Card Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber" className="text-foreground font-medium">
-                      Card Number
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="cardNumber"
-                        name="cardNumber"
-                        placeholder="0000 0000 0000 0000"
-                        value={formData.cardNumber}
-                        onChange={handleInputChange}
-                        className="pr-12 h-12 bg-muted/50 border-border"
-                        required
-                      />
-                      <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Payment Method Header */}
+                <div className="border-b border-border pb-4">
+                  <div className="flex items-center gap-2 text-primary">
+                    <CreditCard className="w-5 h-5" />
+                    <span className="font-medium">Credit or Debit Card</span>
                   </div>
+                </div>
 
-                  {/* Expiry + CVV */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="expiryDate" className="text-foreground font-medium">
-                        Expiry Date
-                      </Label>
-                      <Input
-                        id="expiryDate"
-                        name="expiryDate"
-                        placeholder="MM / YY"
-                        value={formData.expiryDate}
-                        onChange={handleInputChange}
-                        className="h-12 bg-muted/50 border-border"
-                        required
+                <div className="space-y-6">
+                  {/* Stripe Card Element */}
+                  <div className="space-y-2">
+                    <Label className="text-foreground font-medium">
+                      Card Details
+                    </Label>
+                    <div className="p-4 h-12 flex items-center bg-muted/50 border border-border rounded-md">
+                      <CardElement 
+                        options={cardElementOptions} 
+                        onChange={handleCardChange}
+                        className="w-full"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cvv" className="text-foreground font-medium flex items-center gap-1">
-                        CVV
-                        <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                      </Label>
-                      <Input
-                        id="cvv"
-                        name="cvv"
-                        type="password"
-                        placeholder="123"
-                        value={formData.cvv}
-                        onChange={handleInputChange}
-                        className="h-12 bg-muted/50 border-border"
-                        required
-                      />
-                    </div>
+                    {cardError && (
+                      <p className="text-sm text-destructive">{cardError}</p>
+                    )}
                   </div>
 
                   {/* Name on Card */}
@@ -342,36 +368,32 @@ export default function Checkout() {
                     </div>
                   </div>
                 </div>
-              )}
 
-              {paymentMethod === 'paypal' && (
-                <div className="py-12 text-center">
-                  <p className="text-muted-foreground mb-4">
-                    You will be redirected to PayPal to complete your purchase.
-                  </p>
-                  <Button type="submit" className="btn-primary px-8" disabled={isProcessing}>
+                {/* Security Notice */}
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+                  <Shield className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>
+                    Your payment is secured with Stripe. We never store your card details.
+                  </span>
+                </div>
+
+                {/* Submit Button - Mobile Only */}
+                <div className="lg:hidden">
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                    disabled={isProcessing || !stripe || !clientSecret}
+                  >
                     {isProcessing ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}
-                    Continue to PayPal
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    ) : (
+                      <Lock className="w-5 h-5 mr-2" />
+                    )}
+                    {isProcessing ? 'Processing...' : `Pay $${total.toFixed(2)}`}
                   </Button>
                 </div>
-              )}
-
-              {paymentMethod === 'google' && (
-                <div className="py-12 text-center">
-                  <p className="text-muted-foreground mb-4">
-                    You will be redirected to Google Pay to complete your purchase.
-                  </p>
-                  <Button type="submit" className="btn-primary px-8" disabled={isProcessing}>
-                    {isProcessing ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}
-                    Continue to Google Pay
-                  </Button>
-                </div>
-              )}
-            </form>
+              </form>
+            )}
           </motion.div>
 
           {/* Right - Order Summary */}
@@ -423,12 +445,12 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Submit Button (for card payment) */}
-              {paymentMethod === 'card' && (
+              {/* Submit Button - Desktop Only */}
+              <div className="hidden lg:block">
                 <Button
                   onClick={handleSubmit}
                   className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                  disabled={isProcessing}
+                  disabled={isProcessing || isLoadingIntent || !stripe || !clientSecret}
                 >
                   {isProcessing ? (
                     <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -437,24 +459,27 @@ export default function Checkout() {
                   )}
                   {isProcessing ? 'Processing...' : 'Confirm Payment'}
                 </Button>
-              )}
+              </div>
 
-              <p className="text-xs text-center text-muted-foreground mt-4">
-                100% Secure transaction. Cancel anytime from your account settings.
-              </p>
-
-              {/* Security Badges */}
-              <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-border">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Shield className="w-4 h-4" />
-                  SSL Secure
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Lock className="w-4 h-4" />
-                  256-bit Encryption
+              {/* Security badges */}
+              <div className="mt-6 pt-6 border-t border-border">
+                <div className="flex items-center justify-center gap-4 text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    <span className="text-xs">SSL Encrypted</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    <span className="text-xs">Secure Payment</span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Money-back guarantee */}
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              7-day money-back guarantee. Cancel anytime.
+            </p>
           </motion.div>
         </div>
       </main>
@@ -462,22 +487,55 @@ export default function Checkout() {
       {/* Footer */}
       <footer className="border-t border-border py-8 mt-12">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-sm">
-            <Link to="/terms" className="text-primary hover:underline">
-              Terms of Service
-            </Link>
-            <Link to="/privacy" className="text-primary hover:underline">
-              Privacy Policy
-            </Link>
-            <Link to="/help" className="text-primary hover:underline">
-              Refund Policy
-            </Link>
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link to="/help" className="hover:text-foreground transition-colors">Need Help?</Link>
           </div>
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            © {new Date().getFullYear()} FindFish Date. All rights reserved.
-          </p>
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function Checkout() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const planId = searchParams.get('plan') || 'trophy';
+  const billing = searchParams.get('billing') || 'monthly';
+  const isAnnual = billing === 'annual';
+  
+  const plan = plans[planId] || plans.trophy;
+  const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
+  const total = price;
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    }
+  }, [user, navigate]);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm
+        planId={planId}
+        billing={billing}
+        plan={plan}
+        price={price}
+        total={total}
+        isAnnual={isAnnual}
+      />
+    </Elements>
   );
 }
