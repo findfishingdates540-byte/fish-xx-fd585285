@@ -4,7 +4,7 @@ import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Check, X, Star, Shield, Lock, CreditCard, HelpCircle } from 'lucide-react';
+import { Check, X, Star, Shield, Lock, CreditCard, HelpCircle, Loader2 } from 'lucide-react';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 import {
   Accordion,
@@ -13,6 +13,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { motion } from 'framer-motion';
+import { useStripeCheckout } from '@/hooks/use-stripe-checkout';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 type PlanType = 'angler' | 'trophy' | 'catch';
 
@@ -138,11 +141,29 @@ const faqItems = [
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { createCheckoutSession, isLoading } = useStripeCheckout();
 
-  const handleSelectPlan = (plan: PricingPlan) => {
-    // Navigate to checkout with plan info
-    navigate(`/checkout?plan=${plan.id}&billing=${isAnnual ? 'annual' : 'monthly'}`);
+  const handleSelectPlan = async (plan: PricingPlan) => {
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to subscribe.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    setSelectedPlanId(plan.id);
+    await createCheckoutSession({
+      planId: plan.id,
+      billing: isAnnual ? 'annual' : 'monthly',
+    });
+    setSelectedPlanId(null);
   };
 
   return (
@@ -259,13 +280,17 @@ export default function Pricing() {
                 <Button
                   onClick={() => handleSelectPlan(plan)}
                   variant={plan.popular ? 'secondary' : 'default'}
+                  disabled={isLoading}
                   className={`w-full py-6 text-base font-semibold ${
                     plan.popular 
                       ? 'bg-white text-primary hover:bg-white/90' 
                       : 'btn-primary'
                   }`}
                 >
-                  {plan.buttonText}
+                  {isLoading && selectedPlanId === plan.id ? (
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  ) : null}
+                  {isLoading && selectedPlanId === plan.id ? 'Loading...' : plan.buttonText}
                 </Button>
               </motion.div>
             </StaggerItem>
