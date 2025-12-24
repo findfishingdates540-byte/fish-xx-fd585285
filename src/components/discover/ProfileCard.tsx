@@ -22,9 +22,10 @@ interface ProfileCardProps {
   onInfoClick?: () => void;
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
+  className?: string;
 }
 
-export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }: ProfileCardProps) {
+export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, className }: ProfileCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
@@ -86,8 +87,9 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
       onClick={!isMobile ? handleCardClick : undefined}
       whileTap={{ cursor: 'grabbing' }}
       className={cn(
-        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full mx-auto cursor-grab relative",
-        isMobile ? "touch-none" : "touch-pan-y"
+        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full h-full mx-auto cursor-grab relative flex flex-col",
+        isMobile ? "touch-none" : "touch-pan-y",
+        className
       )}
     >
       {/* Swipe Indicators */}
@@ -108,11 +110,8 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
         </div>
       </motion.div>
 
-      {/* Photo Section - Smaller on mobile */}
-      <div className={cn(
-        "relative bg-muted",
-        isMobile ? "aspect-[9/10]" : "aspect-[3/4]"
-      )}>
+      {/* Photo Section - Fill available height (prevents scrolling) */}
+      <div className={cn("relative bg-muted flex-1 min-h-0")}>
         <img
           src={profile.photos[currentPhotoIndex]}
           alt={profile.name}
@@ -195,8 +194,8 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
         </div>
       </div>
 
-      {/* Bio & Tags Section - Compact on mobile */}
-      <div className={cn("p-4", isMobile ? "pb-3" : "p-5")}>
+      {/* Bio & Tags Section - Compact */}
+      <div className={cn("p-3", isMobile ? "pb-2" : "p-5", "shrink-0")}>
         <p
           className={cn(
             "text-muted-foreground text-sm leading-relaxed",

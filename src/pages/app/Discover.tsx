@@ -59,6 +59,22 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
+  // Prevent any vertical page scrolling on mobile Discover (swipe-only screen)
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+    };
+  }, [isMobile]);
+
   // Fetch recent matches (last 7 days)
   const { data: recentMatches } = useQuery({
     queryKey: ['recent-matches-sidebar', user?.id],
@@ -273,7 +289,7 @@ export default function Discover() {
 
   return (
     <>
-      <div className="flex h-[calc(100vh-3.5rem)] lg:h-screen">
+      <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] lg:h-screen overflow-hidden overscroll-none">
         {/* Left Sidebar - Desktop Only */}
         <DiscoverSidebar
           accountMode={accountMode}
@@ -285,25 +301,28 @@ export default function Discover() {
         />
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 lg:p-8 overflow-hidden lg:ml-60">
+        <main className="flex-1 flex flex-col items-center justify-center p-0 lg:p-8 overflow-hidden lg:ml-60">
           {isMobile ? (
-            <div className="w-full max-w-sm h-full flex flex-col items-center justify-center">
-              <div className="w-full">
-                {isLoading ? (
-                  renderLoading()
-                ) : noMoreProfiles || !currentProfile ? (
-                  renderEmptyState()
-                ) : (
-                  <>
-                    <ProfileCard 
+            <div className="w-full max-w-xs sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-3 pt-2">
+              {isLoading ? (
+                renderLoading()
+              ) : noMoreProfiles || !currentProfile ? (
+                renderEmptyState()
+              ) : (
+                <>
+                  <div className="w-full flex-1 flex items-center justify-center min-h-0">
+                    <ProfileCard
                       profile={currentProfile}
                       onInfoClick={handleProfileClick}
                       onSwipeLeft={onPass}
                       onSwipeRight={onLike}
+                      className="w-full"
                     />
+                  </div>
 
-                    {/* Swipe Actions */}
-                    <div className="mt-3">
+                  {/* Swipe Actions */}
+                  <div className="w-full pt-2 pb-1">
+                    <div className="mx-auto w-fit">
                       <SwipeActions
                         onRewind={() => {}} // Rewind requires storing history - future enhancement
                         onPass={onPass}
@@ -312,9 +331,9 @@ export default function Discover() {
                         canRewind={false}
                       />
                     </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="w-full max-w-sm">
