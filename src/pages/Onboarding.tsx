@@ -15,6 +15,7 @@ import { StepExperienceLevel } from "@/components/onboarding/StepExperienceLevel
 import { StepInterests } from "@/components/onboarding/StepInterests";
 import { StepDatingPreference } from "@/components/onboarding/StepDatingPreference";
 import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
+import { OnboardingDebugOverlay } from "@/components/onboarding/OnboardingDebugOverlay";
 
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
 import datingImage from "@/assets/dating-hero.jpg";
@@ -645,6 +646,28 @@ export default function Onboarding() {
           © {new Date().getFullYear()} Find Fishing Dates. All rights reserved.
         </p>
       </div>
+
+      {/* Debug Overlay - activate with ?debug=1 */}
+      <OnboardingDebugOverlay
+        currentStep={currentStep}
+        currentStepKey={currentStepKey}
+        accountMode={accountMode}
+        formValues={{
+          firstName,
+          dateOfBirth,
+          gender,
+          photos,
+          city,
+          state,
+          maxDistance,
+          ageRange,
+          interestedIn,
+          lookingFor,
+          fishingExperience,
+          selectedStyles,
+          selectedActivities,
+        }}
+      />
     </div>
   );
 }
