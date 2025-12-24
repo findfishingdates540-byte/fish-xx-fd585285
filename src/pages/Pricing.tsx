@@ -100,10 +100,8 @@ export default function Pricing() {
   const navigate = useNavigate();
 
   const handleSelectPlan = (plan: PricingPlan) => {
-    // TODO: Integrate with Stripe checkout
-    console.log('Selected plan:', plan.id, isAnnual ? 'annual' : 'monthly');
-    // For now, redirect to auth with the plan info
-    navigate(`/auth?mode=signup&plan=${plan.id}&billing=${isAnnual ? 'annual' : 'monthly'}`);
+    // Navigate to checkout with plan info
+    navigate(`/checkout?plan=${plan.id}&billing=${isAnnual ? 'annual' : 'monthly'}`);
   };
 
   return (
