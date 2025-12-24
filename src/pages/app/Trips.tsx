@@ -55,7 +55,6 @@ export default function Trips() {
             </p>
           </div>
           <Button 
-            className="bg-sky-500 hover:bg-sky-600"
             onClick={() => navigate("/app/trips/new")}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -121,7 +120,6 @@ export default function Trips() {
                       Start planning your next fishing adventure!
                     </p>
                     <Button 
-                      className="bg-sky-500 hover:bg-sky-600"
                       onClick={() => navigate("/app/trips/new")}
                     >
                       <Plus className="h-4 w-4 mr-2" />
