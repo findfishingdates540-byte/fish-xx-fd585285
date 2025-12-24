@@ -378,6 +378,7 @@ export default function Discover() {
           newMatchCount={recentMatches?.length || 0}
           conversations={conversations || []}
           isPremium={profile?.is_premium || false}
+          accountMode={accountMode}
           onMatchClick={(matchId) => navigate(`/app/chat/${matchId}`)}
           onConversationClick={(matchId) => navigate(`/app/chat/${matchId}`)}
         />

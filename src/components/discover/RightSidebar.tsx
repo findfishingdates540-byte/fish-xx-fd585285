@@ -47,6 +47,7 @@ interface RightSidebarProps {
   newMatchCount?: number;
   conversations: Conversation[];
   isPremium?: boolean;
+  accountMode?: 'dating' | 'fishing' | 'both';
   onMatchClick?: (matchId: string) => void;
   onConversationClick?: (matchId: string) => void;
 }
@@ -56,6 +57,7 @@ export function RightSidebar({
   newMatchCount = 0,
   conversations,
   isPremium,
+  accountMode = 'both',
   onMatchClick,
   onConversationClick,
 }: RightSidebarProps) {
@@ -153,8 +155,8 @@ export function RightSidebar({
         )}
       </div>
 
-      {/* Premium CTA */}
-      {!isPremium && (
+      {/* Premium CTA - Only show for fishing/both accounts */}
+      {!isPremium && accountMode !== 'dating' && (
         <div className="mt-6 p-4 bg-accent rounded-2xl">
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 rounded-xl bg-foreground text-background flex items-center justify-center flex-shrink-0">
@@ -163,7 +165,7 @@ export function RightSidebar({
             <div>
               <h4 className="font-bold text-sm">Go Premium</h4>
               <p className="text-xs text-muted-foreground mt-0.5">
-                See who likes you & unlimited rewinds.
+                Access premium fishing spots & features.
               </p>
             </div>
           </div>

@@ -634,15 +634,15 @@ export default function Profile() {
               </Card>
             )}
 
-            {/* Go Premium CTA */}
-            {!profile?.is_premium && (
+            {/* Go Premium CTA - Only show for fishing/both accounts */}
+            {!profile?.is_premium && profile?.account_mode !== 'dating' && (
               <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-0">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-lg font-bold mb-2">Go Premium</h3>
                       <p className="text-sm opacity-90 mb-4">
-                        See who likes you and get unlimited swipes.
+                        Access premium fishing spots and advanced features.
                       </p>
                       <Button variant="secondary" size="sm">
                         Upgrade Now

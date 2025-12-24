@@ -289,57 +289,6 @@ const Dating = () => {
         </div>
       </section>
 
-      {/* Premium Features */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-foreground text-background rounded-3xl p-12 md:p-16">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
-                <div className="flex items-center gap-2">
-                  <Star className="w-6 h-6" />
-                  <span className="text-sm font-medium tracking-widest uppercase">Premium</span>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold">
-                  Upgrade Your Dating Experience
-                </h2>
-                <p className="text-xl text-background/70 leading-relaxed">
-                  Get more matches, more visibility, and more features with our premium subscription.
-                </p>
-                <Link to="/auth?mode=signup">
-                  <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-10 py-6">
-                    Try Premium Free
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6" />
-                  <span className="text-lg">Unlimited likes and matches</span>
-                </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6" />
-                  <span className="text-lg">See who likes you</span>
-                </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6" />
-                  <span className="text-lg">Priority in discovery</span>
-                </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6" />
-                  <span className="text-lg">Advanced filters</span>
-                </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
-                  <Check className="w-6 h-6" />
-                  <span className="text-lg">Ad-free experience</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-24 px-6 section-dark overflow-hidden">
         <ScrollReveal className="max-w-4xl mx-auto text-center">
