@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, MapPin, Share2, MoreHorizontal, User, Fish, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ThumbsUp, MessageSquare, MoreHorizontal, User, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { FeedPost as FeedPostType, useLikePost, useDeletePost } from '@/hooks/use-feed';
-import { LikeButton } from './LikeButton';
 import { CommentSheet } from './CommentSheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { cn } from '@/lib/utils';
 
 interface FeedPostProps {
   post: FeedPostType;
@@ -60,23 +61,11 @@ export function FeedPost({ post }: FeedPostProps) {
     }
   };
 
-  const handleShare = async () => {
-    try {
-      await navigator.share({
-        title: 'Check out this catch!',
-        text: post.content || 'Amazing fishing catch',
-        url: window.location.href
-      });
-    } catch {
-      toast.info('Sharing not supported on this device');
-    }
-  };
-
   return (
     <>
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-background">
         {/* Header */}
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-start justify-between p-4 pb-3">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={avatarUrl} alt={displayName} />
@@ -88,6 +77,7 @@ export function FeedPost({ post }: FeedPostProps) {
               <p className="font-semibold text-sm">{displayName}</p>
               <p className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                {post.location_name && ` • ${post.location_name}`}
               </p>
             </div>
           </div>
@@ -99,7 +89,7 @@ export function FeedPost({ post }: FeedPostProps) {
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-background">
                 <DropdownMenuItem 
                   onClick={handleDelete}
                   className="text-destructive focus:text-destructive"
@@ -112,6 +102,13 @@ export function FeedPost({ post }: FeedPostProps) {
           )}
         </div>
 
+        {/* Caption - Above image like in the reference */}
+        {post.content && (
+          <div className="px-4 pb-3">
+            <p className="text-sm leading-relaxed">{post.content}</p>
+          </div>
+        )}
+
         {/* Photos */}
         {allPhotos.length > 0 && (
           <div className="relative">
@@ -119,7 +116,7 @@ export function FeedPost({ post }: FeedPostProps) {
               <img
                 src={allPhotos[0]}
                 alt="Post"
-                className="w-full aspect-square object-cover"
+                className="w-full aspect-[4/3] object-cover"
                 onDoubleClick={handleLike}
               />
             ) : (
@@ -130,7 +127,7 @@ export function FeedPost({ post }: FeedPostProps) {
                       <img
                         src={photo}
                         alt={`Post ${index + 1}`}
-                        className="w-full aspect-square object-cover"
+                        className="w-full aspect-[4/3] object-cover"
                         onDoubleClick={handleLike}
                       />
                     </CarouselItem>
@@ -143,66 +140,56 @@ export function FeedPost({ post }: FeedPostProps) {
           </div>
         )}
 
-        {/* Content */}
-        <div className="p-4 space-y-3">
-          {/* Catch details */}
-          {post.catch_data && (
-            <div className="flex items-center gap-2 text-sm">
-              <Fish className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{post.catch_data.species_name}</span>
-              {post.catch_data.weight_kg && (
-                <span className="text-muted-foreground">
-                  • {post.catch_data.weight_kg} kg
-                </span>
-              )}
-              {post.catch_data.length_cm && (
-                <span className="text-muted-foreground">
-                  • {post.catch_data.length_cm} cm
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Location */}
-          {post.location_name && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>{post.location_name}</span>
-            </div>
-          )}
-
-          {/* Caption */}
-          {post.content && (
-            <p className="text-sm">
-              <span className="font-semibold mr-2">{displayName}</span>
-              {post.content}
-            </p>
-          )}
-
-          {/* Actions */}
-          <div className="flex items-center gap-4 pt-2">
-            <LikeButton
-              isLiked={post.user_has_liked}
-              likesCount={post.likes_count}
-              onLike={handleLike}
-              disabled={likePost.isPending}
-            />
-            
-            <button
-              onClick={() => setShowComments(true)}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <MessageCircle className="h-5 w-5" />
-              <span className="text-sm font-medium">{post.comments_count}</span>
-            </button>
-
-            <button
-              onClick={handleShare}
-              className="text-muted-foreground hover:text-foreground transition-colors ml-auto"
-            >
-              <Share2 className="h-5 w-5" />
-            </button>
+        {/* Catch details as tags */}
+        {post.catch_data && (
+          <div className="px-4 pt-3 flex flex-wrap gap-2">
+            {post.catch_data.species_name && (
+              <Badge variant="outline" className="text-xs">
+                {post.catch_data.species_name}
+              </Badge>
+            )}
+            {post.catch_data.weight_kg && (
+              <Badge variant="outline" className="text-xs">
+                {post.catch_data.weight_kg} kg
+              </Badge>
+            )}
           </div>
+        )}
+
+        {/* Actions - Like and Comment buttons with text */}
+        <div className="p-4 pt-3 flex items-center gap-4 border-t border-border mt-3">
+          <button
+            onClick={handleLike}
+            disabled={likePost.isPending}
+            className={cn(
+              "flex items-center gap-2 text-sm transition-colors",
+              post.user_has_liked 
+                ? "text-cyan-600 font-medium" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <ThumbsUp 
+              className={cn(
+                "h-4 w-4",
+                post.user_has_liked && "fill-current"
+              )} 
+            />
+            Like
+            {post.likes_count > 0 && (
+              <span className="text-muted-foreground">({post.likes_count})</span>
+            )}
+          </button>
+          
+          <button
+            onClick={() => setShowComments(true)}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Comment
+            {post.comments_count > 0 && (
+              <span>({post.comments_count})</span>
+            )}
+          </button>
         </div>
       </Card>
 
