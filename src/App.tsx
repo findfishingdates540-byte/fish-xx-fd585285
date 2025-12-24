@@ -28,6 +28,8 @@ import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
+import { AdminLayout } from "@/components/admin";
+import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings } from "./pages/admin";
 
 const queryClient = new QueryClient();
 
