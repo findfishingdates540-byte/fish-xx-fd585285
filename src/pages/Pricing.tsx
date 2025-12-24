@@ -4,8 +4,14 @@ import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Check, X, Star, Shield, Lock, CreditCard } from 'lucide-react';
+import { Check, X, Star, Shield, Lock, CreditCard, HelpCircle } from 'lucide-react';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { motion } from 'framer-motion';
 
 type PlanType = 'angler' | 'trophy' | 'catch';
@@ -93,6 +99,41 @@ const comparisonFeatures = [
   { name: 'VIP Support', angler: false, trophy: true, catch: false },
   { name: 'Profile Boosts', angler: false, trophy: true, catch: false },
   { name: 'Verified Badge', angler: false, trophy: true, catch: false },
+];
+
+const faqItems = [
+  {
+    question: "Can I switch between plans?",
+    answer: "Absolutely! You can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the prorated difference. When downgrading, the remaining credit will be applied to future billing cycles."
+  },
+  {
+    question: "What payment methods do you accept?",
+    answer: "We accept all major credit cards (Visa, Mastercard, American Express, Discover) as well as PayPal. All payments are processed securely through Stripe."
+  },
+  {
+    question: "Is there a free trial?",
+    answer: "We offer a 7-day free trial for all new users. No credit card required to start. You can explore all features and decide which plan works best for you."
+  },
+  {
+    question: "What happens if I cancel my subscription?",
+    answer: "If you cancel, you'll continue to have access to your plan's features until the end of your current billing period. After that, your account will be downgraded to our free tier with limited features."
+  },
+  {
+    question: "Can I get a refund?",
+    answer: "Yes! We offer a 7-day money-back guarantee. If you're not satisfied with your subscription within the first 7 days, contact our support team for a full refund."
+  },
+  {
+    question: "Do you offer discounts for annual billing?",
+    answer: "Yes! When you choose annual billing, you save 20% compared to monthly billing. That's like getting 2+ months free every year."
+  },
+  {
+    question: "Can I pause my subscription?",
+    answer: "Yes, you can pause your subscription for up to 3 months. During the pause, you won't be charged, but you'll also lose access to premium features until you resume."
+  },
+  {
+    question: "Is my payment information secure?",
+    answer: "Absolutely. We use Stripe for payment processing, which is PCI-DSS compliant. We never store your full credit card details on our servers."
+  },
 ];
 
 export default function Pricing() {
@@ -369,18 +410,46 @@ export default function Pricing() {
         </ScrollReveal>
       </section>
 
-      {/* FAQ Quick */}
-      <section className="py-16 px-4 bg-muted/30">
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal>
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              Questions? We've got answers.
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Cancel anytime. No hidden fees. 7-day money-back guarantee.
+      {/* FAQ Section */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="max-w-3xl mx-auto">
+          <ScrollReveal className="text-center mb-12">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <HelpCircle className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-muted-foreground">
+              Everything you need to know about billing and subscriptions
+            </p>
+          </ScrollReveal>
+
+          <ScrollReveal delay={0.1}>
+            <Accordion type="single" collapsible className="w-full space-y-3">
+              {faqItems.map((item, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`item-${index}`}
+                  className="bg-card border border-border rounded-xl px-6 data-[state=open]:ring-2 data-[state=open]:ring-primary/20"
+                >
+                  <AccordionTrigger className="text-left text-foreground font-medium hover:no-underline py-5">
+                    {item.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-5">
+                    {item.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </ScrollReveal>
+
+          <ScrollReveal delay={0.2} className="text-center mt-10">
+            <p className="text-muted-foreground mb-4">
+              Still have questions? We're here to help.
             </p>
             <Link to="/help">
-              <Button variant="outline">View FAQ</Button>
+              <Button variant="outline">Contact Support</Button>
             </Link>
           </ScrollReveal>
         </div>
