@@ -34,6 +34,7 @@ import {
   Loader2,
   Trash2,
   MoreVertical,
+  Share2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,6 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCreatePost } from "@/hooks/use-feed";
 
 interface Catch {
   id: string;
@@ -505,6 +507,7 @@ export default function Catches() {
               catchData={catchItem}
               onDelete={() => handleDelete(catchItem.id)}
               formatDate={formatDate}
+              spots={spots}
             />
           ))}
         </div>
@@ -518,9 +521,34 @@ interface CatchCardProps {
   catchData: Catch;
   onDelete: () => void;
   formatDate: (date: string | null) => string;
+  spots: FishingSpot[];
 }
 
-function CatchCard({ catchData, onDelete, formatDate }: CatchCardProps) {
+function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
+  const createPost = useCreatePost();
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleShareToFeed = async () => {
+    setIsSharing(true);
+    try {
+      // Get spot name if available
+      const spot = spots.find(s => s.id === catchData.fishing_spot_id);
+      const locationName = spot?.name || spot?.location_name || undefined;
+
+      await createPost.mutateAsync({
+        catchId: catchData.id,
+        content: catchData.notes || undefined,
+        locationName
+      });
+      toast.success("Shared to feed!");
+    } catch (error) {
+      console.error("Failed to share:", error);
+      toast.error("Failed to share to feed");
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   return (
     <div className="rounded-xl border overflow-hidden bg-background">
       {/* Image */}
@@ -552,6 +580,10 @@ function CatchCard({ catchData, onDelete, formatDate }: CatchCardProps) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleShareToFeed} disabled={isSharing}>
+              <Share2 className="h-4 w-4 mr-2" />
+              {isSharing ? "Sharing..." : "Share to Feed"}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onDelete} className="text-destructive">
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
