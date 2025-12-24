@@ -300,9 +300,12 @@ export default function Discover() {
                   renderEmptyState()
                 ) : (
                   <>
-                    <div onClick={handleProfileClick} className="cursor-pointer">
-                      <ProfileCard profile={currentProfile} />
-                    </div>
+                    <ProfileCard 
+                      profile={currentProfile} 
+                      onInfoClick={handleProfileClick}
+                      onSwipeLeft={onPass}
+                      onSwipeRight={onLike}
+                    />
 
                     {/* Swipe Actions */}
                     <div className="mt-6">
@@ -326,9 +329,12 @@ export default function Discover() {
                 renderEmptyState()
               ) : (
                 <>
-                  <div onClick={handleProfileClick} className="cursor-pointer">
-                    <ProfileCard profile={currentProfile} />
-                  </div>
+                  <ProfileCard 
+                    profile={currentProfile} 
+                    onInfoClick={handleProfileClick}
+                    onSwipeLeft={onPass}
+                    onSwipeRight={onLike}
+                  />
 
                   {/* Swipe Actions */}
                   <div className="mt-6">
