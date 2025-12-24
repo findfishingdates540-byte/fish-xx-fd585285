@@ -20,6 +20,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import Pricing from "./pages/Pricing";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard } from "./pages/app";
 import SpotDetail from "./pages/app/SpotDetail";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/help" element={<Help />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/checkout" element={<Checkout />} />
             
             {/* Logged-in app routes */}
             <Route path="/app" element={<AppLayout />}>
