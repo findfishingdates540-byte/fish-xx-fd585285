@@ -124,7 +124,7 @@ export function AppLayout() {
         .select('account_mode, onboarding_completed, is_premium, premium_expires_at')
         .eq('id', user.id)
         .maybeSingle();
-      
+
       if (error) {
         console.error('Profile fetch error:', error);
         throw error;
@@ -136,7 +136,24 @@ export function AppLayout() {
     retry: 2,
   });
 
-  if (authLoading || (profileLoading && user)) {
+  const { data: adminRole, isLoading: adminRoleLoading } = useQuery({
+    queryKey: ['admin-role', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'moderator'])
+        .maybeSingle();
+      return data?.role ?? null;
+    },
+    enabled: !!user?.id,
+    staleTime: 0,
+    retry: 2,
+  });
+
+  if (authLoading || ((profileLoading || adminRoleLoading) && user)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="space-y-4 w-full max-w-md px-4">
@@ -162,13 +179,16 @@ export function AppLayout() {
   }
 
   // Check if fishing/both users have valid premium access (with 3-day grace period after expiration)
+  // NOTE: admins/moderators are exempt from premium gating.
+  const isAdmin = !!adminRole;
   const requiresPremium = profile?.account_mode === 'fishing' || profile?.account_mode === 'both';
   const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
-  const isPremiumExpired = profile?.premium_expires_at && 
+  const isPremiumExpired =
+    profile?.premium_expires_at &&
     new Date(profile.premium_expires_at).getTime() + gracePeriodMs < Date.now();
   const hasPremiumAccess = profile?.is_premium && !isPremiumExpired;
-  
-  if (requiresPremium && !hasPremiumAccess) {
+
+  if (requiresPremium && !hasPremiumAccess && !isAdmin) {
     return <Navigate to="/pricing" replace />;
   }
 

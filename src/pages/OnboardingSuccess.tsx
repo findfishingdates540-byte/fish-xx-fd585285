@@ -124,23 +124,34 @@ export default function OnboardingSuccess() {
     const fetchProfile = async () => {
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('account_mode, display_name, is_premium')
-        .eq('id', user.id)
-        .single();
+      const [{ data: profile }, { data: roleRow }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('account_mode, display_name, is_premium')
+          .eq('id', user.id)
+          .single(),
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .in('role', ['admin', 'moderator'])
+          .maybeSingle(),
+      ]);
 
-      if (data) {
-        setAccountMode(data.account_mode || 'both');
-        setDisplayName(data.display_name || '');
-        
-        // Redirect non-premium fishing/both users to pricing page
-        const needsPremium = data.account_mode === 'fishing' || data.account_mode === 'both';
-        if (needsPremium && !data.is_premium) {
+      if (profile) {
+        setAccountMode(profile.account_mode || 'both');
+        setDisplayName(profile.display_name || '');
+
+        const isAdmin = !!roleRow;
+
+        // Redirect non-premium fishing/both users to pricing page (admins are exempt)
+        const needsPremium = profile.account_mode === 'fishing' || profile.account_mode === 'both';
+        if (!isAdmin && needsPremium && !profile.is_premium) {
           navigate('/pricing');
           return;
         }
       }
+
       setLoading(false);
     };
 
