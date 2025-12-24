@@ -17,6 +17,8 @@ export function useStripeCheckout() {
     setIsLoading(true);
     
     try {
+      console.log("Starting checkout with options:", options);
+      
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
           planId: options.planId,
@@ -26,15 +28,19 @@ export function useStripeCheckout() {
         },
       });
 
+      console.log("Checkout response:", { data, error });
+
       if (error) {
         console.error("Checkout error:", error);
         throw new Error(error.message || "Failed to create checkout session");
       }
 
       if (data?.url) {
+        console.log("Redirecting to:", data.url);
         // Redirect to Stripe Checkout
         window.location.href = data.url;
       } else {
+        console.error("No URL in response:", data);
         throw new Error("No checkout URL returned");
       }
     } catch (error: any) {
