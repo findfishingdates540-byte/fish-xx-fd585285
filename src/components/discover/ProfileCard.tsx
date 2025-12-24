@@ -87,8 +87,8 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
       onClick={!isMobile ? handleCardClick : undefined}
       whileTap={{ cursor: 'grabbing' }}
       className={cn(
-        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full h-full mx-auto cursor-grab relative flex flex-col",
-        isMobile ? "touch-none" : "touch-pan-y",
+        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full mx-auto cursor-grab relative flex flex-col",
+        isMobile ? "touch-none h-full" : "touch-pan-y",
         className
       )}
     >
@@ -110,8 +110,11 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
         </div>
       </motion.div>
 
-      {/* Photo Section - Fill available height (prevents scrolling) */}
-      <div className={cn("relative bg-muted flex-1 min-h-0")}>
+      {/* Photo Section */}
+      <div className={cn(
+        "relative bg-muted",
+        isMobile ? "flex-1 min-h-0" : "aspect-[3/4]"
+      )}>
         <img
           src={profile.photos[currentPhotoIndex]}
           alt={profile.name}
