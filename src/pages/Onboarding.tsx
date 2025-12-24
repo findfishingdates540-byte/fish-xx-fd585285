@@ -309,15 +309,42 @@ export default function Onboarding() {
         updateData.fishing_gear = selectedActivities;
       }
 
+      // Debug mode: Log all form values before submission
+      console.group('🔍 [ONBOARDING DEBUG] Form Submission Data');
+      console.log('User ID:', user.id);
+      console.log('Account Mode:', accountMode);
+      console.log('Current Step:', currentStepKey);
+      console.log('------- Raw Form Values -------');
+      console.log('First Name:', firstName);
+      console.log('Date of Birth:', dateOfBirth);
+      console.log('Gender:', gender);
+      console.log('Photos:', photos);
+      console.log('Location:', { city, state, zipCode, combined: locationName });
+      console.log('Max Distance (miles):', maxDistance);
+      console.log('Age Range:', ageRange);
+      console.log('Interested In:', interestedIn);
+      console.log('Looking For:', lookingFor);
+      console.log('Fishing Experience:', fishingExperience);
+      console.log('Selected Styles (species):', selectedStyles);
+      console.log('Selected Activities (gear):', selectedActivities);
+      console.log('------- Update Payload -------');
+      console.log('updateData:', JSON.stringify(updateData, null, 2));
+      console.groupEnd();
+
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('🔴 [ONBOARDING DEBUG] Supabase Error:', error);
+        throw error;
+      }
 
+      console.log('✅ [ONBOARDING DEBUG] Profile saved successfully');
       navigate('/onboarding/success');
     } catch (error: any) {
+      console.error('🔴 [ONBOARDING DEBUG] Catch block error:', error);
       toast({
         title: "Error saving profile",
         description: error.message || "Please try again",
