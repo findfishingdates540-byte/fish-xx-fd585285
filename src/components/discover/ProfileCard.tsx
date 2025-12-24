@@ -25,6 +25,7 @@ interface ProfileCardProps {
 
 export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }: ProfileCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
@@ -45,6 +46,10 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
     }
   };
 
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     
@@ -55,6 +60,15 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
       // Swiped left - Pass
       onSwipeLeft?.();
     }
+    
+    // Reset dragging state after a small delay to prevent click triggering
+    setTimeout(() => setIsDragging(false), 100);
+  };
+
+  const handleCardClick = () => {
+    if (!isDragging) {
+      onInfoClick?.();
+    }
   };
 
   return (
@@ -63,7 +77,9 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onClick={handleCardClick}
       whileTap={{ cursor: 'grabbing' }}
       className="bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full mx-auto cursor-grab relative"
     >
