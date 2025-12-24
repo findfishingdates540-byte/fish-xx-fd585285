@@ -1,10 +1,14 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo.png';
 
 export function PublicHeader() {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathname = location.pathname;
+  const { user, signOut } = useAuth();
 
   const navLinks = [
     { to: '/about', label: 'About' },
@@ -13,6 +17,11 @@ export function PublicHeader() {
     { to: '/pricing', label: 'Pricing' },
     { to: '/safety', label: 'Safety' },
   ];
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
@@ -36,16 +45,29 @@ export function PublicHeader() {
         </div>
         
         <div className="flex items-center gap-4">
-          <Link to="/auth">
-            <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
-              Log in
+          {user ? (
+            <Button 
+              onClick={handleLogout}
+              variant="ghost" 
+              className="text-foreground hover:bg-muted font-medium flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
             </Button>
-          </Link>
-          <Link to="/auth?mode=signup">
-            <Button className="btn-primary">
-              Sign up
-            </Button>
-          </Link>
+          ) : (
+            <>
+              <Link to="/auth">
+                <Button variant="ghost" className="text-foreground hover:bg-muted font-medium">
+                  Log in
+                </Button>
+              </Link>
+              <Link to="/auth?mode=signup">
+                <Button className="btn-primary">
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
