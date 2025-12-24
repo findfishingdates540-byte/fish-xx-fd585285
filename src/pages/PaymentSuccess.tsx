@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, Download, MapPin, Heart, Ban } from 'lucide-react';
+import { Check, ArrowRight, Download, MapPin, Heart, Ban, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import logo from '@/assets/logo.png';
+import { toast } from 'sonner';
 
 interface PlanInfo {
   name: string;
@@ -46,9 +47,53 @@ const fireConfetti = () => {
   frame();
 };
 
+const generateReceiptContent = (
+  planName: string,
+  billingCycle: string,
+  amount: string,
+  transactionId: string,
+  date: string
+) => {
+  return `
+================================================================================
+                            FIND FISHING DATES
+                              PAYMENT RECEIPT
+================================================================================
+
+Transaction ID: #${transactionId}
+Date: ${date}
+
+--------------------------------------------------------------------------------
+                              ORDER DETAILS
+--------------------------------------------------------------------------------
+
+Plan:           ${planName} (${billingCycle})
+Amount Paid:    $${amount} USD
+
+--------------------------------------------------------------------------------
+                              PAYMENT STATUS
+--------------------------------------------------------------------------------
+
+Status:         ✓ PAYMENT SUCCESSFUL
+
+--------------------------------------------------------------------------------
+
+Thank you for subscribing to Find Fishing Dates!
+Your premium features are now active.
+
+For support, visit: https://findfishingdates.com/help
+To manage your subscription: https://findfishingdates.com/app/settings
+
+================================================================================
+                    This receipt is for your records.
+================================================================================
+`;
+};
+
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [isDownloading, setIsDownloading] = useState(false);
   
   const planId = searchParams.get('plan') || 'trophy';
   const billing = searchParams.get('billing') || 'annual';
@@ -64,6 +109,38 @@ export default function PaymentSuccess() {
   useEffect(() => {
     fireConfetti();
   }, []);
+
+  const handleDownloadReceipt = () => {
+    setIsDownloading(true);
+    
+    try {
+      const receiptContent = generateReceiptContent(
+        plan.displayName,
+        isAnnual ? 'Annual' : 'Monthly',
+        amount,
+        transactionId,
+        today
+      );
+      
+      // Create blob and download
+      const blob = new Blob([receiptContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `FindFishingDates_Receipt_${transactionId}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Receipt downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error('Failed to download receipt. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const features = [
     { icon: MapPin, label: 'Premium Spots', color: 'bg-primary/10 text-primary' },
@@ -227,9 +304,17 @@ export default function PaymentSuccess() {
             transition={{ delay: 0.8 }}
             className="text-center mt-6"
           >
-            <button className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <Download className="w-4 h-4" />
-              Download Receipt
+            <button 
+              onClick={handleDownloadReceipt}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              {isDownloading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {isDownloading ? 'Downloading...' : 'Download Receipt'}
             </button>
           </motion.div>
         </motion.div>
