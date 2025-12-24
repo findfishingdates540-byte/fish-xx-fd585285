@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin } from 'lucide-react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,9 +35,9 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
 
   if (mode === 'fishing') {
     return [
+      { to: '/app/feed', icon: Rss, label: 'Feed' },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
-      { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessageBadge: true },
       { to: '/app/profile', icon: User, label: 'Profile' },
     ];
   }
@@ -45,7 +45,7 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
   // Both mode - dashboard-centric navigation
   return [
     { to: '/app/dashboard', icon: Home, label: 'Home' },
-    { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
+    { to: '/app/feed', icon: Rss, label: 'Feed' },
     { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     { to: '/app/profile', icon: User, label: 'Profile' },
   ];

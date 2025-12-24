@@ -23,7 +23,7 @@ import Pricing from "./pages/Pricing";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed } from "./pages/app";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
@@ -67,6 +67,7 @@ const App = () => (
               <Route path="messages/:matchId" element={<DatingRoute><Chat /></DatingRoute>} />
               
               {/* Fishing-only routes */}
+              <Route path="feed" element={<FishingRoute><Feed /></FishingRoute>} />
               <Route path="spots" element={<FishingRoute><Spots /></FishingRoute>} />
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
               <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
