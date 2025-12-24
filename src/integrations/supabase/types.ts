@@ -174,6 +174,117 @@ export type Database = {
           },
         ]
       }
+      feed_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_posts: {
+        Row: {
+          catch_id: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          id: string
+          likes_count: number | null
+          location_name: string | null
+          photos: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          catch_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          location_name?: string | null
+          photos?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          catch_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          location_name?: string | null
+          photos?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_catch_id_fkey"
+            columns: ["catch_id"]
+            isOneToOne: false
+            referencedRelation: "catches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fish_species: {
         Row: {
           created_at: string
