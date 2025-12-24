@@ -17,13 +17,14 @@ import { Search, Settings, LogOut, User, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { FeedNotifications } from "@/components/feed/FeedNotifications";
 
 const fishingNavItems = [
+  { to: "/app/feed", label: "Feed" },
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/buddies", label: "Buddies", badgeType: "buddyRequests" as const },
   { to: "/app/catches", label: "Catches" },
-  { to: "/app/buddy-messages", label: "Messages", badgeType: "unreadMessages" as const },
 ];
 
 export function FishingHeader() {
@@ -171,14 +172,6 @@ export function FishingHeader() {
                     {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
                   </Badge>
                 )}
-                {item.badgeType === "unreadMessages" && unreadMessagesCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-4 h-5 min-w-5 flex items-center justify-center text-xs px-1"
-                  >
-                    {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
-                  </Badge>
-                )}
               </NavLink>
             ))}
           </nav>
@@ -195,7 +188,10 @@ export function FishingHeader() {
             />
           </div>
 
-          {/* Notifications */}
+          {/* Feed Notifications */}
+          <FeedNotifications />
+
+          {/* Push Notifications */}
           <NotificationCenter mode="fishing" />
 
           {/* Profile Dropdown */}
