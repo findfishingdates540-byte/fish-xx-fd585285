@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMode } from "@/contexts/ActiveModeContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MatchCelebrationModal } from "@/components/discover/MatchCelebrationModal";
+import { toast } from "sonner";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
@@ -127,6 +129,10 @@ export default function ComboDashboard() {
   const [matchCount, setMatchCount] = useState(0);
   const [featuredSpot, setFeaturedSpot] = useState<FishingSpot | null>(null);
   const previousNotificationCountRef = useRef<number>(0);
+  const [swipedAnglers, setSwipedAnglers] = useState<Set<string>>(new Set());
+  const [matchedProfile, setMatchedProfile] = useState<ProfileData | null>(null);
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
 
   // Request notification permission on mount
   useEffect(() => {
@@ -463,6 +469,115 @@ export default function ComboDashboard() {
     }
   };
 
+  // Swipe mutation for Like/Pass actions
+  const swipeMutation = useMutation({
+    mutationFn: async ({ targetId, liked }: { targetId: string; liked: boolean }) => {
+      if (!user?.id) throw new Error("Not authenticated");
+
+      // Check if a match record already exists
+      const { data: existingMatch } = await supabase
+        .from("matches")
+        .select("*")
+        .or(
+          `and(user1_id.eq.${user.id},user2_id.eq.${targetId}),and(user1_id.eq.${targetId},user2_id.eq.${user.id})`
+        )
+        .maybeSingle();
+
+      if (existingMatch) {
+        // Update existing match
+        const isUser1 = existingMatch.user1_id === user.id;
+        const updateData = isUser1
+          ? { user1_liked: liked }
+          : { user2_liked: liked };
+
+        // Check if this creates a mutual match
+        const otherUserLiked = isUser1
+          ? existingMatch.user2_liked
+          : existingMatch.user1_liked;
+        
+        if (liked && otherUserLiked) {
+          Object.assign(updateData, { is_match: true, matched_at: new Date().toISOString() });
+        }
+
+        const { data, error } = await supabase
+          .from("matches")
+          .update(updateData)
+          .eq("id", existingMatch.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { match: data, isNewMatch: liked && otherUserLiked };
+      } else {
+        // Create new match record
+        const [id1, id2] = [user.id, targetId].sort();
+        const isUser1 = id1 === user.id;
+
+        const { data, error } = await supabase
+          .from("matches")
+          .insert({
+            user1_id: id1,
+            user2_id: id2,
+            user1_liked: isUser1 ? liked : null,
+            user2_liked: isUser1 ? null : liked,
+            is_match: false,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { match: data, isNewMatch: false };
+      }
+    },
+    onSuccess: (result, variables) => {
+      // Add to swiped set to remove from UI
+      setSwipedAnglers((prev) => new Set(prev).add(variables.targetId));
+
+      if (variables.liked) {
+        if (result.isNewMatch) {
+          // It's a match! Show celebration modal
+          const matchedAngler = nearbyAnglers.find((a) => a.id === variables.targetId);
+          if (matchedAngler) {
+            setMatchedProfile(matchedAngler);
+            setCurrentMatchId(result.match.id);
+            setShowMatchModal(true);
+            setMatchCount((prev) => prev + 1);
+          }
+          toast.success("It's a match! 🎉", { description: "You both liked each other!" });
+        } else {
+          toast.success("Profile liked!", { description: "We'll let you know if they like you back." });
+        }
+      } else {
+        toast("Profile passed", { description: "You won't see this profile again." });
+      }
+
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ["recent-matches", user?.id] });
+    },
+    onError: (error) => {
+      console.error("Swipe error:", error);
+      toast.error("Something went wrong", { description: "Please try again." });
+    },
+  });
+
+  const handleLikeAngler = (angler: ProfileData) => {
+    swipeMutation.mutate({ targetId: angler.id, liked: true });
+  };
+
+  const handlePassAngler = (angler: ProfileData) => {
+    swipeMutation.mutate({ targetId: angler.id, liked: false });
+  };
+
+  const handleAnglerCardClick = (anglerId: string) => {
+    navigate(`/app/profile/${anglerId}`);
+  };
+
+  const clearMatchedProfile = () => {
+    setMatchedProfile(null);
+    setCurrentMatchId(null);
+    setShowMatchModal(false);
+  };
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -683,60 +798,111 @@ export default function ComboDashboard() {
                   </div>
 
                   <div className="space-y-4">
-                    {nearbyAnglers.slice(0, 3).map((angler, index) => (
+                    <AnimatePresence mode="popLayout">
+                      {nearbyAnglers
+                        .filter((angler) => !swipedAnglers.has(angler.id))
+                        .slice(0, 3)
+                        .map((angler, index) => (
+                          <motion.div
+                            key={angler.id}
+                            layout
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 100, scale: 0.8 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                          >
+                            <Card 
+                              className="overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+                              onClick={() => handleAnglerCardClick(angler.id)}
+                            >
+                              <CardContent className="p-3 sm:p-4">
+                                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                                  <Avatar className="h-14 w-14 sm:h-20 sm:w-20 rounded-lg flex-shrink-0 ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
+                                    <AvatarImage src={angler.photos?.[0]} className="object-cover" />
+                                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+                                      {angler.display_name?.[0] || "?"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                      <div className="min-w-0">
+                                        <h3 className="font-semibold truncate">
+                                          {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground capitalize truncate">
+                                          {angler.fishing_experience || "Fishing Enthusiast"}
+                                        </p>
+                                        {angler.location_name && (
+                                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                            <MapPin className="h-3 w-3" />
+                                            {angler.location_name}
+                                          </p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.1 }}>
+                                          <Button 
+                                            variant="outline" 
+                                            size="icon" 
+                                            className="rounded-full h-8 w-8 sm:h-10 sm:w-10 border-2 hover:border-muted-foreground hover:bg-muted transition-all"
+                                            onClick={() => handlePassAngler(angler)}
+                                            disabled={swipeMutation.isPending}
+                                          >
+                                            <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                                          </Button>
+                                        </motion.div>
+                                        <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.1 }}>
+                                          <Button 
+                                            size="icon" 
+                                            className="rounded-full h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 shadow-lg shadow-rose-500/25 transition-all"
+                                            onClick={() => handleLikeAngler(angler)}
+                                            disabled={swipeMutation.isPending}
+                                          >
+                                            <Heart className="h-4 w-4 sm:h-5 sm:w-5 fill-white" />
+                                          </Button>
+                                        </motion.div>
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
+                                      {angler.preferred_species?.slice(0, 2).map((species, i) => (
+                                        <Badge key={i} variant="secondary" className="text-xs">
+                                          {species}
+                                        </Badge>
+                                      ))}
+                                      {angler.fishing_gear?.slice(0, 1).map((gear, i) => (
+                                        <Badge key={i} variant="outline" className="text-xs text-primary border-primary/30 bg-primary/5">
+                                          <Fish className="h-3 w-3 mr-1" />
+                                          {gear}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        ))}
+                    </AnimatePresence>
+                    
+                    {/* Empty state when all profiles swiped */}
+                    {nearbyAnglers.filter((a) => !swipedAnglers.has(a.id)).length === 0 && nearbyAnglers.length > 0 && (
                       <motion.div
-                        key={angler.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-center py-8"
                       >
-                        <Card className="overflow-hidden">
-                          <CardContent className="p-3 sm:p-4">
-                            <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                              <Avatar className="h-14 w-14 sm:h-20 sm:w-20 rounded-lg flex-shrink-0">
-                                <AvatarImage src={angler.photos?.[0]} className="object-cover" />
-                                <AvatarFallback className="rounded-lg">
-                                  {angler.display_name?.[0] || "?"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                  <div className="min-w-0">
-                                    <h3 className="font-semibold truncate">
-                                      {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground capitalize truncate">
-                                      {angler.fishing_experience || "Fishing Enthusiast"}
-                                    </p>
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <Button variant="outline" size="icon" className="rounded-full h-8 w-8 sm:h-10 sm:w-10">
-                                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    </Button>
-                                    <Button size="icon" className="rounded-full h-8 w-8 sm:h-10 sm:w-10 bg-destructive hover:bg-destructive/90">
-                                      <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    </Button>
-                                  </div>
-                                </div>
-                                <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
-                                  {angler.preferred_species?.slice(0, 2).map((species, i) => (
-                                    <Badge key={i} variant="secondary" className="text-xs">
-                                      {species}
-                                    </Badge>
-                                  ))}
-                                  {angler.fishing_gear?.slice(0, 1).map((gear, i) => (
-                                    <Badge key={i} variant="outline" className="text-xs text-primary border-primary/30 bg-primary/5">
-                                      <Fish className="h-3 w-3 mr-1" />
-                                      {gear}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                          <Heart className="h-8 w-8 text-primary" />
+                        </div>
+                        <h3 className="font-semibold mb-2">You've seen everyone nearby!</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Check back later for new anglers or explore more profiles.
+                        </p>
+                        <Button onClick={() => navigate("/app/discover")}>
+                          Discover More
+                        </Button>
                       </motion.div>
-                    ))}
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -956,6 +1122,27 @@ export default function ComboDashboard() {
           </aside>
         </div>
       </div>
+
+      {/* Match Celebration Modal */}
+      <MatchCelebrationModal
+        open={showMatchModal}
+        onClose={clearMatchedProfile}
+        matchProfile={
+          matchedProfile && currentMatchId
+            ? {
+                id: matchedProfile.id,
+                matchId: currentMatchId,
+                name: matchedProfile.display_name || "Anonymous",
+                age: calculateAge(matchedProfile.date_of_birth) || null,
+                photo: matchedProfile.photos?.[0] || "",
+                fishingType: matchedProfile.fishing_experience || undefined,
+                bio: matchedProfile.preferred_species?.join(", ") || undefined,
+              }
+            : null
+        }
+        currentUserPhoto={userProfile?.photos?.[0] || ""}
+        compatibilityScore={85}
+      />
     </div>
   );
 }
