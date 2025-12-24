@@ -4,7 +4,8 @@ import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Check, X, Star, Shield, Lock, CreditCard, HelpCircle } from 'lucide-react';
+import { Check, X, Star, Shield, Lock, CreditCard, HelpCircle, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 import {
   Accordion,
@@ -139,16 +140,37 @@ const faqItems = [
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const handleSelectPlan = (plan: PricingPlan) => {
     // Navigate to checkout with plan info
     navigate(`/checkout?plan=${plan.id}&billing=${isAnnual ? 'annual' : 'monthly'}`);
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <PublicHeader />
       
+      {/* Logout Button for logged-in users */}
+      {user && (
+        <div className="fixed top-4 right-4 z-50">
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Log Out
+          </Button>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
