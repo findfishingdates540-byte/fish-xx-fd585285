@@ -192,6 +192,11 @@ export function AppLayout() {
     return <Navigate to="/pricing" replace />;
   }
 
+  // Redirect admins to /admin by default when visiting /app
+  if (isAdmin && location.pathname === '/app') {
+    return <Navigate to="/admin" replace />;
+  }
+
   const baseAccountMode = profile?.account_mode || 'both';
 
   return (
