@@ -118,7 +118,7 @@ export function AppLayout() {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('account_mode, onboarding_completed')
+        .select('account_mode, onboarding_completed, is_premium')
         .eq('id', user.id)
         .maybeSingle();
       
@@ -156,6 +156,12 @@ export function AppLayout() {
 
   if (!profile?.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  // Check if fishing/both users have premium access
+  const requiresPremium = profile?.account_mode === 'fishing' || profile?.account_mode === 'both';
+  if (requiresPremium && !profile?.is_premium) {
+    return <Navigate to="/pricing" replace />;
   }
 
   const baseAccountMode = profile?.account_mode || 'both';
