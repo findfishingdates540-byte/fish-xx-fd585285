@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Lock, Shield, Loader2, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import logo from '@/assets/logo.png';
-import { STRIPE_PUBLISHABLE_KEY } from '@/lib/stripe';
-
-// Initialize Stripe
-const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+import { getStripePublishableKey } from '@/lib/stripe';
 
 interface PlanInfo {
   id: string;
@@ -502,6 +499,10 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
+  
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+  const [isLoadingStripe, setIsLoadingStripe] = useState(true);
   
   const planId = searchParams.get('plan') || 'trophy';
   const billing = searchParams.get('billing') || 'monthly';
@@ -511,6 +512,26 @@ export default function Checkout() {
   const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
   const total = price;
 
+  // Fetch Stripe publishable key and initialize
+  useEffect(() => {
+    const initStripe = async () => {
+      try {
+        const publishableKey = await getStripePublishableKey();
+        setStripePromise(loadStripe(publishableKey));
+      } catch (error) {
+        console.error('Failed to load Stripe config:', error);
+        toast({
+          title: "Error",
+          description: "Failed to initialize payment system. Please refresh the page.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingStripe(false);
+      }
+    };
+    initStripe();
+  }, [toast]);
+
   // Redirect to auth if not logged in
   useEffect(() => {
     if (!user) {
@@ -518,7 +539,7 @@ export default function Checkout() {
     }
   }, [user, navigate]);
 
-  if (!user) {
+  if (!user || isLoadingStripe || !stripePromise) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
