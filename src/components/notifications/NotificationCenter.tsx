@@ -574,24 +574,12 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
               Mark all as read
             </Button>
           )}
-          <div className="flex gap-2">
-            {showDating && (
-              <Link 
-                to="/app/messages" 
-                className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
-              >
-                Dating Messages
-              </Link>
-            )}
-            {showFishing && (
-              <Link 
-                to="/app/buddy-messages" 
-                className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-2"
-              >
-                Buddy Messages
-              </Link>
-            )}
-          </div>
+          <Link 
+            to="/app/notifications" 
+            className="block text-center text-xs text-primary hover:text-primary/80 py-2 font-medium"
+          >
+            View all notifications
+          </Link>
         </div>
       </PopoverContent>
     </Popover>
