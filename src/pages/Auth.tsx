@@ -41,37 +41,67 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    const redirectTo = searchParams.get('redirect');
+
     const checkOnboardingAndPremium = async () => {
-      if (user) {
-        // Check onboarding status, account mode, and premium status
-        const { data } = await (await import('@/integrations/supabase/client')).supabase
+      if (!user) return;
+
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      const [{ data: profile }, { data: roleRow }] = await Promise.all([
+        supabase
           .from('profiles')
           .select('onboarding_completed, account_mode, is_premium, premium_expires_at')
           .eq('id', user.id)
-          .single();
-        
-        if (!data?.onboarding_completed) {
-          navigate('/onboarding');
+          .single(),
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .in('role', ['admin', 'moderator'])
+          .maybeSingle(),
+      ]);
+
+      const isAdmin = !!roleRow;
+
+      // Admins should never be blocked by onboarding/premium redirects
+      if (isAdmin) {
+        if (redirectTo && redirectTo.startsWith('/')) {
+          navigate(redirectTo);
           return;
         }
-        
-        // Check if fishing/both users need to pay or have expired subscription (with 3-day grace period)
-        const requiresPremium = data.account_mode === 'fishing' || data.account_mode === 'both';
-        const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
-        const isPremiumExpired = data.premium_expires_at && 
-          new Date(data.premium_expires_at).getTime() + gracePeriodMs < Date.now();
-        const hasPremiumAccess = data.is_premium && !isPremiumExpired;
-        
-        if (requiresPremium && !hasPremiumAccess) {
-          navigate('/pricing');
-          return;
-        }
-        
-        navigate('/app/discover');
+        navigate('/admin');
+        return;
       }
+
+      if (!profile?.onboarding_completed) {
+        navigate('/onboarding');
+        return;
+      }
+
+      // Check if fishing/both users need to pay or have expired subscription (with 3-day grace period)
+      const requiresPremium = profile.account_mode === 'fishing' || profile.account_mode === 'both';
+      const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+      const isPremiumExpired =
+        profile.premium_expires_at &&
+        new Date(profile.premium_expires_at).getTime() + gracePeriodMs < Date.now();
+      const hasPremiumAccess = profile.is_premium && !isPremiumExpired;
+
+      if (requiresPremium && !hasPremiumAccess) {
+        navigate('/pricing');
+        return;
+      }
+
+      if (redirectTo && redirectTo.startsWith('/')) {
+        navigate(redirectTo);
+        return;
+      }
+
+      navigate('/app/discover');
     };
+
     checkOnboardingAndPremium();
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; confirmPassword?: string } = {};
