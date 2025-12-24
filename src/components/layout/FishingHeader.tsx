@@ -17,7 +17,7 @@ import { Search, Settings, LogOut, User, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
-import { FeedNotifications } from "@/components/feed/FeedNotifications";
+
 
 const fishingNavItems = [
   { to: "/app/feed", label: "Feed" },
@@ -188,10 +188,7 @@ export function FishingHeader() {
             />
           </div>
 
-          {/* Feed Notifications */}
-          <FeedNotifications />
-
-          {/* Push Notifications */}
+          {/* Notifications */}
           <NotificationCenter mode="fishing" />
 
           {/* Profile Dropdown */}
