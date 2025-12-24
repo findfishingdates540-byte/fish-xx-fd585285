@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -126,6 +127,7 @@ export default function SpotDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const { token: mapboxToken } = useMapboxToken();
   const { isSpotSaved, toggleSaveSpot } = useSavedSpots();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -224,9 +226,9 @@ export default function SpotDetail() {
     fetchData();
   }, [id, user]);
 
-  // Initialize mini map
+  // Initialize mini map (skip on mobile)
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || !spot || map.current) return;
+    if (isMobile || !mapContainer.current || !mapboxToken || !spot || map.current) return;
 
     mapboxgl.accessToken = mapboxToken;
 
@@ -247,7 +249,7 @@ export default function SpotDetail() {
       map.current?.remove();
       map.current = null;
     };
-  }, [mapboxToken, spot]);
+  }, [mapboxToken, spot, isMobile]);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -622,11 +624,13 @@ export default function SpotDetail() {
                   onClick={handleGetDirections}
                   className="text-sm text-primary hover:underline flex items-center gap-1"
                 >
-                  View larger map
+                  {isMobile ? 'Get Directions' : 'View larger map'}
                   <ExternalLink className="h-3 w-3" />
                 </button>
               </div>
-              <div ref={mapContainer} className="w-full h-48 rounded-xl overflow-hidden mb-3 bg-muted" />
+              {!isMobile && (
+                <div ref={mapContainer} className="w-full h-48 rounded-xl overflow-hidden mb-3 bg-muted" />
+              )}
               <p className="text-sm text-muted-foreground">
                 Coordinates: {formatCoordinates(spot.location_lat, spot.location_lng)}
               </p>

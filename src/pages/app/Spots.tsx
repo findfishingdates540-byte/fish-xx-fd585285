@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +59,7 @@ const FILTER_OPTIONS = [
 
 export default function Spots() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const { isSpotSaved, toggleSaveSpot } = useSavedSpots();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -121,9 +123,9 @@ export default function Spots() {
     }
   }, []);
 
-  // Initialize map
+  // Initialize map (skip on mobile)
   useEffect(() => {
-    if (!mapContainer.current || !token || map.current) return;
+    if (isMobile || !mapContainer.current || !token || map.current) return;
 
     mapboxgl.accessToken = token;
 
@@ -143,7 +145,7 @@ export default function Spots() {
       map.current?.remove();
       map.current = null;
     };
-  }, [token, userLocation, mapStyle]);
+  }, [token, userLocation, mapStyle, isMobile]);
 
   // Filter spots
   const filteredSpots = spots.filter((spot) => {
@@ -406,9 +408,9 @@ export default function Spots() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
-      {/* Left Sidebar - Spot List */}
-      <aside className="w-[480px] border-r bg-background overflow-y-auto">
-        <div className="p-6">
+      {/* Spot List - Full width on mobile, sidebar on desktop */}
+      <aside className={`${isMobile ? 'w-full' : 'w-[480px] border-r'} bg-background overflow-y-auto`}>
+        <div className="p-4 md:p-6">
           <h1 className="text-2xl font-bold mb-4">Explore Nearby</h1>
 
           {/* Search */}
@@ -510,7 +512,8 @@ export default function Spots() {
         </div>
       </aside>
 
-      {/* Right Side - Map */}
+      {/* Right Side - Map (hidden on mobile) */}
+      {!isMobile && (
       <div className="flex-1 relative">
         <div ref={mapContainer} className="absolute inset-0" />
 
@@ -579,6 +582,7 @@ export default function Spots() {
           Add Spot
         </Button>
       </div>
+      )}
     </div>
   );
 }
