@@ -24,6 +24,7 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed } from "./pages/app";
+import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
@@ -85,6 +86,7 @@ const App = () => (
               <Route path="dashboard" element={<ComboDashboard />} />
               
               {/* Shared routes (all account types) */}
+              <Route path="notifications" element={<Notifications />} />
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
               <Route path="profile/:userId" element={<UserProfile />} />
