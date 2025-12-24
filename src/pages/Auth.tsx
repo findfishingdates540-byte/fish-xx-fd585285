@@ -41,23 +41,31 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkOnboarding = async () => {
+    const checkOnboardingAndPremium = async () => {
       if (user) {
-        // Check if onboarding is completed
+        // Check onboarding status, account mode, and premium status
         const { data } = await (await import('@/integrations/supabase/client')).supabase
           .from('profiles')
-          .select('onboarding_completed')
+          .select('onboarding_completed, account_mode, is_premium')
           .eq('id', user.id)
           .single();
         
-        if (data?.onboarding_completed) {
-          navigate('/app/discover');
-        } else {
+        if (!data?.onboarding_completed) {
           navigate('/onboarding');
+          return;
         }
+        
+        // Check if fishing/both users need to pay
+        const requiresPremium = data.account_mode === 'fishing' || data.account_mode === 'both';
+        if (requiresPremium && !data.is_premium) {
+          navigate('/pricing');
+          return;
+        }
+        
+        navigate('/app/discover');
       }
     };
-    checkOnboarding();
+    checkOnboardingAndPremium();
   }, [user, navigate]);
 
   const validateForm = () => {
