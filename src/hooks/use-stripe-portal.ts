@@ -15,6 +15,11 @@ export const useStripePortal = () => {
         return;
       }
 
+      // Stripe portal can't be embedded in an iframe (e.g., Lovable preview).
+      // Open a tab synchronously to avoid popup blockers.
+      const isInIframe = window.self !== window.top;
+      const pendingTab = isInIframe ? window.open("about:blank", "_blank") : null;
+
       const { data, error } = await supabase.functions.invoke("create-customer-portal-session", {
         body: { 
           returnUrl: returnUrl || `${window.location.origin}/app/settings` 
@@ -23,14 +28,22 @@ export const useStripePortal = () => {
 
       if (error) {
         console.error("Portal error:", error);
+        if (pendingTab) pendingTab.close();
         toast.error(error.message || "Failed to open billing portal");
         return;
       }
 
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
+      const url = data?.url as string | undefined;
+      if (!url) {
+        if (pendingTab) pendingTab.close();
         toast.error("Failed to create portal session");
+        return;
+      }
+
+      if (pendingTab) {
+        pendingTab.location.href = url;
+      } else {
+        window.location.href = url;
       }
     } catch (error) {
       console.error("Portal error:", error);
