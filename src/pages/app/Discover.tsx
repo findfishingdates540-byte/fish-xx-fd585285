@@ -227,26 +227,47 @@ export default function Discover() {
     };
   }, [user?.id, queryClient]);
 
-  const onPass = async () => {
+  const onPass = useCallback(async () => {
     await handlePass();
     setShowDetailView(false);
-  };
+  }, [handlePass]);
 
-  const onLike = async () => {
+  const onLike = useCallback(async () => {
     await handleLike();
     setShowDetailView(false);
-  };
+  }, [handleLike]);
 
-  const onSuperLike = async () => {
+  const onSuperLike = useCallback(async () => {
     await handleSuperLike();
     setShowDetailView(false);
-  };
+  }, [handleSuperLike]);
 
   const handleProfileClick = () => {
     if (currentProfile) {
       setShowDetailView(true);
     }
   };
+
+  // Keyboard navigation for desktop
+  useEffect(() => {
+    if (isMobile || isLoading || noMoreProfiles || !currentProfile) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        onPass();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        onLike();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        onSuperLike();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobile, isLoading, noMoreProfiles, currentProfile, onPass, onLike, onSuperLike]);
 
   // Show detail view
   if (showDetailView && currentDetailProfile) {
@@ -363,8 +384,9 @@ export default function Discover() {
 
                   {/* Keyboard hint - Desktop */}
                   <p className="hidden lg:block text-center text-sm text-muted-foreground mt-4">
-                    Use <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> and{' '}
-                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> to navigate
+                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> Pass{' · '}
+                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">↑</kbd> Super Like{' · '}
+                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> Like
                   </p>
                 </>
               )}
