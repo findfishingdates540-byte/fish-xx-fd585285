@@ -250,9 +250,15 @@ export default function Discover() {
 
   // Keyboard navigation for desktop
   useEffect(() => {
-    if (isMobile || isLoading || noMoreProfiles || !currentProfile) return;
+    console.log('Keyboard nav effect:', { isMobile, isLoading, noMoreProfiles, hasProfile: !!currentProfile });
+    
+    if (isMobile || isLoading || noMoreProfiles || !currentProfile) {
+      console.log('Keyboard nav skipped');
+      return;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('Key pressed:', e.key);
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         onPass();
