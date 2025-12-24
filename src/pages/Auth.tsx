@@ -46,7 +46,7 @@ const Auth = () => {
         // Check onboarding status, account mode, and premium status
         const { data } = await (await import('@/integrations/supabase/client')).supabase
           .from('profiles')
-          .select('onboarding_completed, account_mode, is_premium')
+          .select('onboarding_completed, account_mode, is_premium, premium_expires_at')
           .eq('id', user.id)
           .single();
         
@@ -55,9 +55,12 @@ const Auth = () => {
           return;
         }
         
-        // Check if fishing/both users need to pay
+        // Check if fishing/both users need to pay or have expired subscription
         const requiresPremium = data.account_mode === 'fishing' || data.account_mode === 'both';
-        if (requiresPremium && !data.is_premium) {
+        const isPremiumExpired = data.premium_expires_at && new Date(data.premium_expires_at) < new Date();
+        const hasPremiumAccess = data.is_premium && !isPremiumExpired;
+        
+        if (requiresPremium && !hasPremiumAccess) {
           navigate('/pricing');
           return;
         }
