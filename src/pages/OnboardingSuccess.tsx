@@ -126,19 +126,26 @@ export default function OnboardingSuccess() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('account_mode, display_name')
+        .select('account_mode, display_name, is_premium')
         .eq('id', user.id)
         .single();
 
       if (data) {
         setAccountMode(data.account_mode || 'both');
         setDisplayName(data.display_name || '');
+        
+        // Redirect non-premium fishing/both users to pricing page
+        const needsPremium = data.account_mode === 'fishing' || data.account_mode === 'both';
+        if (needsPremium && !data.is_premium) {
+          navigate('/pricing');
+          return;
+        }
       }
       setLoading(false);
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, navigate]);
 
   const content = modeContent[accountMode];
 

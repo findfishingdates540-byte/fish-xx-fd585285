@@ -10,6 +10,7 @@ export function PublicHeader() {
     { to: '/about', label: 'About' },
     { to: '/dating', label: 'Dating' },
     { to: '/fishing', label: 'Fishing' },
+    { to: '/pricing', label: 'Pricing' },
     { to: '/safety', label: 'Safety' },
   ];
 
