@@ -35,6 +35,9 @@ function AppLayoutContent() {
   const isDatingRoute = datingRoutes.some(route => location.pathname.startsWith(route));
   const isSharedRoute = sharedRoutes.some(route => location.pathname.startsWith(route));
 
+  // Discover should be a fixed, non-scroll viewport between header and bottom nav on mobile
+  const isDiscoverNoScroll = location.pathname.startsWith('/app/discover');
+
   // Determine which desktop header to show based on effective mode
   const renderDesktopHeader = () => {
     // Dating mode (or combo user in dating-only mode) - no header, pages have sidebar
@@ -97,7 +100,7 @@ function AppLayoutContent() {
         <AppHeader />
       </div>
       
-      <main className="pb-16 lg:pb-0">
+      <main className={`${isDiscoverNoScroll ? 'pb-0' : 'pb-16'} lg:pb-0`}>
         <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
       </main>
 
