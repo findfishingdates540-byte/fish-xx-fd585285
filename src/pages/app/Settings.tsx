@@ -13,6 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { useStripePortal } from "@/hooks/use-stripe-portal";
+import { format } from "date-fns";
 import {
   User,
   Smartphone,
@@ -30,6 +32,7 @@ import {
   Star,
   LogOut,
   BellRing,
+  ExternalLink,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -64,6 +67,10 @@ export default function Settings() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isVerified, setIsVerified] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [premiumExpiresAt, setPremiumExpiresAt] = useState<string | null>(null);
+
+  // Stripe Portal
+  const { openPortal, isLoading: portalLoading } = useStripePortal();
 
   // Discovery settings
   const [maxDistance, setMaxDistance] = useState(50);
@@ -104,6 +111,7 @@ export default function Settings() {
       setPhotos(data.photos || []);
       setIsVerified(data.is_verified || false);
       setIsPremium(data.is_premium || false);
+      setPremiumExpiresAt(data.premium_expires_at || null);
       setMaxDistance(data.max_distance_miles || 50);
       setAgeRange([data.min_age_preference || 18, data.max_age_preference || 50]);
     }
@@ -611,21 +619,53 @@ export default function Settings() {
                   </div>
 
                   {isPremium ? (
-                    <div className="p-4 bg-primary/10 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="h-5 w-5 text-primary" />
-                        <span className="font-semibold">Gold Member</span>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-primary/10 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Star className="h-5 w-5 text-primary" />
+                          <span className="font-semibold">Gold Member</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          You have access to all premium features.
+                        </p>
+                        {premiumExpiresAt && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Renews on {format(new Date(premiumExpiresAt), "MMMM d, yyyy")}
+                          </p>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        You have access to all premium features.
-                      </p>
+
+                      <div className="space-y-3">
+                        <Button
+                          onClick={() => openPortal()}
+                          disabled={portalLoading}
+                          className="w-full sm:w-auto"
+                        >
+                          {portalLoading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Opening Portal...
+                            </>
+                          ) : (
+                            <>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Manage Subscription
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-xs text-muted-foreground">
+                          Update payment method, view invoices, or cancel your subscription.
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <p className="text-sm">
                         You're currently on the free plan. Upgrade to Gold to unlock all features.
                       </p>
-                      <Button>Upgrade to Gold</Button>
+                      <Button asChild>
+                        <Link to="/pricing">Upgrade to Gold</Link>
+                      </Button>
                     </div>
                   )}
                 </CardContent>

@@ -65,6 +65,7 @@ serve(async (req) => {
         const userId = session.metadata?.supabase_user_id;
         const planId = session.metadata?.plan_id;
         const billingCycle = session.metadata?.billing_cycle;
+        const customerId = session.customer as string;
         
         if (userId) {
           // Calculate expiration date
@@ -72,19 +73,20 @@ serve(async (req) => {
           const expiresAt = new Date();
           expiresAt.setDate(expiresAt.getDate() + daysToAdd);
 
-          // Update user's premium status
+          // Update user's premium status and store stripe_customer_id
           const { error } = await supabase
             .from("profiles")
             .update({
               is_premium: true,
               premium_expires_at: expiresAt.toISOString(),
+              stripe_customer_id: customerId,
             })
             .eq("id", userId);
 
           if (error) {
             console.error("Error updating user premium status:", error);
           } else {
-            console.log("Updated premium status for user:", userId);
+            console.log("Updated premium status and customer ID for user:", userId);
           }
         }
         break;
