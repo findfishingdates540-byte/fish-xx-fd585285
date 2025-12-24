@@ -59,6 +59,7 @@ const FILTER_OPTIONS = [
 
 export default function Spots() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const { isSpotSaved, toggleSaveSpot } = useSavedSpots();
@@ -577,6 +578,7 @@ export default function Spots() {
         <Button
           className="absolute bottom-6 right-6 z-10 shadow-lg"
           size="lg"
+          onClick={() => navigate("/app/spots/new")}
         >
           <Fish className="h-5 w-5 mr-2" />
           Add Spot
