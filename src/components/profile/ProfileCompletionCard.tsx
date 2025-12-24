@@ -31,7 +31,7 @@ interface ProfileCompletionCardProps {
   className?: string;
 }
 
-function CircularProgress({ percentage, size = 100, strokeWidth = 8 }: { percentage: number; size?: number; strokeWidth?: number }) {
+function CircularProgress({ percentage, size = 100, strokeWidth = 8, hideText = false }: { percentage: number; size?: number; strokeWidth?: number; hideText?: boolean }) {
   const [animatedPercentage, setAnimatedPercentage] = useState(0);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -96,16 +96,18 @@ function CircularProgress({ percentage, size = 100, strokeWidth = 8 }: { percent
         />
       </svg>
       {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <motion.span 
-          className="text-2xl font-bold"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          {animatedPercentage}%
-        </motion.span>
-      </div>
+      {!hideText && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <motion.span 
+            className="text-2xl font-bold"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            {animatedPercentage}%
+          </motion.span>
+        </div>
+      )}
     </div>
   );
 }
@@ -138,10 +140,10 @@ export function ProfileCompletionCard({ profile, className }: ProfileCompletionC
         <Card className={cn("bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-200 dark:border-green-900/30 overflow-hidden", className)}>
           <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <CircularProgress percentage={100} size={80} strokeWidth={6} />
+              <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
+                <CircularProgress percentage={100} size={80} strokeWidth={6} hideText />
                 <motion.div
-                  className="absolute inset-0 flex items-center justify-center"
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
