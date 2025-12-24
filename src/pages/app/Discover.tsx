@@ -15,7 +15,6 @@ import {
 } from '@/components/discover';
 import { RefreshCw, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { formatDistanceToNow } from 'date-fns';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
@@ -286,13 +285,9 @@ export default function Discover() {
         />
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden lg:ml-60">
+        <main className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 lg:p-8 overflow-hidden lg:ml-60">
           {isMobile ? (
-            <PullToRefresh 
-              onRefresh={async () => { await loadMoreProfiles(); }}
-              className="w-full max-w-sm h-full flex flex-col items-center justify-center"
-              disabled={isLoading}
-            >
+            <div className="w-full max-w-sm h-full flex flex-col items-center justify-center">
               <div className="w-full">
                 {isLoading ? (
                   renderLoading()
@@ -301,14 +296,14 @@ export default function Discover() {
                 ) : (
                   <>
                     <ProfileCard 
-                      profile={currentProfile} 
+                      profile={currentProfile}
                       onInfoClick={handleProfileClick}
                       onSwipeLeft={onPass}
                       onSwipeRight={onLike}
                     />
 
                     {/* Swipe Actions */}
-                    <div className="mt-6">
+                    <div className="mt-3">
                       <SwipeActions
                         onRewind={() => {}} // Rewind requires storing history - future enhancement
                         onPass={onPass}
@@ -320,7 +315,7 @@ export default function Discover() {
                   </>
                 )}
               </div>
-            </PullToRefresh>
+            </div>
           ) : (
             <div className="w-full max-w-sm">
               {isLoading ? (

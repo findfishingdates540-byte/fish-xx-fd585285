@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
@@ -78,12 +78,17 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
     <motion.div 
       style={{ x, rotate, opacity }}
       drag="x"
+      dragDirectionLock
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onClick={!isMobile ? handleCardClick : undefined}
       whileTap={{ cursor: 'grabbing' }}
-      className="bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full mx-auto cursor-grab relative touch-pan-y"
+      className={cn(
+        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full mx-auto cursor-grab relative",
+        isMobile ? "touch-none" : "touch-pan-y"
+      )}
     >
       {/* Swipe Indicators */}
       <motion.div 
@@ -106,7 +111,7 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
       {/* Photo Section - Smaller on mobile */}
       <div className={cn(
         "relative bg-muted",
-        isMobile ? "aspect-[4/5]" : "aspect-[3/4]"
+        isMobile ? "aspect-[9/10]" : "aspect-[3/4]"
       )}>
         <img
           src={profile.photos[currentPhotoIndex]}
@@ -160,9 +165,25 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
           </div>
         )}
 
+        {/* Info Button - Desktop only */}
+        {!isMobile && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onInfoClick?.(); }}
+            className="absolute top-4 right-4 h-8 w-8 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors"
+            aria-label="View profile details"
+          >
+            <Info className="h-4 w-4" />
+          </button>
+        )}
+
         {/* Name & Location Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent p-4 pt-16">
-          <h2 className="text-xl font-bold text-background">
+        <div
+          className={cn(
+            "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent",
+            isMobile ? "p-3 pt-12" : "p-4 pt-16"
+          )}
+        >
+          <h2 className={cn("font-bold text-background", isMobile ? "text-lg" : "text-xl")}>
             {profile.name}, {profile.age}
           </h2>
           <div className="flex items-center gap-1 text-background/90 text-sm mt-1">
@@ -176,7 +197,12 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight }:
 
       {/* Bio & Tags Section - Compact on mobile */}
       <div className={cn("p-4", isMobile ? "pb-3" : "p-5")}>
-        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+        <p
+          className={cn(
+            "text-muted-foreground text-sm leading-relaxed",
+            isMobile ? "line-clamp-1" : "line-clamp-2"
+          )}
+        >
           {profile.bio}
         </p>
 
