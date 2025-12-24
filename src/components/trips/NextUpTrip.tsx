@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, MessageCircle, Calendar } from "lucide-react";
+import { MapPin, MessageCircle, Calendar, Loader2 } from "lucide-react";
 import { format, differenceInSeconds } from "date-fns";
+import { useMapboxToken } from "@/hooks/use-mapbox-token";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 interface NextUpTripProps {
   trip: {
@@ -21,6 +24,9 @@ interface NextUpTripProps {
 
 export function NextUpTrip({ trip }: NextUpTripProps) {
   const navigate = useNavigate();
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
 
   useEffect(() => {
@@ -47,6 +53,57 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
     return () => clearInterval(interval);
   }, [trip.trip_date, trip.start_time]);
 
+  // Initialize map
+  useEffect(() => {
+    if (!token || !mapContainer.current || map.current) return;
+
+    mapboxgl.accessToken = token;
+
+    const lat = trip.location_lat || 39.0968;
+    const lng = trip.location_lng || -120.0324;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/outdoors-v12",
+      center: [lng, lat],
+      zoom: 11,
+      interactive: true,
+    });
+
+    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    // Add marker
+    const markerEl = document.createElement("div");
+    markerEl.className = "custom-marker";
+    markerEl.innerHTML = `
+      <div style="
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+      </div>
+    `;
+
+    new mapboxgl.Marker({ element: markerEl })
+      .setLngLat([lng, lat])
+      .addTo(map.current);
+
+    return () => {
+      map.current?.remove();
+      map.current = null;
+    };
+  }, [token, trip.location_lat, trip.location_lng]);
+
   const statusColors: Record<string, string> = {
     planned: "bg-sky-100 text-sky-700",
     confirmed: "bg-sky-100 text-sky-700",
@@ -57,17 +114,26 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
   return (
     <div className="bg-card rounded-xl overflow-hidden border shadow-sm">
       <div className="grid md:grid-cols-2 gap-0">
-        {/* Map placeholder */}
-        <div className="relative h-64 md:h-80 bg-muted">
-          <div className="absolute inset-0 bg-gradient-to-br from-sky-100 to-blue-200 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <MapPin className="h-12 w-12 mx-auto mb-2 text-sky-500" />
-              <p className="text-sm font-medium">{trip.location_name || "Location TBD"}</p>
+        {/* Map */}
+        <div className="relative h-64 md:h-80">
+          {tokenLoading ? (
+            <div className="absolute inset-0 bg-muted flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
             </div>
-          </div>
+          ) : tokenError ? (
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-100 to-blue-200 flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                <MapPin className="h-12 w-12 mx-auto mb-2 text-sky-500" />
+                <p className="text-sm font-medium">{trip.location_name || "Location TBD"}</p>
+              </div>
+            </div>
+          ) : (
+            <div ref={mapContainer} className="absolute inset-0" />
+          )}
+          
           {trip.location_name && (
-            <div className="absolute top-4 left-4">
-              <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-foreground">
+            <div className="absolute top-4 left-4 z-10">
+              <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-foreground shadow-sm">
                 <MapPin className="h-3 w-3 mr-1 text-sky-500" />
                 {trip.location_name}
               </Badge>
