@@ -138,13 +138,8 @@ export default function Checkout() {
       return;
     }
 
-    toast({
-      title: "Payment successful!",
-      description: `Welcome to ${plan.name}! Enjoy your premium features.`,
-    });
-
-    // Redirect to app
-    navigate('/app');
+    // Redirect to payment success page
+    navigate(`/payment-success?plan=${planId}&billing=${billing}&amount=${total.toFixed(2)}`);
   };
 
   return (
