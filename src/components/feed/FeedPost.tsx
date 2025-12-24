@@ -3,16 +3,18 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, MessageSquare, MoreHorizontal, User, Trash2 } from 'lucide-react';
+import { ThumbsUp, MessageSquare, MoreHorizontal, User, Trash2, Flag } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { FeedPost as FeedPostType, useLikePost, useDeletePost } from '@/hooks/use-feed';
 import { CommentSheet } from './CommentSheet';
+import { ReportDialog } from './ReportDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -30,6 +32,7 @@ interface FeedPostProps {
 
 export function FeedPost({ post }: FeedPostProps) {
   const [showComments, setShowComments] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const { user } = useAuth();
   const likePost = useLikePost();
   const deletePost = useDeletePost();
@@ -82,24 +85,33 @@ export function FeedPost({ post }: FeedPostProps) {
             </div>
           </div>
 
-          {isOwnPost && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-background">
-                <DropdownMenuItem 
-                  onClick={handleDelete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete post
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-background">
+              {isOwnPost && (
+                <>
+                  <DropdownMenuItem 
+                    onClick={handleDelete}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete post
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              {!isOwnPost && user && (
+                <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                  <Flag className="h-4 w-4 mr-2" />
+                  Report post
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Caption - Above image like in the reference */}
@@ -198,6 +210,14 @@ export function FeedPost({ post }: FeedPostProps) {
         isOpen={showComments}
         onClose={() => setShowComments(false)}
         commentsCount={post.comments_count}
+      />
+
+      <ReportDialog
+        isOpen={showReportDialog}
+        onClose={() => setShowReportDialog(false)}
+        contentType="post"
+        contentId={post.id}
+        contentOwnerId={post.user_id}
       />
     </>
   );
