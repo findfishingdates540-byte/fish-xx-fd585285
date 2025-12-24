@@ -517,7 +517,7 @@ export default function Settings() {
                     <div>
                       <div className="flex justify-between items-center mb-3">
                         <Label>Maximum Distance</Label>
-                        <span className="text-sm text-muted-foreground">{maxDistance} km</span>
+                        <span className="text-sm text-muted-foreground">{maxDistance} miles</span>
                       </div>
                       <Slider
                         value={[maxDistance]}
