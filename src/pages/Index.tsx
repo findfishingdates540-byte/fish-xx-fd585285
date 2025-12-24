@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star, Apple, Smartphone, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 import logo from '@/assets/logo.png';
 import heroFishing1 from '@/assets/hero-fishing-1.jpg';
 import heroFishing2 from '@/assets/hero-fishing-2.jpg';
@@ -11,6 +12,8 @@ import datingCouple2 from '@/assets/dating-couple-2.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
 import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
+import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
+import { CountUp } from '@/components/ui/count-up';
 
 const Index = () => {
   return (
@@ -18,26 +21,48 @@ const Index = () => {
       <PublicHeader />
 
       {/* Hero Section */}
-      <header className="pt-32 pb-20 px-6 border-b border-border">
+      <header className="pt-32 pb-20 px-6 border-b border-border overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
-            <div className="space-y-8 animate-slide-up">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+              className="space-y-8"
+            >
               <h1 className="display-text text-foreground">
                 Find Your
                 <br />
-                <span className="italic">Perfect</span>
+                <motion.span 
+                  className="italic inline-block"
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  Perfect
+                </motion.span>
                 <br />
                 Fishing Date
               </h1>
-              <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
+              <motion.p 
+                className="text-xl text-muted-foreground max-w-lg leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
                 The dating app built for fishing enthusiasts. Connect with people who share your passion for the water.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              </motion.p>
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
                 <Link to="/auth?mode=signup">
-                  <Button size="lg" className="btn-primary text-lg px-10 py-6 w-full sm:w-auto">
+                  <Button size="lg" className="btn-primary text-lg px-10 py-6 w-full sm:w-auto group">
                     Get Started
-                    <ArrowRight className="ml-2 w-5 h-5" />
+                    <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
                 <Link to="/about">
@@ -45,20 +70,38 @@ const Index = () => {
                     Learn More
                   </Button>
                 </Link>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Right - Image Grid */}
-            <div className="relative h-[600px] hidden lg:block animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <div className="absolute right-0 top-0 w-80 h-[420px] rounded-3xl overflow-hidden shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:z-40">
-                <img src={heroFishing1} alt="Person fishing at sunset" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
-              </div>
-              <div className="absolute right-64 top-20 w-56 h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-background transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:z-40">
-                <img src={heroFishing2} alt="Woman with caught fish" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
-              </div>
-              <div className="absolute right-20 bottom-0 w-64 h-80 rounded-3xl overflow-hidden shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:z-40">
-                <img src={heroFishing3} alt="Friends fishing together" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
-              </div>
+            <div className="relative h-[600px] hidden lg:block">
+              <motion.div 
+                className="absolute right-0 top-0 w-80 h-[420px] rounded-3xl overflow-hidden shadow-xl"
+                initial={{ opacity: 0, y: 60, rotate: 3 }}
+                animate={{ opacity: 1, y: 0, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                whileHover={{ scale: 1.05, zIndex: 40 }}
+              >
+                <img src={heroFishing1} alt="Person fishing at sunset" className="w-full h-full object-cover" />
+              </motion.div>
+              <motion.div 
+                className="absolute right-64 top-20 w-56 h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-background"
+                initial={{ opacity: 0, y: 80, rotate: -3 }}
+                animate={{ opacity: 1, y: 0, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+                whileHover={{ scale: 1.05, zIndex: 40 }}
+              >
+                <img src={heroFishing2} alt="Woman with caught fish" className="w-full h-full object-cover" />
+              </motion.div>
+              <motion.div 
+                className="absolute right-20 bottom-0 w-64 h-80 rounded-3xl overflow-hidden shadow-xl"
+                initial={{ opacity: 0, y: 100 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+                whileHover={{ scale: 1.05, zIndex: 40 }}
+              >
+                <img src={heroFishing3} alt="Friends fishing together" className="w-full h-full object-cover" />
+              </motion.div>
             </div>
           </div>
         </div>
@@ -67,32 +110,40 @@ const Index = () => {
       {/* Stats Section */}
       <section className="py-20 px-6 border-b border-border">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <p className="text-5xl md:text-6xl font-bold text-foreground">50K+</p>
+          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8" staggerDelay={0.15}>
+            <StaggerItem className="text-center">
+              <p className="text-5xl md:text-6xl font-bold text-foreground">
+                <CountUp end={50} suffix="K+" duration={2} />
+              </p>
               <p className="text-muted-foreground mt-2">Active Users</p>
-            </div>
-            <div className="text-center">
-              <p className="text-5xl md:text-6xl font-bold text-foreground">10K+</p>
+            </StaggerItem>
+            <StaggerItem className="text-center">
+              <p className="text-5xl md:text-6xl font-bold text-foreground">
+                <CountUp end={10} suffix="K+" duration={2} />
+              </p>
               <p className="text-muted-foreground mt-2">Matches Made</p>
-            </div>
-            <div className="text-center">
-              <p className="text-5xl md:text-6xl font-bold text-foreground">5K+</p>
+            </StaggerItem>
+            <StaggerItem className="text-center">
+              <p className="text-5xl md:text-6xl font-bold text-foreground">
+                <CountUp end={5} suffix="K+" duration={2} />
+              </p>
               <p className="text-muted-foreground mt-2">Fishing Spots</p>
-            </div>
-            <div className="text-center">
-              <p className="text-5xl md:text-6xl font-bold text-foreground">98%</p>
+            </StaggerItem>
+            <StaggerItem className="text-center">
+              <p className="text-5xl md:text-6xl font-bold text-foreground">
+                <CountUp end={98} suffix="%" duration={2} />
+              </p>
               <p className="text-muted-foreground mt-2">Happy Users</p>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
       {/* Mission Section */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
+            <ScrollReveal direction="left" className="space-y-8">
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Our Mission</span>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
                 We exist to bring fishing lovers closer to love.
@@ -103,29 +154,29 @@ const Index = () => {
                 friendship, and their next fishing buddy.
               </p>
               <Link to="/about">
-                <Button className="btn-primary">
+                <Button className="btn-primary group">
                   About Us
-                  <ArrowRight className="ml-2 w-4 h-4" />
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
-            </div>
+            </ScrollReveal>
             
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-6">
-                <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={heroFishing1} alt="Fishing at sunset" className="w-full h-full object-cover" />
-                </div>
-                <div className="aspect-square rounded-3xl overflow-hidden shadow-lg">
-                  <img src={heroFishing2} alt="Proud angler" className="w-full h-full object-cover" />
-                </div>
+                <ScrollReveal delay={0.1} className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
+                  <img src={heroFishing1} alt="Fishing at sunset" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </ScrollReveal>
+                <ScrollReveal delay={0.3} className="aspect-square rounded-3xl overflow-hidden shadow-lg">
+                  <img src={heroFishing2} alt="Proud angler" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </ScrollReveal>
               </div>
               <div className="space-y-6 pt-12">
-                <div className="aspect-square rounded-3xl overflow-hidden shadow-lg">
-                  <img src={heroFishing3} alt="Friends fishing" className="w-full h-full object-cover" />
-                </div>
-                <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={coupleFishing} alt="Couple fishing together" className="w-full h-full object-cover" />
-                </div>
+                <ScrollReveal delay={0.2} className="aspect-square rounded-3xl overflow-hidden shadow-lg">
+                  <img src={heroFishing3} alt="Friends fishing" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </ScrollReveal>
+                <ScrollReveal delay={0.4} className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
+                  <img src={coupleFishing} alt="Couple fishing together" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </ScrollReveal>
               </div>
             </div>
           </div>
@@ -133,159 +184,240 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-6 section-muted">
+      <section className="py-24 px-6 section-muted overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <ScrollReveal className="text-center mb-16">
             <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Features</span>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
               Everything you need
             </h2>
-          </div>
+          </ScrollReveal>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<Heart className="w-8 h-8" />}
-              title="Smart Matching"
-              description="Our algorithm connects you with people who share your fishing preferences and dating goals."
-            />
-            <FeatureCard
-              icon={<Fish className="w-8 h-8" />}
-              title="Catch Logs"
-              description="Track and share your catches. Show off your skills and find partners who appreciate the sport."
-            />
-            <FeatureCard
-              icon={<MapPin className="w-8 h-8" />}
-              title="Fishing Spots"
-              description="Discover and share the best local fishing spots with an interactive community map."
-            />
-            <FeatureCard
-              icon={<Users className="w-8 h-8" />}
-              title="Fishing Buddies"
-              description="Not looking for romance? Find local fishing companions for your next adventure."
-            />
-            <FeatureCard
-              icon={<MessageCircle className="w-8 h-8" />}
-              title="Real-time Chat"
-              description="Message your matches instantly and plan your first fishing date together."
-            />
-            <FeatureCard
-              icon={<Star className="w-8 h-8" />}
-              title="Premium Features"
-              description="Unlock unlimited matches, priority discovery, and exclusive fishing spot data."
-            />
-          </div>
+          <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" staggerDelay={0.1}>
+            <StaggerItem>
+              <FeatureCard
+                icon={<Heart className="w-8 h-8" />}
+                title="Smart Matching"
+                description="Our algorithm connects you with people who share your fishing preferences and dating goals."
+              />
+            </StaggerItem>
+            <StaggerItem>
+              <FeatureCard
+                icon={<Fish className="w-8 h-8" />}
+                title="Catch Logs"
+                description="Track and share your catches. Show off your skills and find partners who appreciate the sport."
+              />
+            </StaggerItem>
+            <StaggerItem>
+              <FeatureCard
+                icon={<MapPin className="w-8 h-8" />}
+                title="Fishing Spots"
+                description="Discover and share the best local fishing spots with an interactive community map."
+              />
+            </StaggerItem>
+            <StaggerItem>
+              <FeatureCard
+                icon={<Users className="w-8 h-8" />}
+                title="Fishing Buddies"
+                description="Not looking for romance? Find local fishing companions for your next adventure."
+              />
+            </StaggerItem>
+            <StaggerItem>
+              <FeatureCard
+                icon={<MessageCircle className="w-8 h-8" />}
+                title="Real-time Chat"
+                description="Message your matches instantly and plan your first fishing date together."
+              />
+            </StaggerItem>
+            <StaggerItem>
+              <FeatureCard
+                icon={<Star className="w-8 h-8" />}
+                title="Premium Features"
+                description="Unlock unlimited matches, priority discovery, and exclusive fishing spot data."
+              />
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
       {/* Account Types Section */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Dating Card */}
-            <div className="bg-muted rounded-3xl p-8 md:p-12 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl cursor-pointer group">
-              <div className="relative h-80 mb-8">
-                <div className="absolute left-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10 transition-transform duration-300 group-hover:translate-y-[-4px] group-hover:shadow-xl">
-                  <img src={datingCouple1} alt="Couple fishing at sunset" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <ScrollReveal delay={0} direction="up">
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
+                whileHover={{ scale: 1.02, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="relative h-80 mb-8">
+                  <motion.div 
+                    className="absolute left-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
+                    whileHover={{ y: -4 }}
+                  >
+                    <img src={datingCouple1} alt="Couple fishing at sunset" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute right-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
+                    whileHover={{ y: -6 }}
+                  >
+                    <img src={datingCouple2} alt="Happy couple on fishing date" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute left-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
+                    whileHover={{ y: -8 }}
+                  >
+                    <img src={coupleFishing} alt="Romantic fishing moment" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
                 </div>
-                <div className="absolute right-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20 transition-transform duration-300 delay-75 group-hover:translate-y-[-6px] group-hover:shadow-2xl">
-                  <img src={datingCouple2} alt="Happy couple on fishing date" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                </div>
-                <div className="absolute left-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted transition-transform duration-300 delay-150 group-hover:translate-y-[-8px] group-hover:shadow-xl">
-                  <img src={coupleFishing} alt="Romantic fishing moment" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                </div>
-              </div>
-              <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Your Date</h3>
-              <p className="text-muted-foreground text-lg mb-6">
-                Connect with fellow fishing enthusiasts looking for love. 
-                Find someone who shares your passion for the water and early morning adventures.
-              </p>
-              <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
-                Find your person
-                <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </Link>
-            </div>
+                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Your Date</h3>
+                <p className="text-muted-foreground text-lg mb-6">
+                  Connect with fellow fishing enthusiasts looking for love. 
+                  Find someone who shares your passion for the water and early morning adventures.
+                </p>
+                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
+                  Find your person
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Link>
+              </motion.div>
+            </ScrollReveal>
 
             {/* Fishing Buddies Card */}
-            <div className="bg-muted rounded-3xl p-8 md:p-12 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl cursor-pointer group">
-              <div className="relative h-80 mb-8">
-                <div className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10 transition-transform duration-300 group-hover:translate-y-[-4px] group-hover:shadow-xl">
-                  <img src={fishingBuddies1} alt="Group of friends fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <ScrollReveal delay={0.2} direction="up">
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
+                whileHover={{ scale: 1.02, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="relative h-80 mb-8">
+                  <motion.div 
+                    className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
+                    whileHover={{ y: -4 }}
+                  >
+                    <img src={fishingBuddies1} alt="Group of friends fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
+                    whileHover={{ y: -6 }}
+                  >
+                    <img src={fishingBuddies2} alt="Friends celebrating a catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
+                    whileHover={{ y: -8 }}
+                  >
+                    <img src={heroFishing3} alt="Fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
                 </div>
-                <div className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20 transition-transform duration-300 delay-75 group-hover:translate-y-[-6px] group-hover:shadow-2xl">
-                  <img src={fishingBuddies2} alt="Friends celebrating a catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                </div>
-                <div className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted transition-transform duration-300 delay-150 group-hover:translate-y-[-8px] group-hover:shadow-xl">
-                  <img src={heroFishing3} alt="Fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                </div>
-              </div>
-              <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
-              <p className="text-muted-foreground text-lg mb-6">
-                Not looking for romance? Find local fishing companions for your next adventure. 
-                Connect with anglers in your area who share your fishing style.
-              </p>
-              <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
-                Find your crew
-                <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </Link>
-            </div>
+                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
+                <p className="text-muted-foreground text-lg mb-6">
+                  Not looking for romance? Find local fishing companions for your next adventure. 
+                  Connect with anglers in your area who share your fishing style.
+                </p>
+                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
+                  Find your crew
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Link>
+              </motion.div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
       {/* Testimonial Section */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1">
+            <ScrollReveal direction="left" className="order-2 lg:order-1">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img src={coupleFishing} alt="Happy couple who met on Find Fishing Dates" className="w-full h-full object-cover" />
+                <img src={coupleFishing} alt="Happy couple who met on Find Fishing Dates" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
-            </div>
+            </ScrollReveal>
             
             <div className="space-y-8 order-1 lg:order-2">
-              <span className="text-8xl font-serif text-foreground/20">"</span>
-              <blockquote className="text-3xl md:text-4xl font-medium text-foreground leading-snug -mt-12">
-                We met on Find Fishing Dates and now we spend every weekend on the water together. 
-                It's the best decision we ever made.
-              </blockquote>
-              <div>
-                <p className="font-semibold text-foreground">Sarah & Michael</p>
-                <p className="text-muted-foreground">Married in 2023</p>
-              </div>
-              <Link to="/stories" className="mt-6 inline-block">
-                <Button variant="outline" className="btn-outline">
-                  Read More Stories
-                </Button>
-              </Link>
+              <ScrollReveal delay={0.1}>
+                <motion.span 
+                  className="text-8xl font-serif text-foreground/20 block"
+                  initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+                  whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, type: "spring" }}
+                >
+                  "
+                </motion.span>
+              </ScrollReveal>
+              <ScrollReveal delay={0.2}>
+                <blockquote className="text-3xl md:text-4xl font-medium text-foreground leading-snug -mt-12">
+                  We met on Find Fishing Dates and now we spend every weekend on the water together. 
+                  It's the best decision we ever made.
+                </blockquote>
+              </ScrollReveal>
+              <ScrollReveal delay={0.3}>
+                <div>
+                  <p className="font-semibold text-foreground">Sarah & Michael</p>
+                  <p className="text-muted-foreground">Married in 2023</p>
+                </div>
+              </ScrollReveal>
+              <ScrollReveal delay={0.4}>
+                <Link to="/stories" className="mt-6 inline-block">
+                  <Button variant="outline" className="btn-outline group">
+                    Read More Stories
+                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </Link>
+              </ScrollReveal>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-6 section-dark">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8">
+      <section className="py-24 px-6 section-dark overflow-hidden">
+        <ScrollReveal className="max-w-4xl mx-auto text-center" scale={0.95}>
+          <motion.h2 
+            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             Ready to find your perfect fishing date?
-          </h2>
-          <p className="text-xl text-background/70 mb-10 max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p 
+            className="text-xl text-background/70 mb-10 max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             Join thousands of fishing enthusiasts who have found love, friendship, 
             and their next fishing adventure on our platform.
-          </p>
-          <Link to="/auth?mode=signup">
-            <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-12 py-6 text-lg">
-              Create Free Account
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Link to="/auth?mode=signup">
+              <Button 
+                size="lg" 
+                className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-12 py-6 text-lg group"
+              >
+                Create Free Account
+                <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+          </motion.div>
+        </ScrollReveal>
       </section>
 
       {/* App Download Section */}
       <section className="py-24 px-6 border-b border-border overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
+            <ScrollReveal direction="left" className="space-y-8">
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Mobile App</span>
               <h2 className="text-4xl md:text-5xl font-bold text-foreground">
                 Take the catch<br />with you
@@ -296,54 +428,83 @@ const Index = () => {
               </p>
               
               {/* App Features */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-foreground">
+              <StaggerContainer className="space-y-3" staggerDelay={0.1}>
+                <StaggerItem className="flex items-center gap-3 text-foreground">
                   <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                     <Check className="w-3 h-3 text-background" />
                   </div>
                   <span>Instant match notifications</span>
-                </div>
-                <div className="flex items-center gap-3 text-foreground">
+                </StaggerItem>
+                <StaggerItem className="flex items-center gap-3 text-foreground">
                   <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                     <Check className="w-3 h-3 text-background" />
                   </div>
                   <span>Log catches anywhere</span>
-                </div>
-                <div className="flex items-center gap-3 text-foreground">
+                </StaggerItem>
+                <StaggerItem className="flex items-center gap-3 text-foreground">
                   <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                     <Check className="w-3 h-3 text-background" />
                   </div>
                   <span>Discover nearby fishing spots</span>
-                </div>
-              </div>
+                </StaggerItem>
+              </StaggerContainer>
 
               {/* App Store Buttons */}
-              <div className="flex flex-wrap gap-4 pt-4">
-                <button className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl group">
+              <motion.div 
+                className="flex flex-wrap gap-4 pt-4"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+              >
+                <motion.button 
+                  className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Apple className="w-8 h-8" />
                   <div className="text-left">
                     <p className="text-xs opacity-80">Download on the</p>
                     <p className="text-lg font-semibold -mt-1">App Store</p>
                   </div>
-                </button>
-                <button className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl group">
+                </motion.button>
+                <motion.button 
+                  className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Smartphone className="w-8 h-8" />
                   <div className="text-left">
                     <p className="text-xs opacity-80">Get it on</p>
                     <p className="text-lg font-semibold -mt-1">Google Play</p>
                   </div>
-                </button>
-              </div>
-            </div>
+                </motion.button>
+              </motion.div>
+            </ScrollReveal>
             
             {/* Phone Mockup */}
-            <div className="flex justify-center lg:justify-end">
+            <ScrollReveal direction="right" delay={0.2} className="flex justify-center lg:justify-end">
               <div className="relative">
                 {/* Glow effect */}
-                <div className="absolute inset-0 bg-foreground/10 blur-3xl rounded-full scale-150" />
+                <motion.div 
+                  className="absolute inset-0 bg-foreground/10 blur-3xl rounded-full scale-150"
+                  animate={{ 
+                    scale: [1.5, 1.6, 1.5],
+                    opacity: [0.3, 0.4, 0.3]
+                  }}
+                  transition={{ 
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
                 
                 {/* Phone frame */}
-                <div className="relative w-72 h-[580px] bg-foreground rounded-[3rem] p-2 shadow-2xl transition-transform duration-500 hover:scale-105">
+                <motion.div 
+                  className="relative w-72 h-[580px] bg-foreground rounded-[3rem] p-2 shadow-2xl"
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ duration: 0.4 }}
+                >
                   {/* Screen bezel */}
                   <div className="w-full h-full bg-background rounded-[2.5rem] overflow-hidden relative">
                     {/* Notch */}
@@ -380,17 +541,38 @@ const Index = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
                 
                 {/* Floating elements */}
-                <div className="absolute -left-8 top-32 bg-background rounded-2xl p-4 shadow-xl animate-float">
+                <motion.div 
+                  className="absolute -left-8 top-32 bg-background rounded-2xl p-4 shadow-xl"
+                  animate={{ 
+                    y: [0, -10, 0],
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
                   <Fish className="w-8 h-8 text-foreground" />
-                </div>
-                <div className="absolute -right-8 bottom-40 bg-background rounded-2xl p-4 shadow-xl animate-float" style={{ animationDelay: '1s' }}>
+                </motion.div>
+                <motion.div 
+                  className="absolute -right-8 bottom-40 bg-background rounded-2xl p-4 shadow-xl"
+                  animate={{ 
+                    y: [0, -10, 0],
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    delay: 1,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
                   <Heart className="w-8 h-8 text-foreground" />
-                </div>
+                </motion.div>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -407,13 +589,21 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <div className="feature-card bg-background transition-all duration-300 hover:scale-[1.03] hover:shadow-xl cursor-pointer group">
-    <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-foreground mb-6 transition-transform duration-300 group-hover:scale-110">
+  <motion.div 
+    className="feature-card bg-background cursor-pointer group h-full"
+    whileHover={{ scale: 1.03, y: -4 }}
+    transition={{ duration: 0.2 }}
+  >
+    <motion.div 
+      className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-foreground mb-6"
+      whileHover={{ scale: 1.1, rotate: 5 }}
+      transition={{ duration: 0.2 }}
+    >
       {icon}
-    </div>
+    </motion.div>
     <h3 className="text-xl font-semibold text-foreground mb-3">{title}</h3>
     <p className="text-muted-foreground leading-relaxed">{description}</p>
-  </div>
+  </motion.div>
 );
 
 export default Index;
