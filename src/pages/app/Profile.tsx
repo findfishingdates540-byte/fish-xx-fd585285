@@ -6,7 +6,7 @@ import {
   MapPin, Share2, Pencil, Heart, Fish, Layers, CheckCircle2, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
-  ArrowLeft
+  ArrowLeft, Settings
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -197,14 +197,25 @@ export default function Profile() {
             </div>
 
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white"
+                asChild
+              >
+                <Link to="/app/settings">
+                  <Settings className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Settings</span>
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
+                <Share2 className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Share</span>
               </Button>
               <Button asChild size="sm">
                 <Link to="/app/profile/edit">
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit Profile
+                  <Pencil className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Edit Profile</span>
                 </Link>
               </Button>
             </div>
