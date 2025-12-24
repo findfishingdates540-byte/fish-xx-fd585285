@@ -230,7 +230,8 @@ export default function Likes() {
           </div>
         ) : (
           <>
-            {!isPremium && (
+            {/* Only show upgrade prompt for fishing/both accounts */}
+            {!isPremium && accountMode !== 'dating' && (
               <Card className="p-4 mb-6 bg-gradient-to-r from-amber-500/10 to-amber-600/10 border-amber-500/20">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">

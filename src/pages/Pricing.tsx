@@ -45,8 +45,8 @@ const plans: PricingPlan[] = [
       { name: 'Secret Spot Sharing', included: true },
       { name: 'Unlimited Catch Logbook', included: true },
       { name: 'Weather Alerts', included: true },
-      { name: 'Dating Profiles', included: false },
-      { name: 'See Who Liked You', included: false },
+      { name: 'Dating Features', included: false },
+      { name: 'Priority Matching', included: false },
     ],
   },
   {
@@ -60,7 +60,7 @@ const plans: PricingPlan[] = [
     popular: true,
     features: [
       { name: 'Everything in Angler', included: true },
-      { name: 'Everything in Catch', included: true },
+      { name: 'Free Dating Features', included: true },
       { name: 'VIP 24/7 Support', included: true },
       { name: '3x Monthly Profile Boosts', included: true },
       { name: 'Exclusive Events Access', included: true },
@@ -68,39 +68,19 @@ const plans: PricingPlan[] = [
       { name: 'Priority Matching', included: true },
     ],
   },
-  {
-    id: 'catch',
-    name: 'The Catch',
-    tagline: 'Find your fishing partner',
-    monthlyPrice: 14.99,
-    annualPrice: 143.90,
-    accountType: 'dating',
-    buttonText: 'Find Love',
-    features: [
-      { name: 'Unlimited Swipes', included: true },
-      { name: 'See Who Liked You', included: true },
-      { name: '5 Super Likes/Day', included: true },
-      { name: 'Advanced Dating Filters', included: true },
-      { name: 'Read Receipts', included: true },
-      { name: 'Fishing Spot Maps', included: false },
-      { name: 'Catch Logbook', included: false },
-    ],
-  },
 ];
 
 const comparisonFeatures = [
-  { name: 'Interactive Maps', angler: true, trophy: true, catch: false },
-  { name: 'Real-time Tide Charts', angler: true, trophy: true, catch: false },
-  { name: 'Secret Spot Sharing', angler: true, trophy: true, catch: false },
-  { name: 'Catch Logbook', angler: true, trophy: true, catch: false },
-  { name: 'Weather Alerts', angler: true, trophy: true, catch: false },
-  { name: 'Unlimited Swipes', angler: false, trophy: true, catch: true },
-  { name: 'See Who Liked You', angler: false, trophy: true, catch: true },
-  { name: 'Super Likes', angler: false, trophy: true, catch: true },
-  { name: 'Advanced Filters', angler: false, trophy: true, catch: true },
-  { name: 'VIP Support', angler: false, trophy: true, catch: false },
-  { name: 'Profile Boosts', angler: false, trophy: true, catch: false },
-  { name: 'Verified Badge', angler: false, trophy: true, catch: false },
+  { name: 'Interactive Maps', angler: true, trophy: true },
+  { name: 'Real-time Tide Charts', angler: true, trophy: true },
+  { name: 'Secret Spot Sharing', angler: true, trophy: true },
+  { name: 'Catch Logbook', angler: true, trophy: true },
+  { name: 'Weather Alerts', angler: true, trophy: true },
+  { name: 'Free Dating Features', angler: false, trophy: true },
+  { name: 'VIP Support', angler: false, trophy: true },
+  { name: 'Profile Boosts', angler: false, trophy: true },
+  { name: 'Verified Badge', angler: false, trophy: true },
+  { name: 'Priority Matching', angler: false, trophy: true },
 ];
 
 const faqItems = [
@@ -171,8 +151,11 @@ export default function Pricing() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
               Choose Your <span className="text-primary">Catch</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Whether you're here to fish, find love, or both — we've got the perfect plan for you.
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
+              Premium plans for fishing features. Dating is always free!
+            </p>
+            <p className="text-sm text-primary font-medium mb-10">
+              🎣 Dating accounts include unlimited matches, swipes, and messaging at no cost
             </p>
           </ScrollReveal>
           
@@ -333,7 +316,6 @@ export default function Pricing() {
                     <th className="text-left py-4 px-4 text-foreground font-semibold">Feature</th>
                     <th className="text-center py-4 px-4 text-foreground font-semibold">The Angler</th>
                     <th className="text-center py-4 px-4 text-primary font-semibold bg-primary/5 rounded-t-lg">The Trophy</th>
-                    <th className="text-center py-4 px-4 text-foreground font-semibold">The Catch</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -349,13 +331,6 @@ export default function Pricing() {
                       </td>
                       <td className="text-center py-4 px-4 bg-primary/5">
                         {feature.trophy ? (
-                          <Check className="w-5 h-5 text-green-500 mx-auto" />
-                        ) : (
-                          <X className="w-5 h-5 text-muted-foreground/40 mx-auto" />
-                        )}
-                      </td>
-                      <td className="text-center py-4 px-4">
-                        {feature.catch ? (
                           <Check className="w-5 h-5 text-green-500 mx-auto" />
                         ) : (
                           <X className="w-5 h-5 text-muted-foreground/40 mx-auto" />
@@ -378,15 +353,6 @@ export default function Pricing() {
                       <Button 
                         onClick={() => handleSelectPlan(plans[1])}
                         className="w-full btn-primary"
-                      >
-                        Select
-                      </Button>
-                    </td>
-                    <td className="text-center py-6 px-4">
-                      <Button 
-                        onClick={() => handleSelectPlan(plans[2])}
-                        variant="outline" 
-                        className="w-full"
                       >
                         Select
                       </Button>

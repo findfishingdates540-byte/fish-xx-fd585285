@@ -607,7 +607,7 @@ export default function Settings() {
               </Card>
             )}
 
-            {/* Subscription Tab */}
+            {/* Subscription Tab - Only show for fishing/both accounts */}
             {activeTab === "subscription" && (
               <Card>
                 <CardContent className="p-6 space-y-6">
@@ -618,7 +618,17 @@ export default function Settings() {
                     </p>
                   </div>
 
-                  {isPremium ? (
+                  {accountMode === 'dating' ? (
+                    <div className="p-4 bg-primary/10 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Heart className="h-5 w-5 text-primary" />
+                        <span className="font-semibold">Free Dating Account</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Dating features are completely free! Enjoy unlimited matches and messaging.
+                      </p>
+                    </div>
+                  ) : isPremium ? (
                     <div className="space-y-4">
                       <div className="p-4 bg-primary/10 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
@@ -661,7 +671,7 @@ export default function Settings() {
                   ) : (
                     <div className="space-y-4">
                       <p className="text-sm">
-                        You're currently on the free plan. Upgrade to Gold to unlock all features.
+                        You're currently on the free plan. Upgrade to Gold to unlock premium fishing features.
                       </p>
                       <Button asChild>
                         <Link to="/pricing">Upgrade to Gold</Link>
