@@ -548,7 +548,7 @@ export default function Spots() {
         </div>
 
         {/* Map Controls */}
-        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+        <div className="absolute top-24 right-4 z-10 flex flex-col gap-2">
           <Button
             variant="outline"
             size="icon"
