@@ -67,11 +67,11 @@ export default function Spots() {
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
-  const spotCardRefs = useRef<globalThis.Map<string, HTMLDivElement>>(new globalThis.Map());
+  const spotCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Scroll to spot card in sidebar
   const scrollToSpotCard = useCallback((spotId: string) => {
-    const cardElement = spotCardRefs.current.get(spotId);
+    const cardElement = spotCardRefs.current[spotId];
     if (cardElement) {
       cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -477,8 +477,7 @@ export default function Spots() {
                 <div
                   key={spot.id}
                   ref={(el) => {
-                    if (el) spotCardRefs.current.set(spot.id, el);
-                    else spotCardRefs.current.delete(spot.id);
+                    spotCardRefs.current[spot.id] = el;
                   }}
                 >
                   <SpotCard
