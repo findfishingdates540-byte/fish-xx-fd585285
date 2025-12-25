@@ -14,6 +14,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -152,6 +158,19 @@ export default function TripPlanner() {
       return data || [];
     },
     enabled: invitedBuddies.length > 0,
+  });
+
+  // Fetch fish species for dropdown
+  const { data: fishSpecies } = useQuery({
+    queryKey: ["fish-species"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fish_species")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
   });
 
   // Populate form with existing data
@@ -698,19 +717,30 @@ export default function TripPlanner() {
                       </Button>
                     </div>
                   ))}
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      const species = prompt("Enter species name:");
-                      if (species?.trim()) {
-                        setTargetSpecies([...targetSpecies, species.trim()]);
-                      }
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Select Species
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Select Species
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 max-h-64 overflow-y-auto">
+                      {fishSpecies?.filter(s => !targetSpecies.includes(s.name)).map((species) => (
+                        <DropdownMenuItem
+                          key={species.id}
+                          onClick={() => setTargetSpecies([...targetSpecies, species.name])}
+                        >
+                          <Fish className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {species.name}
+                        </DropdownMenuItem>
+                      ))}
+                      {fishSpecies?.filter(s => !targetSpecies.includes(s.name)).length === 0 && (
+                        <DropdownMenuItem disabled>
+                          All species selected
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardContent>
               </Card>
             </div>
