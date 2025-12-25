@@ -6,6 +6,8 @@ export type ActiveMode = 'unified' | 'dating' | 'fishing';
 interface ActiveModeContextType {
   // The raw account mode from the database
   baseAccountMode: BaseAccountMode;
+  // Set the base account mode (updates local state after DB change)
+  setBaseAccountMode: (mode: BaseAccountMode) => void;
   // The active mode the user has selected (only relevant for 'both' users)
   activeMode: ActiveMode;
   // Set the active mode
@@ -30,7 +32,15 @@ interface ActiveModeProviderProps {
 
 const STORAGE_KEY = 'ffd-active-mode';
 
-export function ActiveModeProvider({ children, baseAccountMode }: ActiveModeProviderProps) {
+export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccountMode }: ActiveModeProviderProps) {
+  // Track base account mode locally so it can be updated after DB changes
+  const [baseAccountMode, setBaseAccountMode] = useState<BaseAccountMode>(initialBaseAccountMode);
+
+  // Sync with prop changes (e.g., from parent query refetch)
+  useEffect(() => {
+    setBaseAccountMode(initialBaseAccountMode);
+  }, [initialBaseAccountMode]);
+
   // Initialize from localStorage or default to 'unified' for combo users
   const [activeMode, setActiveModeState] = useState<ActiveMode>(() => {
     if (baseAccountMode !== 'both') return 'unified';
@@ -80,6 +90,7 @@ export function ActiveModeProvider({ children, baseAccountMode }: ActiveModeProv
     <ActiveModeContext.Provider
       value={{
         baseAccountMode,
+        setBaseAccountMode,
         activeMode,
         setActiveMode,
         effectiveMode,

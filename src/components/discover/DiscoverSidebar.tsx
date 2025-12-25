@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft, LayoutDashboard, Anchor } from 'lucide-react';
+import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft, LayoutDashboard, Anchor, Loader2 } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,10 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
+import { useAccountModeSwitcher } from '@/hooks/use-account-mode-switcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import logoImage from '@/assets/logo.png';
 import datingLogoImage from '@/assets/dating-logo.png';
+import type { Database } from '@/integrations/supabase/types';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
@@ -60,7 +62,31 @@ export function DiscoverSidebar({
   const queryClient = useQueryClient();
   
   // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
+  const { activeMode, setActiveMode, isComboUser, setBaseAccountMode } = useActiveMode();
+
+  type AccountModeType = Database['public']['Enums']['account_mode'];
+  
+  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
+    setBaseAccountMode(newMode);
+    // Map account mode to active mode for display
+    if (newMode === 'both') {
+      setActiveMode('unified');
+    } else if (newMode === 'dating') {
+      setActiveMode('dating');
+    } else {
+      setActiveMode('fishing');
+    }
+  });
+
+  // Map activeMode to accountMode for database
+  const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
+    const accountModeMap: Record<'unified' | 'dating' | 'fishing', AccountModeType> = {
+      unified: 'both',
+      dating: 'dating',
+      fishing: 'fishing',
+    };
+    switchMode(accountModeMap[mode]);
+  };
 
   // Fetch unread messages count
   const { data: unreadMessagesCount = 0 } = useQuery({
@@ -195,15 +221,21 @@ export function DiscoverSidebar({
             ].map((mode) => (
               <button
                 key={mode.value}
-                onClick={() => setActiveMode(mode.value)}
+                onClick={() => handleModeSwitch(mode.value)}
+                disabled={isSwitching}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
                   activeMode === mode.value
                     ? "bg-background text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                  isSwitching && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <mode.icon className="h-3 w-3" />
+                {isSwitching ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <mode.icon className="h-3 w-3" />
+                )}
                 {mode.label}
               </button>
             ))}

@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Heart, LayoutDashboard, Anchor } from 'lucide-react';
+import { Heart, LayoutDashboard, Anchor, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationCenter, NotificationMode } from '@/components/notifications/NotificationCenter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
+import { useAccountModeSwitcher } from '@/hooks/use-account-mode-switcher';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import type { Database } from '@/integrations/supabase/types';
 // Request browser notification permission
 const requestNotificationPermission = async () => {
   if ('Notification' in window && Notification.permission === 'default') {
@@ -52,7 +54,31 @@ export function AppHeader() {
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
   
   // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser, baseAccountMode, effectiveMode } = useActiveMode();
+  const { activeMode, setActiveMode, isComboUser, baseAccountMode, effectiveMode, setBaseAccountMode } = useActiveMode();
+  
+  type AccountMode = Database['public']['Enums']['account_mode'];
+  
+  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
+    setBaseAccountMode(newMode);
+    // Map account mode to active mode for display
+    if (newMode === 'both') {
+      setActiveMode('unified');
+    } else if (newMode === 'dating') {
+      setActiveMode('dating');
+    } else {
+      setActiveMode('fishing');
+    }
+  });
+
+  // Map activeMode to accountMode for database
+  const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
+    const accountModeMap: Record<'unified' | 'dating' | 'fishing', AccountMode> = {
+      unified: 'both',
+      dating: 'dating',
+      fishing: 'fishing',
+    };
+    switchMode(accountModeMap[mode]);
+  };
   
   // Map effectiveMode to NotificationMode
   const notificationMode: NotificationMode = effectiveMode;
@@ -282,16 +308,22 @@ export function AppHeader() {
               {modeOptions.map((mode) => (
                 <button
                   key={mode.value}
-                  onClick={() => setActiveMode(mode.value)}
+                  onClick={() => handleModeSwitch(mode.value)}
+                  disabled={isSwitching}
                   className={cn(
                     "flex items-center justify-center p-1.5 rounded-full transition-colors",
                     activeMode === mode.value
                       ? "bg-background text-primary shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                    isSwitching && "opacity-50 cursor-not-allowed"
                   )}
                   title={mode.label}
                 >
-                  <mode.icon className="h-4 w-4" />
+                  {isSwitching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <mode.icon className="h-4 w-4" />
+                  )}
                 </button>
               ))}
             </div>
