@@ -47,7 +47,7 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
     } else {
       setActiveMode('fishing');
     }
-  });
+  }, { redirect: true }); // Enable redirect on switch
 
   // Map activeMode to accountMode for database
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {

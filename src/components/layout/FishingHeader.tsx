@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveMode } from "@/contexts/ActiveModeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Settings, LogOut, User, MessageCircle } from "lucide-react";
+import { Search, Settings, LogOut, User, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -29,6 +30,7 @@ const fishingNavItems = [
 
 export function FishingHeader() {
   const { user } = useAuth();
+  const { wasOriginallyCombo } = useActiveMode();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -152,6 +154,21 @@ export function FishingHeader() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6">
+            {/* Dashboard link for originally-combo users */}
+            {wasOriginallyCombo && (
+              <NavLink
+                to="/app/dashboard"
+                className={({ isActive }) =>
+                  cn(
+                    "text-sm font-medium transition-colors hover:text-foreground flex items-center gap-1.5",
+                    isActive ? "text-foreground" : "text-muted-foreground"
+                  )
+                }
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </NavLink>
+            )}
             {fishingNavItems.map((item) => (
               <NavLink
                 key={item.to}

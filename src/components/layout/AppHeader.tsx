@@ -54,7 +54,7 @@ export function AppHeader() {
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
   
   // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser, baseAccountMode, effectiveMode, setBaseAccountMode } = useActiveMode();
+  const { activeMode, setActiveMode, isComboUser, baseAccountMode, effectiveMode, setBaseAccountMode, wasOriginallyCombo } = useActiveMode();
   
   type AccountMode = Database['public']['Enums']['account_mode'];
   
@@ -68,7 +68,7 @@ export function AppHeader() {
     } else {
       setActiveMode('fishing');
     }
-  });
+  }, { redirect: true }); // Enable redirect on switch
 
   // Map activeMode to accountMode for database
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
@@ -302,6 +302,17 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* Dashboard Link for originally-combo users who switched to single mode */}
+          {wasOriginallyCombo && !isComboUser && (
+            <Link
+              to="/app/dashboard"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+          )}
+
           {/* Mode Switcher for Combo Users */}
           {isComboUser && (
             <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
