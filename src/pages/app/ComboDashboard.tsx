@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMode } from "@/contexts/ActiveModeContext";
+import { useAccountModeSwitcher } from "@/hooks/use-account-mode-switcher";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,9 +37,11 @@ import {
   Star,
   SlidersHorizontal,
   Anchor,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
+import type { Database } from "@/integrations/supabase/types";
 
 // Browser notification helpers
 const requestNotificationPermission = async () => {
@@ -116,11 +119,24 @@ const sidebarItems = [
   { label: "Planned Trips", icon: Calendar, href: "/app/trips" },
 ];
 
+type AccountMode = Database['public']['Enums']['account_mode'];
+
 export default function ComboDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { activeMode, setActiveMode } = useActiveMode();
+  const { activeMode, setActiveMode, setBaseAccountMode } = useActiveMode();
+  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
+    setBaseAccountMode(newMode);
+    // Map account mode to active mode for display
+    if (newMode === 'both') {
+      setActiveMode('unified');
+    } else if (newMode === 'dating') {
+      setActiveMode('dating');
+    } else {
+      setActiveMode('fishing');
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [nearbyAnglers, setNearbyAnglers] = useState<ProfileData[]>([]);
@@ -133,6 +149,16 @@ export default function ComboDashboard() {
   const [matchedProfile, setMatchedProfile] = useState<ProfileData | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
+
+  // Map activeMode to accountMode for database
+  const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
+    const accountModeMap: Record<'unified' | 'dating' | 'fishing', AccountMode> = {
+      unified: 'both',
+      dating: 'dating',
+      fishing: 'fishing',
+    };
+    switchMode(accountModeMap[mode]);
+  };
 
   // Request notification permission on mount
   useEffect(() => {
@@ -715,15 +741,21 @@ export default function ComboDashboard() {
                 ].map((mode) => (
                   <button
                     key={mode.value}
-                    onClick={() => setActiveMode(mode.value as 'unified' | 'dating' | 'fishing')}
+                    onClick={() => handleModeSwitch(mode.value as 'unified' | 'dating' | 'fishing')}
+                    disabled={isSwitching}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors",
                       activeMode === mode.value
                         ? "bg-background text-primary shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                      isSwitching && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    <mode.icon className="h-4 w-4" />
+                    {isSwitching && activeMode !== mode.value ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <mode.icon className="h-4 w-4" />
+                    )}
                     {mode.label}
                   </button>
                 ))}
