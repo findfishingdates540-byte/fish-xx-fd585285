@@ -13,6 +13,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { TripBuddyInvite, TripSpotSelector } from "@/components/trips";
@@ -30,6 +40,7 @@ import {
   Users,
   User as UserIcon,
   Info,
+  Send,
 } from "lucide-react";
 
 interface GearItem {
@@ -71,6 +82,7 @@ export default function TripPlanner() {
   const [showWeatherNotes, setShowWeatherNotes] = useState(false);
   const [showCoordinates, setShowCoordinates] = useState(false);
   const [invitedBuddies, setInvitedBuddies] = useState<string[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<{
     id: string;
     name: string;
@@ -319,7 +331,14 @@ export default function TripPlanner() {
               Cancel
             </Button>
             <Button
-              onClick={() => saveMutation.mutate()}
+              onClick={() => {
+                // Show confirmation dialog if it's a buddies trip with invites
+                if (tripType === "buddies" && invitedBuddies.length > 0) {
+                  setShowConfirmDialog(true);
+                } else {
+                  saveMutation.mutate();
+                }
+              }}
               disabled={!title.trim() || !selectedDate || saveMutation.isPending}
             >
               <Save className="h-4 w-4 mr-2" />
@@ -709,6 +728,41 @@ export default function TripPlanner() {
           </div>
         </div>
       </div>
+
+      {/* Buddy Invitation Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-primary" />
+              Send Buddy Invitations?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                You're about to save this trip and send invitations to{" "}
+                <span className="font-semibold text-foreground">
+                  {invitedBuddies.length} {invitedBuddies.length === 1 ? "buddy" : "buddies"}
+                </span>.
+              </p>
+              <p className="text-sm">
+                They will receive a notification and can accept or decline the invitation.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowConfirmDialog(false);
+                saveMutation.mutate();
+              }}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Save & Send Invites
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
