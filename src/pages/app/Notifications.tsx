@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { Bell, Mail, Heart, MapPin, Settings, Check, MoreHorizontal, Calendar, Anchor, Users, MessageCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Bell, Mail, Heart, MapPin, Settings, Check, MoreHorizontal, Calendar, Anchor, Users, MessageCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -31,6 +31,7 @@ interface EnrichedNotification {
 }
 
 export default function Notifications() {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   
   const { data: notifications = [], isLoading } = useNotifications();
@@ -329,8 +330,18 @@ export default function Notifications() {
           <div className="flex-1">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-3xl font-bold">Notification Center</h1>
-              <p className="text-muted-foreground mt-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(-1)}
+                  className="h-9 w-9"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-3xl font-bold">Notification Center</h1>
+              </div>
+              <p className="text-muted-foreground mt-1 ml-12">
                 Stay updated with your latest matches and fishing spots
               </p>
             </div>
