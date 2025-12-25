@@ -33,6 +33,7 @@ import {
   LogOut,
   BellRing,
   ExternalLink,
+  ArrowLeft,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -277,11 +278,21 @@ export default function Settings() {
 
           {/* Main Content */}
           <main className="flex-1 space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">Account Settings</h1>
-              <p className="text-muted-foreground">
-                Manage your profile details and preferences.
-              </p>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(-1)}
+                className="lg:hidden"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold">Account Settings</h1>
+                <p className="text-muted-foreground">
+                  Manage your profile details and preferences.
+                </p>
+              </div>
             </div>
 
             {/* Account Tab */}
