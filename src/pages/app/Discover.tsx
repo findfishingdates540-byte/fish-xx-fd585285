@@ -13,7 +13,7 @@ import {
   ProfileDetailView,
   MatchCelebrationModal,
 } from '@/components/discover';
-import { RefreshCw, Heart } from 'lucide-react';
+import { RefreshCw, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -370,12 +370,33 @@ export default function Discover() {
                 renderEmptyState()
               ) : (
                 <>
-                  <ProfileCard 
-                    profile={currentProfile} 
-                    onInfoClick={handleProfileClick}
-                    onSwipeLeft={onPass}
-                    onSwipeRight={onLike}
-                  />
+                  {/* Profile Card with Side Action Buttons */}
+                  <div className="relative flex items-center justify-center gap-4">
+                    {/* Left Pass Button */}
+                    <button
+                      onClick={onPass}
+                      className="hidden lg:flex items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive hover:scale-110 transition-all duration-200 shadow-lg"
+                      aria-label="Pass"
+                    >
+                      <X className="h-7 w-7" />
+                    </button>
+
+                    <ProfileCard 
+                      profile={currentProfile} 
+                      onInfoClick={handleProfileClick}
+                      onSwipeLeft={onPass}
+                      onSwipeRight={onLike}
+                    />
+
+                    {/* Right Like Button */}
+                    <button
+                      onClick={onLike}
+                      className="hidden lg:flex items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-110 transition-all duration-200 shadow-lg"
+                      aria-label="Like"
+                    >
+                      <Heart className="h-7 w-7" />
+                    </button>
+                  </div>
 
                   {/* Swipe Actions */}
                   <div className="mt-6">
