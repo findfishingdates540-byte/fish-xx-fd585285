@@ -334,7 +334,13 @@ export default function Notifications() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => navigate(-1)}
+                  onClick={() => {
+                    if (window.history.length > 1) {
+                      navigate(-1);
+                    } else {
+                      navigate('/app');
+                    }
+                  }}
                   className="h-9 w-9"
                 >
                   <ArrowLeft className="h-5 w-5" />
