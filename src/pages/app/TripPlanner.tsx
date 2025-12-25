@@ -139,6 +139,21 @@ export default function TripPlanner() {
     enabled: !!isEditing,
   });
 
+  // Fetch invited buddy profiles for display
+  const { data: invitedBuddyProfiles } = useQuery({
+    queryKey: ["invited-buddy-profiles", invitedBuddies],
+    queryFn: async () => {
+      if (invitedBuddies.length === 0) return [];
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, display_name, photos")
+        .in("id", invitedBuddies);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: invitedBuddies.length > 0,
+  });
+
   // Populate form with existing data
   useEffect(() => {
     if (existingTrip) {
@@ -756,17 +771,35 @@ export default function TripPlanner() {
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-4">
-                <p>
-                  You're about to send invitations to{" "}
-                  <span className="font-semibold text-foreground">
-                    {invitedBuddies.length} {invitedBuddies.length === 1 ? "buddy" : "buddies"}
-                  </span>.
-                </p>
+                {/* Invited Buddies List */}
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Sending invitations to:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {invitedBuddyProfiles?.map((buddy) => (
+                      <div
+                        key={buddy.id}
+                        className="flex items-center gap-2 bg-muted rounded-full pl-1 pr-3 py-1"
+                      >
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={buddy.photos?.[0]} />
+                          <AvatarFallback className="text-xs">
+                            {buddy.display_name?.charAt(0)?.toUpperCase() || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium text-foreground">
+                          {buddy.display_name || "Unknown"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Invitation Preview */}
                 <div className="rounded-lg border bg-card p-4 space-y-3">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Invitation Preview
+                    What they'll see
                   </p>
                   <div className="flex items-start gap-3">
                     <Avatar className="h-10 w-10">
