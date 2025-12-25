@@ -4,11 +4,7 @@ import { Bell, Mail, Heart, MapPin, Settings, Check, MoreHorizontal, Calendar, A
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow, isToday, isYesterday, subDays, isAfter } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
@@ -35,82 +31,18 @@ interface EnrichedNotification {
 }
 
 export default function Notifications() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   
   const { data: notifications = [], isLoading } = useNotifications();
   const { data: unreadCount = 0 } = useUnreadNotificationsCount();
   const markAsRead = useMarkNotificationRead();
   const markAllAsRead = useMarkAllNotificationsRead();
-  
-  // Fetch matches for dating notifications
-  const { data: recentMatches = [] } = useQuery({
-    queryKey: ['recent-matches-full', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data } = await supabase
-        .from('matches')
-        .select(`
-          id,
-          matched_at,
-          user1_id,
-          user2_id,
-          user1:profiles!matches_user1_id_fkey(display_name, photos),
-          user2:profiles!matches_user2_id_fkey(display_name, photos)
-        `)
-        .eq('is_match', true)
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .order('matched_at', { ascending: false })
-        .limit(20);
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
 
-  // Fetch trip invites
-  const { data: tripInvites = [] } = useQuery({
-    queryKey: ['trip-invites-full', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data } = await supabase
-        .from('trip_participants')
-        .select(`
-          id,
-          created_at,
-          status,
-          trip_id,
-          trip:fishing_trips(title, trip_date, user_id)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (data && data.length > 0) {
-        const ownerIds = [...new Set(data.map((d: any) => d.trip?.user_id).filter(Boolean))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, photos')
-          .in('id', ownerIds);
-        
-        const profileMap = new Map(profiles?.map(p => [p.id, p]));
-        
-        return data.map((d: any) => ({
-          ...d,
-          owner: profileMap.get(d.trip?.user_id)
-        }));
-      }
-      
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
-
-  // Combine all notification sources
+  // Combine all notification sources - now using database notifications directly
   const allNotifications = useMemo(() => {
     const items: EnrichedNotification[] = [];
 
-    // Add database notifications
+    // Add database notifications (now includes all types)
     notifications.forEach((n) => {
       items.push({
         ...n,
@@ -118,42 +50,11 @@ export default function Notifications() {
       });
     });
 
-    // Add match notifications
-    recentMatches.forEach((match: any) => {
-      const otherUser = match.user1_id === user?.id ? match.user2 : match.user1;
-      items.push({
-        id: `match-${match.id}`,
-        type: 'match',
-        title: `New Match! ${otherUser?.display_name || 'Someone'} likes you`,
-        body: "It's a Match!",
-        data: { match_id: match.id },
-        is_read: false,
-        created_at: match.matched_at,
-        photo: otherUser?.photos?.[0],
-        senderName: otherUser?.display_name,
-      });
-    });
-
-    // Add trip invite notifications  
-    tripInvites.forEach((invite: any) => {
-      items.push({
-        id: `trip-${invite.id}`,
-        type: 'trip_invite',
-        title: `Date Reminder: ${invite.trip?.title || 'Fishing trip'}`,
-        body: 'Date Reminder',
-        data: { trip_id: invite.trip_id },
-        is_read: invite.status !== 'invited',
-        created_at: invite.created_at,
-        photo: invite.owner?.photos?.[0],
-        senderName: invite.owner?.display_name,
-      });
-    });
-
     // Sort by date descending
     return items.sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  }, [notifications, recentMatches, tripInvites, user?.id]);
+  }, [notifications]);
 
   // Filter notifications
   const filteredNotifications = useMemo(() => {
@@ -161,11 +62,11 @@ export default function Notifications() {
       case 'unread':
         return allNotifications.filter(n => !n.is_read);
       case 'matches':
-        return allNotifications.filter(n => n.type === 'match' || n.type === 'feed_like');
+        return allNotifications.filter(n => n.type === 'match' || n.type === 'feed_like' || n.type === 'message');
       case 'spots':
-        return allNotifications.filter(n => n.type === 'spot_update' || n.type === 'fishing_alert');
+        return allNotifications.filter(n => n.type === 'spot_update' || n.type === 'fishing_alert' || n.type === 'buddy_request' || n.type === 'buddy_message' || n.type === 'trip_invite');
       case 'system':
-        return allNotifications.filter(n => n.type === 'system' || n.type === 'verification');
+        return allNotifications.filter(n => n.type === 'system' || n.type === 'verification' || n.type === 'feed_comment');
       default:
         return allNotifications;
     }
@@ -210,6 +111,9 @@ export default function Notifications() {
       case 'buddy_request':
         return Users;
       case 'message':
+      case 'buddy_message':
+        return MessageCircle;
+      case 'feed_comment':
         return MessageCircle;
       default:
         return Settings;
@@ -226,6 +130,13 @@ export default function Notifications() {
         return 'text-primary';
       case 'trip_invite':
         return 'text-green-500';
+      case 'buddy_request':
+        return 'text-blue-500';
+      case 'message':
+      case 'buddy_message':
+        return 'text-purple-500';
+      case 'feed_comment':
+        return 'text-orange-500';
       default:
         return 'text-muted-foreground';
     }
@@ -241,6 +152,8 @@ export default function Notifications() {
     switch (notification.type) {
       case 'match':
         return '/app/matches';
+      case 'message':
+        return `/app/messages/${notification.data?.match_id}`;
       case 'feed_like':
       case 'feed_comment':
         return '/app/feed';
@@ -249,6 +162,10 @@ export default function Notifications() {
         return '/app/spots';
       case 'trip_invite':
         return `/app/trips/${notification.data?.trip_id}`;
+      case 'buddy_request':
+        return '/app/buddies';
+      case 'buddy_message':
+        return `/app/buddy-chat/${notification.data?.buddy_id}`;
       default:
         return '/app';
     }
