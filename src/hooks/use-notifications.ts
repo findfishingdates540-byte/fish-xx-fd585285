@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'feed_like' | 'feed_comment';
+  type: 'feed_like' | 'feed_comment' | 'match' | 'message' | 'buddy_request' | 'buddy_message' | 'trip_invite';
   title: string;
   body: string | null;
   data: {
@@ -14,6 +14,15 @@ export interface Notification {
     liker_id?: string;
     comment_id?: string;
     commenter_id?: string;
+    match_id?: string;
+    other_user_id?: string;
+    message_id?: string;
+    sender_id?: string;
+    buddy_id?: string;
+    requester_id?: string;
+    trip_id?: string;
+    participant_id?: string;
+    owner_id?: string;
   };
   is_read: boolean;
   created_at: string;
