@@ -7,3 +7,4 @@ export { RouteGuard, DatingRoute, FishingRoute } from './RouteGuard';
 export { FishingHeader } from './FishingHeader';
 export { BothHeader } from './BothHeader';
 export { ComboSharedHeader } from './ComboSharedHeader';
+export { MobileModeSwitcher } from './MobileModeSwitcher';
