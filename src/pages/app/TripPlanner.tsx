@@ -23,6 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { TripBuddyInvite, TripSpotSelector } from "@/components/trips";
@@ -90,6 +92,21 @@ export default function TripPlanner() {
     location_lng: number;
     location_name: string | null;
   } | null>(null);
+
+  // Fetch current user profile for invitation preview
+  const { data: userProfile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, photos")
+        .eq("id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   // Fetch existing trip if editing
   const { data: existingTrip } = useQuery({
@@ -731,22 +748,63 @@ export default function TripPlanner() {
 
       {/* Buddy Invitation Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Send className="h-5 w-5 text-primary" />
               Send Buddy Invitations?
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>
-                You're about to save this trip and send invitations to{" "}
-                <span className="font-semibold text-foreground">
-                  {invitedBuddies.length} {invitedBuddies.length === 1 ? "buddy" : "buddies"}
-                </span>.
-              </p>
-              <p className="text-sm">
-                They will receive a notification and can accept or decline the invitation.
-              </p>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  You're about to send invitations to{" "}
+                  <span className="font-semibold text-foreground">
+                    {invitedBuddies.length} {invitedBuddies.length === 1 ? "buddy" : "buddies"}
+                  </span>.
+                </p>
+
+                {/* Invitation Preview */}
+                <div className="rounded-lg border bg-card p-4 space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Invitation Preview
+                  </p>
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={userProfile?.photos?.[0]} />
+                      <AvatarFallback>
+                        {userProfile?.display_name?.charAt(0)?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          {userProfile?.display_name || "You"}
+                        </span>{" "}
+                        invited you to join:
+                      </p>
+                      <p className="font-semibold truncate text-foreground">
+                        {title || "Untitled Trip"}
+                      </p>
+                      <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <CalendarIcon className="h-3 w-3" />
+                          {selectedDate ? format(selectedDate, "MMM d, yyyy") : "No date"}
+                        </span>
+                        {(selectedSpot?.location_name || locationName) && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {selectedSpot?.location_name || locationName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  They will receive a notification and can accept or decline.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
