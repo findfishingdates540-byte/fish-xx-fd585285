@@ -8,6 +8,7 @@ import { BottomNav } from './BottomNav';
 import { FishingHeader } from './FishingHeader';
 import { BothHeader } from './BothHeader';
 import { ComboSharedHeader } from './ComboSharedHeader';
+import { MobileModeSwitcher } from './MobileModeSwitcher';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
@@ -84,6 +85,9 @@ function AppLayoutContent() {
         <div className="lg:hidden">
           <BottomNav accountMode={effectiveMode} />
         </div>
+
+        {/* Mobile Mode Switcher FAB */}
+        <MobileModeSwitcher />
       </div>
     );
   }
@@ -108,6 +112,9 @@ function AppLayoutContent() {
       <div className="lg:hidden">
         <BottomNav accountMode={effectiveMode} />
       </div>
+
+      {/* Mobile Mode Switcher FAB */}
+      <MobileModeSwitcher />
     </div>
   );
 }
