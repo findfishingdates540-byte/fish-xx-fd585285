@@ -67,6 +67,15 @@ export default function Spots() {
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const spotCardRefs = useRef<globalThis.Map<string, HTMLDivElement>>(new globalThis.Map());
+
+  // Scroll to spot card in sidebar
+  const scrollToSpotCard = useCallback((spotId: string) => {
+    const cardElement = spotCardRefs.current.get(spotId);
+    if (cardElement) {
+      cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, []);
 
   const [spots, setSpots] = useState<FishingSpot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -283,6 +292,7 @@ export default function Spots() {
 
       el.addEventListener("click", () => {
         setSelectedSpot(spot);
+        scrollToSpotCard(spot.id);
         if (map.current) {
           map.current.flyTo({
             center: [spot.location_lng, spot.location_lat],
@@ -464,49 +474,56 @@ export default function Spots() {
               </div>
             ) : (
               filteredSpots.map((spot) => (
-                <SpotCard
+                <div
                   key={spot.id}
-                  spot={spot}
-                  distance={calculateDistance(spot.location_lat, spot.location_lng)}
-                  isSelected={selectedSpot?.id === spot.id}
-                  isHovered={hoveredSpotId === spot.id}
-                  isSaved={isSpotSaved(spot.id)}
-                  onToggleSave={() => toggleSaveSpot(spot.id)}
-                  onClick={() => handleSpotClick(spot)}
-                  onMouseEnter={() => {
-                    setHoveredSpotId(spot.id);
-                    // Highlight marker on map
-                    const markerEl = document.querySelector(`[data-spot-id="${spot.id}"]`) as HTMLElement;
-                    if (markerEl) {
-                      markerEl.style.zIndex = "1000";
-                      const card = markerEl.querySelector(".spot-card-marker") as HTMLElement;
-                      if (card) {
-                        card.style.transform = "scale(1.15)";
-                        card.style.boxShadow = "0 8px 24px rgba(59, 130, 246, 0.5)";
-                      }
-                    }
-                    // Pan map to show the spot
-                    if (map.current) {
-                      map.current.easeTo({
-                        center: [spot.location_lng, spot.location_lat],
-                        duration: 500,
-                      });
-                    }
+                  ref={(el) => {
+                    if (el) spotCardRefs.current.set(spot.id, el);
+                    else spotCardRefs.current.delete(spot.id);
                   }}
-                  onMouseLeave={() => {
-                    setHoveredSpotId(null);
-                    // Reset marker
-                    const markerEl = document.querySelector(`[data-spot-id="${spot.id}"]`) as HTMLElement;
-                    if (markerEl) {
-                      markerEl.style.zIndex = "";
-                      const card = markerEl.querySelector(".spot-card-marker") as HTMLElement;
-                      if (card) {
-                        card.style.transform = "scale(1)";
-                        card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                >
+                  <SpotCard
+                    spot={spot}
+                    distance={calculateDistance(spot.location_lat, spot.location_lng)}
+                    isSelected={selectedSpot?.id === spot.id}
+                    isHovered={hoveredSpotId === spot.id}
+                    isSaved={isSpotSaved(spot.id)}
+                    onToggleSave={() => toggleSaveSpot(spot.id)}
+                    onClick={() => handleSpotClick(spot)}
+                    onMouseEnter={() => {
+                      setHoveredSpotId(spot.id);
+                      // Highlight marker on map
+                      const markerEl = document.querySelector(`[data-spot-id="${spot.id}"]`) as HTMLElement;
+                      if (markerEl) {
+                        markerEl.style.zIndex = "1000";
+                        const card = markerEl.querySelector(".spot-card-marker") as HTMLElement;
+                        if (card) {
+                          card.style.transform = "scale(1.15)";
+                          card.style.boxShadow = "0 8px 24px rgba(59, 130, 246, 0.5)";
+                        }
                       }
-                    }
-                  }}
-                />
+                      // Pan map to show the spot
+                      if (map.current) {
+                        map.current.easeTo({
+                          center: [spot.location_lng, spot.location_lat],
+                          duration: 500,
+                        });
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredSpotId(null);
+                      // Reset marker
+                      const markerEl = document.querySelector(`[data-spot-id="${spot.id}"]`) as HTMLElement;
+                      if (markerEl) {
+                        markerEl.style.zIndex = "";
+                        const card = markerEl.querySelector(".spot-card-marker") as HTMLElement;
+                        if (card) {
+                          card.style.transform = "scale(1)";
+                          card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                        }
+                      }
+                    }}
+                  />
+                </div>
               ))
             )}
           </div>
