@@ -62,7 +62,7 @@ export function DiscoverSidebar({
   const queryClient = useQueryClient();
   
   // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser, setBaseAccountMode } = useActiveMode();
+  const { activeMode, setActiveMode, isComboUser, setBaseAccountMode, wasOriginallyCombo } = useActiveMode();
 
   type AccountModeType = Database['public']['Enums']['account_mode'];
   
@@ -204,6 +204,18 @@ export function DiscoverSidebar({
 
   return (
     <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
+      {/* Dashboard Link for originally-combo users (show when switched to single mode) */}
+      {wasOriginallyCombo && !isComboUser && (
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2">
+            <Link to="/app/dashboard">
+              <LayoutDashboard className="h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
+        </div>
+      )}
+
       {/* Mode Switcher for Combo Users */}
       {isComboUser && (
         <div className="mb-4">
