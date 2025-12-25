@@ -375,7 +375,7 @@ export default function Discover() {
                     {/* Left Pass Button */}
                     <button
                       onClick={onPass}
-                      className="hidden lg:flex items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive hover:scale-110 transition-all duration-200 shadow-lg"
+                      className="hidden lg:flex shrink-0 aspect-square items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive hover:scale-110 transition-all duration-200 shadow-lg"
                       aria-label="Pass"
                     >
                       <X className="h-7 w-7" />
@@ -391,7 +391,7 @@ export default function Discover() {
                     {/* Right Like Button */}
                     <button
                       onClick={onLike}
-                      className="hidden lg:flex items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-110 transition-all duration-200 shadow-lg"
+                      className="hidden lg:flex shrink-0 aspect-square items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-110 transition-all duration-200 shadow-lg"
                       aria-label="Like"
                     >
                       <Heart className="h-7 w-7" />
