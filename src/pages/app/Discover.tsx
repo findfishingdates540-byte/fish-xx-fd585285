@@ -371,11 +371,11 @@ export default function Discover() {
               ) : (
                 <>
                   {/* Profile Card with Side Action Buttons */}
-                  <div className="relative flex items-center justify-center gap-4">
-                    {/* Left Pass Button */}
+                  <div className="relative">
+                    {/* Left Pass Button - Absolutely positioned */}
                     <button
                       onClick={onPass}
-                      className="hidden lg:flex shrink-0 aspect-square items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive hover:scale-110 transition-all duration-200 shadow-lg"
+                      className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%+1rem)] shrink-0 items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive hover:scale-110 transition-all duration-200 shadow-lg"
                       aria-label="Pass"
                     >
                       <X className="h-7 w-7" />
@@ -388,10 +388,10 @@ export default function Discover() {
                       onSwipeRight={onLike}
                     />
 
-                    {/* Right Like Button */}
+                    {/* Right Like Button - Absolutely positioned */}
                     <button
                       onClick={onLike}
-                      className="hidden lg:flex shrink-0 aspect-square items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-110 transition-all duration-200 shadow-lg"
+                      className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(100%+1rem)] shrink-0 items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-110 transition-all duration-200 shadow-lg"
                       aria-label="Like"
                     >
                       <Heart className="h-7 w-7" />
