@@ -283,7 +283,6 @@ export default function Settings() {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className="lg:hidden"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
