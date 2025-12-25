@@ -38,6 +38,8 @@ export function TripSpotSelector({
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [view, setView] = useState<"saved" | "all">("saved");
+  // Track the actual selected spot data to persist across view changes
+  const [selectedSpotData, setSelectedSpotData] = useState<FishingSpot | null>(null);
 
   // Fetch user's saved spot IDs
   const { data: savedSpotIds } = useQuery({
@@ -139,6 +141,7 @@ export function TripSpotSelector({
       `;
 
       el.addEventListener("click", () => {
+        setSelectedSpotData(spot);
         onSpotSelect(spot);
         onLocationNameChange(spot.location_name || spot.name);
       });
@@ -173,7 +176,8 @@ export function TripSpotSelector({
     }
   }, [spots, selectedSpotId, onSpotSelect, onLocationNameChange]);
 
-  const selectedSpot = spots?.find((s) => s.id === selectedSpotId);
+  // Use selectedSpotData if available, otherwise try to find from spots array
+  const displaySpot = selectedSpotData || spots?.find((s) => s.id === selectedSpotId);
 
   if (tokenLoading || spotsLoading) {
     return (
@@ -220,6 +224,7 @@ export function TripSpotSelector({
               <button
                 key={spot.id}
                 onClick={() => {
+                  setSelectedSpotData(spot);
                   onSpotSelect(spot);
                   onLocationNameChange(spot.location_name || spot.name);
                 }}
@@ -252,11 +257,11 @@ export function TripSpotSelector({
         </div>
       )}
 
-      {selectedSpot && (
+      {displaySpot && (
         <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-          <div className="text-sm font-medium">{selectedSpot.name}</div>
+          <div className="text-sm font-medium">{displaySpot.name}</div>
           <div className="text-xs text-muted-foreground">
-            {selectedSpot.species_available?.slice(0, 3).join(", ") || "Various species"}
+            {displaySpot.species_available?.slice(0, 3).join(", ") || "Various species"}
           </div>
         </div>
       )}
