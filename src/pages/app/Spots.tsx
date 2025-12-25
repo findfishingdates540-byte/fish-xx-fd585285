@@ -30,6 +30,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { BuddySelectionDialog } from "@/components/buddies/BuddySelectionDialog";
 import mapboxgl from "mapbox-gl";
@@ -82,6 +85,9 @@ export default function Spots() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null);
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [showWithPhotosOnly, setShowWithPhotosOnly] = useState(false);
+  const [minRating, setMinRating] = useState<number | null>(null);
   const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapStyle, setMapStyle] = useState<'outdoors' | 'satellite' | 'streets'>('outdoors');
@@ -163,11 +169,19 @@ export default function Spots() {
       spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       spot.location_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (activeFilter === "top-rated") {
-      return matchesSearch && (spot.rating_avg || 0) >= 4.0;
+    if (!matchesSearch) return false;
+
+    // Apply chip filter
+    if (activeFilter === "top-rated" && (spot.rating_avg || 0) < 4.0) {
+      return false;
     }
 
-    return matchesSearch;
+    // Apply dropdown filters
+    if (showVerifiedOnly && !spot.is_verified) return false;
+    if (showWithPhotosOnly && (!spot.photos || spot.photos.length === 0)) return false;
+    if (minRating && (spot.rating_avg || 0) < minRating) return false;
+
+    return true;
   });
 
   // Add markers for filtered spots
@@ -435,9 +449,58 @@ export default function Spots() {
                 className="pl-9"
               />
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className={showVerifiedOnly || showWithPhotosOnly || minRating ? "border-primary" : ""}>
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Filter Options</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={showVerifiedOnly}
+                  onCheckedChange={setShowVerifiedOnly}
+                >
+                  Verified spots only
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={showWithPhotosOnly}
+                  onCheckedChange={setShowWithPhotosOnly}
+                >
+                  With photos only
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs">Min Rating</DropdownMenuLabel>
+                <DropdownMenuCheckboxItem
+                  checked={minRating === 4}
+                  onCheckedChange={(checked) => setMinRating(checked ? 4 : null)}
+                >
+                  ★ 4.0+
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={minRating === 3}
+                  onCheckedChange={(checked) => setMinRating(checked ? 3 : null)}
+                >
+                  ★ 3.0+
+                </DropdownMenuCheckboxItem>
+                {(showVerifiedOnly || showWithPhotosOnly || minRating) && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        setShowVerifiedOnly(false);
+                        setShowWithPhotosOnly(false);
+                        setMinRating(null);
+                      }}
+                      className="text-destructive"
+                    >
+                      Clear filters
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Filter Chips */}
