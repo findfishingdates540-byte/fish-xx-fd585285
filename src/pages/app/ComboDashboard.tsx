@@ -136,7 +136,7 @@ export default function ComboDashboard() {
     } else {
       setActiveMode('fishing');
     }
-  });
+  }, { redirect: true }); // Enable redirect on switch
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [nearbyAnglers, setNearbyAnglers] = useState<ProfileData[]>([]);

@@ -3,11 +3,19 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 export type BaseAccountMode = 'dating' | 'fishing' | 'both';
 export type ActiveMode = 'unified' | 'dating' | 'fishing';
 
+const STORAGE_KEY = 'ffd-active-mode';
+const ORIGINAL_MODE_KEY = 'ffd-original-account-mode';
+
 interface ActiveModeContextType {
   // The raw account mode from the database
   baseAccountMode: BaseAccountMode;
   // Set the base account mode (updates local state after DB change)
   setBaseAccountMode: (mode: BaseAccountMode) => void;
+  // The original account mode the user registered with
+  // This helps determine if user was originally a combo user
+  originalAccountMode: BaseAccountMode;
+  // Whether the user originally registered as 'both' (combo)
+  wasOriginallyCombo: boolean;
   // The active mode the user has selected (only relevant for 'both' users)
   activeMode: ActiveMode;
   // Set the active mode
@@ -19,7 +27,7 @@ interface ActiveModeContextType {
   //   - 'dating' -> 'dating' 
   //   - 'fishing' -> 'fishing'
   effectiveMode: BaseAccountMode;
-  // Whether the user is a combo user (can switch modes)
+  // Whether the user is currently a combo user (can switch modes)
   isComboUser: boolean;
 }
 
@@ -30,16 +38,39 @@ interface ActiveModeProviderProps {
   baseAccountMode: BaseAccountMode;
 }
 
-const STORAGE_KEY = 'ffd-active-mode';
-
 export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccountMode }: ActiveModeProviderProps) {
   // Track base account mode locally so it can be updated after DB changes
-  const [baseAccountMode, setBaseAccountMode] = useState<BaseAccountMode>(initialBaseAccountMode);
+  const [baseAccountMode, setBaseAccountModeState] = useState<BaseAccountMode>(initialBaseAccountMode);
+
+  // Track the original account mode (set once on first load)
+  const [originalAccountMode, setOriginalAccountMode] = useState<BaseAccountMode>(() => {
+    const stored = localStorage.getItem(ORIGINAL_MODE_KEY) as BaseAccountMode | null;
+    // If we have a stored original mode, use it
+    if (stored && (stored === 'dating' || stored === 'fishing' || stored === 'both')) {
+      return stored;
+    }
+    // Otherwise, this is a fresh session - use the initial mode
+    return initialBaseAccountMode;
+  });
+
+  // Store the original mode on first load (only if not already stored)
+  useEffect(() => {
+    const stored = localStorage.getItem(ORIGINAL_MODE_KEY);
+    if (!stored) {
+      localStorage.setItem(ORIGINAL_MODE_KEY, initialBaseAccountMode);
+      setOriginalAccountMode(initialBaseAccountMode);
+    }
+  }, [initialBaseAccountMode]);
 
   // Sync with prop changes (e.g., from parent query refetch)
   useEffect(() => {
-    setBaseAccountMode(initialBaseAccountMode);
+    setBaseAccountModeState(initialBaseAccountMode);
   }, [initialBaseAccountMode]);
+
+  // Wrapper to update both state and keep track of original
+  const setBaseAccountMode = (mode: BaseAccountMode) => {
+    setBaseAccountModeState(mode);
+  };
 
   // Initialize from localStorage or default to 'unified' for combo users
   const [activeMode, setActiveModeState] = useState<ActiveMode>(() => {
@@ -68,6 +99,7 @@ export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccou
   };
 
   const isComboUser = baseAccountMode === 'both';
+  const wasOriginallyCombo = originalAccountMode === 'both';
 
   // Calculate effective mode
   const effectiveMode: BaseAccountMode = (() => {
@@ -91,6 +123,8 @@ export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccou
       value={{
         baseAccountMode,
         setBaseAccountMode,
+        originalAccountMode,
+        wasOriginallyCombo,
         activeMode,
         setActiveMode,
         effectiveMode,

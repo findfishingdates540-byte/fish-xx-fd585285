@@ -76,7 +76,7 @@ export function DiscoverSidebar({
     } else {
       setActiveMode('fishing');
     }
-  });
+  }, { redirect: true }); // Enable redirect on switch
 
   // Map activeMode to accountMode for database
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
