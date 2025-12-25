@@ -88,9 +88,26 @@ export default function Spots() {
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [showWithPhotosOnly, setShowWithPhotosOnly] = useState(false);
   const [minRating, setMinRating] = useState<number | null>(null);
+  const [maxDistance, setMaxDistance] = useState<number | null>(null);
+  const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null);
   const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapStyle, setMapStyle] = useState<'outdoors' | 'satellite' | 'streets'>('outdoors');
+
+  // Calculate distance between two points in miles (Haversine formula)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Get all unique species from spots
+  const allSpecies = [...new Set(spots.flatMap(s => s.species_available || []))].sort();
 
   const MAP_STYLES = {
     outdoors: { id: 'mapbox://styles/mapbox/outdoors-v12', label: 'Terrain', icon: Mountain },
@@ -180,6 +197,20 @@ export default function Spots() {
     if (showVerifiedOnly && !spot.is_verified) return false;
     if (showWithPhotosOnly && (!spot.photos || spot.photos.length === 0)) return false;
     if (minRating && (spot.rating_avg || 0) < minRating) return false;
+    
+    // Distance filter
+    if (maxDistance && userLocation) {
+      const distance = calculateDistance(
+        userLocation.lat, userLocation.lng,
+        spot.location_lat, spot.location_lng
+      );
+      if (distance > maxDistance) return false;
+    }
+    
+    // Species filter
+    if (selectedSpecies && (!spot.species_available || !spot.species_available.includes(selectedSpecies))) {
+      return false;
+    }
 
     return true;
   });
@@ -378,21 +409,9 @@ export default function Spots() {
     }
   };
 
-  const calculateDistance = (spotLat: number, spotLng: number): string => {
+  const getDistanceText = (spotLat: number, spotLng: number): string => {
     if (!userLocation) return "Unknown";
-    
-    const R = 3959; // Earth's radius in miles
-    const dLat = (spotLat - userLocation.lat) * (Math.PI / 180);
-    const dLng = (spotLng - userLocation.lng) * (Math.PI / 180);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(userLocation.lat * (Math.PI / 180)) *
-        Math.cos(spotLat * (Math.PI / 180)) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    
+    const distance = calculateDistance(userLocation.lat, userLocation.lng, spotLat, spotLng);
     return `${distance.toFixed(1)} miles away`;
   };
 
@@ -451,11 +470,11 @@ export default function Spots() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className={showVerifiedOnly || showWithPhotosOnly || minRating ? "border-primary" : ""}>
+                <Button variant="outline" size="icon" className={showVerifiedOnly || showWithPhotosOnly || minRating || maxDistance || selectedSpecies ? "border-primary" : ""}>
                   <Filter className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56 max-h-80 overflow-y-auto">
                 <DropdownMenuLabel>Filter Options</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuCheckboxItem
@@ -471,6 +490,29 @@ export default function Spots() {
                   With photos only
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs">Distance</DropdownMenuLabel>
+                <DropdownMenuCheckboxItem
+                  checked={maxDistance === 10}
+                  onCheckedChange={(checked) => setMaxDistance(checked ? 10 : null)}
+                  disabled={!userLocation}
+                >
+                  Within 10 miles
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={maxDistance === 25}
+                  onCheckedChange={(checked) => setMaxDistance(checked ? 25 : null)}
+                  disabled={!userLocation}
+                >
+                  Within 25 miles
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={maxDistance === 50}
+                  onCheckedChange={(checked) => setMaxDistance(checked ? 50 : null)}
+                  disabled={!userLocation}
+                >
+                  Within 50 miles
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs">Min Rating</DropdownMenuLabel>
                 <DropdownMenuCheckboxItem
                   checked={minRating === 4}
@@ -484,7 +526,22 @@ export default function Spots() {
                 >
                   ★ 3.0+
                 </DropdownMenuCheckboxItem>
-                {(showVerifiedOnly || showWithPhotosOnly || minRating) && (
+                {allSpecies.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs">Species</DropdownMenuLabel>
+                    {allSpecies.slice(0, 10).map((species) => (
+                      <DropdownMenuCheckboxItem
+                        key={species}
+                        checked={selectedSpecies === species}
+                        onCheckedChange={(checked) => setSelectedSpecies(checked ? species : null)}
+                      >
+                        {species}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </>
+                )}
+                {(showVerifiedOnly || showWithPhotosOnly || minRating || maxDistance || selectedSpecies) && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
@@ -492,6 +549,8 @@ export default function Spots() {
                         setShowVerifiedOnly(false);
                         setShowWithPhotosOnly(false);
                         setMinRating(null);
+                        setMaxDistance(null);
+                        setSelectedSpecies(null);
                       }}
                       className="text-destructive"
                     >
@@ -545,7 +604,7 @@ export default function Spots() {
                 >
                   <SpotCard
                     spot={spot}
-                    distance={calculateDistance(spot.location_lat, spot.location_lng)}
+                    distance={getDistanceText(spot.location_lat, spot.location_lng)}
                     isSelected={selectedSpot?.id === spot.id}
                     isHovered={hoveredSpotId === spot.id}
                     isSaved={isSpotSaved(spot.id)}
