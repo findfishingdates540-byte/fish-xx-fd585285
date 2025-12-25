@@ -49,13 +49,20 @@ export function MyBuddyCard({
     navigate(`/app/buddy-trip/${profile.id}/${spotId}`);
   };
 
+  const handleViewProfile = () => {
+    navigate(`/app/user/${profile.id}`);
+  };
+
   return (
     <>
       <Card>
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
-            <div className="relative">
-              <Avatar className="h-16 w-16">
+            <div 
+              className="relative cursor-pointer group"
+              onClick={handleViewProfile}
+            >
+              <Avatar className="h-16 w-16 ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
                 <AvatarImage src={profile.photos?.[0]} className="object-cover" />
                 <AvatarFallback className="text-lg">
                   {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
@@ -72,7 +79,10 @@ export function MyBuddyCard({
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div>
-                  <h4 className="font-semibold">
+                  <h4 
+                    className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                    onClick={handleViewProfile}
+                  >
                     {profile.display_name || 'Anonymous'}
                   </h4>
                   <p className="text-xs text-muted-foreground">
@@ -118,6 +128,13 @@ export function MyBuddyCard({
               <div className="flex gap-2 mt-3">
                 <Button
                   size="sm"
+                  variant="outline"
+                  onClick={handleViewProfile}
+                >
+                  View Profile
+                </Button>
+                <Button
+                  size="sm"
                   variant="default"
                   onClick={() => onMessage(buddyId)}
                 >
@@ -134,7 +151,7 @@ export function MyBuddyCard({
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => onRemove(profile.id)}
                 >
                   <UserMinus className="w-4 h-4" />
