@@ -17,6 +17,7 @@ interface FishingSpot {
   location_name: string | null;
   rating_avg: number | null;
   species_available: string[] | null;
+  photos: string[] | null;
 }
 
 interface TripSpotSelectorProps {
@@ -62,7 +63,7 @@ export function TripSpotSelector({
     queryFn: async () => {
       let query = supabase
         .from("fishing_spots")
-        .select("id, name, location_lat, location_lng, location_name, rating_avg, species_available")
+        .select("id, name, location_lat, location_lng, location_name, rating_avg, species_available, photos")
         .eq("is_public", true);
 
       if (view === "saved" && savedSpotIds && savedSpotIds.length > 0) {
@@ -116,29 +117,58 @@ export function TripSpotSelector({
       bounds.extend([spot.location_lng, spot.location_lat]);
 
       const isSelected = spot.id === selectedSpotId;
+      const featuredImage = spot.photos?.[0];
 
       const el = document.createElement("div");
       el.className = "trip-spot-marker";
-      el.innerHTML = `
-        <div style="
-          width: 32px;
-          height: 32px;
-          background: ${isSelected ? "#000" : "white"};
-          border: 2px solid #000;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-          transition: all 0.2s ease;
-        ">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${isSelected ? "white" : "currentColor"}" stroke-width="2">
-            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
-            <circle cx="12" cy="9" r="2.5"/>
-          </svg>
-        </div>
-      `;
+      
+      if (featuredImage) {
+        // Use featured image as marker
+        el.innerHTML = `
+          <div style="
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: ${isSelected ? "3px solid #000" : "2px solid #666"};
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            overflow: hidden;
+          ">
+            <img 
+              src="${featuredImage}" 
+              alt="${spot.name}"
+              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+            />
+          </div>
+        `;
+      } else {
+        // Fallback to pin icon
+        el.innerHTML = `
+          <div style="
+            width: 32px;
+            height: 32px;
+            background: ${isSelected ? "#000" : "white"};
+            border: 2px solid #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+          ">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${isSelected ? "white" : "currentColor"}" stroke-width="2">
+              <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+          </div>
+        `;
+      }
 
       el.addEventListener("click", () => {
         setSelectedSpotData(spot);
