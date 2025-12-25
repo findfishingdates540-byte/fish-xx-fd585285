@@ -258,16 +258,31 @@ export function TripSpotSelector({
                   onSpotSelect(spot);
                   onLocationNameChange(spot.location_name || spot.name);
                 }}
-                className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
+                className={`w-full text-left p-2 rounded-lg text-sm transition-colors flex items-center gap-3 ${
                   spot.id === selectedSpotId
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-muted"
                 }`}
               >
-                <div className="font-medium truncate">{spot.name}</div>
-                <div className={`text-xs ${spot.id === selectedSpotId ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                  {spot.location_name || "Unknown location"}
-                  {spot.rating_avg && ` • ★ ${spot.rating_avg.toFixed(1)}`}
+                {spot.photos?.[0] ? (
+                  <img 
+                    src={spot.photos[0]} 
+                    alt={spot.name}
+                    className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    spot.id === selectedSpotId ? "bg-primary-foreground/20" : "bg-muted"
+                  }`}>
+                    <MapPin className="h-4 w-4" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium truncate">{spot.name}</div>
+                  <div className={`text-xs ${spot.id === selectedSpotId ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                    {spot.location_name || "Unknown location"}
+                    {spot.rating_avg && ` • ★ ${spot.rating_avg.toFixed(1)}`}
+                  </div>
                 </div>
               </button>
             ))}
