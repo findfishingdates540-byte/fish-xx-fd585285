@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard } from 'lucide-react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,7 @@ interface NavItem {
   hasMessageBadge?: boolean;
   hasMatchBadge?: boolean;
   hasBuddyMessageBadge?: boolean;
+  hasTripBadge?: boolean;
 }
 
 const getNavItems = (mode: AccountMode, wasOriginallyCombo: boolean): NavItem[] => {
@@ -44,6 +45,7 @@ const getNavItems = (mode: AccountMode, wasOriginallyCombo: boolean): NavItem[] 
       { to: '/app/feed', icon: Rss, label: 'Feed' },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
+      { to: '/app/trips', icon: Calendar, label: 'Trips', hasTripBadge: true },
     ];
     // Add dashboard link for originally-combo users
     if (wasOriginallyCombo) {
@@ -163,6 +165,23 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
   });
 
+  // Fetch pending trip invitations count
+  const { data: tripInvitesCount = 0 } = useQuery({
+    queryKey: ["trip-invites-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { count } = await supabase
+        .from("trip_participants")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("status", ["pending", "invited"]);
+
+      return count || 0;
+    },
+    enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
+  });
+
   // Real-time subscriptions
   useEffect(() => {
     if (!user?.id) return;
@@ -214,6 +233,18 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           queryClient.invalidateQueries({ queryKey: ["unread-buddy-messages-count", user.id] });
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "trip_participants",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["trip-invites-count", user.id] });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -222,10 +253,11 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   }, [user?.id, queryClient]);
 
   const getBadgeCount = (item: NavItem): number => {
-    if (item.hasBuddyBadge) return pendingRequestsCount;
+    if (item.hasBuddyBadge) return pendingRequestsCount + unreadBuddyMessagesCount;
     if (item.hasMessageBadge) return unreadMessagesCount;
     if (item.hasMatchBadge) return newMatchesCount;
     if (item.hasBuddyMessageBadge) return unreadBuddyMessagesCount;
+    if (item.hasTripBadge) return tripInvitesCount;
     return 0;
   };
 
