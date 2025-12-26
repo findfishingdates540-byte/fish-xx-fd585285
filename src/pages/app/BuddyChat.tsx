@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -515,9 +516,19 @@ export default function BuddyChat() {
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-background">
+    <motion.div 
+      className="flex flex-col h-[100dvh] bg-background"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b">
+      <motion.div 
+        className="flex items-center gap-3 p-4 border-b"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.05 }}
+      >
         <Button variant="ghost" size="icon" onClick={() => navigate('/app/buddy-messages')}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -550,10 +561,15 @@ export default function BuddyChat() {
             )}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <motion.div 
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
         {messages.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Fish className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -601,7 +617,7 @@ export default function BuddyChat() {
           </div>
         )}
         <div ref={messagesEndRef} />
-      </div>
+      </motion.div>
 
       {/* Input */}
       <div className="p-4 border-t">
@@ -729,6 +745,6 @@ export default function BuddyChat() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }
