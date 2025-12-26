@@ -42,7 +42,27 @@ export function VoiceMessagePlayer({ audioUrl, isMine }: VoiceMessagePlayerProps
     generateWaveform();
 
     audio.addEventListener('loadedmetadata', () => {
-      setDuration(audio.duration);
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      } else {
+        // WebM files often lack duration metadata - force calculation by seeking
+        audio.currentTime = 1e101;
+      }
+    });
+
+    audio.addEventListener('seeked', () => {
+      if (audio.currentTime === 1e101 || !isFinite(audio.currentTime)) {
+        audio.currentTime = 0;
+      }
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    });
+
+    audio.addEventListener('durationchange', () => {
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
     });
 
     audio.addEventListener('timeupdate', () => {
@@ -51,6 +71,10 @@ export function VoiceMessagePlayer({ audioUrl, isMine }: VoiceMessagePlayerProps
 
     audio.addEventListener('ended', () => {
       setIsPlaying(false);
+      // Capture duration from currentTime if still unknown
+      if (!isFinite(duration) && isFinite(audio.currentTime) && audio.currentTime > 0) {
+        setDuration(audio.currentTime);
+      }
       setCurrentTime(0);
     });
 
@@ -75,6 +99,9 @@ export function VoiceMessagePlayer({ audioUrl, isMine }: VoiceMessagePlayerProps
   };
 
   const formatTime = (time: number) => {
+    if (!isFinite(time) || isNaN(time)) {
+      return '--:--';
+    }
     const mins = Math.floor(time / 60);
     const secs = Math.floor(time % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
