@@ -77,7 +77,7 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
     markerEl.className = "custom-marker";
     markerEl.innerHTML = `
       <div style="
-        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        background: hsl(0, 0%, 8%);
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -105,8 +105,8 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
   }, [token, trip.location_lat, trip.location_lng]);
 
   const statusColors: Record<string, string> = {
-    planned: "bg-sky-100 text-sky-700",
-    confirmed: "bg-sky-100 text-sky-700",
+    planned: "bg-muted text-muted-foreground",
+    confirmed: "bg-foreground text-background",
     completed: "bg-green-100 text-green-700",
     cancelled: "bg-red-100 text-red-700",
   };
@@ -118,12 +118,12 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
         <div className="relative h-64 md:h-80">
           {tokenLoading ? (
             <div className="absolute inset-0 bg-muted flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
             </div>
           ) : tokenError ? (
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-100 to-blue-200 flex items-center justify-center">
+            <div className="absolute inset-0 bg-muted flex items-center justify-center">
               <div className="text-center text-muted-foreground">
-                <MapPin className="h-12 w-12 mx-auto mb-2 text-sky-500" />
+                <MapPin className="h-12 w-12 mx-auto mb-2 text-foreground" />
                 <p className="text-sm font-medium">{trip.location_name || "Location TBD"}</p>
               </div>
             </div>
@@ -134,7 +134,7 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
           {trip.location_name && (
             <div className="absolute top-4 left-4 z-10">
               <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-foreground shadow-sm">
-                <MapPin className="h-3 w-3 mr-1 text-sky-500" />
+                <MapPin className="h-3 w-3 mr-1" />
                 {trip.location_name}
               </Badge>
             </div>
@@ -171,7 +171,7 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
                 { value: countdown.secs, label: "SECS" },
               ].map((item, i) => (
                 <div key={i} className="text-center">
-                  <div className="text-2xl font-bold text-sky-500">
+                  <div className="text-2xl font-bold text-foreground">
                     {String(item.value).padStart(2, "0")}
                   </div>
                   <div className="text-xs text-muted-foreground">{item.label}</div>
@@ -182,7 +182,7 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
 
           <div className="flex gap-3 mt-auto">
             <Button 
-              className="flex-1 bg-sky-500 hover:bg-sky-600"
+              className="flex-1"
               onClick={() => navigate(`/app/trips/${trip.id}`)}
             >
               <Calendar className="h-4 w-4 mr-2" />

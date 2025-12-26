@@ -29,12 +29,12 @@ export function TripCard({ trip }: TripCardProps) {
   const navigate = useNavigate();
 
   const statusColors: Record<string, { bg: string; text: string }> = {
-    planned: { bg: "bg-amber-100", text: "text-amber-700" },
-    pending: { bg: "bg-amber-100", text: "text-amber-700" },
-    confirmed: { bg: "bg-sky-100", text: "text-sky-700" },
+    planned: { bg: "bg-muted", text: "text-muted-foreground" },
+    pending: { bg: "bg-muted", text: "text-muted-foreground" },
+    confirmed: { bg: "bg-foreground", text: "text-background" },
     completed: { bg: "bg-green-100", text: "text-green-700" },
     cancelled: { bg: "bg-red-100", text: "text-red-700" },
-    rescheduled: { bg: "bg-orange-100", text: "text-orange-700" },
+    rescheduled: { bg: "bg-muted", text: "text-muted-foreground" },
   };
 
   const status = statusColors[trip.status] || statusColors.planned;
@@ -59,7 +59,7 @@ export function TripCard({ trip }: TripCardProps) {
           className="w-full h-full object-cover"
         />
         <Badge className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-foreground">
-          <Calendar className="h-3 w-3 mr-1 text-sky-500" />
+          <Calendar className="h-3 w-3 mr-1" />
           {format(new Date(trip.trip_date), "MMM d")}
         </Badge>
         <Avatar className="absolute bottom-3 left-3 h-10 w-10 border-2 border-white shadow-md">
@@ -78,7 +78,7 @@ export function TripCard({ trip }: TripCardProps) {
         <div className="space-y-1 text-sm text-muted-foreground mb-4">
           {trip.start_time && (
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-sky-500" />
+              <Clock className="h-4 w-4 text-muted-foreground" />
               <span>
                 {formatTime(trip.start_time)}
                 {trip.end_time && ` - ${formatTime(trip.end_time)}`}
@@ -87,7 +87,7 @@ export function TripCard({ trip }: TripCardProps) {
           )}
           {trip.location_name && (
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-sky-500" />
+              <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="truncate">{trip.location_name}</span>
             </div>
           )}
@@ -98,7 +98,7 @@ export function TripCard({ trip }: TripCardProps) {
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex-1 text-sky-600 border-sky-200 hover:bg-sky-50"
+            className="flex-1"
           >
             <MessageCircle className="h-4 w-4 mr-1" />
             Chat
