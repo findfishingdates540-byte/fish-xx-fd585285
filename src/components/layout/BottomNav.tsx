@@ -263,7 +263,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-pb">
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-around h-14">
         {navItems.map((item) => {
           const badgeCount = getBadgeCount(item);
           
@@ -273,7 +273,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative',
+                  'flex items-center justify-center flex-1 h-full transition-colors relative',
                   isActive
                     ? 'text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -281,23 +281,20 @@ export function BottomNav({ accountMode }: BottomNavProps) {
               }
             >
               {({ isActive }) => (
-                <>
-                  <div className="relative">
-                    <item.icon
-                      className={cn('h-5 w-5', isActive && 'fill-current')}
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
-                    {badgeCount > 0 && (
-                      <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
-                      >
-                        {badgeCount > 9 ? "9+" : badgeCount}
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-xs font-medium">{item.label}</span>
-                </>
+                <div className="relative">
+                  <item.icon
+                    className={cn('h-6 w-6', isActive ? 'fill-current' : 'fill-current opacity-60')}
+                    strokeWidth={1.5}
+                  />
+                  {badgeCount > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
+                    >
+                      {badgeCount > 9 ? "9+" : badgeCount}
+                    </Badge>
+                  )}
+                </div>
               )}
             </NavLink>
           );
