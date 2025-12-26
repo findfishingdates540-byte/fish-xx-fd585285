@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,11 +20,19 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 
+interface OutletContext {
+  isInline?: boolean;
+}
+
 export default function Chat() {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
+  
+  // Get context from parent (Messages page) - if inline, hide sidebar
+  const outletContext = useOutletContext<OutletContext | null>();
+  const isInline = outletContext?.isInline ?? false;
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -96,7 +104,7 @@ export default function Chat() {
 
   // Loading state for chat area
   const renderChatLoading = () => (
-    <div className="flex-1 flex flex-col h-screen bg-background">
+    <div className="flex-1 flex flex-col h-full bg-background">
       <header className="h-16 px-6 border-b border-border flex items-center gap-3">
         <Skeleton className="h-10 w-10 rounded-full" />
         <div>
@@ -127,19 +135,21 @@ export default function Chat() {
 
   return (
     <motion.div 
-      className="flex h-[100dvh] bg-background overflow-hidden"
+      className={`flex ${isInline ? 'h-full flex-1' : 'h-[100dvh]'} bg-background overflow-hidden`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Left Sidebar */}
-      <ChatSidebar
-        conversations={conversationsWithStatus}
-        selectedId={matchId}
-        onSelect={handleSelectConversation}
-        unreadCount={conversations.reduce((sum, c) => sum + c.unreadCount, 0)}
-        accountMode={profile?.account_mode || 'dating'}
-      />
+      {/* Left Sidebar - Only show when not inline */}
+      {!isInline && (
+        <ChatSidebar
+          conversations={conversationsWithStatus}
+          selectedId={matchId}
+          onSelect={handleSelectConversation}
+          unreadCount={conversations.reduce((sum, c) => sum + c.unreadCount, 0)}
+          accountMode={profile?.account_mode || 'dating'}
+        />
+      )}
 
       {/* Chat Area */}
       {!matchId ? (
@@ -172,13 +182,15 @@ export default function Chat() {
             onSetReplyingTo={(msg) => setReplyingTo(msg ? { id: msg.id, content: msg.content, sender_id: msg.senderId, created_at: '', is_read: false, image_url: null, reply_to_id: null, deleted_at: null, deleted_for_everyone: false } : null)}
             getReplyMessage={getReplyMessage}
             onDeleteMessage={deleteMessage}
+            showBackButton={isInline}
+            onBack={() => navigate('/app/messages')}
           />
         </motion.div>
       )}
 
       {/* Right Profile Sidebar - Desktop */}
       {matchProfile && (
-        <div className="hidden xl:block w-80 h-screen border-l border-border flex-shrink-0">
+        <div className="hidden xl:block w-80 h-full border-l border-border flex-shrink-0">
           <ProfileSidebar
             name={matchProfile.display_name || 'Anonymous'}
             age={25}

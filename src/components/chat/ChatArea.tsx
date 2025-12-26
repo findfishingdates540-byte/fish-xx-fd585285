@@ -60,6 +60,8 @@ interface ChatAreaProps {
   onSetReplyingTo?: (message: Message | null) => void;
   getReplyMessage?: (replyToId: string | null) => { sender_id: string; content: string } | null;
   onDeleteMessage?: (messageId: string, deleteForEveryone: boolean) => Promise<void>;
+  showBackButton?: boolean;
+  onBack?: () => void;
 }
 
 const quickReplies = [
@@ -99,6 +101,8 @@ export function ChatArea({
   onSetReplyingTo,
   getReplyMessage,
   onDeleteMessage,
+  showBackButton,
+  onBack,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -297,12 +301,24 @@ export function ChatArea({
       {/* Chat Header */}
       <header className="h-14 md:h-16 px-3 md:px-6 border-b border-border flex items-center justify-between bg-background flex-shrink-0">
         <div className="flex items-center gap-2 md:gap-3">
-          {/* Back button - mobile only */}
-          <Button variant="ghost" size="icon" className="md:hidden" asChild>
-            <Link to="/app/messages">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
+          {/* Back button - mobile only or when showBackButton is true */}
+          {(showBackButton || true) && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden" 
+              onClick={onBack}
+              asChild={!onBack}
+            >
+              {onBack ? (
+                <ArrowLeft className="h-5 w-5" />
+              ) : (
+                <Link to="/app/messages">
+                  <ArrowLeft className="h-5 w-5" />
+                </Link>
+              )}
+            </Button>
+          )}
           <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer" onClick={onShowProfile}>
             <AvatarImage src={matchPhoto} alt={matchName} />
             <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>

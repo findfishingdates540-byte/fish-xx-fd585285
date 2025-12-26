@@ -66,8 +66,9 @@ const App = () => (
               <Route path="discover" element={<DatingRoute><Discover /></DatingRoute>} />
               <Route path="likes" element={<DatingRoute><Likes /></DatingRoute>} />
               <Route path="matches" element={<DatingRoute><Matches /></DatingRoute>} />
-              <Route path="messages" element={<DatingRoute><Messages /></DatingRoute>} />
-              <Route path="messages/:matchId" element={<DatingRoute><Chat /></DatingRoute>} />
+<Route path="messages" element={<DatingRoute><Messages /></DatingRoute>}>
+                <Route path=":matchId" element={<Chat />} />
+              </Route>
               
               {/* Fishing-only routes */}
               <Route path="feed" element={<FishingRoute><Feed /></FishingRoute>} />
