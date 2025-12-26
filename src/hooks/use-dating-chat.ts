@@ -10,6 +10,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   image_url: string | null;
+  reply_to_id: string | null;
 }
 
 interface MatchProfile {
@@ -28,6 +29,7 @@ export function useDatingChat(matchId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -183,7 +185,7 @@ export function useDatingChat(matchId: string | undefined) {
     typingTimeoutRef.current = setTimeout(() => updateTypingStatus(false), 2000);
   }, [updateTypingStatus]);
 
-  const sendMessage = useCallback(async (content: string, imageUrl?: string, audioUrl?: string) => {
+  const sendMessage = useCallback(async (content: string, imageUrl?: string, audioUrl?: string, replyToId?: string) => {
     if (!user || !matchId || sending || !matchProfile) return;
     if (!content.trim() && !imageUrl && !audioUrl) return;
 
@@ -191,6 +193,8 @@ export function useDatingChat(matchId: string | undefined) {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
     setSending(true);
+    const currentReplyTo = replyingTo;
+    setReplyingTo(null);
 
     const { error } = await supabase
       .from('messages')
@@ -199,18 +203,20 @@ export function useDatingChat(matchId: string | undefined) {
         sender_id: user.id,
         content: content.trim(),
         image_url: imageUrl || null,
-        audio_url: audioUrl || null
+        audio_url: audioUrl || null,
+        reply_to_id: replyToId || currentReplyTo?.id || null
       });
 
     if (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
+      setReplyingTo(currentReplyTo);
     } else {
       // Send push notification (fire and forget)
       sendPushNotification(matchProfile.id, content);
     }
     setSending(false);
-  }, [user, matchId, sending, matchProfile, updateTypingStatus]);
+  }, [user, matchId, sending, matchProfile, updateTypingStatus, replyingTo]);
 
   const sendPushNotification = async (recipientId: string, messageContent: string) => {
     try {
@@ -251,7 +257,15 @@ export function useDatingChat(matchId: string | undefined) {
       isRead: msg.is_read,
       imageUrl: msg.image_url,
       audioUrl: (msg as any).audio_url,
+      createdAt: msg.created_at,
+      replyToId: msg.reply_to_id,
     }));
+  }, [messages]);
+
+  // Get the replied message content for display
+  const getReplyMessage = useCallback((replyToId: string | null) => {
+    if (!replyToId) return null;
+    return messages.find(m => m.id === replyToId) || null;
   }, [messages]);
 
   return {
@@ -261,6 +275,9 @@ export function useDatingChat(matchId: string | undefined) {
     loading,
     sending,
     isTyping,
+    replyingTo,
+    setReplyingTo,
+    getReplyMessage,
     sendMessage,
     handleInputChange,
     refetch: fetchChatData,

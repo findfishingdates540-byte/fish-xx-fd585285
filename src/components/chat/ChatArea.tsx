@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, X, Loader2, Mic, Square, MapPin } from 'lucide-react';
+import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, X, Loader2, Mic, Square, MapPin, Reply } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { MessageReactions } from './MessageReactions';
+import { MessageStatusIndicator } from './MessageStatusIndicator';
+import { QuotedMessage } from './QuotedMessage';
+import { ReplyPreview } from './ReplyPreview';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { WaveformVisualizer } from './WaveformVisualizer';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +27,7 @@ interface Message {
   imageUrl?: string | null;
   audioUrl?: string | null;
   createdAt?: string;
+  replyToId?: string | null;
 }
 
 interface ReactionSummary {
@@ -38,7 +42,7 @@ interface ChatAreaProps {
   isOnline?: boolean;
   messages: Message[];
   currentUserId: string;
-  onSendMessage: (content: string, imageUrl?: string, audioUrl?: string) => void;
+  onSendMessage: (content: string, imageUrl?: string, audioUrl?: string, replyToId?: string) => void;
   onShowProfile?: () => void;
   isTyping?: boolean;
   onInputChange?: () => void;
@@ -46,6 +50,9 @@ interface ChatAreaProps {
   onToggleReaction?: (messageId: string, emoji: string) => void;
   chatType?: 'date' | 'buddy';
   distance?: string;
+  replyingTo?: Message | null;
+  onSetReplyingTo?: (message: Message | null) => void;
+  getReplyMessage?: (replyToId: string | null) => { sender_id: string; content: string } | null;
 }
 
 const quickReplies = [
@@ -80,6 +87,9 @@ export function ChatArea({
   onToggleReaction,
   chatType = 'date',
   distance,
+  replyingTo,
+  onSetReplyingTo,
+  getReplyMessage,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -197,8 +207,9 @@ export function ChatArea({
       setUploading(false);
     }
 
-    onSendMessage(newMessage.trim() || '📷 Photo', imageUrl);
+    onSendMessage(newMessage.trim() || '📷 Photo', imageUrl, undefined, replyingTo?.id);
     setNewMessage('');
+    onSetReplyingTo?.(null);
   };
 
   const handleVoiceRecord = async () => {
@@ -326,6 +337,10 @@ export function ChatArea({
 
           const message = item.message!;
           const isMine = message.senderId === currentUserId;
+          const repliedMessage = message.replyToId && getReplyMessage ? getReplyMessage(message.replyToId) : null;
+          const repliedSenderName = repliedMessage 
+            ? (repliedMessage.sender_id === currentUserId ? 'You' : matchName)
+            : '';
           
           return (
             <motion.div
@@ -339,54 +354,78 @@ export function ChatArea({
               }}
               layout
             >
-              <div className="flex items-end gap-2 max-w-[70%]">
-                {!isMine && (
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarImage src={matchPhoto} alt={matchName} />
-                    <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
-                  </Avatar>
+              <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
+                {/* Reply button */}
+                {onSetReplyingTo && (
+                  <button
+                    onClick={() => onSetReplyingTo(message)}
+                    className="self-center p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
+                  >
+                    <Reply className="w-4 h-4 text-muted-foreground" />
+                  </button>
                 )}
-                <div
-                  className={cn(
-                    'rounded-2xl overflow-hidden',
-                    message.imageUrl ? '' : 'px-4 py-2.5',
-                    isMine
-                      ? 'bg-foreground text-background rounded-br-sm'
-                      : 'bg-accent rounded-bl-sm',
-                    isLocationMessage(message.content) && 'p-0'
+                
+                <div className="flex items-end gap-2 max-w-[70%]">
+                  {!isMine && (
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={matchPhoto} alt={matchName} />
+                      <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
+                    </Avatar>
                   )}
-                >
-                  {message.audioUrl && (
-                    <div className="px-4 py-2.5">
-                      <VoiceMessagePlayer audioUrl={message.audioUrl} isMine={isMine} />
-                    </div>
-                  )}
-                  {message.imageUrl && (
-                    <img 
-                      src={message.imageUrl} 
-                      alt="Shared image" 
-                      className="max-w-full max-h-64 object-cover cursor-pointer"
-                      onClick={() => window.open(message.imageUrl!, '_blank')}
-                    />
-                  )}
-                  {/* Location Card */}
-                  {isLocationMessage(message.content) && !message.audioUrl && !message.imageUrl && (
-                    <div className="bg-accent rounded-2xl overflow-hidden min-w-[200px]">
-                      <div className="h-24 bg-muted flex items-center justify-center">
-                        <MapPin className="h-8 w-8 text-muted-foreground" />
+                  <div
+                    className={cn(
+                      'rounded-2xl overflow-hidden',
+                      message.imageUrl ? '' : 'px-4 py-2.5',
+                      isMine
+                        ? 'bg-foreground text-background rounded-br-sm'
+                        : 'bg-accent rounded-bl-sm',
+                      isLocationMessage(message.content) && 'p-0'
+                    )}
+                  >
+                    {/* Quoted message */}
+                    {repliedMessage && (
+                      <div className={cn(message.imageUrl ? 'px-4 pt-2.5' : '')}>
+                        <QuotedMessage
+                          senderName={repliedSenderName}
+                          content={repliedMessage.content}
+                          isMine={isMine}
+                          isOwnQuote={repliedMessage.sender_id === currentUserId}
+                        />
                       </div>
-                      <div className="p-3">
-                        <p className="text-xs text-muted-foreground mb-1">Shared Location</p>
-                        <p className="text-sm font-medium">{message.content.replace('📍 Shared location: ', '')}</p>
+                    )}
+                    
+                    {message.audioUrl && (
+                      <div className="px-4 py-2.5">
+                        <VoiceMessagePlayer audioUrl={message.audioUrl} isMine={isMine} />
                       </div>
-                    </div>
-                  )}
-                  {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
-                    <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
-                  )}
-                  {message.imageUrl && message.content === '📷 Photo' && (
-                    <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
-                  )}
+                    )}
+                    {message.imageUrl && (
+                      <img 
+                        src={message.imageUrl} 
+                        alt="Shared image" 
+                        className="max-w-full max-h-64 object-cover cursor-pointer"
+                        onClick={() => window.open(message.imageUrl!, '_blank')}
+                      />
+                    )}
+                    {/* Location Card */}
+                    {isLocationMessage(message.content) && !message.audioUrl && !message.imageUrl && (
+                      <div className="bg-accent rounded-2xl overflow-hidden min-w-[200px]">
+                        <div className="h-24 bg-muted flex items-center justify-center">
+                          <MapPin className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <div className="p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Shared Location</p>
+                          <p className="text-sm font-medium">{message.content.replace('📍 Shared location: ', '')}</p>
+                        </div>
+                      </div>
+                    )}
+                    {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
+                      <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
+                    )}
+                    {message.imageUrl && message.content === '📷 Photo' && (
+                      <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -410,12 +449,9 @@ export function ChatArea({
                   {message.timestamp}
                 </span>
                 {isMine && (
-                  <span className={cn(
-                    'flex items-center text-sm',
-                    message.isRead ? 'text-primary' : 'text-muted-foreground'
-                  )}>
-                    {message.isRead ? '🎣' : '·'}
-                  </span>
+                  <MessageStatusIndicator 
+                    status={message.isRead ? 'read' : 'sent'} 
+                  />
                 )}
               </div>
             </motion.div>
@@ -445,25 +481,35 @@ export function ChatArea({
       </div>
 
       {/* Message Input */}
-      <div className="p-3 md:p-4 border-t border-border bg-background flex-shrink-0">
-        {/* Image Preview */}
-        {imagePreview && (
-          <div className="relative inline-block mb-3">
-            <img 
-              src={imagePreview} 
-              alt="Selected" 
-              className="max-h-32 rounded-lg object-cover"
-            />
-            <Button
-              variant="secondary"
-              size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-              onClick={clearSelectedImage}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
+      <div className="border-t border-border bg-background flex-shrink-0">
+        {/* Reply Preview */}
+        {replyingTo && onSetReplyingTo && (
+          <ReplyPreview
+            senderName={replyingTo.senderId === currentUserId ? 'You' : matchName}
+            content={replyingTo.content}
+            onCancel={() => onSetReplyingTo(null)}
+          />
         )}
+        
+        <div className="p-3 md:p-4">
+          {/* Image Preview */}
+          {imagePreview && (
+            <div className="relative inline-block mb-3">
+              <img 
+                src={imagePreview} 
+                alt="Selected" 
+                className="max-h-32 rounded-lg object-cover"
+              />
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                onClick={clearSelectedImage}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
         
         {/* Recording indicator with waveform */}
         {isRecording && (
@@ -558,6 +604,7 @@ export function ChatArea({
               {reply.emoji} {reply.text}
             </Button>
           ))}
+        </div>
         </div>
       </div>
     </div>
