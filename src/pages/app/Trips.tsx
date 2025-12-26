@@ -44,7 +44,7 @@ export default function Trips() {
   const plannedTrips = upcomingTrips.slice(1);
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-background">
       <div className="container max-w-6xl py-6 px-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
