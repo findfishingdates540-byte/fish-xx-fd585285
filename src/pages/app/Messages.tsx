@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useParams, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { MessagesHeader } from '@/components/messages/MessagesHeader';
 import { ConversationList } from '@/components/messages/ConversationList';
-import { EmptyMessages } from '@/components/messages/EmptyMessages';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { useDatingConversations } from '@/hooks/use-dating-conversations';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,8 @@ import { Link } from 'react-router-dom';
 export default function Messages() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
+  const { matchId } = useParams();
+  const isMobile = useIsMobile();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -100,42 +101,65 @@ export default function Messages() {
     </div>
   );
 
-  return (
-    <div className="flex flex-col h-screen bg-background">
-      {/* Top Header (Desktop only) */}
+  // Empty chat panel for desktop when no conversation is selected
+  const renderEmptyChatPanel = () => (
+    <div className="flex-1 hidden lg:flex flex-col items-center justify-center bg-muted/30">
+      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+        <MessageCircle className="h-10 w-10 text-muted-foreground" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">Select a conversation</h3>
+      <p className="text-muted-foreground text-center max-w-sm">
+        Choose a match from the list to start chatting
+      </p>
+    </div>
+  );
+
+  // Conversation list panel
+  const ConversationListPanel = () => (
+    <div className={`${isMobile && matchId ? 'hidden' : 'flex'} flex-col w-full lg:w-96 lg:border-r border-border bg-background h-full`}>
+      {/* Header */}
       <div className="hidden lg:block">
         <MessagesHeader
           userName={profile?.display_name || 'User'}
           userPhoto={profile?.photos?.[0]}
           notificationCount={totalUnread}
-          accountMode={accountMode}
+          accountMode={profile?.account_mode || 'dating'}
         />
       </div>
+      
+      {/* Content */}
+      {isLoading ? (
+        renderLoading()
+      ) : conversations.length === 0 ? (
+        renderEmptyState()
+      ) : (
+        <ConversationList
+          conversations={conversationsWithStatus}
+          selectedId={matchId}
+          onSelect={handleSelectConversation}
+          newBites={newBites}
+        />
+      )}
+    </div>
+  );
 
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Conversation Sidebar */}
-        {isLoading ? (
-          <div className="w-full lg:w-80 border-r border-border">
-            {renderLoading()}
-          </div>
-        ) : conversations.length === 0 ? (
-          <div className="w-full">
-            {renderEmptyState()}
-          </div>
+  return (
+    <div className="flex h-[100dvh] bg-background overflow-hidden">
+      {/* Conversation List Panel */}
+      <ConversationListPanel />
+      
+      {/* Chat Area - Desktop inline or Mobile full screen */}
+      {!isMobile ? (
+        // Desktop: Show Outlet (Chat component) or empty state
+        matchId ? (
+          <Outlet context={{ isInline: true }} />
         ) : (
-          <>
-            <ConversationList
-              conversations={conversationsWithStatus}
-              selectedId={undefined}
-              onSelect={handleSelectConversation}
-              newBites={newBites}
-            />
-            {/* Empty State / Chat Area */}
-            <EmptyMessages />
-          </>
-        )}
-      </div>
+          renderEmptyChatPanel()
+        )
+      ) : (
+        // Mobile: Show Outlet when matchId exists (will navigate to full page)
+        matchId && <Outlet context={{ isInline: false }} />
+      )}
     </div>
   );
 }
