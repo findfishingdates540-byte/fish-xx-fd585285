@@ -51,7 +51,10 @@ export default function Chat() {
     loading, 
     isTyping, 
     sendMessage, 
-    handleInputChange 
+    handleInputChange,
+    replyingTo,
+    setReplyingTo,
+    getReplyMessage,
   } = useDatingChat(matchId);
 
   // Message reactions
@@ -86,8 +89,8 @@ export default function Chat() {
     navigate(`/app/messages/${id}`);
   };
 
-  const handleSendMessage = (content: string, imageUrl?: string, audioUrl?: string) => {
-    sendMessage(content, imageUrl, audioUrl);
+  const handleSendMessage = (content: string, imageUrl?: string, audioUrl?: string, replyToId?: string) => {
+    sendMessage(content, imageUrl, audioUrl, replyToId);
   };
 
   // Loading state for chat area
@@ -164,6 +167,9 @@ export default function Chat() {
             getReactionSummary={getReactionSummary}
             onToggleReaction={toggleReaction}
             chatType="date"
+            replyingTo={replyingTo ? messages.find(m => m.id === replyingTo.id) : null}
+            onSetReplyingTo={(msg) => setReplyingTo(msg ? { id: msg.id, content: msg.content, sender_id: msg.senderId, created_at: '', is_read: false, image_url: null, reply_to_id: null } : null)}
+            getReplyMessage={getReplyMessage}
           />
         </motion.div>
       )}
