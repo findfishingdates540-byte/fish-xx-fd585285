@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useMapboxToken } from "@/hooks/use-mapbox-token";
 import { useSavedSpots } from "@/hooks/use-saved-spots";
+import { useWeather, getWindDirection, getFishingConditions } from "@/hooks/use-weather";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -92,21 +93,12 @@ interface SpotReview {
   } | null;
 }
 
-// Mock weather data - in production this would come from a weather API
-const mockWeather = {
-  temp: 72,
-  condition: "Sunny",
-  high: 75,
-  low: 60,
-  wind: "5 mph NW",
-  pressure: "1015 hPa",
-  status: "Good Conditions",
-  forecast: [
-    { day: "Tue", temp: 74, icon: "sun" },
-    { day: "Wed", temp: 70, icon: "cloud" },
-    { day: "Thu", temp: 65, icon: "rain" },
-    { day: "Fri", temp: 72, icon: "sun" },
-  ],
+// Helper to get weather icon based on condition
+const getConditionIcon = (condition: string) => {
+  const lowerCondition = condition.toLowerCase();
+  if (lowerCondition.includes('rain') || lowerCondition.includes('drizzle')) return 'rain';
+  if (lowerCondition.includes('cloud') || lowerCondition.includes('overcast')) return 'cloud';
+  return 'sun';
 };
 
 // Mock fish species data
@@ -151,6 +143,14 @@ export default function SpotDetail() {
   const reviewPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const isSaved = id ? isSpotSaved(id) : false;
+  
+  // Fetch weather data using spot coordinates
+  const { data: weather, isLoading: weatherLoading } = useWeather(
+    spot?.location_lat,
+    spot?.location_lng
+  );
+  
+  const fishingConditions = weather ? getFishingConditions(weather) : null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -959,47 +959,68 @@ export default function SpotDetail() {
                   <Sun className="h-5 w-5 text-amber-500" />
                   <span className="font-medium">Weather</span>
                 </div>
-                <Badge className="bg-green-100 text-green-700 border-0 hover:bg-green-100">
-                  {mockWeather.status}
-                </Badge>
+                {fishingConditions && (
+                  <Badge className={`${fishingConditions.rating === 'Excellent' || fishingConditions.rating === 'Good' ? 'bg-green-100 text-green-700' : fishingConditions.rating === 'Fair' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'} border-0`}>
+                    {fishingConditions.rating} Conditions
+                  </Badge>
+                )}
               </div>
-              <div className="flex items-start gap-2 mb-4">
-                <span className="text-5xl font-light">{mockWeather.temp}°</span>
-                <div className="pt-2">
-                  <p className="font-medium">{mockWeather.condition}</p>
-                  <p className="text-xs text-muted-foreground">
-                    H:{mockWeather.high}° L:{mockWeather.low}°
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Wind className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">WIND</p>
-                    <p className="font-medium">{mockWeather.wind}</p>
+              {weatherLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-12 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Gauge className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">PRESSURE</p>
-                    <p className="font-medium">{mockWeather.pressure}</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">FORECAST</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {mockWeather.forecast.map((day) => (
-                    <div key={day.day} className="text-center">
-                      <p className="text-xs text-muted-foreground">{day.day}</p>
-                      {getWeatherIcon(day.icon)}
-                      <p className="text-sm font-medium">{day.temp}°</p>
+              ) : weather ? (
+                <>
+                  <div className="flex items-start gap-2 mb-4">
+                    <span className="text-5xl font-light">{Math.round(weather.temperature)}°</span>
+                    <div className="pt-2">
+                      <p className="font-medium">{weather.condition}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {weather.description}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Wind className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">WIND</p>
+                        <p className="font-medium">{Math.round(weather.wind.speed)} mph {getWindDirection(weather.wind.direction)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Gauge className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">PRESSURE</p>
+                        <p className="font-medium">{weather.pressure} hPa</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Sunrise className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">SUNRISE</p>
+                        <p className="font-medium">{new Date(weather.sunrise * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Sunset className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">SUNSET</p>
+                        <p className="font-medium">{new Date(weather.sunset * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Weather data unavailable</p>
+              )}
             </div>
 
             {/* Best Fishing Times */}
