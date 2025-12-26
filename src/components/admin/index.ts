@@ -1,3 +1,7 @@
 export { AdminLayout } from './AdminLayout';
 export { AdminSidebar } from './AdminSidebar';
 export { StatsCard } from './StatsCard';
+export { UserDetailsModal } from './UserDetailsModal';
+export { BanUserDialog } from './BanUserDialog';
+export { ChangeRoleDialog } from './ChangeRoleDialog';
+export { ManagePremiumDialog } from './ManagePremiumDialog';
