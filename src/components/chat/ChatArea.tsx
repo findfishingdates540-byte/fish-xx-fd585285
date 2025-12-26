@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, X, Loader2, Mic, Square, MapPin, Reply } from 'lucide-react';
+import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, X, Loader2, Mic, Square, MapPin, Reply, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ import { MessageStatusIndicator } from './MessageStatusIndicator';
 import { QuotedMessage } from './QuotedMessage';
 import { ReplyPreview } from './ReplyPreview';
 import { SwipeableMessage } from './SwipeableMessage';
+import { DeleteMessageDialog } from './DeleteMessageDialog';
+import { DeletedMessagePlaceholder } from './DeletedMessagePlaceholder';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { WaveformVisualizer } from './WaveformVisualizer';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +31,8 @@ interface Message {
   audioUrl?: string | null;
   createdAt?: string;
   replyToId?: string | null;
+  deletedAt?: string | null;
+  deletedForEveryone?: boolean;
 }
 
 interface ReactionSummary {
@@ -40,6 +44,7 @@ interface ReactionSummary {
 interface ChatAreaProps {
   matchName: string;
   matchPhoto: string;
+  matchId?: string;
   isOnline?: boolean;
   messages: Message[];
   currentUserId: string;
@@ -54,6 +59,7 @@ interface ChatAreaProps {
   replyingTo?: Message | null;
   onSetReplyingTo?: (message: Message | null) => void;
   getReplyMessage?: (replyToId: string | null) => { sender_id: string; content: string } | null;
+  onDeleteMessage?: (messageId: string, deleteForEveryone: boolean) => Promise<void>;
 }
 
 const quickReplies = [
@@ -77,6 +83,7 @@ function getDateLabel(dateStr: string): string {
 export function ChatArea({
   matchName,
   matchPhoto,
+  matchId,
   isOnline,
   messages,
   currentUserId,
@@ -91,15 +98,41 @@ export function ChatArea({
   replyingTo,
   onSetReplyingTo,
   getReplyMessage,
+  onDeleteMessage,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [locallyDeletedIds, setLocallyDeletedIds] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { isRecording, recordingDuration, audioLevels, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
+
+  const handleDeleteMessage = async (deleteForEveryone: boolean) => {
+    if (!messageToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      if (deleteForEveryone && onDeleteMessage) {
+        await onDeleteMessage(messageToDelete.id, true);
+        toast.success('Message deleted for everyone');
+      } else {
+        // Delete for me only - just hide locally
+        setLocallyDeletedIds(prev => new Set([...prev, messageToDelete.id]));
+        toast.success('Message deleted');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
+    } finally {
+      setIsDeleting(false);
+      setMessageToDelete(null);
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -343,10 +376,16 @@ export function ChatArea({
             ? (repliedMessage.sender_id === currentUserId ? 'You' : matchName)
             : '';
           
+          // Skip locally deleted messages
+          if (locallyDeletedIds.has(message.id)) return null;
+          
+          // Check if message was deleted for everyone
+          const isDeletedForEveryone = message.deletedForEveryone && message.deletedAt;
+          
           return (
             <SwipeableMessage
               key={message.id}
-              onReply={() => onSetReplyingTo?.(message)}
+              onReply={() => !isDeletedForEveryone && onSetReplyingTo?.(message)}
               isMine={isMine}
             >
               <motion.div
@@ -360,14 +399,24 @@ export function ChatArea({
                 layout
               >
                 <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
-                  {/* Reply button - desktop only */}
-                  {onSetReplyingTo && (
-                    <button
-                      onClick={() => onSetReplyingTo(message)}
-                      className="self-center p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted hidden md:block"
-                    >
-                      <Reply className="w-4 h-4 text-muted-foreground" />
-                    </button>
+                  {/* Action buttons - desktop only */}
+                  {!isDeletedForEveryone && (
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {onSetReplyingTo && (
+                        <button
+                          onClick={() => onSetReplyingTo(message)}
+                          className="p-1.5 rounded-full hover:bg-muted hidden md:block"
+                        >
+                          <Reply className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setMessageToDelete(message)}
+                        className="p-1.5 rounded-full hover:bg-muted hidden md:block"
+                      >
+                        <Trash2 className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </div>
                   )}
                   
                   <div className="flex items-end gap-2 max-w-[70%]">
@@ -377,65 +426,74 @@ export function ChatArea({
                         <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
                       </Avatar>
                     )}
-                    <div
-                      className={cn(
-                        'rounded-2xl overflow-hidden',
-                        message.imageUrl ? '' : 'px-4 py-2.5',
-                        isMine
-                          ? 'bg-foreground text-background rounded-br-sm'
-                          : 'bg-accent rounded-bl-sm',
-                        isLocationMessage(message.content) && 'p-0'
-                      )}
-                    >
-                      {/* Quoted message */}
-                      {repliedMessage && (
-                        <div className={cn(message.imageUrl ? 'px-4 pt-2.5' : '')}>
-                          <QuotedMessage
-                            senderName={repliedSenderName}
-                            content={repliedMessage.content}
-                            isMine={isMine}
-                            isOwnQuote={repliedMessage.sender_id === currentUserId}
+                    
+                    {isDeletedForEveryone ? (
+                      <DeletedMessagePlaceholder isMine={isMine} timestamp={message.timestamp} />
+                    ) : (
+                      <div
+                        className={cn(
+                          'rounded-2xl overflow-hidden',
+                          message.imageUrl ? '' : 'px-4 py-2.5',
+                          isMine
+                            ? 'bg-foreground text-background rounded-br-sm'
+                            : 'bg-accent rounded-bl-sm',
+                          isLocationMessage(message.content) && 'p-0'
+                        )}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          setMessageToDelete(message);
+                        }}
+                      >
+                        {/* Quoted message */}
+                        {repliedMessage && (
+                          <div className={cn(message.imageUrl ? 'px-4 pt-2.5' : '')}>
+                            <QuotedMessage
+                              senderName={repliedSenderName}
+                              content={repliedMessage.content}
+                              isMine={isMine}
+                              isOwnQuote={repliedMessage.sender_id === currentUserId}
+                            />
+                          </div>
+                        )}
+                        
+                        {message.audioUrl && (
+                          <div className="px-4 py-2.5">
+                            <VoiceMessagePlayer audioUrl={message.audioUrl} isMine={isMine} />
+                          </div>
+                        )}
+                        {message.imageUrl && (
+                          <img 
+                            src={message.imageUrl} 
+                            alt="Shared image" 
+                            className="max-w-full max-h-64 object-cover cursor-pointer"
+                            onClick={() => window.open(message.imageUrl!, '_blank')}
                           />
-                        </div>
-                      )}
-                      
-                      {message.audioUrl && (
-                        <div className="px-4 py-2.5">
-                          <VoiceMessagePlayer audioUrl={message.audioUrl} isMine={isMine} />
-                        </div>
-                      )}
-                      {message.imageUrl && (
-                        <img 
-                          src={message.imageUrl} 
-                          alt="Shared image" 
-                          className="max-w-full max-h-64 object-cover cursor-pointer"
-                          onClick={() => window.open(message.imageUrl!, '_blank')}
-                        />
-                      )}
-                      {/* Location Card */}
-                      {isLocationMessage(message.content) && !message.audioUrl && !message.imageUrl && (
-                        <div className="bg-accent rounded-2xl overflow-hidden min-w-[200px]">
-                          <div className="h-24 bg-muted flex items-center justify-center">
-                            <MapPin className="h-8 w-8 text-muted-foreground" />
+                        )}
+                        {/* Location Card */}
+                        {isLocationMessage(message.content) && !message.audioUrl && !message.imageUrl && (
+                          <div className="bg-accent rounded-2xl overflow-hidden min-w-[200px]">
+                            <div className="h-24 bg-muted flex items-center justify-center">
+                              <MapPin className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <div className="p-3">
+                              <p className="text-xs text-muted-foreground mb-1">Shared Location</p>
+                              <p className="text-sm font-medium">{message.content.replace('📍 Shared location: ', '')}</p>
+                            </div>
                           </div>
-                          <div className="p-3">
-                            <p className="text-xs text-muted-foreground mb-1">Shared Location</p>
-                            <p className="text-sm font-medium">{message.content.replace('📍 Shared location: ', '')}</p>
-                          </div>
-                        </div>
-                      )}
-                      {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
-                        <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
-                      )}
-                      {message.imageUrl && message.content === '📷 Photo' && (
-                        <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
-                      )}
-                    </div>
+                        )}
+                        {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
+                          <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
+                        )}
+                        {message.imageUrl && message.content === '📷 Photo' && (
+                          <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
                 {/* Reactions */}
-                {getReactionSummary && onToggleReaction && (
+                {!isDeletedForEveryone && getReactionSummary && onToggleReaction && (
                   <div className={cn('mt-1', isMine ? 'pr-2' : 'pl-10')}>
                     <MessageReactions
                       messageId={message.id}
@@ -453,7 +511,7 @@ export function ChatArea({
                   <span className="text-xs text-muted-foreground">
                     {message.timestamp}
                   </span>
-                  {isMine && (
+                  {isMine && !isDeletedForEveryone && (
                     <MessageStatusIndicator 
                       status={message.isRead ? 'read' : 'sent'} 
                     />
@@ -613,6 +671,15 @@ export function ChatArea({
         </div>
         </div>
       </div>
+
+      {/* Delete Message Dialog */}
+      <DeleteMessageDialog
+        open={!!messageToDelete}
+        onOpenChange={(open) => !open && setMessageToDelete(null)}
+        onDelete={handleDeleteMessage}
+        isMine={messageToDelete?.senderId === currentUserId}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }

@@ -8,3 +8,5 @@ export * from './MessageStatusIndicator';
 export * from './QuotedMessage';
 export * from './ReplyPreview';
 export * from './SwipeableMessage';
+export * from './DeleteMessageDialog';
+export * from './DeletedMessagePlaceholder';

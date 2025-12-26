@@ -88,6 +88,8 @@ export type Database = {
           buddy_id: string
           content: string
           created_at: string
+          deleted_at: string | null
+          deleted_for_everyone: boolean | null
           id: string
           image_url: string | null
           is_read: boolean | null
@@ -99,6 +101,8 @@ export type Database = {
           buddy_id: string
           content: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_for_everyone?: boolean | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
@@ -110,6 +114,8 @@ export type Database = {
           buddy_id?: string
           content?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_for_everyone?: boolean | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
@@ -625,6 +631,8 @@ export type Database = {
           audio_url: string | null
           content: string
           created_at: string
+          deleted_at: string | null
+          deleted_for_everyone: boolean | null
           id: string
           image_url: string | null
           is_read: boolean | null
@@ -636,6 +644,8 @@ export type Database = {
           audio_url?: string | null
           content: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_for_everyone?: boolean | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
@@ -647,6 +657,8 @@ export type Database = {
           audio_url?: string | null
           content?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_for_everyone?: boolean | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
