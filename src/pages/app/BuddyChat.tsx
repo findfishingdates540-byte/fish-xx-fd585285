@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -582,25 +582,38 @@ export default function BuddyChat() {
               <div className="flex justify-center">
                 <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">{group.date}</span>
               </div>
-              {group.messages.map((msg) => (
-                <div key={msg.id} className={cn("flex", msg.sender_id === user?.id ? "justify-end" : "justify-start")}>
-                  <div className={cn(
-                    "max-w-[75%] rounded-2xl px-4 py-2",
-                    msg.sender_id === user?.id ? "bg-primary text-primary-foreground" : "bg-muted"
-                  )}>
-                    {renderMessageContent(msg)}
+              <AnimatePresence mode="popLayout">
+                {group.messages.map((msg, msgIndex) => (
+                  <motion.div 
+                    key={msg.id} 
+                    className={cn("flex", msg.sender_id === user?.id ? "justify-end" : "justify-start")}
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ 
+                      duration: 0.2, 
+                      ease: [0.25, 0.1, 0.25, 1],
+                      delay: msgIndex * 0.02 
+                    }}
+                    layout
+                  >
                     <div className={cn(
-                      "flex items-center justify-end gap-1 mt-1",
-                      msg.sender_id === user?.id ? "text-primary-foreground/70" : "text-muted-foreground"
+                      "max-w-[75%] rounded-2xl px-4 py-2",
+                      msg.sender_id === user?.id ? "bg-primary text-primary-foreground" : "bg-muted"
                     )}>
-                      <span className="text-xs">{formatTime(msg.created_at)}</span>
-                      {msg.sender_id === user?.id && (
-                        msg.is_read ? <CheckCheck className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />
-                      )}
+                      {renderMessageContent(msg)}
+                      <div className={cn(
+                        "flex items-center justify-end gap-1 mt-1",
+                        msg.sender_id === user?.id ? "text-primary-foreground/70" : "text-muted-foreground"
+                      )}>
+                        <span className="text-xs">{formatTime(msg.created_at)}</span>
+                        {msg.sender_id === user?.id && (
+                          msg.is_read ? <CheckCheck className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           ))
         )}
