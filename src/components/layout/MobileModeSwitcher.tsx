@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Heart, Anchor, X, ArrowLeftRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,7 @@ const modeOptions = [
 
 export function MobileModeSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
   const { activeMode, setActiveMode, isComboUser, wasOriginallyCombo, setBaseAccountMode } = useActiveMode();
 
   const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
@@ -30,8 +32,11 @@ export function MobileModeSwitcher() {
     setIsOpen(false);
   }, { redirect: true });
 
-  // Only show for combo users or originally-combo users
-  if (!isComboUser && !wasOriginallyCombo) {
+  // Hide on chat pages to avoid blocking the send button
+  const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/chat/');
+  
+  // Only show for combo users or originally-combo users, and not on chat pages
+  if (!isComboUser && !wasOriginallyCombo || isChatPage) {
     return null;
   }
 

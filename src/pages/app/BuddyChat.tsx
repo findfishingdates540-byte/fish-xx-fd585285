@@ -515,7 +515,7 @@ export default function BuddyChat() {
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[100dvh] bg-background">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b">
         <Button variant="ghost" size="icon" onClick={() => navigate('/app/buddy-messages')}>
