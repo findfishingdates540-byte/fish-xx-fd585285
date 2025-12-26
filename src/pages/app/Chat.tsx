@@ -121,7 +121,7 @@ export default function Chat() {
   );
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-[100dvh] bg-background overflow-hidden">
       {/* Left Sidebar */}
       <ChatSidebar
         conversations={conversationsWithStatus}

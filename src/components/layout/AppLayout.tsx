@@ -39,6 +39,9 @@ function AppLayoutContent() {
   // Discover should be a fixed, non-scroll viewport between header and bottom nav on mobile
   const isDiscoverNoScroll = location.pathname.startsWith('/app/discover');
 
+  // Chat pages hide the bottom nav for Instagram-like experience
+  const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/messages/');
+
   // Determine which desktop header to show based on effective mode
   const renderDesktopHeader = () => {
     // Dating mode (or combo user in dating-only mode) - no header, pages have sidebar
@@ -108,10 +111,12 @@ function AppLayoutContent() {
         <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
       </main>
 
-      {/* Mobile Bottom Nav - uses effective mode */}
-      <div className="lg:hidden">
-        <BottomNav accountMode={effectiveMode} />
-      </div>
+      {/* Mobile Bottom Nav - hide on chat pages for Instagram-like experience */}
+      {!isChatPage && (
+        <div className="lg:hidden">
+          <BottomNav accountMode={effectiveMode} />
+        </div>
+      )}
 
       {/* Mobile Mode Switcher FAB */}
       <MobileModeSwitcher />
