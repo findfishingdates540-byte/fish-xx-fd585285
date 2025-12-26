@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, Fish, Check, CheckCheck, MapPin, Image, Plus, Scale, Ruler } from 'lucide-react';
+import { ArrowLeft, Send, Fish, MapPin, Image, Plus, Scale, Ruler, Reply } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
+import { useBuddyMessageReactions } from '@/hooks/use-buddy-message-reactions';
+import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview } from '@/components/chat';
 
 interface Message {
   id: string;
@@ -19,6 +21,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   image_url: string | null;
+  reply_to_id: string | null;
 }
 
 interface BuddyProfile {
@@ -75,9 +78,13 @@ export default function BuddyChat() {
   const [catches, setCatches] = useState<Catch[]>([]);
   const [sharedSpots, setSharedSpots] = useState<Record<string, FishingSpot>>({});
   const [sharedCatches, setSharedCatches] = useState<Record<string, Catch>>({});
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Message reactions hook
+  const { getReactionSummary, toggleReaction } = useBuddyMessageReactions(buddyId);
 
   // Track buddy's online status
   const buddyUserIds = useMemo(() => 
@@ -317,6 +324,8 @@ export default function BuddyChat() {
 
     setSending(true);
     setNewMessage('');
+    const currentReplyTo = replyingTo;
+    setReplyingTo(null);
 
     const { error } = await supabase
       .from('buddy_messages')
@@ -324,12 +333,14 @@ export default function BuddyChat() {
         buddy_id: buddyId,
         sender_id: user.id,
         content: msgContent || '',
-        image_url: imageUrl || null
+        image_url: imageUrl || null,
+        reply_to_id: currentReplyTo?.id || null
       });
 
     if (error) {
       console.error('Error sending message:', error);
       if (!content) setNewMessage(msgContent);
+      setReplyingTo(currentReplyTo);
     } else {
       // Send push notification to buddy (fire and forget)
       sendPushNotification(buddyProfile.id, msgContent);
@@ -583,37 +594,96 @@ export default function BuddyChat() {
                 <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">{group.date}</span>
               </div>
               <AnimatePresence mode="popLayout">
-                {group.messages.map((msg, msgIndex) => (
-                  <motion.div 
-                    key={msg.id} 
-                    className={cn("flex", msg.sender_id === user?.id ? "justify-end" : "justify-start")}
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ 
-                      duration: 0.2, 
-                      ease: [0.25, 0.1, 0.25, 1],
-                      delay: msgIndex * 0.02 
-                    }}
-                    layout
-                  >
-                    <div className={cn(
-                      "max-w-[75%] rounded-2xl px-4 py-2",
-                      msg.sender_id === user?.id ? "bg-primary text-primary-foreground" : "bg-muted"
-                    )}>
-                      {renderMessageContent(msg)}
+                {group.messages.map((msg, msgIndex) => {
+                  const isMine = msg.sender_id === user?.id;
+                  const repliedMessage = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
+                  const repliedSenderName = repliedMessage?.sender_id === user?.id 
+                    ? 'You' 
+                    : buddyProfile?.display_name || 'Buddy';
+
+                  return (
+                    <motion.div 
+                      key={msg.id} 
+                      className={cn("flex group", isMine ? "justify-end" : "justify-start")}
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ 
+                        duration: 0.2, 
+                        ease: [0.25, 0.1, 0.25, 1],
+                        delay: msgIndex * 0.02 
+                      }}
+                      layout
+                    >
+                      {/* Reply button on left for received messages */}
+                      {!isMine && (
+                        <button
+                          onClick={() => setReplyingTo(msg)}
+                          className="self-center mr-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
+                        >
+                          <Reply className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      )}
+                      
                       <div className={cn(
-                        "flex items-center justify-end gap-1 mt-1",
-                        msg.sender_id === user?.id ? "text-primary-foreground/70" : "text-muted-foreground"
+                        "max-w-[70%] rounded-2xl px-4 py-2",
+                        isMine ? "bg-primary text-primary-foreground" : "bg-muted"
                       )}>
-                        <span className="text-xs">{formatTime(msg.created_at)}</span>
-                        {msg.sender_id === user?.id && (
-                          msg.is_read ? <CheckCheck className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />
+                        {/* Quoted message */}
+                        {repliedMessage && (
+                          <QuotedMessage
+                            senderName={repliedSenderName}
+                            content={repliedMessage.content}
+                            isMine={isMine}
+                            isOwnQuote={repliedMessage.sender_id === user?.id}
+                          />
                         )}
+                        
+                        {renderMessageContent(msg)}
+                        
+                        <div className={cn(
+                          "flex items-center justify-end gap-1 mt-1",
+                          isMine ? "text-primary-foreground/70" : "text-muted-foreground"
+                        )}>
+                          <span className="text-xs">{formatTime(msg.created_at)}</span>
+                          {isMine && (
+                            <MessageStatusIndicator 
+                              status={msg.is_read ? 'read' : 'sent'} 
+                              className={isMine ? 'text-primary-foreground/70' : ''}
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                      
+                      {/* Reply button on right for own messages */}
+                      {isMine && (
+                        <button
+                          onClick={() => setReplyingTo(msg)}
+                          className="self-center ml-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
+                        >
+                          <Reply className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
+              
+              {/* Reactions for the last message in group */}
+              {group.messages.map((msg) => {
+                const isMine = msg.sender_id === user?.id;
+                const reactions = getReactionSummary(msg.id);
+                if (reactions.length === 0) return null;
+                return (
+                  <div key={`reactions-${msg.id}`} className={cn("flex", isMine ? "justify-end pr-2" : "justify-start pl-2")}>
+                    <MessageReactions
+                      messageId={msg.id}
+                      reactions={reactions}
+                      onToggleReaction={toggleReaction}
+                      isMine={isMine}
+                    />
+                  </div>
+                );
+              })}
             </div>
           ))
         )}
@@ -633,21 +703,31 @@ export default function BuddyChat() {
       </motion.div>
 
       {/* Input */}
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowShareMenu(!showShareMenu)}
-            className="shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
-          <Input
-            placeholder="Type a message..."
-            value={newMessage}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
+      <div className="border-t">
+        {/* Reply Preview */}
+        {replyingTo && (
+          <ReplyPreview
+            senderName={replyingTo.sender_id === user?.id ? 'You' : buddyProfile?.display_name || 'Buddy'}
+            content={replyingTo.content}
+            onCancel={() => setReplyingTo(null)}
+          />
+        )}
+        
+        <div className="p-4">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+            <Input
+              placeholder="Type a message..."
+              value={newMessage}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
             className="flex-1"
           />
           <Button onClick={() => sendMessage()} disabled={!newMessage.trim() || sending} size="icon">
@@ -677,6 +757,7 @@ export default function BuddyChat() {
             </Button>
           </div>
         )}
+        </div>
       </div>
 
       {/* Spot Picker Dialog */}
