@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,13 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, MapPin, Fish, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Fish, Loader2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AddSpot() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -25,6 +29,67 @@ export default function AddSpot() {
     species_available: "",
     is_public: true,
   });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    // Limit to 5 images
+    const remaining = 5 - selectedImages.length;
+    const newFiles = files.slice(0, remaining);
+    
+    if (files.length > remaining) {
+      toast.error(`You can only add ${remaining} more image(s)`);
+    }
+    
+    setSelectedImages(prev => [...prev, ...newFiles]);
+    
+    // Create previews
+    newFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    if (selectedImages.length === 0) return [];
+    
+    setUploading(true);
+    const uploadedUrls: string[] = [];
+    
+    for (const file of selectedImages) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { error } = await supabase.storage
+        .from('spot-photos')
+        .upload(fileName, file);
+      
+      if (error) {
+        console.error('Upload error:', error);
+        continue;
+      }
+      
+      const { data: urlData } = supabase.storage
+        .from('spot-photos')
+        .getPublicUrl(fileName);
+      
+      if (urlData?.publicUrl) {
+        uploadedUrls.push(urlData.publicUrl);
+      }
+    }
+    
+    setUploading(false);
+    return uploadedUrls;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +107,9 @@ export default function AddSpot() {
     setLoading(true);
     
     try {
+      // Upload images first
+      const photoUrls = await uploadImages();
+      
       const { error } = await supabase.from("fishing_spots").insert({
         name: formData.name,
         description: formData.description || null,
@@ -53,6 +121,7 @@ export default function AddSpot() {
           : null,
         is_public: formData.is_public,
         created_by: user.id,
+        photos: photoUrls.length > 0 ? photoUrls : null,
       });
 
       if (error) throw error;
@@ -89,7 +158,7 @@ export default function AddSpot() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-background">
       <div className="container max-w-2xl py-6 px-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -129,7 +198,59 @@ export default function AddSpot() {
                 />
               </div>
 
-              {/* Description */}
+              {/* Photos */}
+              <div className="space-y-2">
+                <Label>Spot Photos</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Add up to 5 photos of this fishing spot
+                </p>
+                
+                {/* Image previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 p-1 bg-background/80 rounded-full hover:bg-background"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Add photo button */}
+                {selectedImages.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 flex flex-col items-center justify-center gap-2 hover:border-muted-foreground/50 transition-colors"
+                  >
+                    <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Click to add photos ({selectedImages.length}/5)
+                    </span>
+                  </button>
+                )}
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageSelect}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
