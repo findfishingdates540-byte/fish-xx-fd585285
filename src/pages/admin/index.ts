@@ -4,3 +4,6 @@ export { default as AdminReports } from './AdminReports';
 export { default as AdminSpots } from './AdminSpots';
 export { default as AdminMatches } from './AdminMatches';
 export { default as AdminSettings } from './AdminSettings';
+export { default as AdminCatches } from './AdminCatches';
+export { default as AdminPosts } from './AdminPosts';
+export { default as AdminTrips } from './AdminTrips';

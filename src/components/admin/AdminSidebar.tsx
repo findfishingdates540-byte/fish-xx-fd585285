@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, Anchor } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
+
 const navItems = [{
   to: '/admin',
   icon: LayoutDashboard,
@@ -21,6 +22,18 @@ const navItems = [{
   icon: MapPin,
   label: 'Fishing Spots'
 }, {
+  to: '/admin/catches',
+  icon: Fish,
+  label: 'Catches'
+}, {
+  to: '/admin/posts',
+  icon: MessageSquare,
+  label: 'Feed Posts'
+}, {
+  to: '/admin/trips',
+  icon: Anchor,
+  label: 'Trips'
+}, {
   to: '/admin/matches',
   icon: Heart,
   label: 'Matches'
@@ -29,6 +42,7 @@ const navItems = [{
   icon: AlertTriangle,
   label: 'Reports'
 }];
+
 const bottomItems = [{
   to: '/admin/settings',
   icon: Settings,
