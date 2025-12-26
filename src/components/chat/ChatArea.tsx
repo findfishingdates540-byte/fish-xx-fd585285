@@ -11,6 +11,7 @@ import { MessageReactions } from './MessageReactions';
 import { MessageStatusIndicator } from './MessageStatusIndicator';
 import { QuotedMessage } from './QuotedMessage';
 import { ReplyPreview } from './ReplyPreview';
+import { SwipeableMessage } from './SwipeableMessage';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { WaveformVisualizer } from './WaveformVisualizer';
 import { supabase } from '@/integrations/supabase/client';
@@ -343,118 +344,123 @@ export function ChatArea({
             : '';
           
           return (
-            <motion.div
+            <SwipeableMessage
               key={message.id}
-              className={cn('flex flex-col group', isMine ? 'items-end' : 'items-start')}
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ 
-                duration: 0.2, 
-                ease: [0.25, 0.1, 0.25, 1]
-              }}
-              layout
+              onReply={() => onSetReplyingTo?.(message)}
+              isMine={isMine}
             >
-              <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
-                {/* Reply button */}
-                {onSetReplyingTo && (
-                  <button
-                    onClick={() => onSetReplyingTo(message)}
-                    className="self-center p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
-                  >
-                    <Reply className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                )}
-                
-                <div className="flex items-end gap-2 max-w-[70%]">
-                  {!isMine && (
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={matchPhoto} alt={matchName} />
-                      <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
-                    </Avatar>
+              <motion.div
+                className={cn('flex flex-col group w-full', isMine ? 'items-end' : 'items-start')}
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.2, 
+                  ease: [0.25, 0.1, 0.25, 1]
+                }}
+                layout
+              >
+                <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
+                  {/* Reply button - desktop only */}
+                  {onSetReplyingTo && (
+                    <button
+                      onClick={() => onSetReplyingTo(message)}
+                      className="self-center p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted hidden md:block"
+                    >
+                      <Reply className="w-4 h-4 text-muted-foreground" />
+                    </button>
                   )}
-                  <div
-                    className={cn(
-                      'rounded-2xl overflow-hidden',
-                      message.imageUrl ? '' : 'px-4 py-2.5',
-                      isMine
-                        ? 'bg-foreground text-background rounded-br-sm'
-                        : 'bg-accent rounded-bl-sm',
-                      isLocationMessage(message.content) && 'p-0'
+                  
+                  <div className="flex items-end gap-2 max-w-[70%]">
+                    {!isMine && (
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarImage src={matchPhoto} alt={matchName} />
+                        <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
+                      </Avatar>
                     )}
-                  >
-                    {/* Quoted message */}
-                    {repliedMessage && (
-                      <div className={cn(message.imageUrl ? 'px-4 pt-2.5' : '')}>
-                        <QuotedMessage
-                          senderName={repliedSenderName}
-                          content={repliedMessage.content}
-                          isMine={isMine}
-                          isOwnQuote={repliedMessage.sender_id === currentUserId}
+                    <div
+                      className={cn(
+                        'rounded-2xl overflow-hidden',
+                        message.imageUrl ? '' : 'px-4 py-2.5',
+                        isMine
+                          ? 'bg-foreground text-background rounded-br-sm'
+                          : 'bg-accent rounded-bl-sm',
+                        isLocationMessage(message.content) && 'p-0'
+                      )}
+                    >
+                      {/* Quoted message */}
+                      {repliedMessage && (
+                        <div className={cn(message.imageUrl ? 'px-4 pt-2.5' : '')}>
+                          <QuotedMessage
+                            senderName={repliedSenderName}
+                            content={repliedMessage.content}
+                            isMine={isMine}
+                            isOwnQuote={repliedMessage.sender_id === currentUserId}
+                          />
+                        </div>
+                      )}
+                      
+                      {message.audioUrl && (
+                        <div className="px-4 py-2.5">
+                          <VoiceMessagePlayer audioUrl={message.audioUrl} isMine={isMine} />
+                        </div>
+                      )}
+                      {message.imageUrl && (
+                        <img 
+                          src={message.imageUrl} 
+                          alt="Shared image" 
+                          className="max-w-full max-h-64 object-cover cursor-pointer"
+                          onClick={() => window.open(message.imageUrl!, '_blank')}
                         />
-                      </div>
-                    )}
-                    
-                    {message.audioUrl && (
-                      <div className="px-4 py-2.5">
-                        <VoiceMessagePlayer audioUrl={message.audioUrl} isMine={isMine} />
-                      </div>
-                    )}
-                    {message.imageUrl && (
-                      <img 
-                        src={message.imageUrl} 
-                        alt="Shared image" 
-                        className="max-w-full max-h-64 object-cover cursor-pointer"
-                        onClick={() => window.open(message.imageUrl!, '_blank')}
-                      />
-                    )}
-                    {/* Location Card */}
-                    {isLocationMessage(message.content) && !message.audioUrl && !message.imageUrl && (
-                      <div className="bg-accent rounded-2xl overflow-hidden min-w-[200px]">
-                        <div className="h-24 bg-muted flex items-center justify-center">
-                          <MapPin className="h-8 w-8 text-muted-foreground" />
+                      )}
+                      {/* Location Card */}
+                      {isLocationMessage(message.content) && !message.audioUrl && !message.imageUrl && (
+                        <div className="bg-accent rounded-2xl overflow-hidden min-w-[200px]">
+                          <div className="h-24 bg-muted flex items-center justify-center">
+                            <MapPin className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                          <div className="p-3">
+                            <p className="text-xs text-muted-foreground mb-1">Shared Location</p>
+                            <p className="text-sm font-medium">{message.content.replace('📍 Shared location: ', '')}</p>
+                          </div>
                         </div>
-                        <div className="p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Shared Location</p>
-                          <p className="text-sm font-medium">{message.content.replace('📍 Shared location: ', '')}</p>
-                        </div>
-                      </div>
-                    )}
-                    {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
-                      <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
-                    )}
-                    {message.imageUrl && message.content === '📷 Photo' && (
-                      <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
-                    )}
+                      )}
+                      {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
+                        <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
+                      )}
+                      {message.imageUrl && message.content === '📷 Photo' && (
+                        <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Reactions */}
-              {getReactionSummary && onToggleReaction && (
-                <div className={cn('mt-1', isMine ? 'pr-2' : 'pl-10')}>
-                  <MessageReactions
-                    messageId={message.id}
-                    reactions={getReactionSummary(message.id)}
-                    onToggleReaction={onToggleReaction}
-                    isMine={isMine}
-                  />
-                </div>
-              )}
-              
-              <div className={cn(
-                'flex items-center gap-1 mt-1',
-                isMine ? 'px-2' : 'px-10'
-              )}>
-                <span className="text-xs text-muted-foreground">
-                  {message.timestamp}
-                </span>
-                {isMine && (
-                  <MessageStatusIndicator 
-                    status={message.isRead ? 'read' : 'sent'} 
-                  />
+                
+                {/* Reactions */}
+                {getReactionSummary && onToggleReaction && (
+                  <div className={cn('mt-1', isMine ? 'pr-2' : 'pl-10')}>
+                    <MessageReactions
+                      messageId={message.id}
+                      reactions={getReactionSummary(message.id)}
+                      onToggleReaction={onToggleReaction}
+                      isMine={isMine}
+                    />
+                  </div>
                 )}
-              </div>
-            </motion.div>
+                
+                <div className={cn(
+                  'flex items-center gap-1 mt-1',
+                  isMine ? 'px-2' : 'px-10'
+                )}>
+                  <span className="text-xs text-muted-foreground">
+                    {message.timestamp}
+                  </span>
+                  {isMine && (
+                    <MessageStatusIndicator 
+                      status={message.isRead ? 'read' : 'sent'} 
+                    />
+                  )}
+                </div>
+              </motion.div>
+            </SwipeableMessage>
           );
         })}
         
