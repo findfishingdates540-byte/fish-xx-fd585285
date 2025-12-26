@@ -504,7 +504,7 @@ export default function BuddyChat() {
           ) : (
             <div className="p-2 bg-muted/50 rounded text-sm">Loading spot...</div>
           )}
-          {parsed.text && <p className="break-words">{parsed.text}</p>}
+          {parsed.text && <span className="break-words block mt-1">{parsed.text}</span>}
         </div>
       );
     }
@@ -540,7 +540,7 @@ export default function BuddyChat() {
           ) : (
             <div className="p-2 bg-muted/50 rounded text-sm">Loading catch...</div>
           )}
-          {parsed.text && <p className="break-words">{parsed.text}</p>}
+          {parsed.text && <span className="break-words block mt-1">{parsed.text}</span>}
         </div>
       );
     }
@@ -550,7 +550,7 @@ export default function BuddyChat() {
         {msg.image_url && (
           <img src={msg.image_url} alt="Shared" className="rounded-lg max-w-full mb-2" />
         )}
-        <p className="break-words">{parsed.text}</p>
+        <span className="break-words">{parsed.text}</span>
       </>
     );
   };
