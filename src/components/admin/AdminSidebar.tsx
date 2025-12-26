@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import logo from '@/assets/logo.png';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -66,11 +67,9 @@ export function AdminSidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-cyan-500 flex items-center justify-center">
-            <Fish className="w-6 h-6 text-white" />
-          </div>
+          <img src={logo} alt="Reel Catch" className="w-10 h-10 rounded-lg object-cover" />
           <div>
-            <h1 className="font-bold text-white">FindFish Admin</h1>
+            <h1 className="font-bold text-white">Reel Catch Admin</h1>
             <p className="text-xs text-slate-400">v2.4.0 (Stable)</p>
           </div>
         </div>
