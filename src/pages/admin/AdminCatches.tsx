@@ -1,0 +1,305 @@
+import { useState } from 'react';
+import { Search, MoreVertical, Fish, MapPin, Calendar, Eye, Trash2, User } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+
+interface Catch {
+  id: string;
+  species_name: string | null;
+  weight_kg: number | null;
+  length_cm: number | null;
+  photos: string[] | null;
+  notes: string | null;
+  caught_at: string | null;
+  created_at: string;
+  bait_used: string | null;
+  user: {
+    id: string;
+    display_name: string | null;
+    photos: string[] | null;
+  } | null;
+  spot: {
+    id: string;
+    name: string;
+    location_name: string | null;
+  } | null;
+}
+
+export default function AdminCatches() {
+  const [search, setSearch] = useState('');
+  const [selectedCatch, setSelectedCatch] = useState<Catch | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const { data: catches, isLoading } = useQuery({
+    queryKey: ['admin-catches', search],
+    queryFn: async (): Promise<Catch[]> => {
+      let query = supabase
+        .from('catches')
+        .select(`
+          *,
+          user:profiles!catches_user_id_fkey(id, display_name, photos),
+          spot:fishing_spots!catches_fishing_spot_id_fkey(id, name, location_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (search) {
+        query = query.or(`species_name.ilike.%${search}%,notes.ilike.%${search}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 30000,
+  });
+
+  const { mutate: deleteCatch, isPending: deletePending } = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('catches').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-catches'] });
+      toast.success('Catch deleted successfully');
+      setDeleteDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete catch: ${error.message}`);
+    },
+  });
+
+  const handleViewDetails = (c: Catch) => {
+    setSelectedCatch(c);
+    setDetailsOpen(true);
+  };
+
+  const handleDeleteCatch = (c: Catch) => {
+    setSelectedCatch(c);
+    setDeleteDialogOpen(true);
+  };
+
+  return (
+    <div className="p-8">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Fish Catches</h1>
+          <p className="text-slate-400 mt-1">View and moderate all fish catches on the platform</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            placeholder="Search by species or notes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+          />
+        </div>
+      </div>
+
+      {/* Catches Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {isLoading ? (
+          Array.from({ length: 9 }).map((_, i) => (
+            <Skeleton key={i} className="h-72 bg-slate-800" />
+          ))
+        ) : catches?.length === 0 ? (
+          <div className="col-span-full bg-slate-800/50 rounded-xl p-12 text-center border border-slate-700/50">
+            <Fish className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">No catches found</h3>
+            <p className="text-slate-400">No fish catches match your search.</p>
+          </div>
+        ) : (
+          catches?.map((c) => (
+            <div
+              key={c.id}
+              className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700/50 hover:border-slate-600 transition-colors"
+            >
+              {/* Catch Image */}
+              <div className="aspect-video bg-slate-700 relative">
+                {c.photos?.[0] ? (
+                  <img
+                    src={c.photos[0]}
+                    alt={c.species_name || 'Catch'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Fish className="w-8 h-8 text-slate-500" />
+                  </div>
+                )}
+                <Badge className="absolute top-2 right-2 bg-emerald-500/20 text-emerald-400 border-0">
+                  {c.species_name || 'Unknown Species'}
+                </Badge>
+              </div>
+
+              {/* Catch Info */}
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      {c.weight_kg && (
+                        <span className="text-white font-medium">{c.weight_kg} kg</span>
+                      )}
+                      {c.length_cm && (
+                        <span className="text-slate-400">• {c.length_cm} cm</span>
+                      )}
+                    </div>
+                    {c.spot && (
+                      <p className="text-sm text-slate-400 flex items-center gap-1 truncate">
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                        {c.spot.name}
+                      </p>
+                    )}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white flex-shrink-0">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                      <DropdownMenuItem 
+                        onClick={() => handleViewDetails(c)}
+                        className="text-slate-300 focus:text-white focus:bg-slate-700"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-slate-700" />
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteCatch(c)}
+                        className="text-rose-400 focus:text-rose-300 focus:bg-slate-700"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Catch
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* User & Date */}
+                <div className="flex items-center justify-between text-sm pt-3 border-t border-slate-700">
+                  {c.user && (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={c.user.photos?.[0]} />
+                        <AvatarFallback className="bg-slate-700 text-white text-xs">
+                          {c.user.display_name?.[0]?.toUpperCase() || '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-slate-400 truncate max-w-24">{c.user.display_name}</span>
+                    </div>
+                  )}
+                  <span className="text-slate-500">
+                    {format(new Date(c.caught_at || c.created_at), 'MMM d, yyyy')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Details Modal */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Catch Details</DialogTitle>
+          </DialogHeader>
+          {selectedCatch && (
+            <div className="space-y-4">
+              {selectedCatch.photos?.[0] && (
+                <img 
+                  src={selectedCatch.photos[0]} 
+                  alt="Catch" 
+                  className="w-full aspect-video object-cover rounded-lg"
+                />
+              )}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-400">Species</p>
+                  <p className="text-white font-medium">{selectedCatch.species_name || 'Unknown'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400">Weight</p>
+                  <p className="text-white font-medium">{selectedCatch.weight_kg ? `${selectedCatch.weight_kg} kg` : 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400">Length</p>
+                  <p className="text-white font-medium">{selectedCatch.length_cm ? `${selectedCatch.length_cm} cm` : 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400">Bait Used</p>
+                  <p className="text-white font-medium">{selectedCatch.bait_used || 'N/A'}</p>
+                </div>
+              </div>
+              {selectedCatch.notes && (
+                <div>
+                  <p className="text-slate-400 text-sm mb-1">Notes</p>
+                  <p className="text-slate-300 text-sm">{selectedCatch.notes}</p>
+                </div>
+              )}
+              {selectedCatch.user && (
+                <div className="flex items-center gap-3 pt-3 border-t border-slate-700">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={selectedCatch.user.photos?.[0]} />
+                    <AvatarFallback className="bg-slate-700 text-white">
+                      {selectedCatch.user.display_name?.[0]?.toUpperCase() || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-white text-sm font-medium">{selectedCatch.user.display_name}</p>
+                    <p className="text-slate-400 text-xs">Caught on {format(new Date(selectedCatch.caught_at || selectedCatch.created_at), 'PPP')}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Catch</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure you want to delete this catch? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => selectedCatch && deleteCatch(selectedCatch.id)}
+              disabled={deletePending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletePending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
