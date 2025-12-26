@@ -12,7 +12,7 @@ import { ArrowLeft, Send, Fish, MapPin, Image, Plus, Scale, Ruler, Reply, Trash2
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 import { useBuddyMessageReactions } from '@/hooks/use-buddy-message-reactions';
-import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage, DeleteMessageDialog, DeletedMessagePlaceholder, MessageContextMenu } from '@/components/chat';
+import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage, DeleteMessageDialog, DeletedMessagePlaceholder } from '@/components/chat';
 import { toast } from 'sonner';
 
 interface Message {
@@ -684,44 +684,41 @@ export default function BuddyChat() {
                         {isDeletedForEveryone ? (
                           <DeletedMessagePlaceholder isMine={isMine} timestamp={formatTime(msg.created_at)} />
                         ) : (
-                          <MessageContextMenu
-                            onReply={() => setReplyingTo(msg)}
-                            onDelete={() => setMessageToDelete(msg)}
-                            messageContent={msg.content}
-                            isMine={isMine}
+                          <div 
+                            className={cn(
+                              "max-w-[70%] rounded-2xl px-4 py-2",
+                              isMine ? "bg-primary text-primary-foreground" : "bg-muted"
+                            )}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              setMessageToDelete(msg);
+                            }}
                           >
-                            <div 
-                              className={cn(
-                                "max-w-[70%] rounded-2xl px-4 py-2",
-                                isMine ? "bg-primary text-primary-foreground" : "bg-muted"
-                              )}
-                            >
-                              {/* Quoted message */}
-                              {repliedMessage && !repliedMessage.deleted_for_everyone && (
-                                <QuotedMessage
-                                  senderName={repliedSenderName}
-                                  content={repliedMessage.content}
-                                  isMine={isMine}
-                                  isOwnQuote={repliedMessage.sender_id === user?.id}
+                            {/* Quoted message */}
+                            {repliedMessage && !repliedMessage.deleted_for_everyone && (
+                              <QuotedMessage
+                                senderName={repliedSenderName}
+                                content={repliedMessage.content}
+                                isMine={isMine}
+                                isOwnQuote={repliedMessage.sender_id === user?.id}
+                              />
+                            )}
+                            
+                            {renderMessageContent(msg)}
+                            
+                            <div className={cn(
+                              "flex items-center justify-end gap-1 mt-1",
+                              isMine ? "text-primary-foreground/70" : "text-muted-foreground"
+                            )}>
+                              <span className="text-xs">{formatTime(msg.created_at)}</span>
+                              {isMine && (
+                                <MessageStatusIndicator 
+                                  status={msg.is_read ? 'read' : 'sent'} 
+                                  className={isMine ? 'text-primary-foreground/70' : ''}
                                 />
                               )}
-                              
-                              {renderMessageContent(msg)}
-                              
-                              <div className={cn(
-                                "flex items-center justify-end gap-1 mt-1",
-                                isMine ? "text-primary-foreground/70" : "text-muted-foreground"
-                              )}>
-                                <span className="text-xs">{formatTime(msg.created_at)}</span>
-                                {isMine && (
-                                  <MessageStatusIndicator 
-                                    status={msg.is_read ? 'read' : 'sent'} 
-                                    className={isMine ? 'text-primary-foreground/70' : ''}
-                                  />
-                                )}
-                              </div>
                             </div>
-                          </MessageContextMenu>
+                          </div>
                         )}
                         
                         {/* Action buttons on right for own messages - desktop only */}
