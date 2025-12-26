@@ -1,17 +1,50 @@
 import { useState } from 'react';
-import { Search, MoreVertical, Shield, Ban, Crown, Mail } from 'lucide-react';
+import { Search, MoreVertical, Shield, Ban, Crown, Eye, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useAdminUsers } from '@/hooks/use-admin-stats';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { useAdminUsers } from '@/hooks/use-admin-users';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { UserDetailsModal } from '@/components/admin/UserDetailsModal';
+import { BanUserDialog } from '@/components/admin/BanUserDialog';
+import { ChangeRoleDialog } from '@/components/admin/ChangeRoleDialog';
+import { ManagePremiumDialog } from '@/components/admin/ManagePremiumDialog';
+
+type UserType = NonNullable<ReturnType<typeof useAdminUsers>['data']>[number];
 
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const { data: users, isLoading } = useAdminUsers(search);
+  
+  // Modal states
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [premiumDialogOpen, setPremiumDialogOpen] = useState(false);
+
+  const handleViewDetails = (user: UserType) => {
+    setSelectedUser(user);
+    setDetailsOpen(true);
+  };
+
+  const handleBanUser = (user: UserType) => {
+    setSelectedUser(user);
+    setBanDialogOpen(true);
+  };
+
+  const handleChangeRole = (user: UserType) => {
+    setSelectedUser(user);
+    setRoleDialogOpen(true);
+  };
+
+  const handleManagePremium = (user: UserType) => {
+    setSelectedUser(user);
+    setPremiumDialogOpen(true);
+  };
 
   return (
     <div className="p-8">
@@ -79,7 +112,12 @@ export default function AdminUsers() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-white">{user.display_name || 'Unknown'}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-white">{user.display_name || 'Unknown'}</p>
+                          {user.is_banned && (
+                            <Badge variant="destructive" className="text-xs">Banned</Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-400">ID: {user.id.slice(0, 8)}...</p>
                       </div>
                     </div>
@@ -132,21 +170,47 @@ export default function AdminUsers() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                        <DropdownMenuItem className="text-slate-300 focus:text-white focus:bg-slate-700">
-                          <Mail className="w-4 h-4 mr-2" />
-                          Send Email
+                        <DropdownMenuItem 
+                          onClick={() => handleViewDetails(user)}
+                          className="text-slate-300 focus:text-white focus:bg-slate-700"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 focus:text-white focus:bg-slate-700">
+                        <DropdownMenuSeparator className="bg-slate-700" />
+                        <DropdownMenuItem 
+                          onClick={() => handleChangeRole(user)}
+                          className="text-slate-300 focus:text-white focus:bg-slate-700"
+                        >
                           <Shield className="w-4 h-4 mr-2" />
                           Change Role
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 focus:text-white focus:bg-slate-700">
+                        <DropdownMenuItem 
+                          onClick={() => handleManagePremium(user)}
+                          className="text-slate-300 focus:text-white focus:bg-slate-700"
+                        >
                           <Crown className="w-4 h-4 mr-2" />
                           Manage Premium
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-rose-400 focus:text-rose-300 focus:bg-slate-700">
-                          <Ban className="w-4 h-4 mr-2" />
-                          Ban User
+                        <DropdownMenuSeparator className="bg-slate-700" />
+                        <DropdownMenuItem 
+                          onClick={() => handleBanUser(user)}
+                          className={user.is_banned 
+                            ? "text-emerald-400 focus:text-emerald-300 focus:bg-slate-700"
+                            : "text-rose-400 focus:text-rose-300 focus:bg-slate-700"
+                          }
+                        >
+                          {user.is_banned ? (
+                            <>
+                              <ShieldCheck className="w-4 h-4 mr-2" />
+                              Unban User
+                            </>
+                          ) : (
+                            <>
+                              <Ban className="w-4 h-4 mr-2" />
+                              Ban User
+                            </>
+                          )}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -157,6 +221,28 @@ export default function AdminUsers() {
           </tbody>
         </table>
       </div>
+
+      {/* Modals */}
+      <UserDetailsModal 
+        user={selectedUser} 
+        open={detailsOpen} 
+        onOpenChange={setDetailsOpen} 
+      />
+      <BanUserDialog 
+        user={selectedUser} 
+        open={banDialogOpen} 
+        onOpenChange={setBanDialogOpen} 
+      />
+      <ChangeRoleDialog 
+        user={selectedUser} 
+        open={roleDialogOpen} 
+        onOpenChange={setRoleDialogOpen} 
+      />
+      <ManagePremiumDialog 
+        user={selectedUser} 
+        open={premiumDialogOpen} 
+        onOpenChange={setPremiumDialogOpen} 
+      />
     </div>
   );
 }

@@ -744,6 +744,7 @@ export type Database = {
           interested_in: Database["public"]["Enums"]["gender_type"][] | null
           interests: string[] | null
           is_active: boolean | null
+          is_banned: boolean | null
           is_premium: boolean | null
           is_verified: boolean | null
           last_active_at: string | null
@@ -789,6 +790,7 @@ export type Database = {
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
           interests?: string[] | null
           is_active?: boolean | null
+          is_banned?: boolean | null
           is_premium?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
@@ -834,6 +836,7 @@ export type Database = {
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
           interests?: string[] | null
           is_active?: boolean | null
+          is_banned?: boolean | null
           is_premium?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
