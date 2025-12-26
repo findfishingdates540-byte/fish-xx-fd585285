@@ -363,27 +363,9 @@ export default function Buddies() {
 
   return (
     <div className="container max-w-4xl mx-auto p-4 pb-24 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="h-9 w-9"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Fishing Buddies</h1>
-            <p className="text-muted-foreground">Connect with fellow anglers</p>
-          </div>
-        </div>
-        {myBuddies.length > 0 && (
-          <Button variant="outline" onClick={handleViewAllMessages}>
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Messages
-          </Button>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold">Fishing Buddies</h1>
+        <p className="text-muted-foreground">Connect with fellow anglers</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
