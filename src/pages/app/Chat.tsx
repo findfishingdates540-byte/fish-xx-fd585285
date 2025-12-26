@@ -55,6 +55,7 @@ export default function Chat() {
     replyingTo,
     setReplyingTo,
     getReplyMessage,
+    deleteMessage,
   } = useDatingChat(matchId);
 
   // Message reactions
@@ -170,6 +171,7 @@ export default function Chat() {
             replyingTo={replyingTo ? messages.find(m => m.id === replyingTo.id) : null}
             onSetReplyingTo={(msg) => setReplyingTo(msg ? { id: msg.id, content: msg.content, sender_id: msg.senderId, created_at: '', is_read: false, image_url: null, reply_to_id: null, deleted_at: null, deleted_for_everyone: false } : null)}
             getReplyMessage={getReplyMessage}
+            onDeleteMessage={deleteMessage}
           />
         </motion.div>
       )}
