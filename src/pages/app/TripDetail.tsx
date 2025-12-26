@@ -172,21 +172,21 @@ export default function TripDetail() {
   const isPast = new Date(trip.trip_date) < new Date();
 
   return (
-    <div className="container max-w-4xl py-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+    <div className="container max-w-4xl py-4 md:py-6 px-4">
+      {/* Breadcrumb - hidden on mobile, visible on desktop */}
+      <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground mb-4">
         <Link to="/app" className="hover:text-foreground">Home</Link>
         <span>/</span>
         <Link to="/app/trips" className="hover:text-foreground">My Trips</Link>
         <span>/</span>
-        <span className="text-foreground">{trip.title}</span>
+        <span className="text-foreground truncate max-w-[200px]">{trip.title}</span>
       </div>
 
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold">{trip.title}</h1>
+      {/* Header - mobile responsive */}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-xl md:text-2xl font-bold">{trip.title}</h1>
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant={trip.trip_type === "solo" ? "secondary" : "default"}>
               {trip.trip_type === "solo" ? (
                 <><UserIcon className="h-3 w-3 mr-1" /> Solo</>
@@ -206,35 +206,41 @@ export default function TripDetail() {
               {trip.status}
             </Badge>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Created on {format(new Date(trip.created_at), "MMMM d, yyyy")}
           </p>
         </div>
-        <div className="flex gap-2">
+        
+        {/* Action buttons - responsive */}
+        <div className="flex flex-wrap gap-2">
           {trip.status === "planned" && (
             <Button
               variant="outline"
+              size="sm"
               onClick={() => markCompleteMutation.mutate()}
               disabled={markCompleteMutation.isPending}
+              className="flex-1 md:flex-none"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
-              Mark Complete
+              <span className="hidden sm:inline">Mark</span> Complete
             </Button>
           )}
           <Button
             variant="outline"
+            size="sm"
             onClick={() => navigate(`/app/trips/${id}/edit`)}
+            className="flex-1 md:flex-none"
           >
             <Edit className="h-4 w-4 mr-2" />
             Edit
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" className="text-destructive">
+              <Button variant="outline" size="sm" className="text-destructive">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="max-w-[90vw] md:max-w-lg">
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete this trip?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -256,7 +262,7 @@ export default function TripDetail() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Left Column */}
         <div className="space-y-6">
           {/* Date & Time */}
