@@ -117,15 +117,13 @@ export default function Messages() {
   // Conversation list panel
   const ConversationListPanel = () => (
     <div className={`${isMobile && matchId ? 'hidden' : 'flex'} flex-col w-full lg:w-96 lg:border-r border-border bg-background h-full`}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-        <h1 className="text-xl font-semibold">Messages</h1>
-        {totalUnread > 0 && (
-          <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-            {totalUnread}
-          </span>
-        )}
-      </div>
+      {/* Header with navigation */}
+      <MessagesHeader
+        userName={profile?.display_name || 'User'}
+        userPhoto={profile?.photos?.[0]}
+        notificationCount={totalUnread}
+        accountMode={profile?.account_mode || 'dating'}
+      />
       
       {/* Content */}
       {isLoading ? (
