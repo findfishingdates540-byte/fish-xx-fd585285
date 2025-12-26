@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -121,7 +122,12 @@ export default function Chat() {
   );
 
   return (
-    <div className="flex h-[100dvh] bg-background overflow-hidden">
+    <motion.div 
+      className="flex h-[100dvh] bg-background overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       {/* Left Sidebar */}
       <ChatSidebar
         conversations={conversationsWithStatus}
@@ -139,20 +145,27 @@ export default function Chat() {
       ) : !matchProfile ? (
         renderEmptyChat()
       ) : (
-        <ChatArea
-          matchName={matchProfile.display_name || 'Anonymous'}
-          matchPhoto={matchProfile.photos?.[0] || ''}
-          isOnline={isMatchOnline}
-          messages={messages}
-          currentUserId={user?.id || ''}
-          onSendMessage={handleSendMessage}
-          onShowProfile={() => setShowProfile(true)}
-          isTyping={isTyping}
-          onInputChange={handleInputChange}
-          getReactionSummary={getReactionSummary}
-          onToggleReaction={toggleReaction}
-          chatType="date"
-        />
+        <motion.div
+          className="flex-1 flex flex-col"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <ChatArea
+            matchName={matchProfile.display_name || 'Anonymous'}
+            matchPhoto={matchProfile.photos?.[0] || ''}
+            isOnline={isMatchOnline}
+            messages={messages}
+            currentUserId={user?.id || ''}
+            onSendMessage={handleSendMessage}
+            onShowProfile={() => setShowProfile(true)}
+            isTyping={isTyping}
+            onInputChange={handleInputChange}
+            getReactionSummary={getReactionSummary}
+            onToggleReaction={toggleReaction}
+            chatType="date"
+          />
+        </motion.div>
       )}
 
       {/* Right Profile Sidebar - Desktop */}
@@ -195,6 +208,6 @@ export default function Chat() {
           </SheetContent>
         </Sheet>
       )}
-    </div>
+    </motion.div>
   );
 }
