@@ -7,3 +7,5 @@ export { ChangeRoleDialog } from './ChangeRoleDialog';
 export { ManagePremiumDialog } from './ManagePremiumDialog';
 export { SpotDetailsModal } from './SpotDetailsModal';
 export { DeleteSpotDialog } from './DeleteSpotDialog';
+export { FishSpeciesManagement } from './FishSpeciesManagement';
+export { FishSpeciesDialog } from './FishSpeciesDialog';
