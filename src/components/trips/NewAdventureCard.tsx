@@ -7,8 +7,8 @@ export function NewAdventureCard() {
 
   return (
     <div className="bg-card rounded-xl border border-dashed border-muted-foreground/30 p-6 flex flex-col items-center justify-center text-center min-h-[280px]">
-      <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center mb-4">
-        <MapPin className="h-6 w-6 text-sky-500" />
+      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+        <MapPin className="h-6 w-6 text-foreground" />
       </div>
       <h3 className="font-medium text-muted-foreground mb-2">New Adventure</h3>
       <p className="text-sm text-muted-foreground mb-6">
@@ -17,7 +17,6 @@ export function NewAdventureCard() {
       </p>
       <Button 
         variant="outline" 
-        className="text-sky-600 border-sky-200 hover:bg-sky-50"
         onClick={() => navigate("/app/trips/new")}
       >
         Find a Spot
