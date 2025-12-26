@@ -45,13 +45,13 @@ const getNavItems = (mode: AccountMode, wasOriginallyCombo: boolean): NavItem[] 
       { to: '/app/feed', icon: Rss, label: 'Feed' },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
+      { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessageBadge: true },
       { to: '/app/trips', icon: Calendar, label: 'Trips', hasTripBadge: true },
     ];
     // Add dashboard link for originally-combo users
     if (wasOriginallyCombo) {
       items.push({ to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
     }
-    items.push({ to: '/app/profile', icon: User, label: 'Profile' });
     return items;
   }
 

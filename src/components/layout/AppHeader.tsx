@@ -302,17 +302,6 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
-          {/* Dashboard Link for originally-combo users who switched to single mode */}
-          {wasOriginallyCombo && !isComboUser && (
-            <Link
-              to="/app/dashboard"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden sm:inline">Dashboard</span>
-            </Link>
-          )}
-
           {/* Mode Switcher for Combo Users */}
           {isComboUser && (
             <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
