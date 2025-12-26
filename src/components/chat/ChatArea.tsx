@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Lightbox } from '@/components/ui/lightbox';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { MessageReactions } from './MessageReactions';
@@ -111,6 +112,9 @@ export function ChatArea({
   const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [locallyDeletedIds, setLocallyDeletedIds] = useState<Set<string>>(new Set());
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -482,7 +486,10 @@ export function ChatArea({
                             src={message.imageUrl} 
                             alt="Shared image" 
                             className="max-w-full max-h-64 object-cover cursor-pointer"
-                            onClick={() => window.open(message.imageUrl!, '_blank')}
+                            onClick={() => {
+                              setLightboxImage(message.imageUrl!);
+                              setLightboxOpen(true);
+                            }}
                           />
                         )}
                         {/* Location Card */}
@@ -703,6 +710,13 @@ export function ChatArea({
         onDelete={handleDeleteMessage}
         isMine={messageToDelete?.senderId === currentUserId}
         isDeleting={isDeleting}
+      />
+
+      {/* Lightbox for images */}
+      <Lightbox
+        images={lightboxImage ? [lightboxImage] : []}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
       />
     </div>
   );
