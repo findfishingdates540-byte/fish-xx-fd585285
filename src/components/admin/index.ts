@@ -5,3 +5,5 @@ export { UserDetailsModal } from './UserDetailsModal';
 export { BanUserDialog } from './BanUserDialog';
 export { ChangeRoleDialog } from './ChangeRoleDialog';
 export { ManagePremiumDialog } from './ManagePremiumDialog';
+export { SpotDetailsModal } from './SpotDetailsModal';
+export { DeleteSpotDialog } from './DeleteSpotDialog';
