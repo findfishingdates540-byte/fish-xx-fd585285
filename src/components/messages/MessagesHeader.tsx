@@ -199,15 +199,15 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0, acc
         </div>
       </div>
 
-      {/* Navigation row - Tablet/Mobile only */}
-      <nav className="hidden md:flex xl:hidden h-12 px-4 items-center justify-center gap-6 border-t border-border">
+      {/* Navigation row - Tablet/Mobile */}
+      <nav className="flex xl:hidden h-12 px-4 items-center justify-center gap-6 border-t border-border overflow-x-auto">
         {navLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-2 text-sm font-medium transition-colors',
+                'flex items-center gap-2 text-sm font-medium transition-colors whitespace-nowrap',
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
