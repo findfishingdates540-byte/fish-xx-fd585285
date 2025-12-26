@@ -12,7 +12,7 @@ import { ArrowLeft, Send, Fish, MapPin, Image, Plus, Scale, Ruler, Reply } from 
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 import { useBuddyMessageReactions } from '@/hooks/use-buddy-message-reactions';
-import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview } from '@/components/chat';
+import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage } from '@/components/chat';
 
 interface Message {
   id: string;
@@ -602,68 +602,73 @@ export default function BuddyChat() {
                     : buddyProfile?.display_name || 'Buddy';
 
                   return (
-                    <motion.div 
-                      key={msg.id} 
-                      className={cn("flex group", isMine ? "justify-end" : "justify-start")}
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ 
-                        duration: 0.2, 
-                        ease: [0.25, 0.1, 0.25, 1],
-                        delay: msgIndex * 0.02 
-                      }}
-                      layout
+                    <SwipeableMessage
+                      key={msg.id}
+                      onReply={() => setReplyingTo(msg)}
+                      isMine={isMine}
                     >
-                      {/* Reply button on left for received messages */}
-                      {!isMine && (
-                        <button
-                          onClick={() => setReplyingTo(msg)}
-                          className="self-center mr-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
-                        >
-                          <Reply className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      )}
-                      
-                      <div className={cn(
-                        "max-w-[70%] rounded-2xl px-4 py-2",
-                        isMine ? "bg-primary text-primary-foreground" : "bg-muted"
-                      )}>
-                        {/* Quoted message */}
-                        {repliedMessage && (
-                          <QuotedMessage
-                            senderName={repliedSenderName}
-                            content={repliedMessage.content}
-                            isMine={isMine}
-                            isOwnQuote={repliedMessage.sender_id === user?.id}
-                          />
+                      <motion.div 
+                        className={cn("flex group w-full", isMine ? "justify-end" : "justify-start")}
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ 
+                          duration: 0.2, 
+                          ease: [0.25, 0.1, 0.25, 1],
+                          delay: msgIndex * 0.02 
+                        }}
+                        layout
+                      >
+                        {/* Reply button on left for received messages - desktop only */}
+                        {!isMine && (
+                          <button
+                            onClick={() => setReplyingTo(msg)}
+                            className="self-center mr-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted hidden md:block"
+                          >
+                            <Reply className="w-4 h-4 text-muted-foreground" />
+                          </button>
                         )}
                         
-                        {renderMessageContent(msg)}
-                        
                         <div className={cn(
-                          "flex items-center justify-end gap-1 mt-1",
-                          isMine ? "text-primary-foreground/70" : "text-muted-foreground"
+                          "max-w-[70%] rounded-2xl px-4 py-2",
+                          isMine ? "bg-primary text-primary-foreground" : "bg-muted"
                         )}>
-                          <span className="text-xs">{formatTime(msg.created_at)}</span>
-                          {isMine && (
-                            <MessageStatusIndicator 
-                              status={msg.is_read ? 'read' : 'sent'} 
-                              className={isMine ? 'text-primary-foreground/70' : ''}
+                          {/* Quoted message */}
+                          {repliedMessage && (
+                            <QuotedMessage
+                              senderName={repliedSenderName}
+                              content={repliedMessage.content}
+                              isMine={isMine}
+                              isOwnQuote={repliedMessage.sender_id === user?.id}
                             />
                           )}
+                          
+                          {renderMessageContent(msg)}
+                          
+                          <div className={cn(
+                            "flex items-center justify-end gap-1 mt-1",
+                            isMine ? "text-primary-foreground/70" : "text-muted-foreground"
+                          )}>
+                            <span className="text-xs">{formatTime(msg.created_at)}</span>
+                            {isMine && (
+                              <MessageStatusIndicator 
+                                status={msg.is_read ? 'read' : 'sent'} 
+                                className={isMine ? 'text-primary-foreground/70' : ''}
+                              />
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      
-                      {/* Reply button on right for own messages */}
-                      {isMine && (
-                        <button
-                          onClick={() => setReplyingTo(msg)}
-                          className="self-center ml-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
-                        >
-                          <Reply className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      )}
-                    </motion.div>
+                        
+                        {/* Reply button on right for own messages - desktop only */}
+                        {isMine && (
+                          <button
+                            onClick={() => setReplyingTo(msg)}
+                            className="self-center ml-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted hidden md:block"
+                          >
+                            <Reply className="w-4 h-4 text-muted-foreground" />
+                          </button>
+                        )}
+                      </motion.div>
+                    </SwipeableMessage>
                   );
                 })}
               </AnimatePresence>
