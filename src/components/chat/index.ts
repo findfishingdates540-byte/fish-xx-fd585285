@@ -10,3 +10,4 @@ export * from './ReplyPreview';
 export * from './SwipeableMessage';
 export * from './DeleteMessageDialog';
 export * from './DeletedMessagePlaceholder';
+export * from './MessageContextMenu';
