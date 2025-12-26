@@ -189,7 +189,7 @@ export default function Pricing() {
 
       {/* Pricing Cards */}
       <section className="pb-20 px-4">
-        <StaggerContainer className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
+        <StaggerContainer className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8 justify-center">
           {plans.map((plan, index) => (
             <StaggerItem key={plan.id}>
               <motion.div
