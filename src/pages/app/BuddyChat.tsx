@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, Fish, MapPin, Image, Plus, Scale, Ruler, Reply, Trash2 } from 'lucide-react';
+import { ArrowLeft, Send, Fish, MapPin, Image as ImageIcon, Plus, Scale, Ruler, Reply, Trash2, Mic, Square, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 import { useBuddyMessageReactions } from '@/hooks/use-buddy-message-reactions';
-import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage, DeleteMessageDialog, DeletedMessagePlaceholder } from '@/components/chat';
+import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
+import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage, DeleteMessageDialog, DeletedMessagePlaceholder, VoiceMessagePlayer, WaveformVisualizer } from '@/components/chat';
 import { toast } from 'sonner';
 
 interface Message {
@@ -22,6 +23,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   image_url: string | null;
+  audio_url: string | null;
   reply_to_id: string | null;
   deleted_at: string | null;
   deleted_for_everyone: boolean;
@@ -86,9 +88,17 @@ export default function BuddyChat() {
   const [isDeleting, setIsDeleting] = useState(false);
   // Track deleted messages for "delete for me" (local only)
   const [locallyDeletedIds, setLocallyDeletedIds] = useState<Set<string>>(new Set());
+  // Image upload state
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Voice recorder hook
+  const { isRecording, recordingDuration, audioLevels, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
 
   // Message reactions hook
   const { getReactionSummary, toggleReaction } = useBuddyMessageReactions(buddyId);
@@ -353,10 +363,10 @@ export default function BuddyChat() {
     typingTimeoutRef.current = setTimeout(() => updateTypingStatus(false), 2000);
   };
 
-  const sendMessage = async (content?: string, imageUrl?: string) => {
+  const sendMessage = async (content?: string, imageUrl?: string, audioUrl?: string) => {
     if (!user || !buddyId || sending || !buddyProfile) return;
     const msgContent = content || newMessage.trim();
-    if (!msgContent && !imageUrl) return;
+    if (!msgContent && !imageUrl && !audioUrl) return;
 
     updateTypingStatus(false);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -371,8 +381,9 @@ export default function BuddyChat() {
       .insert({
         buddy_id: buddyId,
         sender_id: user.id,
-        content: msgContent || '',
+        content: msgContent || (audioUrl ? '🎤 Voice message' : '📷 Photo'),
         image_url: imageUrl || null,
+        audio_url: audioUrl || null,
         reply_to_id: currentReplyTo?.id || null
       });
 
@@ -382,9 +393,127 @@ export default function BuddyChat() {
       setReplyingTo(currentReplyTo);
     } else {
       // Send push notification to buddy (fire and forget)
-      sendPushNotification(buddyProfile.id, msgContent);
+      sendPushNotification(buddyProfile.id, msgContent || (audioUrl ? '🎤 Voice message' : '📷 Photo'));
     }
     setSending(false);
+  };
+
+  // Image handling functions
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image must be less than 5MB');
+        return;
+      }
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const clearSelectedImage = () => {
+    setSelectedImage(null);
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('buddy-chat-media')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('buddy-chat-media')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
+  const uploadAudio = async (blob: Blob): Promise<string | null> => {
+    const fileName = `${user?.id}/voice_${Date.now()}.webm`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('buddy-chat-media')
+      .upload(fileName, blob, { contentType: blob.type });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('buddy-chat-media')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
+  const handleSend = async () => {
+    if (!newMessage.trim() && !selectedImage) return;
+
+    let imageUrl: string | undefined;
+
+    if (selectedImage) {
+      setUploading(true);
+      const uploadedUrl = await uploadImage(selectedImage);
+      if (!uploadedUrl) {
+        toast.error('Failed to upload image');
+        setUploading(false);
+        return;
+      }
+      imageUrl = uploadedUrl;
+      clearSelectedImage();
+      setUploading(false);
+    }
+
+    sendMessage(newMessage.trim() || undefined, imageUrl);
+    setNewMessage('');
+  };
+
+  const handleVoiceRecord = async () => {
+    if (isRecording) {
+      setUploading(true);
+      const audioBlob = await stopRecording();
+      
+      if (audioBlob) {
+        const audioUrl = await uploadAudio(audioBlob);
+        if (audioUrl) {
+          sendMessage(undefined, undefined, audioUrl);
+        } else {
+          toast.error('Failed to upload voice message');
+        }
+      }
+      setUploading(false);
+    } else {
+      try {
+        await startRecording();
+      } catch (error) {
+        toast.error('Could not access microphone');
+      }
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const sendPushNotification = async (recipientId: string, messageContent: string) => {
@@ -545,12 +674,24 @@ export default function BuddyChat() {
       );
     }
 
+    // Voice message
+    if (msg.audio_url) {
+      return (
+        <VoiceMessagePlayer audioUrl={msg.audio_url} isMine={isOwn} />
+      );
+    }
+
     return (
       <>
         {msg.image_url && (
-          <img src={msg.image_url} alt="Shared" className="rounded-lg max-w-full mb-2" />
+          <img 
+            src={msg.image_url} 
+            alt="Shared" 
+            className="rounded-lg max-w-full mb-2 cursor-pointer"
+            onClick={() => window.open(msg.image_url!, '_blank')}
+          />
         )}
-        <span className="break-words">{parsed.text}</span>
+        {parsed.text && <span className="break-words">{parsed.text}</span>}
       </>
     );
   };
@@ -797,29 +938,127 @@ export default function BuddyChat() {
           />
         )}
         
+        {/* Image Preview */}
+        {imagePreview && (
+          <div className="px-4 pt-3">
+            <div className="relative inline-block">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-h-32 rounded-lg object-cover"
+              />
+              <button
+                onClick={clearSelectedImage}
+                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Voice Recording UI */}
+        {isRecording && (
+          <div className="px-4 pt-3 flex items-center gap-3">
+            <div className="flex items-center gap-2 text-destructive">
+              <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
+              <span className="text-sm font-medium">{formatDuration(recordingDuration)}</span>
+            </div>
+            <WaveformVisualizer 
+              levels={audioLevels} 
+              isPlaying={isRecording}
+              className="flex-1"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={cancelRecording}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        
         <div className="p-4">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+          
           <div className="flex gap-2">
             <Button
               variant="outline"
               size="icon"
               onClick={() => setShowShareMenu(!showShareMenu)}
               className="shrink-0"
+              disabled={isRecording || uploading}
             >
               <Plus className="w-4 h-4" />
             </Button>
-            <Input
-              placeholder="Type a message..."
-              value={newMessage}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-            className="flex-1"
-          />
-          <Button onClick={() => sendMessage()} disabled={!newMessage.trim() || sending} size="icon">
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+            
+            {!isRecording && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="shrink-0"
+                  disabled={uploading}
+                >
+                  <ImageIcon className="w-5 h-5" />
+                </Button>
+                
+                <Input
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={handleInputChange}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  className="flex-1"
+                  disabled={uploading}
+                />
+              </>
+            )}
+            
+            {isRecording ? (
+              <Button 
+                onClick={handleVoiceRecord} 
+                disabled={uploading}
+                size="icon"
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Square className="w-4 h-4" />}
+              </Button>
+            ) : (
+              <>
+                {(newMessage.trim() || selectedImage) ? (
+                  <Button onClick={handleSend} disabled={uploading} size="icon">
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleVoiceRecord}
+                    disabled={uploading}
+                  >
+                    <Mic className="w-5 h-5" />
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         
-        {showShareMenu && (
+        {showShareMenu && !isRecording && (
           <div className="flex gap-2 mt-2">
             <Button
               variant="outline"
@@ -836,7 +1075,7 @@ export default function BuddyChat() {
               onClick={() => { fetchUserCatches(); setShowCatchPicker(true); setShowShareMenu(false); }}
               className="flex items-center gap-2"
             >
-              <Image className="w-4 h-4" />
+              <Fish className="w-4 h-4" />
               Share Catch
             </Button>
           </div>
