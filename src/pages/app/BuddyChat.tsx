@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, Fish, MapPin, Image, Plus, Scale, Ruler, Reply } from 'lucide-react';
+import { ArrowLeft, Send, Fish, MapPin, Image, Plus, Scale, Ruler, Reply, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 import { useBuddyMessageReactions } from '@/hooks/use-buddy-message-reactions';
-import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage } from '@/components/chat';
+import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage, DeleteMessageDialog, DeletedMessagePlaceholder } from '@/components/chat';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -22,6 +23,8 @@ interface Message {
   is_read: boolean;
   image_url: string | null;
   reply_to_id: string | null;
+  deleted_at: string | null;
+  deleted_for_everyone: boolean;
 }
 
 interface BuddyProfile {
@@ -79,6 +82,10 @@ export default function BuddyChat() {
   const [sharedSpots, setSharedSpots] = useState<Record<string, FishingSpot>>({});
   const [sharedCatches, setSharedCatches] = useState<Record<string, Catch>>({});
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  // Track deleted messages for "delete for me" (local only)
+  const [locallyDeletedIds, setLocallyDeletedIds] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -299,6 +306,38 @@ export default function BuddyChat() {
       .eq('buddy_id', buddyId)
       .neq('sender_id', user.id)
       .eq('is_read', false);
+  };
+
+  const handleDeleteMessage = async (deleteForEveryone: boolean) => {
+    if (!messageToDelete || !user) return;
+    
+    setIsDeleting(true);
+    try {
+      if (deleteForEveryone) {
+        // Soft delete for everyone - update the database
+        const { error } = await supabase
+          .from('buddy_messages')
+          .update({ 
+            deleted_at: new Date().toISOString(),
+            deleted_for_everyone: true 
+          })
+          .eq('id', messageToDelete.id)
+          .eq('sender_id', user.id);
+        
+        if (error) throw error;
+        toast.success('Message deleted for everyone');
+      } else {
+        // Delete for me only - just hide locally
+        setLocallyDeletedIds(prev => new Set([...prev, messageToDelete.id]));
+        toast.success('Message deleted');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
+    } finally {
+      setIsDeleting(false);
+      setMessageToDelete(null);
+    }
   };
 
   const updateTypingStatus = useCallback(async (typing: boolean) => {
@@ -600,11 +639,17 @@ export default function BuddyChat() {
                   const repliedSenderName = repliedMessage?.sender_id === user?.id 
                     ? 'You' 
                     : buddyProfile?.display_name || 'Buddy';
+                  
+                  // Skip locally deleted messages
+                  if (locallyDeletedIds.has(msg.id)) return null;
+                  
+                  // Check if message was deleted for everyone
+                  const isDeletedForEveryone = msg.deleted_for_everyone && msg.deleted_at;
 
                   return (
                     <SwipeableMessage
                       key={msg.id}
-                      onReply={() => setReplyingTo(msg)}
+                      onReply={() => !isDeletedForEveryone && setReplyingTo(msg)}
                       isMine={isMine}
                     >
                       <motion.div 
@@ -618,54 +663,80 @@ export default function BuddyChat() {
                         }}
                         layout
                       >
-                        {/* Reply button on left for received messages - desktop only */}
-                        {!isMine && (
-                          <button
-                            onClick={() => setReplyingTo(msg)}
-                            className="self-center mr-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted hidden md:block"
-                          >
-                            <Reply className="w-4 h-4 text-muted-foreground" />
-                          </button>
+                        {/* Action buttons on left for received messages - desktop only */}
+                        {!isMine && !isDeletedForEveryone && (
+                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setReplyingTo(msg)}
+                              className="p-1.5 rounded-full hover:bg-muted hidden md:block"
+                            >
+                              <Reply className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                            <button
+                              onClick={() => setMessageToDelete(msg)}
+                              className="p-1.5 rounded-full hover:bg-muted hidden md:block"
+                            >
+                              <Trash2 className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                          </div>
                         )}
                         
-                        <div className={cn(
-                          "max-w-[70%] rounded-2xl px-4 py-2",
-                          isMine ? "bg-primary text-primary-foreground" : "bg-muted"
-                        )}>
-                          {/* Quoted message */}
-                          {repliedMessage && (
-                            <QuotedMessage
-                              senderName={repliedSenderName}
-                              content={repliedMessage.content}
-                              isMine={isMine}
-                              isOwnQuote={repliedMessage.sender_id === user?.id}
-                            />
-                          )}
-                          
-                          {renderMessageContent(msg)}
-                          
-                          <div className={cn(
-                            "flex items-center justify-end gap-1 mt-1",
-                            isMine ? "text-primary-foreground/70" : "text-muted-foreground"
-                          )}>
-                            <span className="text-xs">{formatTime(msg.created_at)}</span>
-                            {isMine && (
-                              <MessageStatusIndicator 
-                                status={msg.is_read ? 'read' : 'sent'} 
-                                className={isMine ? 'text-primary-foreground/70' : ''}
+                        {isDeletedForEveryone ? (
+                          <DeletedMessagePlaceholder isMine={isMine} timestamp={formatTime(msg.created_at)} />
+                        ) : (
+                          <div 
+                            className={cn(
+                              "max-w-[70%] rounded-2xl px-4 py-2",
+                              isMine ? "bg-primary text-primary-foreground" : "bg-muted"
+                            )}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              setMessageToDelete(msg);
+                            }}
+                          >
+                            {/* Quoted message */}
+                            {repliedMessage && !repliedMessage.deleted_for_everyone && (
+                              <QuotedMessage
+                                senderName={repliedSenderName}
+                                content={repliedMessage.content}
+                                isMine={isMine}
+                                isOwnQuote={repliedMessage.sender_id === user?.id}
                               />
                             )}
+                            
+                            {renderMessageContent(msg)}
+                            
+                            <div className={cn(
+                              "flex items-center justify-end gap-1 mt-1",
+                              isMine ? "text-primary-foreground/70" : "text-muted-foreground"
+                            )}>
+                              <span className="text-xs">{formatTime(msg.created_at)}</span>
+                              {isMine && (
+                                <MessageStatusIndicator 
+                                  status={msg.is_read ? 'read' : 'sent'} 
+                                  className={isMine ? 'text-primary-foreground/70' : ''}
+                                />
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
                         
-                        {/* Reply button on right for own messages - desktop only */}
-                        {isMine && (
-                          <button
-                            onClick={() => setReplyingTo(msg)}
-                            className="self-center ml-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted hidden md:block"
-                          >
-                            <Reply className="w-4 h-4 text-muted-foreground" />
-                          </button>
+                        {/* Action buttons on right for own messages - desktop only */}
+                        {isMine && !isDeletedForEveryone && (
+                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setMessageToDelete(msg)}
+                              className="p-1.5 rounded-full hover:bg-muted hidden md:block"
+                            >
+                              <Trash2 className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                            <button
+                              onClick={() => setReplyingTo(msg)}
+                              className="p-1.5 rounded-full hover:bg-muted hidden md:block"
+                            >
+                              <Reply className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                          </div>
                         )}
                       </motion.div>
                     </SwipeableMessage>
@@ -844,6 +915,15 @@ export default function BuddyChat() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Message Dialog */}
+      <DeleteMessageDialog
+        open={!!messageToDelete}
+        onOpenChange={(open) => !open && setMessageToDelete(null)}
+        onDelete={handleDeleteMessage}
+        isMine={messageToDelete?.sender_id === user?.id}
+        isDeleting={isDeleting}
+      />
     </motion.div>
   );
 }

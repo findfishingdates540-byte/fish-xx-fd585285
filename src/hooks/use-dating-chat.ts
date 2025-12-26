@@ -11,6 +11,8 @@ interface Message {
   is_read: boolean;
   image_url: string | null;
   reply_to_id: string | null;
+  deleted_at: string | null;
+  deleted_for_everyone: boolean;
 }
 
 interface MatchProfile {
@@ -247,6 +249,22 @@ export function useDatingChat(matchId: string | undefined) {
     }
   };
 
+  // Delete message for everyone
+  const deleteMessage = async (messageId: string, deleteForEveryone: boolean) => {
+    if (!user || !deleteForEveryone) return;
+    
+    const { error } = await supabase
+      .from('messages')
+      .update({ 
+        deleted_at: new Date().toISOString(),
+        deleted_for_everyone: true 
+      })
+      .eq('id', messageId)
+      .eq('sender_id', user.id);
+    
+    if (error) throw error;
+  };
+
   // Format message for display
   const formattedMessages = useMemo(() => {
     return messages.map(msg => ({
@@ -259,6 +277,8 @@ export function useDatingChat(matchId: string | undefined) {
       audioUrl: (msg as any).audio_url,
       createdAt: msg.created_at,
       replyToId: msg.reply_to_id,
+      deletedAt: msg.deleted_at,
+      deletedForEveryone: msg.deleted_for_everyone,
     }));
   }, [messages]);
 
@@ -279,6 +299,7 @@ export function useDatingChat(matchId: string | undefined) {
     setReplyingTo,
     getReplyMessage,
     sendMessage,
+    deleteMessage,
     handleInputChange,
     refetch: fetchChatData,
   };
