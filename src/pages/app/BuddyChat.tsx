@@ -686,7 +686,7 @@ export default function BuddyChat() {
                         ) : (
                           <div 
                             className={cn(
-                              "max-w-[70%] rounded-2xl px-4 py-2",
+                              "max-w-[70%] rounded-2xl px-3 py-1.5 relative",
                               isMine ? "bg-primary text-primary-foreground" : "bg-muted"
                             )}
                             onContextMenu={(e) => {
@@ -704,20 +704,28 @@ export default function BuddyChat() {
                               />
                             )}
                             
-                            {renderMessageContent(msg)}
+                            <div className="inline">
+                              {renderMessageContent(msg)}
+                              {/* Invisible spacer to reserve space for timestamp */}
+                              <span className="invisible text-xs ml-2 inline-flex items-center gap-1">
+                                {formatTime(msg.created_at)}
+                                {isMine && <span>✓✓</span>}
+                              </span>
+                            </div>
                             
-                            <div className={cn(
-                              "flex items-center justify-end gap-1 mt-1",
+                            {/* Actual timestamp positioned at bottom-right */}
+                            <span className={cn(
+                              "absolute bottom-1.5 right-3 text-xs flex items-center gap-1",
                               isMine ? "text-primary-foreground/70" : "text-muted-foreground"
                             )}>
-                              <span className="text-xs">{formatTime(msg.created_at)}</span>
+                              {formatTime(msg.created_at)}
                               {isMine && (
                                 <MessageStatusIndicator 
                                   status={msg.is_read ? 'read' : 'sent'} 
                                   className={isMine ? 'text-primary-foreground/70' : ''}
                                 />
                               )}
-                            </div>
+                            </span>
                           </div>
                         )}
                         

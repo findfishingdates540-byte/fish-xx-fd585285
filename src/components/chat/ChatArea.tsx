@@ -432,8 +432,8 @@ export function ChatArea({
                     ) : (
                       <div
                         className={cn(
-                          'rounded-2xl overflow-hidden',
-                          message.imageUrl ? '' : 'px-4 py-2.5',
+                          'rounded-2xl overflow-hidden relative',
+                          message.imageUrl ? '' : 'px-3 py-1.5',
                           isMine
                             ? 'bg-foreground text-background rounded-br-sm'
                             : 'bg-accent rounded-bl-sm',
@@ -482,10 +482,32 @@ export function ChatArea({
                           </div>
                         )}
                         {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
-                          <p className={cn('text-sm', message.imageUrl && 'px-4 py-2.5')}>{message.content}</p>
+                          <span className="inline">
+                            <span className="text-sm">{message.content}</span>
+                            {/* Invisible spacer to reserve space for timestamp */}
+                            <span className="invisible text-xs ml-2 inline-flex items-center gap-1">
+                              {message.timestamp}
+                              {isMine && <span>✓✓</span>}
+                            </span>
+                          </span>
                         )}
                         {message.imageUrl && message.content === '📷 Photo' && (
                           <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
+                        )}
+                        
+                        {/* Timestamp positioned at bottom-right */}
+                        {!isLocationMessage(message.content) && (
+                          <span className={cn(
+                            "absolute bottom-1.5 right-3 text-xs flex items-center gap-1",
+                            isMine ? "text-background/70" : "text-muted-foreground"
+                          )}>
+                            {message.timestamp}
+                            {isMine && (
+                              <MessageStatusIndicator 
+                                status={message.isRead ? 'read' : 'sent'} 
+                              />
+                            )}
+                          </span>
                         )}
                       </div>
                     )}
@@ -503,20 +525,6 @@ export function ChatArea({
                     />
                   </div>
                 )}
-                
-                <div className={cn(
-                  'flex items-center gap-1 mt-1',
-                  isMine ? 'px-2' : 'px-10'
-                )}>
-                  <span className="text-xs text-muted-foreground">
-                    {message.timestamp}
-                  </span>
-                  {isMine && !isDeletedForEveryone && (
-                    <MessageStatusIndicator 
-                      status={message.isRead ? 'read' : 'sent'} 
-                    />
-                  )}
-                </div>
               </motion.div>
             </SwipeableMessage>
           );
