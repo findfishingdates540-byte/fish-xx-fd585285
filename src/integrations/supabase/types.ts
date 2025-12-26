@@ -50,6 +50,38 @@ export type Database = {
           },
         ]
       }
+      buddy_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buddy_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "buddy_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buddy_messages: {
         Row: {
           audio_url: string | null
@@ -59,6 +91,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_read: boolean | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
@@ -69,6 +102,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_read?: boolean | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
@@ -79,6 +113,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_read?: boolean | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -87,6 +122,13 @@ export type Database = {
             columns: ["buddy_id"]
             isOneToOne: false
             referencedRelation: "fishing_buddies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buddy_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "buddy_messages"
             referencedColumns: ["id"]
           },
           {
@@ -587,6 +629,7 @@ export type Database = {
           image_url: string | null
           is_read: boolean | null
           match_id: string
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
@@ -597,6 +640,7 @@ export type Database = {
           image_url?: string | null
           is_read?: boolean | null
           match_id: string
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
@@ -607,6 +651,7 @@ export type Database = {
           image_url?: string | null
           is_read?: boolean | null
           match_id?: string
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -615,6 +660,13 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
           {

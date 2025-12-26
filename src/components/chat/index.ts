@@ -4,3 +4,6 @@ export * from './ProfileSidebar';
 export * from './MessageReactions';
 export * from './VoiceMessagePlayer';
 export * from './WaveformVisualizer';
+export * from './MessageStatusIndicator';
+export * from './QuotedMessage';
+export * from './ReplyPreview';
