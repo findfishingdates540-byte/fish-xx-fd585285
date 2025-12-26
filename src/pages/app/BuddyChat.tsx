@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Lightbox } from '@/components/ui/lightbox';
 import { ArrowLeft, Send, Fish, MapPin, Image as ImageIcon, Plus, Scale, Ruler, Reply, Trash2, Mic, Square, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
@@ -92,6 +93,9 @@ export default function BuddyChat() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -688,7 +692,10 @@ export default function BuddyChat() {
             src={msg.image_url} 
             alt="Shared" 
             className="rounded-lg max-w-full mb-2 cursor-pointer"
-            onClick={() => window.open(msg.image_url!, '_blank')}
+            onClick={() => {
+              setLightboxImage(msg.image_url!);
+              setLightboxOpen(true);
+            }}
           />
         )}
         {parsed.text && <span className="break-words">{parsed.text}</span>}
@@ -1178,6 +1185,13 @@ export default function BuddyChat() {
         onDelete={handleDeleteMessage}
         isMine={messageToDelete?.sender_id === user?.id}
         isDeleting={isDeleting}
+      />
+
+      {/* Lightbox for images */}
+      <Lightbox
+        images={lightboxImage ? [lightboxImage] : []}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
       />
     </motion.div>
   );
