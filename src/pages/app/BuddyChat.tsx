@@ -706,23 +706,31 @@ export default function BuddyChat() {
 
   const messageGroups = groupMessagesByDate(messages);
 
+  // Detect if we're in the inline/nested context (desktop split view)
+  const isInline = window.location.pathname.includes('/buddy-messages/');
+
   return (
     <motion.div 
-      className="flex flex-col h-[100dvh] bg-background"
+      className={cn(
+        "flex flex-col bg-background",
+        isInline ? "h-full flex-1" : "h-[100dvh]"
+      )}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
     >
       {/* Header */}
       <motion.div 
-        className="flex items-center gap-3 p-4 border-b"
+        className="flex items-center gap-3 p-4 border-b border-border"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, delay: 0.05 }}
       >
-        <Button variant="ghost" size="icon" onClick={() => navigate('/app/buddy-messages')}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+        {!isInline && (
+          <Button variant="ghost" size="icon" onClick={() => navigate('/app/buddy-messages')}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        )}
         <div className="relative">
           <Avatar className="h-10 w-10">
             <AvatarImage src={buddyProfile?.photos?.[0]} className="object-cover" />

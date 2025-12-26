@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -175,7 +175,11 @@ export default function BuddyMessages() {
   const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
   const handleSelectConversation = (id: string) => {
-    navigate(`/app/buddy-chat/${id}`);
+    if (isMobile) {
+      navigate(`/app/buddy-chat/${id}`);
+    } else {
+      navigate(`/app/buddy-messages/${id}`);
+    }
   };
 
   if (loading) {
@@ -205,8 +209,12 @@ export default function BuddyMessages() {
     );
   }
 
-  return (
-    <div className="flex flex-col h-screen bg-background">
+  // Conversation List Component
+  const ConversationListPanel = () => (
+    <div className={cn(
+      "flex flex-col bg-background border-r border-border",
+      isMobile ? "w-full h-full" : "w-80 lg:w-96 flex-shrink-0"
+    )}>
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
@@ -247,6 +255,7 @@ export default function BuddyMessages() {
           {filteredConversations.map((conv) => {
             const online = isOnline(conv.buddyUserId);
             const lastSeen = getLastSeen(conv.buddyUserId);
+            const isSelected = !isMobile && buddyId === conv.buddyId;
             
             return (
               <button
@@ -254,7 +263,8 @@ export default function BuddyMessages() {
                 onClick={() => handleSelectConversation(conv.buddyId)}
                 className={cn(
                   "w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-accent/50",
-                  conv.unreadCount > 0 && "bg-accent/30"
+                  conv.unreadCount > 0 && "bg-accent/30",
+                  isSelected && "bg-accent"
                 )}
               >
                 {/* Avatar with online indicator */}
@@ -322,6 +332,37 @@ export default function BuddyMessages() {
           })}
         </div>
       </ScrollArea>
+    </div>
+  );
+
+  // Empty Chat State for Desktop
+  const EmptyChatPanel = () => (
+    <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 p-8 text-center">
+      <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
+        <MessageCircle className="h-12 w-12 text-muted-foreground" />
+      </div>
+      <h3 className="text-2xl font-semibold mb-2">Your Buddy Chats</h3>
+      <p className="text-muted-foreground max-w-md">
+        Select a conversation from the list to start chatting with your fishing buddies.
+        Share spots, plan trips, and connect with fellow anglers!
+      </p>
+    </div>
+  );
+
+  // Mobile: Show only list or only chat based on route
+  if (isMobile) {
+    return <ConversationListPanel />;
+  }
+
+  // Desktop: Split panel layout
+  return (
+    <div className="flex h-[calc(100vh-4rem)] bg-background">
+      <ConversationListPanel />
+      {buddyId ? (
+        <Outlet />
+      ) : (
+        <EmptyChatPanel />
+      )}
     </div>
   );
 }
