@@ -103,7 +103,7 @@ export default function Messages() {
 
   // Empty chat panel for desktop when no conversation is selected
   const renderEmptyChatPanel = () => (
-    <div className="flex-1 hidden lg:flex flex-col items-center justify-center bg-muted/30">
+    <div className="flex-1 flex flex-col items-center justify-center bg-muted/30">
       <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
         <MessageCircle className="h-10 w-10 text-muted-foreground" />
       </div>
@@ -114,16 +114,18 @@ export default function Messages() {
     </div>
   );
 
-  // Conversation list panel
+  // Conversation list panel (left side - no header)
   const ConversationListPanel = () => (
     <div className={`${isMobile && matchId ? 'hidden' : 'flex'} flex-col w-full lg:w-96 lg:border-r border-border bg-background h-full`}>
-      {/* Header with navigation */}
-      <MessagesHeader
-        userName={profile?.display_name || 'User'}
-        userPhoto={profile?.photos?.[0]}
-        notificationCount={totalUnread}
-        accountMode={profile?.account_mode || 'dating'}
-      />
+      {/* Simple title header for left panel */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+        <h1 className="text-xl font-semibold">Messages</h1>
+        {totalUnread > 0 && (
+          <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5 rounded-full">
+            {totalUnread}
+          </span>
+        )}
+      </div>
       
       {/* Content */}
       {isLoading ? (
@@ -141,21 +143,35 @@ export default function Messages() {
     </div>
   );
 
+  // Right panel with header
+  const RightPanel = () => (
+    <div className="flex-1 hidden lg:flex flex-col h-full">
+      {/* Header with navigation */}
+      <MessagesHeader
+        userName={profile?.display_name || 'User'}
+        userPhoto={profile?.photos?.[0]}
+        notificationCount={totalUnread}
+        accountMode={profile?.account_mode || 'dating'}
+      />
+      
+      {/* Content area */}
+      {matchId ? (
+        <Outlet context={{ isInline: true }} />
+      ) : (
+        renderEmptyChatPanel()
+      )}
+    </div>
+  );
+
   return (
     <div className="flex h-[100dvh] bg-background overflow-hidden">
-      {/* Conversation List Panel */}
+      {/* Conversation List Panel (Left) */}
       <ConversationListPanel />
       
-      {/* Chat Area - Desktop inline or Mobile full screen */}
+      {/* Right Panel with Header */}
       {!isMobile ? (
-        // Desktop: Show Outlet (Chat component) or empty state
-        matchId ? (
-          <Outlet context={{ isInline: true }} />
-        ) : (
-          renderEmptyChatPanel()
-        )
+        <RightPanel />
       ) : (
-        // Mobile: Show Outlet when matchId exists (will navigate to full page)
         matchId && <Outlet context={{ isInline: false }} />
       )}
     </div>
