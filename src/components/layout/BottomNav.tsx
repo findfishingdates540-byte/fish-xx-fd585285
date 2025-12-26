@@ -281,10 +281,10 @@ export function BottomNav({ accountMode }: BottomNavProps) {
               }
             >
               {({ isActive }) => (
-                <div className="relative">
+              <div className="relative">
                   <item.icon
-                    className={cn('h-6 w-6', isActive ? 'fill-current' : 'fill-current opacity-60')}
-                    strokeWidth={1.5}
+                    className={cn('h-6 w-6', isActive && 'fill-current')}
+                    strokeWidth={isActive ? 2.5 : 2}
                   />
                   {badgeCount > 0 && (
                     <Badge 
