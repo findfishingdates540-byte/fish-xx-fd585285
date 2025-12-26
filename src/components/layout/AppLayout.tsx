@@ -102,12 +102,14 @@ function AppLayoutContent() {
         {renderDesktopHeader()}
       </div>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden">
-        <AppHeader />
-      </div>
+      {/* Mobile Header - hide on chat pages which have their own header */}
+      {!isChatPage && (
+        <div className="lg:hidden">
+          <AppHeader />
+        </div>
+      )}
       
-      <main className={`${isDiscoverNoScroll ? 'pb-0' : 'pb-16'} lg:pb-0`}>
+      <main className={`${isDiscoverNoScroll || isChatPage ? 'pb-0' : 'pb-16'} lg:pb-0`}>
         <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
       </main>
 
