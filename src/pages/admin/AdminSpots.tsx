@@ -1,37 +1,47 @@
 import { useState } from 'react';
-import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle } from 'lucide-react';
+import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAdminSpots, useVerifySpot, useToggleSpotPublic } from '@/hooks/use-admin-spots';
+import { SpotDetailsModal } from '@/components/admin/SpotDetailsModal';
+import { DeleteSpotDialog } from '@/components/admin/DeleteSpotDialog';
+
+type SpotType = NonNullable<ReturnType<typeof useAdminSpots>['data']>[number];
 
 export default function AdminSpots() {
   const [search, setSearch] = useState('');
+  const { data: spots, isLoading } = useAdminSpots(search);
+  
+  // Modal states
+  const [selectedSpot, setSelectedSpot] = useState<SpotType | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data: spots, isLoading } = useQuery({
-    queryKey: ['admin-spots', search],
-    queryFn: async () => {
-      let query = supabase
-        .from('fishing_spots')
-        .select(`
-          *,
-          creator:profiles!fishing_spots_created_by_fkey(id, display_name, photos)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(100);
+  // Mutations
+  const { mutate: verifySpot, isPending: verifyPending } = useVerifySpot();
+  const { mutate: togglePublic, isPending: publicPending } = useToggleSpotPublic();
 
-      if (search) {
-        query = query.or(`name.ilike.%${search}%,location_name.ilike.%${search}%`);
-      }
+  const handleViewDetails = (spot: SpotType) => {
+    setSelectedSpot(spot);
+    setDetailsOpen(true);
+  };
 
-      const { data } = await query;
-      return data || [];
-    },
-  });
+  const handleDeleteSpot = (spot: SpotType) => {
+    setSelectedSpot(spot);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleVerifySpot = (spot: SpotType) => {
+    verifySpot({ spotId: spot.id, verified: !spot.is_verified });
+  };
+
+  const handleTogglePublic = (spot: SpotType) => {
+    togglePublic({ spotId: spot.id, isPublic: !spot.is_public });
+  };
 
   return (
     <div className="p-8">
@@ -57,13 +67,13 @@ export default function AdminSpots() {
       </div>
 
       {/* Spots Grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
           Array.from({ length: 9 }).map((_, i) => (
             <Skeleton key={i} className="h-64 bg-slate-800" />
           ))
         ) : spots?.length === 0 ? (
-          <div className="col-span-3 bg-slate-800/50 rounded-xl p-12 text-center border border-slate-700/50">
+          <div className="col-span-full bg-slate-800/50 rounded-xl p-12 text-center border border-slate-700/50">
             <MapPin className="w-12 h-12 text-slate-500 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No spots found</h3>
             <p className="text-slate-400">No fishing spots match your search.</p>
@@ -72,7 +82,7 @@ export default function AdminSpots() {
           spots?.map((spot) => (
             <div
               key={spot.id}
-              className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700/50"
+              className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700/50 hover:border-slate-600 transition-colors"
             >
               {/* Spot Image */}
               <div className="aspect-video bg-slate-700 relative">
@@ -96,6 +106,7 @@ export default function AdminSpots() {
                   )}
                   {!spot.is_public && (
                     <Badge className="bg-amber-500/20 text-amber-400 border-0">
+                      <Lock className="w-3 h-3 mr-1" />
                       Private
                     </Badge>
                   )}
@@ -105,29 +116,70 @@ export default function AdminSpots() {
               {/* Spot Info */}
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-white">{spot.name}</h3>
-                    <p className="text-sm text-slate-400 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-white truncate">{spot.name}</h3>
+                    <p className="text-sm text-slate-400 flex items-center gap-1 truncate">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
                       {spot.location_name || 'Unknown location'}
                     </p>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white flex-shrink-0">
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                      <DropdownMenuItem className="text-slate-300 focus:text-white focus:bg-slate-700">
+                      <DropdownMenuItem 
+                        onClick={() => handleViewDetails(spot)}
+                        className="text-slate-300 focus:text-white focus:bg-slate-700"
+                      >
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-slate-300 focus:text-white focus:bg-slate-700">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Verify Spot
+                      <DropdownMenuSeparator className="bg-slate-700" />
+                      <DropdownMenuItem 
+                        onClick={() => handleVerifySpot(spot)}
+                        disabled={verifyPending}
+                        className={spot.is_verified 
+                          ? "text-amber-400 focus:text-amber-300 focus:bg-slate-700"
+                          : "text-cyan-400 focus:text-cyan-300 focus:bg-slate-700"
+                        }
+                      >
+                        {spot.is_verified ? (
+                          <>
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Remove Verification
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Verify Spot
+                          </>
+                        )}
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-rose-400 focus:text-rose-300 focus:bg-slate-700">
+                      <DropdownMenuItem 
+                        onClick={() => handleTogglePublic(spot)}
+                        disabled={publicPending}
+                        className="text-slate-300 focus:text-white focus:bg-slate-700"
+                      >
+                        {spot.is_public ? (
+                          <>
+                            <Lock className="w-4 h-4 mr-2" />
+                            Make Private
+                          </>
+                        ) : (
+                          <>
+                            <Globe className="w-4 h-4 mr-2" />
+                            Make Public
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-slate-700" />
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteSpot(spot)}
+                        className="text-rose-400 focus:text-rose-300 focus:bg-slate-700"
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete Spot
                       </DropdownMenuItem>
@@ -139,7 +191,7 @@ export default function AdminSpots() {
                   <div className="flex items-center gap-1 text-amber-400">
                     <Star className="w-4 h-4 fill-current" />
                     <span>{spot.rating_avg?.toFixed(1) || 'N/A'}</span>
-                    <span className="text-slate-500">({spot.rating_count} reviews)</span>
+                    <span className="text-slate-500">({spot.rating_count || 0})</span>
                   </div>
                   <span className="text-slate-500">
                     {format(new Date(spot.created_at), 'MMM d, yyyy')}
@@ -150,6 +202,18 @@ export default function AdminSpots() {
           ))
         )}
       </div>
+
+      {/* Modals */}
+      <SpotDetailsModal 
+        spot={selectedSpot} 
+        open={detailsOpen} 
+        onOpenChange={setDetailsOpen} 
+      />
+      <DeleteSpotDialog 
+        spot={selectedSpot} 
+        open={deleteDialogOpen} 
+        onOpenChange={setDeleteDialogOpen} 
+      />
     </div>
   );
 }
