@@ -8,8 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import logoImage from '@/assets/logo.png';
-import datingLogoImage from '@/assets/dating-logo.png';
 
 interface MessagesHeaderProps {
   userName: string;
@@ -45,8 +43,7 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0, acc
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
-  const isDatingMode = accountMode === 'dating';
-  const navLinks = isDatingMode ? datingNavLinks : fishingNavLinks;
+  const navLinks = accountMode === 'dating' ? datingNavLinks : fishingNavLinks;
 
   // Fetch unread messages count
   const { data: unreadMessagesCount = 0 } = useQuery({
@@ -146,22 +143,9 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0, acc
 
   return (
     <header className="border-b border-border bg-background">
-      {/* Main header row */}
-      <div className="h-16 px-4 md:px-6 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/app/discover" className="flex items-center gap-2">
-          {isDatingMode ? (
-            <img src={datingLogoImage} alt="Find Fishing Dates" className="h-8 w-auto" />
-          ) : (
-            <>
-              <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
-              <span className="font-bold text-lg">Find Fishing Dates</span>
-            </>
-          )}
-        </Link>
-
-        {/* Navigation - Desktop only */}
-        <nav className="hidden xl:flex items-center gap-8 ml-auto pr-12">
+      <div className="h-14 px-4 md:px-6 flex items-center justify-between">
+        {/* Navigation links - left side */}
+        <nav className="flex items-center gap-6">
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
@@ -180,7 +164,7 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0, acc
           ))}
         </nav>
 
-        {/* Right side */}
+        {/* Right side - notification bell + avatar */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
@@ -191,33 +175,13 @@ export function MessagesHeader({ userName, userPhoto, notificationCount = 0, acc
             )}
           </Button>
           <Link to="/app/profile">
-            <Avatar className="h-10 w-10 ring-2 ring-border">
+            <Avatar className="h-9 w-9 ring-2 ring-border">
               <AvatarImage src={userPhoto} alt={userName} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </Link>
         </div>
       </div>
-
-      {/* Navigation row - Tablet/Mobile */}
-      <nav className="flex xl:hidden h-12 px-4 items-center justify-center gap-6 border-t border-border overflow-x-auto">
-        {navLinks.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-2 text-sm font-medium transition-colors whitespace-nowrap',
-                isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              )
-            }
-          >
-            {({ isActive }) => renderNavItem(link, isActive)}
-          </NavLink>
-        ))}
-      </nav>
     </header>
   );
 }
