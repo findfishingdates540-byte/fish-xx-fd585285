@@ -14,6 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      advertisements: {
+        Row: {
+          ad_type: string
+          clicks: number
+          created_at: string
+          created_by: string | null
+          cta_text: string | null
+          cta_url: string | null
+          description: string | null
+          end_date: string | null
+          fishing_spot_id: string | null
+          id: string
+          impressions: number
+          is_active: boolean
+          photos: string[] | null
+          sponsor_logo: string | null
+          sponsor_name: string
+          start_date: string
+          title: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          ad_type?: string
+          clicks?: number
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          description?: string | null
+          end_date?: string | null
+          fishing_spot_id?: string | null
+          id?: string
+          impressions?: number
+          is_active?: boolean
+          photos?: string[] | null
+          sponsor_logo?: string | null
+          sponsor_name: string
+          start_date?: string
+          title: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          ad_type?: string
+          clicks?: number
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          description?: string | null
+          end_date?: string | null
+          fishing_spot_id?: string | null
+          id?: string
+          impressions?: number
+          is_active?: boolean
+          photos?: string[] | null
+          sponsor_logo?: string | null
+          sponsor_name?: string
+          start_date?: string
+          title?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisements_fishing_spot_id_fkey"
+            columns: ["fishing_spot_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           description: string | null
