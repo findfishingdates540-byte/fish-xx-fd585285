@@ -691,7 +691,7 @@ export default function BuddyChat() {
           <img 
             src={msg.image_url} 
             alt="Shared" 
-            className="rounded-lg max-w-full mb-2 cursor-pointer"
+            className="rounded-lg max-w-[200px] max-h-[200px] object-cover mb-2 cursor-pointer hover:opacity-90 transition-opacity"
             onClick={() => {
               setLightboxImage(msg.image_url!);
               setLightboxOpen(true);
