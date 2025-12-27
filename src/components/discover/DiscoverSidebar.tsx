@@ -62,30 +62,11 @@ export function DiscoverSidebar({
   const queryClient = useQueryClient();
   
   // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser, setBaseAccountMode, wasOriginallyCombo } = useActiveMode();
-
-  type AccountModeType = Database['public']['Enums']['account_mode'];
+  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
   
-  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
-    setBaseAccountMode(newMode);
-    // Map account mode to active mode for display
-    if (newMode === 'both') {
-      setActiveMode('unified');
-    } else if (newMode === 'dating') {
-      setActiveMode('dating');
-    } else {
-      setActiveMode('fishing');
-    }
-  }, { redirect: true }); // Enable redirect on switch
-
-  // Map activeMode to accountMode for database
+  // For combo users, this just switches their view preference (not account type)
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
-    const accountModeMap: Record<'unified' | 'dating' | 'fishing', AccountModeType> = {
-      unified: 'both',
-      dating: 'dating',
-      fishing: 'fishing',
-    };
-    switchMode(accountModeMap[mode]);
+    setActiveMode(mode);
   };
 
   // Fetch unread messages count
@@ -204,18 +185,6 @@ export function DiscoverSidebar({
 
   return (
     <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
-      {/* Dashboard Link for originally-combo users (show when switched to single mode) */}
-      {wasOriginallyCombo && !isComboUser && (
-        <div className="mb-4">
-          <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2">
-            <Link to="/app/dashboard">
-              <LayoutDashboard className="h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
-        </div>
-      )}
-
       {/* Mode Switcher for Combo Users */}
       {isComboUser && (
         <div className="mb-4">
@@ -234,20 +203,14 @@ export function DiscoverSidebar({
               <button
                 key={mode.value}
                 onClick={() => handleModeSwitch(mode.value)}
-                disabled={isSwitching}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
                   activeMode === mode.value
                     ? "bg-background text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                  isSwitching && "opacity-50 cursor-not-allowed"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {isSwitching ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <mode.icon className="h-3 w-3" />
-                )}
+                <mode.icon className="h-3 w-3" />
                 {mode.label}
               </button>
             ))}

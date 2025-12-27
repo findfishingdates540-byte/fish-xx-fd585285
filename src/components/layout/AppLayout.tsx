@@ -214,7 +214,11 @@ export function AppLayout() {
   const baseAccountMode = profile?.account_mode || 'both';
 
   return (
-    <ActiveModeProvider baseAccountMode={baseAccountMode}>
+    <ActiveModeProvider 
+      baseAccountMode={baseAccountMode}
+      isPremium={profile?.is_premium || false}
+      premiumExpiresAt={profile?.premium_expires_at || null}
+    >
       <AppLayoutContent />
     </ActiveModeProvider>
   );

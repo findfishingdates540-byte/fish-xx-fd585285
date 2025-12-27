@@ -25,15 +25,15 @@ interface NavItem {
   hasTripBadge?: boolean;
 }
 
-const getNavItems = (mode: AccountMode, wasOriginallyCombo: boolean): NavItem[] => {
+const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
   if (mode === 'dating') {
     const items: NavItem[] = [
       { to: '/app/discover', icon: Home, label: 'Discover' },
       { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
       { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     ];
-    // Add dashboard link for originally-combo users
-    if (wasOriginallyCombo) {
+    // Add dashboard link for combo users viewing dating mode
+    if (isComboUser) {
       items.push({ to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
     }
     items.push({ to: '/app/profile', icon: User, label: 'Profile' });
@@ -48,8 +48,8 @@ const getNavItems = (mode: AccountMode, wasOriginallyCombo: boolean): NavItem[] 
       { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessageBadge: true },
       { to: '/app/trips', icon: Calendar, label: 'Trips', hasTripBadge: true },
     ];
-    // Add dashboard link for originally-combo users
-    if (wasOriginallyCombo) {
+    // Add dashboard link for combo users viewing fishing mode
+    if (isComboUser) {
       items.push({ to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
     }
     return items;
@@ -65,8 +65,8 @@ const getNavItems = (mode: AccountMode, wasOriginallyCombo: boolean): NavItem[] 
 };
 
 export function BottomNav({ accountMode }: BottomNavProps) {
-  const { wasOriginallyCombo } = useActiveMode();
-  const navItems = getNavItems(accountMode, wasOriginallyCombo);
+  const { isComboUser } = useActiveMode();
+  const navItems = getNavItems(accountMode, isComboUser);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
