@@ -2,26 +2,24 @@ import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
 export function FeedRightSidebar() {
   // Fetch trending spots
-  const { data: trendingSpots = [] } = useQuery({
+  const {
+    data: trendingSpots = []
+  } = useQuery({
     queryKey: ['trending-spots'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fishing_spots')
-        .select('id, name, photos, rating_avg, rating_count')
-        .eq('is_public', true)
-        .order('rating_avg', { ascending: false })
-        .limit(3);
-
+      const {
+        data,
+        error
+      } = await supabase.from('fishing_spots').select('id, name, photos, rating_avg, rating_count').eq('is_public', true).order('rating_avg', {
+        ascending: false
+      }).limit(3);
       if (error) throw error;
       return data || [];
-    },
+    }
   });
-
-  return (
-    <div className="sticky top-20 space-y-4">
+  return <div className="sticky top-20 space-y-4">
       {/* Trending Spots */}
       <div className="bg-background rounded-xl border p-4">
         <div className="flex items-center justify-between mb-4">
@@ -32,23 +30,9 @@ export function FeedRightSidebar() {
         </div>
 
         <div className="space-y-3">
-          {trendingSpots.length > 0 ? (
-            trendingSpots.map((spot) => (
-              <Link
-                key={spot.id}
-                to={`/app/spots/${spot.id}`}
-                className="flex items-center gap-3 group"
-              >
+          {trendingSpots.length > 0 ? trendingSpots.map(spot => <Link key={spot.id} to={`/app/spots/${spot.id}`} className="flex items-center gap-3 group">
                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                  {spot.photos?.[0] ? (
-                    <img
-                      src={spot.photos[0]}
-                      alt={spot.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-cyan-100 to-blue-100" />
-                  )}
+                  {spot.photos?.[0] ? <img src={spot.photos[0]} alt={spot.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-cyan-100 to-blue-100" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate group-hover:text-cyan-600 transition-colors">
@@ -61,11 +45,7 @@ export function FeedRightSidebar() {
                     <span>{(spot.rating_count || 0) * 100 + Math.floor(Math.random() * 500)} visits</span>
                   </div>
                 </div>
-              </Link>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">No trending spots yet</p>
-          )}
+              </Link>) : <p className="text-sm text-muted-foreground">No trending spots yet</p>}
         </div>
       </div>
 
@@ -78,8 +58,7 @@ export function FeedRightSidebar() {
           <Link to="/privacy" className="hover:underline">Privacy</Link>
           <Link to="/terms" className="hover:underline">Terms</Link>
         </div>
-        <p>© 2024 FindFish Date Inc.</p>
+        <p>© 2025 Find Fishing Date LLC.</p>
       </div>
-    </div>
-  );
+    </div>;
 }
