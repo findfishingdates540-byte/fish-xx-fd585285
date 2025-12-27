@@ -42,25 +42,17 @@ export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccou
   // Track base account mode locally so it can be updated after DB changes
   const [baseAccountMode, setBaseAccountModeState] = useState<BaseAccountMode>(initialBaseAccountMode);
 
-  // Track the original account mode (set once on first load)
-  const [originalAccountMode, setOriginalAccountMode] = useState<BaseAccountMode>(() => {
+  // Track the original account mode (set once on first load, stored synchronously)
+  const [originalAccountMode] = useState<BaseAccountMode>(() => {
     const stored = localStorage.getItem(ORIGINAL_MODE_KEY) as BaseAccountMode | null;
     // If we have a stored original mode, use it
     if (stored && (stored === 'dating' || stored === 'fishing' || stored === 'both')) {
       return stored;
     }
-    // Otherwise, this is a fresh session - use the initial mode
+    // First time ever - store immediately (synchronously) before any mode switches can occur
+    localStorage.setItem(ORIGINAL_MODE_KEY, initialBaseAccountMode);
     return initialBaseAccountMode;
   });
-
-  // Store the original mode on first load (only if not already stored)
-  useEffect(() => {
-    const stored = localStorage.getItem(ORIGINAL_MODE_KEY);
-    if (!stored) {
-      localStorage.setItem(ORIGINAL_MODE_KEY, initialBaseAccountMode);
-      setOriginalAccountMode(initialBaseAccountMode);
-    }
-  }, [initialBaseAccountMode]);
 
   // Sync with prop changes (e.g., from parent query refetch)
   useEffect(() => {
