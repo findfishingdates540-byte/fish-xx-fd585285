@@ -505,7 +505,10 @@ export default function Settings() {
 
                     <div className="grid grid-cols-3 gap-3">
                       <button
-                        onClick={() => setAccountMode("dating")}
+                        onClick={() => {
+                          setAccountMode("dating");
+                          navigate('/app/discover');
+                        }}
                         className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
                           accountMode === "dating"
                             ? "border-primary bg-primary/5 text-primary"
@@ -517,7 +520,10 @@ export default function Settings() {
                         <span className="text-xs text-muted-foreground font-normal">Find your catch</span>
                       </button>
                       <button
-                        onClick={() => setAccountMode("fishing")}
+                        onClick={() => {
+                          setAccountMode("fishing");
+                          navigate('/app/spots');
+                        }}
                         className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
                           accountMode === "fishing"
                             ? "border-primary bg-primary/5 text-primary"
@@ -529,7 +535,10 @@ export default function Settings() {
                         <span className="text-xs text-muted-foreground font-normal">Focus on spots</span>
                       </button>
                       <button
-                        onClick={() => setAccountMode("both")}
+                        onClick={() => {
+                          setAccountMode("both");
+                          navigate('/app/dashboard');
+                        }}
                         className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
                           accountMode === "both"
                             ? "border-primary bg-primary/5 text-primary"
