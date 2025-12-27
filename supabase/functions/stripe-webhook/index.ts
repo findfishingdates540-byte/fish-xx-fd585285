@@ -7,6 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
+// Map plan IDs to account modes
+const planToAccountMode: Record<string, 'fishing' | 'both'> = {
+  'angler': 'fishing',
+  'trophy': 'both',
+};
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -73,20 +79,26 @@ serve(async (req) => {
           const expiresAt = new Date();
           expiresAt.setDate(expiresAt.getDate() + daysToAdd);
 
-          // Update user's premium status and store stripe_customer_id
+          // Determine the account mode based on the plan purchased
+          const newAccountMode = planId ? planToAccountMode[planId] || 'both' : 'both';
+          
+          console.log(`Updating user ${userId} to plan ${planId}, account_mode: ${newAccountMode}`);
+
+          // Update user's premium status, store stripe_customer_id, and update account_mode
           const { error } = await supabase
             .from("profiles")
             .update({
               is_premium: true,
               premium_expires_at: expiresAt.toISOString(),
               stripe_customer_id: customerId,
+              account_mode: newAccountMode,
             })
             .eq("id", userId);
 
           if (error) {
             console.error("Error updating user premium status:", error);
           } else {
-            console.log("Updated premium status and customer ID for user:", userId);
+            console.log(`Updated premium status, customer ID, and account_mode to '${newAccountMode}' for user:`, userId);
           }
         }
         break;
@@ -103,14 +115,37 @@ serve(async (req) => {
         if (userId) {
           const isActive = subscription.status === "active" || subscription.status === "trialing";
           
+          // Get the price/product to determine the plan
+          const priceId = subscription.items.data[0]?.price?.id;
+          let newAccountMode: 'fishing' | 'both' | null = null;
+          
+          if (priceId) {
+            // Try to determine plan from price metadata or product
+            const price = await stripe.prices.retrieve(priceId, { expand: ['product'] });
+            const product = price.product as Stripe.Product;
+            const planId = product.metadata?.plan_id;
+            
+            if (planId && planToAccountMode[planId]) {
+              newAccountMode = planToAccountMode[planId];
+            }
+          }
+          
+          const updateData: Record<string, unknown> = {
+            is_premium: isActive,
+            premium_expires_at: isActive 
+              ? new Date(subscription.current_period_end * 1000).toISOString()
+              : null,
+          };
+          
+          // Only update account_mode if we determined a new mode and subscription is active
+          if (isActive && newAccountMode) {
+            updateData.account_mode = newAccountMode;
+            console.log(`Updating account_mode to ${newAccountMode} for user ${userId}`);
+          }
+          
           const { error } = await supabase
             .from("profiles")
-            .update({
-              is_premium: isActive,
-              premium_expires_at: isActive 
-                ? new Date(subscription.current_period_end * 1000).toISOString()
-                : null,
-            })
+            .update(updateData)
             .eq("id", userId);
 
           if (error) {
@@ -130,18 +165,20 @@ serve(async (req) => {
         const userId = customer.metadata?.supabase_user_id;
         
         if (userId) {
+          // When subscription is cancelled, set account_mode back to 'dating' (free tier)
           const { error } = await supabase
             .from("profiles")
             .update({
               is_premium: false,
               premium_expires_at: null,
+              account_mode: 'dating', // Downgrade to free dating mode
             })
             .eq("id", userId);
 
           if (error) {
             console.error("Error cancelling subscription:", error);
           } else {
-            console.log("Cancelled subscription for user:", userId);
+            console.log("Cancelled subscription and reset account_mode to 'dating' for user:", userId);
           }
         }
         break;

@@ -670,79 +670,155 @@ export default function Settings() {
               </Card>
             )}
 
-            {/* Subscription Tab - Only show for fishing/both accounts */}
+            {/* Subscription Tab */}
             {activeTab === "subscription" && (
-              <Card>
-                <CardContent className="p-6 space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-1">Subscription</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Manage your subscription and billing.
-                    </p>
-                  </div>
-
-                  {accountMode === 'dating' ? (
-                    <div className="p-4 bg-primary/10 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Heart className="h-5 w-5 text-primary" />
-                        <span className="font-semibold">Free Dating Account</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Dating features are completely free! Enjoy unlimited matches and messaging.
-                      </p>
+              <div className="space-y-6">
+                {/* Current Plan Card */}
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold">Current Plan</h3>
+                      {isPremium && (
+                        <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+                          ACTIVE
+                        </span>
+                      )}
                     </div>
-                  ) : isPremium ? (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-primary/10 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Star className="h-5 w-5 text-primary" />
-                          <span className="font-semibold">Gold Member</span>
+                    
+                    {originalAccountMode === 'dating' ? (
+                      <div className="p-4 rounded-xl bg-muted/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 rounded-lg bg-pink-100">
+                            <Heart className="h-5 w-5 text-pink-500" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Free Dating Account</h4>
+                            <p className="text-sm text-muted-foreground">Unlimited matches and messaging</p>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          You have access to all premium features.
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Enjoy free dating features! Upgrade to access fishing spots, maps, and more.
                         </p>
-                        {premiumExpiresAt && (
-                          <p className="text-xs text-muted-foreground mt-2">
-                            Renews on {format(new Date(premiumExpiresAt), "MMMM d, yyyy")}
-                          </p>
+                        <Button asChild className="w-full">
+                          <Link to="/pricing">Upgrade to Premium</Link>
+                        </Button>
+                      </div>
+                    ) : isPremium ? (
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 rounded-lg bg-primary/20">
+                              <Star className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">
+                                {originalAccountMode === 'both' ? 'Trophy Member' : 'Angler Member'}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">
+                                {originalAccountMode === 'both' 
+                                  ? 'Full access to fishing + dating features' 
+                                  : 'Access to all fishing features'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Billing Info */}
+                          {premiumExpiresAt && (
+                            <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Next billing date</span>
+                                <span className="font-medium">{format(new Date(premiumExpiresAt), "MMMM d, yyyy")}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Plan type</span>
+                                <span className="font-medium capitalize">{originalAccountMode === 'both' ? 'Combo' : 'Fishing Only'}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Upgrade Option for Angler users */}
+                        {originalAccountMode === 'fishing' && (
+                          <div className="p-4 rounded-xl border border-dashed border-primary/50 bg-primary/5">
+                            <div className="flex items-start gap-3">
+                              <Layers className="h-5 w-5 text-primary mt-0.5" />
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-sm">Upgrade to Trophy</h4>
+                                <p className="text-xs text-muted-foreground mb-3">
+                                  Add dating features to your fishing subscription
+                                </p>
+                                <Button asChild size="sm" variant="outline">
+                                  <Link to="/pricing">View Upgrade Options</Link>
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
-
+                    ) : (
+                      <div className="p-4 rounded-xl bg-muted/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 rounded-lg bg-muted">
+                            <Fish className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">No Active Subscription</h4>
+                            <p className="text-sm text-muted-foreground">Your premium access has expired</p>
+                          </div>
+                        </div>
+                        <Button asChild className="w-full">
+                          <Link to="/pricing">Renew Subscription</Link>
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Manage Subscription Card */}
+                {isPremium && (
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold mb-4">Manage Subscription</h3>
                       <div className="space-y-3">
                         <Button
                           onClick={() => openPortal()}
                           disabled={portalLoading}
-                          className="w-full sm:w-auto"
+                          variant="outline"
+                          className="w-full justify-start"
                         >
                           {portalLoading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Opening Portal...
-                            </>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           ) : (
-                            <>
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Manage Subscription
-                            </>
+                            <CreditCard className="h-4 w-4 mr-2" />
                           )}
+                          Update Payment Method
                         </Button>
-                        <p className="text-xs text-muted-foreground">
-                          Update payment method, view invoices, or cancel your subscription.
-                        </p>
+                        <Button
+                          onClick={() => openPortal()}
+                          disabled={portalLoading}
+                          variant="outline"
+                          className="w-full justify-start"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Billing History
+                        </Button>
+                        <Button
+                          onClick={() => openPortal()}
+                          disabled={portalLoading}
+                          variant="outline"
+                          className="w-full justify-start text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Cancel Subscription
+                        </Button>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <p className="text-sm">
-                        You're currently on the free plan. Upgrade to Gold to unlock premium fishing features.
+                      <p className="text-xs text-muted-foreground mt-4">
+                        Manage your subscription through our secure billing portal powered by Stripe.
                       </p>
-                      <Button asChild>
-                        <Link to="/pricing">Upgrade to Gold</Link>
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             )}
 
             {/* Action Buttons */}
