@@ -115,11 +115,16 @@ export default function AdminAds() {
   const activeAds = ads.filter(ad => ad.is_active).length;
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Advertisements</h1>
-          <p className="text-muted-foreground">Manage sponsored posts and ads</p>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Megaphone className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Advertisements</h1>
+            <p className="text-slate-400">Manage sponsored posts and ads</p>
+          </div>
         </div>
         <Button onClick={handleCreate} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -129,62 +134,62 @@ export default function AdminAds() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Ads</CardTitle>
-            <Megaphone className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-300">Total Ads</CardTitle>
+            <Megaphone className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ads.length}</div>
+            <div className="text-2xl font-bold text-white">{ads.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Ads</CardTitle>
-            <Power className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-300">Active Ads</CardTitle>
+            <Power className="h-4 w-4 text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeAds}</div>
+            <div className="text-2xl font-bold text-white">{activeAds}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Impressions</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-300">Total Impressions</CardTitle>
+            <Eye className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-white">{totalImpressions.toLocaleString()}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
-            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-300">Total Clicks</CardTitle>
+            <MousePointerClick className="h-4 w-4 text-amber-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-white">{totalClicks.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-slate-800/50 border-slate-700">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Search ads..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
               />
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px] bg-slate-900 border-slate-600 text-white">
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-slate-900 border-slate-700">
                 <SelectItem value="all">All Types</SelectItem>
                 {Object.entries(adTypeLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>{label}</SelectItem>
@@ -192,10 +197,10 @@ export default function AdminAds() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px] bg-slate-900 border-slate-600 text-white">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-slate-900 border-slate-700">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
@@ -206,19 +211,19 @@ export default function AdminAds() {
       </Card>
 
       {/* Ads Table */}
-      <Card>
+      <Card className="bg-slate-800/50 border-slate-700">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-4 space-y-4">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
+                <Skeleton key={i} className="h-16 w-full bg-slate-700" />
               ))}
             </div>
           ) : ads.length === 0 ? (
             <div className="text-center py-12">
-              <Megaphone className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">No advertisements found</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <Megaphone className="h-12 w-12 text-slate-500 mx-auto mb-4" />
+              <h3 className="font-semibold mb-2 text-white">No advertisements found</h3>
+              <p className="text-sm text-slate-400 mb-4">
                 Create your first ad to start promoting content in the feed.
               </p>
               <Button onClick={handleCreate}>
@@ -230,15 +235,15 @@ export default function AdminAds() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Ad</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Sponsor</TableHead>
-                    <TableHead>Schedule</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Impressions</TableHead>
-                    <TableHead className="text-center">Clicks</TableHead>
-                    <TableHead className="text-center">CTR</TableHead>
+                  <TableRow className="border-slate-700 hover:bg-slate-800/50">
+                    <TableHead className="text-slate-300">Ad</TableHead>
+                    <TableHead className="text-slate-300">Type</TableHead>
+                    <TableHead className="text-slate-300">Sponsor</TableHead>
+                    <TableHead className="text-slate-300">Schedule</TableHead>
+                    <TableHead className="text-slate-300">Status</TableHead>
+                    <TableHead className="text-center text-slate-300">Impressions</TableHead>
+                    <TableHead className="text-center text-slate-300">Clicks</TableHead>
+                    <TableHead className="text-center text-slate-300">CTR</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -250,7 +255,7 @@ export default function AdminAds() {
                       : '0.00';
 
                     return (
-                      <TableRow key={ad.id}>
+                      <TableRow key={ad.id} className="border-slate-700 hover:bg-slate-800/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             {ad.photos[0] ? (
@@ -260,14 +265,14 @@ export default function AdminAds() {
                                 className="w-12 h-12 rounded-lg object-cover"
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                                <Megaphone className="h-5 w-5 text-muted-foreground" />
+                              <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center">
+                                <Megaphone className="h-5 w-5 text-slate-400" />
                               </div>
                             )}
                             <div>
-                              <p className="font-medium line-clamp-1">{ad.title}</p>
+                              <p className="font-medium line-clamp-1 text-white">{ad.title}</p>
                               {ad.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                <p className="text-sm text-slate-400 line-clamp-1">
                                   {ad.description}
                                 </p>
                               )}
@@ -275,7 +280,7 @@ export default function AdminAds() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="border-slate-600 text-slate-300">
                             {adTypeLabels[ad.ad_type as AdType] || ad.ad_type}
                           </Badge>
                         </TableCell>
@@ -288,11 +293,11 @@ export default function AdminAds() {
                                 className="w-6 h-6 rounded-full object-cover"
                               />
                             )}
-                            <span className="text-sm">{ad.sponsor_name}</span>
+                            <span className="text-sm text-slate-300">{ad.sponsor_name}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1 text-sm text-slate-400">
                             <Calendar className="h-3 w-3" />
                             <span>{format(new Date(ad.start_date), 'MMM d')}</span>
                             {ad.end_date && (
@@ -306,13 +311,13 @@ export default function AdminAds() {
                         <TableCell>
                           <Badge variant={status.variant}>{status.label}</Badge>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center text-slate-300">
                           {ad.impressions.toLocaleString()}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center text-slate-300">
                           {ad.clicks.toLocaleString()}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center text-slate-300">
                           {ctr}%
                         </TableCell>
                         <TableCell>
