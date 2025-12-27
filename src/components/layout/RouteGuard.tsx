@@ -1,6 +1,7 @@
-import { Navigate, useOutletContext, useLocation } from 'react-router-dom';
-import { ReactNode, useState, useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { ReactNode, useState } from 'react';
 import { UpgradeModal } from '@/components/upgrade/UpgradeModal';
+import { useActiveMode } from '@/contexts/ActiveModeContext';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 
@@ -8,10 +9,6 @@ interface RouteGuardProps {
   children: ReactNode;
   allowedModes: AccountMode[];
   redirectBothToHome?: boolean;
-}
-
-interface OutletContext {
-  accountMode: AccountMode;
 }
 
 // Map routes to feature names for the upgrade modal
@@ -25,22 +22,22 @@ const routeFeatureNames: Record<string, string> = {
 };
 
 export function RouteGuard({ children, allowedModes, redirectBothToHome = false }: RouteGuardProps) {
-  const { accountMode } = useOutletContext<OutletContext>();
+  // Use baseAccountMode to check actual subscription, not the view mode
+  const { baseAccountMode, isComboUser } = useActiveMode();
   const location = useLocation();
-  const [showUpgrade, setShowUpgrade] = useState(false);
 
-  // For 'both' mode users on dating-specific pages like /app/discover, redirect to dashboard
-  if (accountMode === 'both' && redirectBothToHome && location.pathname === '/app/discover') {
-    return <Navigate to="/app/dashboard" replace />;
+  // Combo users always have access to everything regardless of their view preference
+  if (isComboUser) {
+    return <>{children}</>;
   }
 
-  // 'both' mode has access to everything
-  if (accountMode === 'both' || allowedModes.includes(accountMode)) {
+  // Non-combo users: check if their base account mode is allowed
+  if (allowedModes.includes(baseAccountMode)) {
     return <>{children}</>;
   }
 
   // Dating users trying to access fishing features - show upgrade modal
-  if (accountMode === 'dating' && allowedModes.includes('fishing')) {
+  if (baseAccountMode === 'dating' && allowedModes.includes('fishing')) {
     // Find the feature name for this route
     const featureName = Object.entries(routeFeatureNames).find(([path]) => 
       location.pathname.startsWith(path)
@@ -52,7 +49,7 @@ export function RouteGuard({ children, allowedModes, redirectBothToHome = false 
   }
 
   // Redirect to appropriate default page based on account mode
-  const defaultRoute = accountMode === 'dating' ? '/app/discover' : '/app/spots';
+  const defaultRoute = baseAccountMode === 'dating' ? '/app/discover' : '/app/spots';
   return <Navigate to={defaultRoute} replace />;
 }
 
