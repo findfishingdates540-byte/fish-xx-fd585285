@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, Anchor, History } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, Anchor, History, Megaphone } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +41,10 @@ const navItems = [{
   to: '/admin/reports',
   icon: AlertTriangle,
   label: 'Reports'
+}, {
+  to: '/admin/ads',
+  icon: Megaphone,
+  label: 'Advertisements'
 }];
 
 const bottomItems = [{

@@ -35,7 +35,10 @@ export type AuditAction =
   | 'species_created'
   | 'species_updated'
   | 'species_deleted'
-  | 'report_resolved';
+  | 'report_resolved'
+  | 'create'
+  | 'update'
+  | 'delete';
 
 export type EntityType = 
   | 'user'
@@ -45,7 +48,8 @@ export type EntityType =
   | 'post'
   | 'trip'
   | 'species'
-  | 'report';
+  | 'report'
+  | 'advertisement';
 
 interface CreateAuditLogParams {
   action: AuditAction;
