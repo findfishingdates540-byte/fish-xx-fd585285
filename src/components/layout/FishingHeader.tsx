@@ -25,6 +25,7 @@ const fishingNavItems = [
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/buddies", label: "Buddies", badgeType: "buddyRequests" as const },
+  { to: "/app/buddy-messages", label: "Messages", badgeType: "messages" as const },
   { to: "/app/catches", label: "Catches" },
 ];
 
@@ -187,6 +188,14 @@ export function FishingHeader() {
                     className="absolute -top-2 -right-4 h-5 min-w-5 flex items-center justify-center text-xs px-1"
                   >
                     {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                  </Badge>
+                )}
+                {item.badgeType === "messages" && unreadMessagesCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-4 h-5 min-w-5 flex items-center justify-center text-xs px-1"
+                  >
+                    {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
                   </Badge>
                 )}
               </NavLink>
