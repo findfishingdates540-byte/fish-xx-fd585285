@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, Anchor } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, Anchor, History } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +44,10 @@ const navItems = [{
 }];
 
 const bottomItems = [{
+  to: '/admin/audit-logs',
+  icon: History,
+  label: 'Audit Logs'
+}, {
   to: '/admin/settings',
   icon: Settings,
   label: 'Settings'

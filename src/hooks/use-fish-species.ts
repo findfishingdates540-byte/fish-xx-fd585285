@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuditAction } from './use-audit-logs';
 
 export interface FishSpecies {
   id: string;
@@ -36,6 +37,7 @@ export function useFishSpecies() {
 
 export function useCreateFishSpecies() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async (input: FishSpeciesInput) => {
@@ -53,9 +55,10 @@ export function useCreateFishSpecies() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['fish-species'] });
       toast.success('Fish species added successfully');
+      await logAction('species_created', 'species', data.id, { name: data.name });
     },
     onError: (error) => {
       toast.error(`Failed to add species: ${error.message}`);
@@ -65,6 +68,7 @@ export function useCreateFishSpecies() {
 
 export function useUpdateFishSpecies() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ id, input }: { id: string; input: FishSpeciesInput }) => {
@@ -83,9 +87,10 @@ export function useUpdateFishSpecies() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['fish-species'] });
       toast.success('Fish species updated successfully');
+      await logAction('species_updated', 'species', data.id, { name: data.name });
     },
     onError: (error) => {
       toast.error(`Failed to update species: ${error.message}`);
@@ -95,6 +100,7 @@ export function useUpdateFishSpecies() {
 
 export function useDeleteFishSpecies() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -104,10 +110,12 @@ export function useDeleteFishSpecies() {
         .eq('id', id);
 
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: async (id) => {
       queryClient.invalidateQueries({ queryKey: ['fish-species'] });
       toast.success('Fish species deleted successfully');
+      await logAction('species_deleted', 'species', id);
     },
     onError: (error) => {
       toast.error(`Failed to delete species: ${error.message}`);

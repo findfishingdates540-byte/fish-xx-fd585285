@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
+import { useAuditAction } from './use-audit-logs';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -65,6 +66,7 @@ export function useUserRole(userId: string) {
 
 export function useBanUser() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ userId, banned }: { userId: string; banned: boolean }) => {
@@ -74,10 +76,17 @@ export function useBanUser() {
         .eq('id', userId);
 
       if (error) throw error;
+      return { userId, banned };
     },
-    onSuccess: (_, { banned }) => {
+    onSuccess: async ({ userId, banned }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success(banned ? 'User banned successfully' : 'User unbanned successfully');
+      await logAction(
+        banned ? 'user_banned' : 'user_unbanned',
+        'user',
+        userId,
+        { action: banned ? 'banned' : 'unbanned' }
+      );
     },
     onError: (error) => {
       toast.error(`Failed to update user: ${error.message}`);
@@ -87,6 +96,7 @@ export function useBanUser() {
 
 export function useChangeUserRole() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
@@ -113,11 +123,13 @@ export function useChangeUserRole() {
         
         if (error) throw error;
       }
+      return { userId, role };
     },
-    onSuccess: (_, { userId }) => {
+    onSuccess: async ({ userId, role }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['user-role', userId] });
       toast.success('User role updated successfully');
+      await logAction('role_changed', 'user', userId, { newRole: role });
     },
     onError: (error) => {
       toast.error(`Failed to update role: ${error.message}`);
@@ -127,6 +139,7 @@ export function useChangeUserRole() {
 
 export function useManagePremium() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ 
@@ -147,10 +160,17 @@ export function useManagePremium() {
         .eq('id', userId);
 
       if (error) throw error;
+      return { userId, isPremium, expiresAt };
     },
-    onSuccess: (_, { isPremium }) => {
+    onSuccess: async ({ userId, isPremium, expiresAt }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success(isPremium ? 'Premium status granted' : 'Premium status revoked');
+      await logAction(
+        isPremium ? 'premium_granted' : 'premium_revoked',
+        'user',
+        userId,
+        { isPremium, expiresAt }
+      );
     },
     onError: (error) => {
       toast.error(`Failed to update premium status: ${error.message}`);

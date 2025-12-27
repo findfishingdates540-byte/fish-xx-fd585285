@@ -29,7 +29,7 @@ import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
 import { AdminLayout } from "@/components/admin";
-import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminTrips } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminTrips, AdminAuditLogs } from "./pages/admin";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +108,7 @@ const App = () => (
               <Route path="trips" element={<AdminTrips />} />
               <Route path="matches" element={<AdminMatches />} />
               <Route path="reports" element={<AdminReports />} />
+              <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
