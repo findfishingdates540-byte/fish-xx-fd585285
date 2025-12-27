@@ -65,6 +65,7 @@ export default function Settings() {
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [accountMode, setAccountMode] = useState<AccountMode>("both");
+  const [originalAccountMode, setOriginalAccountMode] = useState<AccountMode>("both");
   const [photos, setPhotos] = useState<string[]>([]);
   const [isVerified, setIsVerified] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -109,6 +110,7 @@ export default function Settings() {
       setEmail(data.email || user.email || "");
       setBio(data.bio || "");
       setAccountMode(data.account_mode || "both");
+      setOriginalAccountMode(data.account_mode || "both");
       setPhotos(data.photos || []);
       setIsVerified(data.is_verified || false);
       setIsPremium(data.is_premium || false);
@@ -352,7 +354,7 @@ export default function Settings() {
                 </Card>
 
                 {/* Current Mode - Only show switcher for Combo users */}
-                {accountMode === 'both' ? (
+                {originalAccountMode === 'both' ? (
                   <Card>
                     <CardContent className="p-6">
                       <h3 className="font-semibold mb-1">Current View</h3>
@@ -401,13 +403,13 @@ export default function Settings() {
                     <CardContent className="p-6">
                       <h3 className="font-semibold mb-1">Account Type</h3>
                       <div className="flex items-center gap-3 mb-4">
-                        {accountMode === 'dating' ? <Heart className="h-5 w-5 text-primary" /> : <Fish className="h-5 w-5 text-primary" />}
+                        {originalAccountMode === 'dating' ? <Heart className="h-5 w-5 text-primary" /> : <Fish className="h-5 w-5 text-primary" />}
                         <span className="font-medium">
-                          {accountMode === 'dating' ? 'Dating Account' : 'Fishing Account (Angler)'}
+                          {originalAccountMode === 'dating' ? 'Dating Account' : 'Fishing Account (Angler)'}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mb-4">
-                        {accountMode === 'dating' 
+                        {originalAccountMode === 'dating' 
                           ? 'Upgrade to access fishing spots and maps, or get everything with Combo!'
                           : 'Upgrade to Combo to unlock dating features alongside your fishing tools!'}
                       </p>
@@ -491,7 +493,7 @@ export default function Settings() {
 
             {/* App Mode Tab - Only for Combo users */}
             {activeTab === "app-mode" && (
-              accountMode === 'both' ? (
+              originalAccountMode === 'both' ? (
                 <Card>
                   <CardContent className="p-6 space-y-6">
                     <div>
@@ -547,23 +549,23 @@ export default function Settings() {
                     <div>
                       <h3 className="font-semibold mb-1">Account Type</h3>
                       <p className="text-sm text-muted-foreground">
-                        {accountMode === 'dating' 
+                        {originalAccountMode === 'dating' 
                           ? "You're on a free Dating account. Upgrade to unlock more features!"
                           : "You're on an Angler subscription. Upgrade to Combo to unlock dating!"}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                      {accountMode === 'dating' ? <Heart className="h-6 w-6 text-primary" /> : <Fish className="h-6 w-6 text-primary" />}
+                      {originalAccountMode === 'dating' ? <Heart className="h-6 w-6 text-primary" /> : <Fish className="h-6 w-6 text-primary" />}
                       <div>
-                        <p className="font-medium">{accountMode === 'dating' ? 'Dating Account' : 'Angler Subscription'}</p>
+                        <p className="font-medium">{originalAccountMode === 'dating' ? 'Dating Account' : 'Angler Subscription'}</p>
                         <p className="text-sm text-muted-foreground">
-                          {accountMode === 'dating' ? 'Free tier - dating features only' : 'Fishing spots, buddies & trips'}
+                          {originalAccountMode === 'dating' ? 'Free tier - dating features only' : 'Fishing spots, buddies & trips'}
                         </p>
                       </div>
                     </div>
                     <Button asChild className="w-full">
                       <Link to="/pricing">
-                        {accountMode === 'dating' ? 'Upgrade to Angler or Combo' : 'Upgrade to Combo'}
+                        {originalAccountMode === 'dating' ? 'Upgrade to Angler or Combo' : 'Upgrade to Combo'}
                       </Link>
                     </Button>
                   </CardContent>
