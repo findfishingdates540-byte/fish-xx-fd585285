@@ -8,7 +8,7 @@ import { useFeedPosts, type FeedPost as FeedPostType } from '@/hooks/use-feed';
 import { useActiveAds, type Advertisement } from '@/hooks/use-admin-ads';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
 type FeedItem = 
@@ -19,8 +19,26 @@ export default function Feed() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const { user } = useAuth();
   const { data: posts = [], isLoading: postsLoading, refetch } = useFeedPosts();
-  const { data: ads = [] } = useActiveAds();
   const queryClient = useQueryClient();
+
+  // Fetch user profile for ad targeting
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile-for-ads', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('gender, date_of_birth, fishing_experience, interests, location_lat, location_lng')
+        .eq('id', user.id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch targeted ads based on user profile
+  const { data: ads = [] } = useActiveAds(userProfile);
 
   // Intersperse ads with posts (every 5th position)
   const feedItems = useMemo((): FeedItem[] => {

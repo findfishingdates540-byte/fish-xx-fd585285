@@ -23,6 +23,15 @@ export interface Advertisement {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Targeting fields
+  target_genders: string[] | null;
+  target_age_min: number | null;
+  target_age_max: number | null;
+  target_experience_levels: string[] | null;
+  target_interests: string[] | null;
+  target_location_radius_miles: number | null;
+  target_location_lat: number | null;
+  target_location_lng: number | null;
   fishing_spots?: {
     id: string;
     name: string;
@@ -221,9 +230,16 @@ export function useTrackAdClick() {
   });
 }
 
-export function useActiveAds() {
+export function useActiveAds(userProfile?: {
+  gender?: string | null;
+  date_of_birth?: string | null;
+  fishing_experience?: string | null;
+  interests?: string[] | null;
+  location_lat?: number | null;
+  location_lng?: number | null;
+} | null) {
   return useQuery({
-    queryKey: ['active-ads'],
+    queryKey: ['active-ads', userProfile?.gender, userProfile?.date_of_birth, userProfile?.fishing_experience],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       
@@ -236,7 +252,72 @@ export function useActiveAds() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Advertisement[];
+      
+      // Filter ads based on user targeting
+      let filteredAds = (data as Advertisement[]) || [];
+      
+      if (userProfile) {
+        filteredAds = filteredAds.filter(ad => {
+          // Gender targeting
+          if (ad.target_genders && ad.target_genders.length > 0) {
+            if (!userProfile.gender || !ad.target_genders.includes(userProfile.gender)) {
+              return false;
+            }
+          }
+          
+          // Age targeting
+          if (ad.target_age_min || ad.target_age_max) {
+            if (!userProfile.date_of_birth) return false;
+            const birthDate = new Date(userProfile.date_of_birth);
+            const today = new Date();
+            const age = today.getFullYear() - birthDate.getFullYear();
+            
+            if (ad.target_age_min && age < ad.target_age_min) return false;
+            if (ad.target_age_max && age > ad.target_age_max) return false;
+          }
+          
+          // Experience level targeting
+          if (ad.target_experience_levels && ad.target_experience_levels.length > 0) {
+            if (!userProfile.fishing_experience || 
+                !ad.target_experience_levels.includes(userProfile.fishing_experience)) {
+              return false;
+            }
+          }
+          
+          // Interest targeting
+          if (ad.target_interests && ad.target_interests.length > 0) {
+            if (!userProfile.interests || userProfile.interests.length === 0) return false;
+            const hasMatchingInterest = ad.target_interests.some(
+              interest => userProfile.interests?.includes(interest)
+            );
+            if (!hasMatchingInterest) return false;
+          }
+          
+          // Location targeting
+          if (ad.target_location_radius_miles && 
+              ad.target_location_lat && 
+              ad.target_location_lng) {
+            if (!userProfile.location_lat || !userProfile.location_lng) return false;
+            
+            // Calculate distance using Haversine formula
+            const R = 3959; // Earth's radius in miles
+            const dLat = (userProfile.location_lat - ad.target_location_lat) * Math.PI / 180;
+            const dLng = (userProfile.location_lng - ad.target_location_lng) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(ad.target_location_lat * Math.PI / 180) * 
+                      Math.cos(userProfile.location_lat * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            
+            if (distance > ad.target_location_radius_miles) return false;
+          }
+          
+          return true;
+        });
+      }
+      
+      return filteredAds;
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
