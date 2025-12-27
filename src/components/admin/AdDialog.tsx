@@ -234,9 +234,9 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
         <DialogHeader>
-          <DialogTitle>{ad ? 'Edit Advertisement' : 'Create Advertisement'}</DialogTitle>
+          <DialogTitle className="text-white">{ad ? 'Edit Advertisement' : 'Create Advertisement'}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -247,9 +247,9 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title *</FormLabel>
+                    <FormLabel className="text-slate-200">Title *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ad title" {...field} />
+                      <Input placeholder="Ad title" className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -261,16 +261,16 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                 name="ad_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ad Type *</FormLabel>
+                    <FormLabel className="text-slate-200">Ad Type *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-slate-800 border-slate-600">
                         {Object.entries(adTypeLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
+                          <SelectItem key={value} value={value} className="text-white hover:bg-slate-700 focus:bg-slate-700">
                             {label}
                           </SelectItem>
                         ))}
@@ -287,11 +287,11 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className="text-slate-200">Description</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Ad description..." 
-                      className="resize-none" 
+                      className="resize-none bg-slate-800 border-slate-600 text-white placeholder:text-slate-400" 
                       rows={3}
                       {...field} 
                     />
@@ -303,7 +303,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
 
             {/* Photos */}
             <div className="space-y-2">
-              <FormLabel>Photos</FormLabel>
+              <FormLabel className="text-slate-200">Photos</FormLabel>
               <div className="flex flex-wrap gap-2">
                 {photos.map((photo, index) => (
                   <div key={index} className="relative w-20 h-20">
@@ -321,7 +321,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                     </button>
                   </div>
                 ))}
-                <label className="w-20 h-20 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                <label className="w-20 h-20 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -331,25 +331,25 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                     disabled={uploading}
                   />
                   {uploading ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                   ) : (
-                    <Upload className="h-5 w-5 text-muted-foreground" />
+                    <Upload className="h-5 w-5 text-slate-400" />
                   )}
                 </label>
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-3">Sponsor Information</h4>
+            <div className="border-t border-slate-700 pt-4">
+              <h4 className="font-medium mb-3 text-white">Sponsor Information</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="sponsor_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sponsor Name *</FormLabel>
+                      <FormLabel className="text-slate-200">Sponsor Name *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Company name" {...field} />
+                        <Input placeholder="Company name" className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -361,9 +361,9 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                   name="sponsor_logo"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sponsor Logo URL</FormLabel>
+                      <FormLabel className="text-slate-200">Sponsor Logo URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://..." {...field} />
+                        <Input placeholder="https://..." className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -375,9 +375,9 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                   name="website_url"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Website URL</FormLabel>
+                      <FormLabel className="text-slate-200">Website URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://..." {...field} />
+                        <Input placeholder="https://..." className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -386,17 +386,17 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-3">Call to Action</h4>
+            <div className="border-t border-slate-700 pt-4">
+              <h4 className="font-medium mb-3 text-white">Call to Action</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="cta_text"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Button Text</FormLabel>
+                      <FormLabel className="text-slate-200">Button Text</FormLabel>
                       <FormControl>
-                        <Input placeholder="Learn More" {...field} />
+                        <Input placeholder="Learn More" className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -408,9 +408,9 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                   name="cta_url"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Button URL</FormLabel>
+                      <FormLabel className="text-slate-200">Button URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://..." {...field} />
+                        <Input placeholder="https://..." className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -419,17 +419,17 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-3">Schedule</h4>
+            <div className="border-t border-slate-700 pt-4">
+              <h4 className="font-medium mb-3 text-white">Schedule</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="start_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date *</FormLabel>
+                      <FormLabel className="text-slate-200">Start Date *</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" className="bg-slate-800 border-slate-600 text-white" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -441,9 +441,9 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                   name="end_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Date (optional)</FormLabel>
+                      <FormLabel className="text-slate-200">End Date (optional)</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" className="bg-slate-800 border-slate-600 text-white" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -453,16 +453,16 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
             </div>
 
             {/* Targeting Section */}
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-3">Audience Targeting (Optional)</h4>
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="border-t border-slate-700 pt-4">
+              <h4 className="font-medium mb-3 text-white">Audience Targeting (Optional)</h4>
+              <p className="text-sm text-slate-400 mb-4">
                 Leave empty to show to all users
               </p>
               
               <div className="space-y-4">
                 {/* Gender Targeting */}
                 <div className="space-y-2">
-                  <FormLabel>Target Genders</FormLabel>
+                  <FormLabel className="text-slate-200">Target Genders</FormLabel>
                   <div className="flex flex-wrap gap-2">
                     {GENDER_OPTIONS.map((option) => (
                       <Button
@@ -470,6 +470,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                         type="button"
                         variant={selectedGenders.includes(option.value) ? 'default' : 'outline'}
                         size="sm"
+                        className={selectedGenders.includes(option.value) ? '' : 'border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'}
                         onClick={() => {
                           setSelectedGenders(prev =>
                             prev.includes(option.value)
@@ -491,13 +492,14 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                     name="target_age_min"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Min Age</FormLabel>
+                        <FormLabel className="text-slate-200">Min Age</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
                             placeholder="18"
                             min={18}
                             max={100}
+                            className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
@@ -512,13 +514,14 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                     name="target_age_max"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Max Age</FormLabel>
+                        <FormLabel className="text-slate-200">Max Age</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
                             placeholder="65"
                             min={18}
                             max={100}
+                            className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
@@ -532,7 +535,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
 
                 {/* Experience Level Targeting */}
                 <div className="space-y-2">
-                  <FormLabel>Target Experience Levels</FormLabel>
+                  <FormLabel className="text-slate-200">Target Experience Levels</FormLabel>
                   <div className="flex flex-wrap gap-2">
                     {EXPERIENCE_OPTIONS.map((option) => (
                       <Button
@@ -540,6 +543,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                         type="button"
                         variant={selectedExperience.includes(option.value) ? 'default' : 'outline'}
                         size="sm"
+                        className={selectedExperience.includes(option.value) ? '' : 'border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'}
                         onClick={() => {
                           setSelectedExperience(prev =>
                             prev.includes(option.value)
@@ -556,7 +560,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
 
                 {/* Interest Targeting */}
                 <div className="space-y-2">
-                  <FormLabel>Target Interests</FormLabel>
+                  <FormLabel className="text-slate-200">Target Interests</FormLabel>
                   <div className="flex flex-wrap gap-2">
                     {INTEREST_OPTIONS.map((interest) => (
                       <Button
@@ -564,6 +568,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                         type="button"
                         variant={selectedInterests.includes(interest) ? 'default' : 'outline'}
                         size="sm"
+                        className={selectedInterests.includes(interest) ? '' : 'border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'}
                         onClick={() => {
                           setSelectedInterests(prev =>
                             prev.includes(interest)
@@ -584,10 +589,10 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
               control={form.control}
               name="is_active"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex items-center justify-between rounded-lg border border-slate-700 p-4">
                   <div>
-                    <FormLabel className="text-base">Active</FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <FormLabel className="text-base text-white">Active</FormLabel>
+                    <p className="text-sm text-slate-400">
                       Enable this ad to show in the feed
                     </p>
                   </div>
@@ -602,7 +607,7 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
             />
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={onClose} className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white">
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
