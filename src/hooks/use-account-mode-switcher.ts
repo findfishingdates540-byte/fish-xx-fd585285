@@ -35,6 +35,21 @@ export function useAccountModeSwitcher(
     mutationFn: async (newMode: AccountMode) => {
       if (!user?.id) throw new Error('User not authenticated');
 
+      // Fetch current profile to validate the switch is allowed
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('account_mode')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Only combo users can switch modes
+      // Dating and Fishing users must upgrade to change their account type
+      if (profile?.account_mode !== 'both') {
+        throw new Error('Only Combo subscribers can switch modes. Please upgrade your account.');
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({ account_mode: newMode })

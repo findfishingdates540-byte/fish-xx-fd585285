@@ -351,50 +351,72 @@ export default function Settings() {
                   </CardContent>
                 </Card>
 
-                {/* Current Mode */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-1">Current Mode</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Choose how you want to use Find Fishing Dates. This affects your home feed and discovery settings.
-                    </p>
-                    <div className="grid grid-cols-3 gap-3">
-                      <button
-                        onClick={() => setAccountMode("dating")}
-                        className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                          accountMode === "dating"
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:bg-muted"
-                        }`}
-                      >
-                        <Heart className="h-4 w-4" />
-                        Dating Only
-                      </button>
-                      <button
-                        onClick={() => setAccountMode("fishing")}
-                        className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                          accountMode === "fishing"
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:bg-muted"
-                        }`}
-                      >
-                        <Fish className="h-4 w-4" />
-                        Fishing Spots
-                      </button>
-                      <button
-                        onClick={() => setAccountMode("both")}
-                        className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                          accountMode === "both"
-                            ? "border-primary bg-primary/5 text-primary"
-                            : "border-border hover:bg-muted"
-                        }`}
-                      >
-                        <Layers className="h-4 w-4" />
-                        Combo Mode
-                      </button>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Current Mode - Only show switcher for Combo users */}
+                {accountMode === 'both' ? (
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold mb-1">Current View</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Choose which features to focus on. Your Combo subscription includes everything!
+                      </p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <button
+                          onClick={() => setAccountMode("dating")}
+                          className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                            accountMode === "dating"
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border hover:bg-muted"
+                          }`}
+                        >
+                          <Heart className="h-4 w-4" />
+                          Dating View
+                        </button>
+                        <button
+                          onClick={() => setAccountMode("fishing")}
+                          className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                            accountMode === "fishing"
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border hover:bg-muted"
+                          }`}
+                        >
+                          <Fish className="h-4 w-4" />
+                          Fishing View
+                        </button>
+                        <button
+                          onClick={() => setAccountMode("both")}
+                          className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                            accountMode === "both"
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border hover:bg-muted"
+                          }`}
+                        >
+                          <Layers className="h-4 w-4" />
+                          Combo View
+                        </button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold mb-1">Account Type</h3>
+                      <div className="flex items-center gap-3 mb-4">
+                        {accountMode === 'dating' ? <Heart className="h-5 w-5 text-primary" /> : <Fish className="h-5 w-5 text-primary" />}
+                        <span className="font-medium">
+                          {accountMode === 'dating' ? 'Dating Account' : 'Fishing Account (Angler)'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {accountMode === 'dating' 
+                          ? 'Upgrade to access fishing spots and maps, or get everything with Combo!'
+                          : 'Upgrade to Combo to unlock dating features alongside your fishing tools!'}
+                      </p>
+                      <Button asChild className="w-full">
+                        <Link to="/pricing">View Upgrade Options</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Personal Information */}
                 <Card>
@@ -467,57 +489,86 @@ export default function Settings() {
               </div>
             )}
 
-            {/* App Mode Tab */}
+            {/* App Mode Tab - Only for Combo users */}
             {activeTab === "app-mode" && (
-              <Card>
-                <CardContent className="p-6 space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-1">App Mode Settings</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Customize how you use the app based on your current mode.
-                    </p>
-                  </div>
+              accountMode === 'both' ? (
+                <Card>
+                  <CardContent className="p-6 space-y-6">
+                    <div>
+                      <h3 className="font-semibold mb-1">View Preference</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Switch between Dating and Fishing views. Your Combo subscription includes everything!
+                      </p>
+                    </div>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    <button
-                      onClick={() => setAccountMode("dating")}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
-                        accountMode === "dating"
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border hover:bg-muted"
-                      }`}
-                    >
-                      <Heart className="h-6 w-6" />
-                      Dating Only
-                      <span className="text-xs text-muted-foreground font-normal">Find your catch</span>
-                    </button>
-                    <button
-                      onClick={() => setAccountMode("fishing")}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
-                        accountMode === "fishing"
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border hover:bg-muted"
-                      }`}
-                    >
-                      <Fish className="h-6 w-6" />
-                      Fishing Only
-                      <span className="text-xs text-muted-foreground font-normal">Just here for fish</span>
-                    </button>
-                    <button
-                      onClick={() => setAccountMode("both")}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
-                        accountMode === "both"
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border hover:bg-muted"
-                      }`}
-                    >
-                      <Layers className="h-6 w-6" />
-                      Combo Mode
-                      <span className="text-xs text-muted-foreground font-normal">Best of both</span>
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        onClick={() => setAccountMode("dating")}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
+                          accountMode === "dating"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-border hover:bg-muted"
+                        }`}
+                      >
+                        <Heart className="h-6 w-6" />
+                        Dating View
+                        <span className="text-xs text-muted-foreground font-normal">Find your catch</span>
+                      </button>
+                      <button
+                        onClick={() => setAccountMode("fishing")}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
+                          accountMode === "fishing"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-border hover:bg-muted"
+                        }`}
+                      >
+                        <Fish className="h-6 w-6" />
+                        Fishing View
+                        <span className="text-xs text-muted-foreground font-normal">Focus on spots</span>
+                      </button>
+                      <button
+                        onClick={() => setAccountMode("both")}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
+                          accountMode === "both"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-border hover:bg-muted"
+                        }`}
+                      >
+                        <Layers className="h-6 w-6" />
+                        Combo View
+                        <span className="text-xs text-muted-foreground font-normal">Best of both</span>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-6 space-y-6">
+                    <div>
+                      <h3 className="font-semibold mb-1">Account Type</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {accountMode === 'dating' 
+                          ? "You're on a free Dating account. Upgrade to unlock more features!"
+                          : "You're on an Angler subscription. Upgrade to Combo to unlock dating!"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+                      {accountMode === 'dating' ? <Heart className="h-6 w-6 text-primary" /> : <Fish className="h-6 w-6 text-primary" />}
+                      <div>
+                        <p className="font-medium">{accountMode === 'dating' ? 'Dating Account' : 'Angler Subscription'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {accountMode === 'dating' ? 'Free tier - dating features only' : 'Fishing spots, buddies & trips'}
+                        </p>
+                      </div>
+                    </div>
+                    <Button asChild className="w-full">
+                      <Link to="/pricing">
+                        {accountMode === 'dating' ? 'Upgrade to Angler or Combo' : 'Upgrade to Combo'}
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )
             )}
 
             {/* Discovery Tab */}

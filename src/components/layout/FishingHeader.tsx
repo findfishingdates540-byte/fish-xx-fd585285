@@ -31,7 +31,7 @@ const fishingNavItems = [
 
 export function FishingHeader() {
   const { user } = useAuth();
-  const { wasOriginallyCombo } = useActiveMode();
+  const { isComboUser } = useActiveMode();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -155,8 +155,8 @@ export function FishingHeader() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            {/* Dashboard link for originally-combo users */}
-            {wasOriginallyCombo && (
+            {/* Dashboard link for combo users viewing fishing mode */}
+            {isComboUser && (
               <NavLink
                 to="/app/dashboard"
                 className={({ isActive }) =>

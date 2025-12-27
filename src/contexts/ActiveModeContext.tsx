@@ -4,18 +4,12 @@ export type BaseAccountMode = 'dating' | 'fishing' | 'both';
 export type ActiveMode = 'unified' | 'dating' | 'fishing';
 
 const STORAGE_KEY = 'ffd-active-mode';
-const ORIGINAL_MODE_KEY = 'ffd-original-account-mode';
 
 interface ActiveModeContextType {
   // The raw account mode from the database
   baseAccountMode: BaseAccountMode;
   // Set the base account mode (updates local state after DB change)
   setBaseAccountMode: (mode: BaseAccountMode) => void;
-  // The original account mode the user registered with
-  // This helps determine if user was originally a combo user
-  originalAccountMode: BaseAccountMode;
-  // Whether the user originally registered as 'both' (combo)
-  wasOriginallyCombo: boolean;
   // The active mode the user has selected (only relevant for 'both' users)
   activeMode: ActiveMode;
   // Set the active mode
@@ -29,6 +23,9 @@ interface ActiveModeContextType {
   effectiveMode: BaseAccountMode;
   // Whether the user is currently a combo user (can switch modes)
   isComboUser: boolean;
+  // Premium status
+  isPremium: boolean;
+  premiumExpiresAt: string | null;
 }
 
 const ActiveModeContext = createContext<ActiveModeContextType | undefined>(undefined);
@@ -36,46 +33,29 @@ const ActiveModeContext = createContext<ActiveModeContextType | undefined>(undef
 interface ActiveModeProviderProps {
   children: ReactNode;
   baseAccountMode: BaseAccountMode;
+  isPremium: boolean;
+  premiumExpiresAt: string | null;
 }
 
-export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccountMode }: ActiveModeProviderProps) {
+export function ActiveModeProvider({ 
+  children, 
+  baseAccountMode: initialBaseAccountMode,
+  isPremium: initialIsPremium,
+  premiumExpiresAt: initialPremiumExpiresAt,
+}: ActiveModeProviderProps) {
   // Track base account mode locally so it can be updated after DB changes
   const [baseAccountMode, setBaseAccountModeState] = useState<BaseAccountMode>(initialBaseAccountMode);
-
-  // Track whether user was ever a combo user (persistent flag)
-  // This is simpler and more reliable than trying to track original mode
-  const [wasEverCombo, setWasEverCombo] = useState<boolean>(() => {
-    const stored = localStorage.getItem(ORIGINAL_MODE_KEY);
-    // If stored is 'both', they were a combo user at some point
-    if (stored === 'both') {
-      return true;
-    }
-    // If current mode is 'both' and nothing stored, they ARE a combo user - store it now
-    if (initialBaseAccountMode === 'both') {
-      localStorage.setItem(ORIGINAL_MODE_KEY, 'both');
-      return true;
-    }
-    // For dating/fishing only users who were never combo
-    return stored === 'dating' || stored === 'fishing' ? false : false;
-  });
-
-  // If user becomes combo (e.g., upgrades), update the flag
-  useEffect(() => {
-    if (initialBaseAccountMode === 'both' && !wasEverCombo) {
-      localStorage.setItem(ORIGINAL_MODE_KEY, 'both');
-      setWasEverCombo(true);
-    }
-  }, [initialBaseAccountMode, wasEverCombo]);
-
-  // Derive originalAccountMode from stored value or current mode for backwards compat
-  const originalAccountMode: BaseAccountMode = wasEverCombo ? 'both' : initialBaseAccountMode;
+  const [isPremium, setIsPremium] = useState(initialIsPremium);
+  const [premiumExpiresAt, setPremiumExpiresAt] = useState<string | null>(initialPremiumExpiresAt);
 
   // Sync with prop changes (e.g., from parent query refetch)
   useEffect(() => {
     setBaseAccountModeState(initialBaseAccountMode);
-  }, [initialBaseAccountMode]);
+    setIsPremium(initialIsPremium);
+    setPremiumExpiresAt(initialPremiumExpiresAt);
+  }, [initialBaseAccountMode, initialIsPremium, initialPremiumExpiresAt]);
 
-  // Wrapper to update both state and keep track of original
+  // Wrapper to update state
   const setBaseAccountMode = (mode: BaseAccountMode) => {
     setBaseAccountModeState(mode);
   };
@@ -107,7 +87,6 @@ export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccou
   };
 
   const isComboUser = baseAccountMode === 'both';
-  const wasOriginallyCombo = wasEverCombo;
 
   // Calculate effective mode
   const effectiveMode: BaseAccountMode = (() => {
@@ -131,12 +110,12 @@ export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccou
       value={{
         baseAccountMode,
         setBaseAccountMode,
-        originalAccountMode,
-        wasOriginallyCombo,
         activeMode,
         setActiveMode,
         effectiveMode,
         isComboUser,
+        isPremium,
+        premiumExpiresAt,
       }}
     >
       {children}

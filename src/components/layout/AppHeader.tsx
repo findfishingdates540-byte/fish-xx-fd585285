@@ -54,30 +54,11 @@ export function AppHeader() {
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
   
   // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser, baseAccountMode, effectiveMode, setBaseAccountMode, wasOriginallyCombo } = useActiveMode();
+  const { activeMode, setActiveMode, isComboUser, baseAccountMode, effectiveMode } = useActiveMode();
   
-  type AccountMode = Database['public']['Enums']['account_mode'];
-  
-  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
-    setBaseAccountMode(newMode);
-    // Map account mode to active mode for display
-    if (newMode === 'both') {
-      setActiveMode('unified');
-    } else if (newMode === 'dating') {
-      setActiveMode('dating');
-    } else {
-      setActiveMode('fishing');
-    }
-  }, { redirect: true }); // Enable redirect on switch
-
-  // Map activeMode to accountMode for database
+  // For combo users, this just switches their view preference (not account type)
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
-    const accountModeMap: Record<'unified' | 'dating' | 'fishing', AccountMode> = {
-      unified: 'both',
-      dating: 'dating',
-      fishing: 'fishing',
-    };
-    switchMode(accountModeMap[mode]);
+    setActiveMode(mode);
   };
   
   // Map effectiveMode to NotificationMode
@@ -309,21 +290,15 @@ export function AppHeader() {
                 <button
                   key={mode.value}
                   onClick={() => handleModeSwitch(mode.value)}
-                  disabled={isSwitching}
                   className={cn(
                     "flex items-center justify-center p-1.5 rounded-full transition-colors",
                     activeMode === mode.value
                       ? "bg-background text-primary shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                    isSwitching && "opacity-50 cursor-not-allowed"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                   title={mode.label}
                 >
-                  {isSwitching ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <mode.icon className="h-4 w-4" />
-                  )}
+                  <mode.icon className="h-4 w-4" />
                 </button>
               ))}
             </div>

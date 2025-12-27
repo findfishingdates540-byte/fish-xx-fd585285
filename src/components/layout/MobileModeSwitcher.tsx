@@ -1,47 +1,39 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Heart, Anchor, X, ArrowLeftRight, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Heart, Anchor, X, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
-import { useAccountModeSwitcher } from '@/hooks/use-account-mode-switcher';
-import type { Database } from '@/integrations/supabase/types';
-
-type AccountMode = Database['public']['Enums']['account_mode'];
 
 const modeOptions = [
-  { value: 'unified' as ActiveMode, accountMode: 'both' as AccountMode, icon: LayoutDashboard, label: 'Combo', color: 'bg-primary' },
-  { value: 'dating' as ActiveMode, accountMode: 'dating' as AccountMode, icon: Heart, label: 'Dating', color: 'bg-pink-500' },
-  { value: 'fishing' as ActiveMode, accountMode: 'fishing' as AccountMode, icon: Anchor, label: 'Fishing', color: 'bg-blue-500' },
+  { value: 'unified' as ActiveMode, icon: LayoutDashboard, label: 'Combo', color: 'bg-primary' },
+  { value: 'dating' as ActiveMode, icon: Heart, label: 'Dating', color: 'bg-pink-500' },
+  { value: 'fishing' as ActiveMode, icon: Anchor, label: 'Fishing', color: 'bg-blue-500' },
 ];
 
 export function MobileModeSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { activeMode, setActiveMode, isComboUser, wasOriginallyCombo, setBaseAccountMode } = useActiveMode();
+  const { activeMode, setActiveMode, isComboUser, isPremium, premiumExpiresAt } = useActiveMode();
 
-  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
-    setBaseAccountMode(newMode);
-    if (newMode === 'both') {
-      setActiveMode('unified');
-    } else if (newMode === 'dating') {
-      setActiveMode('dating');
-    } else {
-      setActiveMode('fishing');
-    }
-    setIsOpen(false);
-  }, { redirect: true });
+  // Check if premium is expired
+  const isPremiumExpired = premiumExpiresAt 
+    ? new Date(premiumExpiresAt).getTime() < Date.now() 
+    : false;
 
   // Hide on chat pages to avoid blocking the send button
   const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/chat/');
   
-  // Only show for combo users or originally-combo users, and not on chat pages
-  if (!isComboUser && !wasOriginallyCombo || isChatPage) {
+  // Only show for combo users who have active premium, and not on chat pages
+  // Non-combo users (dating-only, fishing-only) should NOT see the mode switcher
+  if (!isComboUser || !isPremium || isPremiumExpired || isChatPage) {
     return null;
   }
 
-  const handleModeSwitch = (mode: ActiveMode, accountMode: AccountMode) => {
-    switchMode(accountMode);
+  // For combo users, this just switches their view preference (not account type)
+  const handleModeSwitch = (mode: ActiveMode) => {
+    setActiveMode(mode);
+    setIsOpen(false);
   };
 
   const currentMode = modeOptions.find(m => m.value === activeMode) || modeOptions[0];
@@ -79,21 +71,15 @@ export function MobileModeSwitcher() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => handleModeSwitch(mode.value, mode.accountMode)}
-                  disabled={isSwitching}
+                  onClick={() => handleModeSwitch(mode.value)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-full shadow-lg transition-all",
                     activeMode === mode.value
                       ? `${mode.color} text-white`
-                      : "bg-background text-foreground border border-border hover:bg-muted",
-                    isSwitching && "opacity-50 cursor-not-allowed"
+                      : "bg-background text-foreground border border-border hover:bg-muted"
                   )}
                 >
-                  {isSwitching ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <mode.icon className="h-5 w-5" />
-                  )}
+                  <mode.icon className="h-5 w-5" />
                   <span className="font-medium text-sm whitespace-nowrap">{mode.label} Mode</span>
                 </motion.button>
               ))}
@@ -105,13 +91,11 @@ export function MobileModeSwitcher() {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(!isOpen)}
-          disabled={isSwitching}
           className={cn(
             "w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all",
             isOpen
               ? "bg-muted text-foreground rotate-0"
-              : `${currentMode.color} text-white`,
-            isSwitching && "opacity-50 cursor-not-allowed"
+              : `${currentMode.color} text-white`
           )}
         >
           <AnimatePresence mode="wait">
@@ -124,15 +108,6 @@ export function MobileModeSwitcher() {
                 transition={{ duration: 0.15 }}
               >
                 <X className="h-6 w-6" />
-              </motion.div>
-            ) : isSwitching ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <Loader2 className="h-6 w-6 animate-spin" />
               </motion.div>
             ) : (
               <motion.div
