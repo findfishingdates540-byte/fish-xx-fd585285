@@ -1,20 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FeedPost, CreatePostDialog } from '@/components/feed';
+import { FeedPost, CreatePostDialog, SponsoredPost } from '@/components/feed';
 import { FeedLeftSidebar } from '@/components/feed/FeedLeftSidebar';
 import { FeedRightSidebar } from '@/components/feed/FeedRightSidebar';
-import { useFeedPosts } from '@/hooks/use-feed';
+import { useFeedPosts, type FeedPost as FeedPostType } from '@/hooks/use-feed';
+import { useActiveAds, type Advertisement } from '@/hooks/use-admin-ads';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
+type FeedItem = 
+  | { type: 'post'; data: FeedPostType }
+  | { type: 'ad'; data: Advertisement };
+
 export default function Feed() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const { user } = useAuth();
-  const { data: posts = [], isLoading, refetch } = useFeedPosts();
+  const { data: posts = [], isLoading: postsLoading, refetch } = useFeedPosts();
+  const { data: ads = [] } = useActiveAds();
   const queryClient = useQueryClient();
+
+  // Intersperse ads with posts (every 5th position)
+  const feedItems = useMemo((): FeedItem[] => {
+    if (posts.length === 0) return [];
+    
+    const items: FeedItem[] = [];
+    let adIndex = 0;
+    const adInterval = 5; // Show an ad every 5 posts
+    
+    posts.forEach((post, index) => {
+      items.push({ type: 'post', data: post });
+      
+      // Insert an ad after every 5 posts if we have ads available
+      if ((index + 1) % adInterval === 0 && adIndex < ads.length) {
+        items.push({ type: 'ad', data: ads[adIndex] });
+        adIndex++;
+      }
+    });
+    
+    return items;
+  }, [posts, ads]);
 
   // Real-time subscription for new posts
   useEffect(() => {
@@ -79,7 +106,7 @@ export default function Feed() {
                     </div>
                   )}
 
-                  {isLoading ? (
+                  {postsLoading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="bg-background rounded-xl border animate-pulse">
@@ -98,7 +125,7 @@ export default function Feed() {
                         </div>
                       ))}
                     </div>
-                  ) : posts.length === 0 ? (
+                  ) : feedItems.length === 0 ? (
                     <div className="text-center py-16 bg-background rounded-xl border">
                       <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                         <Plus className="h-8 w-8 text-muted-foreground" />
@@ -114,8 +141,12 @@ export default function Feed() {
                       )}
                     </div>
                   ) : (
-                    posts.map((post) => (
-                      <FeedPost key={post.id} post={post} />
+                    feedItems.map((item, index) => (
+                      item.type === 'post' ? (
+                        <FeedPost key={`post-${item.data.id}`} post={item.data} />
+                      ) : (
+                        <SponsoredPost key={`ad-${item.data.id}-${index}`} ad={item.data} />
+                      )
                     ))
                   )}
                 </div>
