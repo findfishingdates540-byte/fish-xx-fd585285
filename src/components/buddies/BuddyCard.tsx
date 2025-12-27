@@ -41,6 +41,13 @@ export function BuddyCard({
     expert: 'Expert'
   };
 
+  const formatSpecies = (species: string) => {
+    return species
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   const handleCardClick = () => {
     navigate(`/app/profile/${profile.id}`);
   };
@@ -112,7 +119,7 @@ export function BuddyCard({
           <div className="flex flex-wrap gap-1">
             {profile.preferred_species.slice(0, 3).map((species) => (
               <Badge key={species} variant="outline" className="text-xs">
-                {species}
+                {formatSpecies(species)}
               </Badge>
             ))}
             {profile.preferred_species.length > 3 && (
