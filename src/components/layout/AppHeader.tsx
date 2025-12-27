@@ -285,7 +285,7 @@ export function AppHeader() {
         <div className="flex items-center gap-2">
           {/* Mode Switcher for Combo Users */}
           {isComboUser && (
-            <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
+            <div className="hidden sm:flex bg-muted rounded-full p-0.5 gap-0.5">
               {modeOptions.map((mode) => (
                 <button
                   key={mode.value}
