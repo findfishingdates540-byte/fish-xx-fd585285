@@ -16,6 +16,10 @@ import {
   Calendar,
   Shield,
   AlertTriangle,
+  Megaphone,
+  Plus,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { useAuditLogs, type AuditAction, type EntityType } from '@/hooks/use-audit-logs';
 import { format } from 'date-fns';
@@ -38,6 +42,9 @@ const actionLabels: Record<AuditAction, { label: string; color: string }> = {
   species_updated: { label: 'Species Updated', color: 'bg-blue-500/20 text-blue-400' },
   species_deleted: { label: 'Species Deleted', color: 'bg-red-500/20 text-red-400' },
   report_resolved: { label: 'Report Resolved', color: 'bg-teal-500/20 text-teal-400' },
+  create: { label: 'Created', color: 'bg-green-500/20 text-green-400' },
+  update: { label: 'Updated', color: 'bg-blue-500/20 text-blue-400' },
+  delete: { label: 'Deleted', color: 'bg-red-500/20 text-red-400' },
 };
 
 const entityIcons: Record<EntityType, React.ReactNode> = {
@@ -49,6 +56,7 @@ const entityIcons: Record<EntityType, React.ReactNode> = {
   trip: <Calendar className="h-4 w-4" />,
   species: <Fish className="h-4 w-4" />,
   report: <AlertTriangle className="h-4 w-4" />,
+  advertisement: <Megaphone className="h-4 w-4" />,
 };
 
 export default function AdminAuditLogs() {
@@ -124,6 +132,7 @@ export default function AdminAuditLogs() {
                   <SelectItem value="trip">Trip</SelectItem>
                   <SelectItem value="species">Species</SelectItem>
                   <SelectItem value="report">Report</SelectItem>
+                  <SelectItem value="advertisement">Advertisement</SelectItem>
                 </SelectContent>
               </Select>
             </div>
