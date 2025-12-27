@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
+import { useAuditAction } from './use-audit-logs';
 
 interface AppSetting {
   id: string;
@@ -44,6 +45,7 @@ export function useAppSettings() {
 
 export function useUpdateSetting() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ key, value }: { key: SettingKey; value: Record<string, unknown> }) => {
@@ -59,9 +61,11 @@ export function useUpdateSetting() {
         .eq('key', key);
 
       if (error) throw error;
+      return { key, value };
     },
-    onSuccess: () => {
+    onSuccess: async ({ key, value }) => {
       queryClient.invalidateQueries({ queryKey: ['app-settings'] });
+      await logAction('setting_updated', 'setting', key, value);
     },
     onError: (error) => {
       toast.error(`Failed to update setting: ${error.message}`);
@@ -71,6 +75,7 @@ export function useUpdateSetting() {
 
 export function useToggleSetting() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ key, enabled }: { key: SettingKey; enabled: boolean }) => {
@@ -98,8 +103,9 @@ export function useToggleSetting() {
         .eq('key', key);
 
       if (error) throw error;
+      return { key, enabled };
     },
-    onSuccess: (_, { key, enabled }) => {
+    onSuccess: async ({ key, enabled }) => {
       queryClient.invalidateQueries({ queryKey: ['app-settings'] });
       const settingNames: Record<SettingKey, string> = {
         maintenance_mode: 'Maintenance mode',
@@ -110,6 +116,7 @@ export function useToggleSetting() {
         session_timeout: 'Session timeout',
       };
       toast.success(`${settingNames[key]} ${enabled ? 'enabled' : 'disabled'}`);
+      await logAction('setting_updated', 'setting', key, { enabled });
     },
     onError: (error) => {
       toast.error(`Failed to update setting: ${error.message}`);

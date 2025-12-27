@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuditAction } from './use-audit-logs';
 
 interface AdminSpot {
   id: string;
@@ -51,6 +52,7 @@ export function useAdminSpots(search?: string) {
 
 export function useVerifySpot() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ spotId, verified }: { spotId: string; verified: boolean }) => {
@@ -60,10 +62,17 @@ export function useVerifySpot() {
         .eq('id', spotId);
 
       if (error) throw error;
+      return { spotId, verified };
     },
-    onSuccess: (_, { verified }) => {
+    onSuccess: async ({ spotId, verified }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-spots'] });
       toast.success(verified ? 'Spot verified successfully' : 'Spot unverified');
+      await logAction(
+        verified ? 'spot_verified' : 'spot_unverified',
+        'spot',
+        spotId,
+        { verified }
+      );
     },
     onError: (error) => {
       toast.error(`Failed to update spot: ${error.message}`);
@@ -73,6 +82,7 @@ export function useVerifySpot() {
 
 export function useDeleteSpot() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async (spotId: string) => {
@@ -82,10 +92,12 @@ export function useDeleteSpot() {
         .eq('id', spotId);
 
       if (error) throw error;
+      return spotId;
     },
-    onSuccess: () => {
+    onSuccess: async (spotId) => {
       queryClient.invalidateQueries({ queryKey: ['admin-spots'] });
       toast.success('Spot deleted successfully');
+      await logAction('spot_deleted', 'spot', spotId);
     },
     onError: (error) => {
       toast.error(`Failed to delete spot: ${error.message}`);
@@ -95,6 +107,7 @@ export function useDeleteSpot() {
 
 export function useToggleSpotPublic() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
 
   return useMutation({
     mutationFn: async ({ spotId, isPublic }: { spotId: string; isPublic: boolean }) => {
@@ -104,10 +117,12 @@ export function useToggleSpotPublic() {
         .eq('id', spotId);
 
       if (error) throw error;
+      return { spotId, isPublic };
     },
-    onSuccess: (_, { isPublic }) => {
+    onSuccess: async ({ spotId, isPublic }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-spots'] });
       toast.success(isPublic ? 'Spot made public' : 'Spot made private');
+      await logAction('spot_visibility_changed', 'spot', spotId, { isPublic });
     },
     onError: (error) => {
       toast.error(`Failed to update spot: ${error.message}`);
