@@ -192,10 +192,10 @@ export default function Notifications() {
         className="block"
       >
         <Card className={cn(
-          "p-4 hover:bg-accent/50 transition-colors relative",
+          "p-3 md:p-4 hover:bg-accent/50 transition-colors relative",
           !notification.is_read && "bg-primary/5 border-primary/20"
         )}>
-          <div className="flex gap-4">
+          <div className="flex gap-3 md:gap-4">
             {/* Photo/Avatar */}
             <div className="flex-shrink-0">
               {notification.photo ? (
@@ -203,17 +203,17 @@ export default function Notifications() {
                   <img 
                     src={notification.photo} 
                     alt="" 
-                    className="h-12 w-12 rounded-full object-cover"
+                    className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
                   />
                   <div className={cn(
-                    "absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-background flex items-center justify-center border-2 border-background",
+                    "absolute -bottom-1 -right-1 h-5 w-5 md:h-6 md:w-6 rounded-full bg-background flex items-center justify-center border-2 border-background",
                   )}>
-                    <Icon className={cn("h-3 w-3", iconColor)} />
+                    <Icon className={cn("h-2.5 w-2.5 md:h-3 md:w-3", iconColor)} />
                   </div>
                 </div>
               ) : (
-                <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center">
-                  <Icon className={cn("h-6 w-6", iconColor)} />
+                <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-accent flex items-center justify-center">
+                  <Icon className={cn("h-5 w-5 md:h-6 md:w-6", iconColor)} />
                 </div>
               )}
             </div>
@@ -221,12 +221,12 @@ export default function Notifications() {
             {/* Content */}
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm line-clamp-1">{notification.title}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                 {notification.body} • {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
               </p>
               
-              {/* Action buttons for specific notification types */}
-              <div className="flex items-center gap-2 mt-2">
+              {/* Action buttons - hidden on mobile for space */}
+              <div className="hidden md:flex items-center gap-2 mt-2">
                 <Icon className={cn("h-4 w-4", iconColor)} />
                 {notification.type === 'match' && (
                   <>
@@ -244,11 +244,11 @@ export default function Notifications() {
             </div>
 
             {/* Unread indicator & menu */}
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-1 md:gap-2">
               {!notification.is_read && (
-                <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5" />
+                <div className="h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-primary mt-1.5" />
               )}
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </div>
@@ -262,16 +262,16 @@ export default function Notifications() {
     if (notifications.length === 0) return null;
 
     return (
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <h3 className="font-semibold text-lg">{title}</h3>
+      <div className="mb-4 md:mb-6">
+        <div className="flex items-center gap-2 mb-2 md:mb-3">
+          <h3 className="font-semibold text-base md:text-lg">{title}</h3>
           {badge !== undefined && badge > 0 && (
             <Badge className="bg-primary text-primary-foreground text-xs">
               {badge} New
             </Badge>
           )}
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {notifications.map(renderNotification)}
         </div>
       </div>
@@ -280,7 +280,7 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl py-6">
+      <div className="container max-w-6xl px-4 py-4 md:py-6">
         <div className="flex gap-6">
           {/* Left Sidebar - Filters */}
           <div className="w-64 flex-shrink-0 hidden md:block">
@@ -327,10 +327,10 @@ export default function Notifications() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Header */}
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="mb-4 md:mb-6">
+              <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -341,19 +341,19 @@ export default function Notifications() {
                       navigate('/app');
                     }
                   }}
-                  className="h-9 w-9"
+                  className="h-8 w-8 md:h-9 md:w-9 flex-shrink-0"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
-                <h1 className="text-3xl font-bold">Notification Center</h1>
+                <h1 className="text-xl md:text-3xl font-bold truncate">Notifications</h1>
               </div>
-              <p className="text-muted-foreground mt-1 ml-12">
+              <p className="text-sm md:text-base text-muted-foreground mt-1 ml-10 md:ml-12">
                 Stay updated with your latest matches and fishing spots
               </p>
             </div>
 
             {/* Mobile Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-4 md:hidden">
+            <div className="flex gap-2 overflow-x-auto pb-4 md:hidden no-scrollbar -mx-4 px-4">
               {filters.map((filter) => (
                 <Button
                   key={filter.id}
@@ -368,14 +368,28 @@ export default function Notifications() {
               ))}
             </div>
 
+            {/* Mobile Mark All Read Button */}
+            <div className="md:hidden mb-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full"
+                onClick={() => markAllAsRead.mutate()}
+                disabled={markAllAsRead.isPending}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Mark all as read
+              </Button>
+            </div>
+
             {/* Notifications List */}
             {isLoading ? (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <Card key={i} className="p-4 animate-pulse">
-                    <div className="flex gap-4">
-                      <div className="h-12 w-12 rounded-full bg-muted" />
-                      <div className="flex-1 space-y-2">
+                  <Card key={i} className="p-3 md:p-4 animate-pulse">
+                    <div className="flex gap-3 md:gap-4">
+                      <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-muted flex-shrink-0" />
+                      <div className="flex-1 space-y-2 min-w-0">
                         <div className="h-4 w-3/4 bg-muted rounded" />
                         <div className="h-3 w-1/2 bg-muted rounded" />
                       </div>
@@ -384,9 +398,9 @@ export default function Notifications() {
                 ))}
               </div>
             ) : filteredNotifications.length === 0 ? (
-              <div className="text-center py-16">
-                <Anchor className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground">You're all caught up!</p>
+              <div className="text-center py-12 md:py-16">
+                <Anchor className="h-12 w-12 md:h-16 md:w-16 mx-auto text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground text-sm md:text-base">You're all caught up!</p>
               </div>
             ) : (
               <>
