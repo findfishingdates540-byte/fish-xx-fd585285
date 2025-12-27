@@ -9,6 +9,7 @@ import { DatingRoute, FishingRoute } from "@/components/layout/RouteGuard";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
 import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
 import About from "./pages/About";
@@ -44,6 +45,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin/login" element={<AdminAuth />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/about" element={<About />} />
