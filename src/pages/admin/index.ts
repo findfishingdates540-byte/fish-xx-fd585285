@@ -9,3 +9,4 @@ export { default as AdminPosts } from './AdminPosts';
 export { default as AdminTrips } from './AdminTrips';
 export { default as AdminAuditLogs } from './AdminAuditLogs';
 export { default as AdminAds } from './AdminAds';
+export { default as AdminAdAnalytics } from './AdminAdAnalytics';
