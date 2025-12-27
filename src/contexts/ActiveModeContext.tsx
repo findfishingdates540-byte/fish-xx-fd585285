@@ -42,17 +42,33 @@ export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccou
   // Track base account mode locally so it can be updated after DB changes
   const [baseAccountMode, setBaseAccountModeState] = useState<BaseAccountMode>(initialBaseAccountMode);
 
-  // Track the original account mode (set once on first load, stored synchronously)
-  const [originalAccountMode] = useState<BaseAccountMode>(() => {
-    const stored = localStorage.getItem(ORIGINAL_MODE_KEY) as BaseAccountMode | null;
-    // If we have a stored original mode, use it
-    if (stored && (stored === 'dating' || stored === 'fishing' || stored === 'both')) {
-      return stored;
+  // Track whether user was ever a combo user (persistent flag)
+  // This is simpler and more reliable than trying to track original mode
+  const [wasEverCombo, setWasEverCombo] = useState<boolean>(() => {
+    const stored = localStorage.getItem(ORIGINAL_MODE_KEY);
+    // If stored is 'both', they were a combo user at some point
+    if (stored === 'both') {
+      return true;
     }
-    // First time ever - store immediately (synchronously) before any mode switches can occur
-    localStorage.setItem(ORIGINAL_MODE_KEY, initialBaseAccountMode);
-    return initialBaseAccountMode;
+    // If current mode is 'both' and nothing stored, they ARE a combo user - store it now
+    if (initialBaseAccountMode === 'both') {
+      localStorage.setItem(ORIGINAL_MODE_KEY, 'both');
+      return true;
+    }
+    // For dating/fishing only users who were never combo
+    return stored === 'dating' || stored === 'fishing' ? false : false;
   });
+
+  // If user becomes combo (e.g., upgrades), update the flag
+  useEffect(() => {
+    if (initialBaseAccountMode === 'both' && !wasEverCombo) {
+      localStorage.setItem(ORIGINAL_MODE_KEY, 'both');
+      setWasEverCombo(true);
+    }
+  }, [initialBaseAccountMode, wasEverCombo]);
+
+  // Derive originalAccountMode from stored value or current mode for backwards compat
+  const originalAccountMode: BaseAccountMode = wasEverCombo ? 'both' : initialBaseAccountMode;
 
   // Sync with prop changes (e.g., from parent query refetch)
   useEffect(() => {
@@ -91,7 +107,7 @@ export function ActiveModeProvider({ children, baseAccountMode: initialBaseAccou
   };
 
   const isComboUser = baseAccountMode === 'both';
-  const wasOriginallyCombo = originalAccountMode === 'both';
+  const wasOriginallyCombo = wasEverCombo;
 
   // Calculate effective mode
   const effectiveMode: BaseAccountMode = (() => {
