@@ -9,6 +9,7 @@ import { FishingHeader } from './FishingHeader';
 import { BothHeader } from './BothHeader';
 import { ComboSharedHeader } from './ComboSharedHeader';
 import { MobileModeSwitcher } from './MobileModeSwitcher';
+import { PageTransition } from './PageTransition';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
@@ -81,7 +82,9 @@ function AppLayoutContent() {
         </div>
         
         <main className="pb-16 lg:pb-0">
-          <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+          <PageTransition>
+            <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+          </PageTransition>
         </main>
 
         {/* Mobile Bottom Nav for Dashboard */}
@@ -110,7 +113,9 @@ function AppLayoutContent() {
       )}
       
       <main className={`${isDiscoverNoScroll || isChatPage ? 'pb-0' : 'pb-16'} lg:pb-0`}>
-        <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+        <PageTransition>
+          <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+        </PageTransition>
       </main>
 
       {/* Mobile Bottom Nav - hide on chat pages for Instagram-like experience */}
