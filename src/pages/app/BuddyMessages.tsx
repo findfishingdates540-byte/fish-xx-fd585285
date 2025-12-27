@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { playNotificationSound } from '@/utils/notification-sound';
 
 interface BuddyConversation {
   buddyId: string;
@@ -52,7 +53,22 @@ export default function BuddyMessages() {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
+          schema: 'public',
+          table: 'buddy_messages',
+        },
+        (payload) => {
+          // Play notification sound if message is from someone else
+          if (payload.new && payload.new.sender_id !== user.id) {
+            playNotificationSound();
+          }
+          fetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
           schema: 'public',
           table: 'buddy_messages',
         },
