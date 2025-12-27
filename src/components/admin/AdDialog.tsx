@@ -44,6 +44,12 @@ const adSchema = z.object({
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().optional(),
   is_active: z.boolean(),
+  // Targeting
+  target_genders: z.array(z.string()).optional(),
+  target_age_min: z.number().min(18).max(100).optional().nullable(),
+  target_age_max: z.number().min(18).max(100).optional().nullable(),
+  target_experience_levels: z.array(z.string()).optional(),
+  target_interests: z.array(z.string()).optional(),
 });
 
 type AdFormData = z.infer<typeof adSchema>;
@@ -54,9 +60,32 @@ interface AdDialogProps {
   ad?: Advertisement | null;
 }
 
+const GENDER_OPTIONS = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'non_binary', label: 'Non-binary' },
+  { value: 'other', label: 'Other' },
+];
+
+const EXPERIENCE_OPTIONS = [
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
+  { value: 'expert', label: 'Expert' },
+];
+
+const INTEREST_OPTIONS = [
+  'Bass Fishing', 'Fly Fishing', 'Deep Sea', 'Ice Fishing', 
+  'Kayak Fishing', 'Catch & Release', 'Tournament Fishing', 
+  'Trout', 'Salmon', 'Catfish', 'Carp', 'Pike'
+];
+
 export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
+  const [selectedExperience, setSelectedExperience] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   
   const createAd = useCreateAd();
   const updateAd = useUpdateAd();
@@ -75,6 +104,11 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
       start_date: new Date().toISOString().split('T')[0],
       end_date: '',
       is_active: true,
+      target_genders: [],
+      target_age_min: null,
+      target_age_max: null,
+      target_experience_levels: [],
+      target_interests: [],
     },
   });
 
@@ -92,8 +126,16 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
         start_date: ad.start_date,
         end_date: ad.end_date || '',
         is_active: ad.is_active,
+        target_genders: ad.target_genders || [],
+        target_age_min: ad.target_age_min,
+        target_age_max: ad.target_age_max,
+        target_experience_levels: ad.target_experience_levels || [],
+        target_interests: ad.target_interests || [],
       });
       setPhotos(ad.photos || []);
+      setSelectedGenders(ad.target_genders || []);
+      setSelectedExperience(ad.target_experience_levels || []);
+      setSelectedInterests(ad.target_interests || []);
     } else {
       form.reset({
         title: '',
@@ -107,8 +149,16 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
         start_date: new Date().toISOString().split('T')[0],
         end_date: '',
         is_active: true,
+        target_genders: [],
+        target_age_min: null,
+        target_age_max: null,
+        target_experience_levels: [],
+        target_interests: [],
       });
       setPhotos([]);
+      setSelectedGenders([]);
+      setSelectedExperience([]);
+      setSelectedInterests([]);
     }
   }, [ad, form]);
 
@@ -165,6 +215,11 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
       end_date: data.end_date || null,
       is_active: data.is_active,
       fishing_spot_id: null,
+      target_genders: selectedGenders.length > 0 ? selectedGenders : null,
+      target_age_min: data.target_age_min || null,
+      target_age_max: data.target_age_max || null,
+      target_experience_levels: selectedExperience.length > 0 ? selectedExperience : null,
+      target_interests: selectedInterests.length > 0 ? selectedInterests : null,
     };
 
     if (ad) {
@@ -394,6 +449,134 @@ export function AdDialog({ isOpen, onClose, ad }: AdDialogProps) {
                     </FormItem>
                   )}
                 />
+              </div>
+            </div>
+
+            {/* Targeting Section */}
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">Audience Targeting (Optional)</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Leave empty to show to all users
+              </p>
+              
+              <div className="space-y-4">
+                {/* Gender Targeting */}
+                <div className="space-y-2">
+                  <FormLabel>Target Genders</FormLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {GENDER_OPTIONS.map((option) => (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant={selectedGenders.includes(option.value) ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedGenders(prev =>
+                            prev.includes(option.value)
+                              ? prev.filter(g => g !== option.value)
+                              : [...prev, option.value]
+                          );
+                        }}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Age Targeting */}
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="target_age_min"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Min Age</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="18"
+                            min={18}
+                            max={100}
+                            {...field}
+                            value={field.value ?? ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="target_age_max"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Max Age</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="65"
+                            min={18}
+                            max={100}
+                            {...field}
+                            value={field.value ?? ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Experience Level Targeting */}
+                <div className="space-y-2">
+                  <FormLabel>Target Experience Levels</FormLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {EXPERIENCE_OPTIONS.map((option) => (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant={selectedExperience.includes(option.value) ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedExperience(prev =>
+                            prev.includes(option.value)
+                              ? prev.filter(e => e !== option.value)
+                              : [...prev, option.value]
+                          );
+                        }}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Interest Targeting */}
+                <div className="space-y-2">
+                  <FormLabel>Target Interests</FormLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {INTEREST_OPTIONS.map((interest) => (
+                      <Button
+                        key={interest}
+                        type="button"
+                        variant={selectedInterests.includes(interest) ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedInterests(prev =>
+                            prev.includes(interest)
+                              ? prev.filter(i => i !== interest)
+                              : [...prev, interest]
+                          );
+                        }}
+                      >
+                        {interest}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 

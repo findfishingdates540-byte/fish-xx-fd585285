@@ -32,6 +32,14 @@ export type Database = {
           sponsor_logo: string | null
           sponsor_name: string
           start_date: string
+          target_age_max: number | null
+          target_age_min: number | null
+          target_experience_levels: string[] | null
+          target_genders: string[] | null
+          target_interests: string[] | null
+          target_location_lat: number | null
+          target_location_lng: number | null
+          target_location_radius_miles: number | null
           title: string
           updated_at: string
           website_url: string | null
@@ -53,6 +61,14 @@ export type Database = {
           sponsor_logo?: string | null
           sponsor_name: string
           start_date?: string
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_experience_levels?: string[] | null
+          target_genders?: string[] | null
+          target_interests?: string[] | null
+          target_location_lat?: number | null
+          target_location_lng?: number | null
+          target_location_radius_miles?: number | null
           title: string
           updated_at?: string
           website_url?: string | null
@@ -74,6 +90,14 @@ export type Database = {
           sponsor_logo?: string | null
           sponsor_name?: string
           start_date?: string
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_experience_levels?: string[] | null
+          target_genders?: string[] | null
+          target_interests?: string[] | null
+          target_location_lat?: number | null
+          target_location_lng?: number | null
+          target_location_radius_miles?: number | null
           title?: string
           updated_at?: string
           website_url?: string | null
