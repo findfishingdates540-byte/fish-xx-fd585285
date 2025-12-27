@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Heart, Anchor, X, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ const modeOptions = [
 export function MobileModeSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { activeMode, setActiveMode, isComboUser, isPremium, premiumExpiresAt } = useActiveMode();
 
   // Check if premium is expired
@@ -34,6 +35,20 @@ export function MobileModeSwitcher() {
   const handleModeSwitch = (mode: ActiveMode) => {
     setActiveMode(mode);
     setIsOpen(false);
+    
+    // Navigate to the appropriate home page for the selected mode
+    switch (mode) {
+      case 'dating':
+        navigate('/app/discover');
+        break;
+      case 'fishing':
+        navigate('/app/spots');
+        break;
+      case 'unified':
+      default:
+        navigate('/app/dashboard');
+        break;
+    }
   };
 
   const currentMode = modeOptions.find(m => m.value === activeMode) || modeOptions[0];
