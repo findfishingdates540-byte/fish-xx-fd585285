@@ -6,16 +6,18 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import logo from '@/assets/logo.png';
 import { toast } from 'sonner';
+import { UpgradeCelebrationModal } from '@/components/upgrade';
 
 interface PlanInfo {
   name: string;
   displayName: string;
+  accountType: 'fishing' | 'both' | 'dating';
 }
 
 const plans: Record<string, PlanInfo> = {
-  angler: { name: 'angler', displayName: 'Fishing Mode' },
-  trophy: { name: 'trophy', displayName: 'Combo Mode' },
-  catch: { name: 'catch', displayName: 'Dating Mode' },
+  angler: { name: 'angler', displayName: 'The Angler', accountType: 'fishing' },
+  trophy: { name: 'trophy', displayName: 'The Trophy', accountType: 'both' },
+  catch: { name: 'catch', displayName: 'Dating Mode', accountType: 'dating' },
 };
 
 const fireConfetti = () => {
@@ -94,10 +96,12 @@ export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(true);
   
   const planId = searchParams.get('plan') || 'trophy';
   const billing = searchParams.get('billing') || 'annual';
   const amount = searchParams.get('amount') || '59.99';
+  const isUpgrade = searchParams.get('upgrade') === 'true';
   
   const plan = plans[planId] || plans.trophy;
   const isAnnual = billing === 'annual';
@@ -107,8 +111,11 @@ export default function PaymentSuccess() {
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   useEffect(() => {
-    fireConfetti();
-  }, []);
+    // Only fire default confetti if not showing celebration modal
+    if (!isUpgrade) {
+      fireConfetti();
+    }
+  }, [isUpgrade]);
 
   const handleDownloadReceipt = () => {
     setIsDownloading(true);
@@ -334,6 +341,16 @@ export default function PaymentSuccess() {
           </div>
         </div>
       </footer>
+
+      {/* Celebration Modal for Upgrades */}
+      <UpgradeCelebrationModal 
+        isOpen={showCelebration && isUpgrade}
+        onClose={() => {
+          setShowCelebration(false);
+          fireConfetti();
+        }}
+        planName={plan.displayName}
+      />
     </div>
   );
 }
