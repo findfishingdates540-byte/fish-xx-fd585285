@@ -198,19 +198,13 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
         </div>
       </div>
 
-      {/* Bio & Tags Section - Compact */}
-      <div className={cn("p-3", isMobile ? "pb-2" : "p-5", "shrink-0")}>
-        <p
-          className={cn(
-            "text-muted-foreground text-sm leading-relaxed",
-            isMobile ? "line-clamp-1" : "line-clamp-2"
-          )}
-        >
-          {profile.bio}
-        </p>
+      {/* Bio & Tags Section - Desktop only */}
+      {!isMobile && (
+        <div className="p-5 shrink-0">
+          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+            {profile.bio}
+          </p>
 
-        {/* Tags - Hide on mobile to save space */}
-        {!isMobile && (
           <div className="flex flex-wrap gap-2 mt-4">
             {profile.tags.map((tag, idx) => (
               <Badge
@@ -223,8 +217,8 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
               </Badge>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }
