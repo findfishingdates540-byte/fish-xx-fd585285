@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDiscoverProfiles } from '@/hooks/use-discover-profiles';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDatingTutorial } from '@/hooks/use-dating-tutorial';
 import {
   DiscoverSidebar,
   ProfileCard,
@@ -12,8 +13,9 @@ import {
   RightSidebar,
   ProfileDetailView,
   MatchCelebrationModal,
+  DatingTutorial,
 } from '@/components/discover';
-import { RefreshCw, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, Heart, X, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -29,6 +31,7 @@ export default function Discover() {
   );
   const [showDetailView, setShowDetailView] = useState(false);
   const isMobile = useIsMobile();
+  const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
 
   const {
     currentProfile,
@@ -74,6 +77,14 @@ export default function Discover() {
       document.body.style.overflow = prevBodyOverflow;
     };
   }, [isMobile]);
+
+  // Auto-start tutorial for first-time users
+  useEffect(() => {
+    if (shouldShowTutorial && currentProfile && !isLoading) {
+      const timer = setTimeout(() => startTutorial(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldShowTutorial, currentProfile, isLoading, startTutorial]);
 
   // Fetch recent matches (last 7 days)
   const { data: recentMatches } = useQuery({
@@ -298,10 +309,16 @@ export default function Discover() {
       <p className="text-muted-foreground mb-6 max-w-sm">
         You've seen all available profiles in your area. Check back later or adjust your preferences to see more people.
       </p>
-      <Button onClick={loadMoreProfiles} variant="outline" className="gap-2">
-        <RefreshCw className="h-4 w-4" />
-        Refresh Profiles
-      </Button>
+      <div className="flex gap-3">
+        <Button onClick={loadMoreProfiles} variant="outline" className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
+        <Button onClick={startTutorial} variant="ghost" className="gap-2">
+          <HelpCircle className="h-4 w-4" />
+          Tutorial
+        </Button>
+      </div>
     </div>
   );
 
@@ -439,6 +456,13 @@ export default function Discover() {
         onClose={clearMatchedProfile}
         matchProfile={matchedProfile}
         currentUserPhoto={profile?.photos?.[0]}
+      />
+
+      {/* Dating Tutorial */}
+      <DatingTutorial
+        isRunning={isRunning}
+        onComplete={completeTutorial}
+        onStop={stopTutorial}
       />
     </>
   );

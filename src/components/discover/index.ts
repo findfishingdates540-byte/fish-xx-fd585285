@@ -4,3 +4,4 @@ export { SwipeActions } from './SwipeActions';
 export { RightSidebar } from './RightSidebar';
 export { ProfileDetailView, type ProfileDetailData } from './ProfileDetailView';
 export { MatchCelebrationModal } from './MatchCelebrationModal';
+export { DatingTutorial } from './DatingTutorial';

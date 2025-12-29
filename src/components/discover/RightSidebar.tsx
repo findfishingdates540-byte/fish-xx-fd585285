@@ -62,7 +62,7 @@ export function RightSidebar({
   onConversationClick,
 }: RightSidebarProps) {
   return (
-    <aside className="hidden xl:flex flex-col w-72 h-screen border-l border-border bg-background p-6">
+    <aside data-tutorial="matches-sidebar" className="hidden xl:flex flex-col w-72 h-screen border-l border-border bg-background p-6">
       {/* Today's Catch */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">

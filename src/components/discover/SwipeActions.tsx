@@ -22,6 +22,7 @@ export function SwipeActions({
       <button
         onClick={onRewind}
         disabled={!canRewind}
+        data-tutorial="rewind-button"
         className={cn(
           'h-10 w-10 sm:h-12 sm:w-12 rounded-full border-2 flex items-center justify-center transition-all',
           canRewind
@@ -35,6 +36,7 @@ export function SwipeActions({
       {/* Pass */}
       <button
         onClick={onPass}
+        data-tutorial="pass-button"
         className="h-12 w-12 sm:h-14 sm:w-14 rounded-full border-2 border-destructive text-destructive flex items-center justify-center transition-all hover:bg-destructive hover:text-destructive-foreground hover:scale-110"
       >
         <X className="h-6 w-6 sm:h-7 sm:w-7" />
@@ -43,6 +45,7 @@ export function SwipeActions({
       {/* Super Like */}
       <button
         onClick={onSuperLike}
+        data-tutorial="superlike-button"
         className="h-10 w-10 sm:h-12 sm:w-12 rounded-full border-2 border-muted-foreground text-muted-foreground flex items-center justify-center transition-all hover:border-foreground hover:text-foreground hover:scale-110"
       >
         <Star className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -51,6 +54,7 @@ export function SwipeActions({
       {/* Like */}
       <button
         onClick={onLike}
+        data-tutorial="like-button"
         className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-foreground text-background flex items-center justify-center transition-all hover:scale-110 shadow-medium"
       >
         <Heart className="h-6 w-6 sm:h-7 sm:w-7 fill-current" />
