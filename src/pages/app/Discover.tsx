@@ -347,7 +347,7 @@ export default function Discover() {
         {/* Main Content */}
         <main className="flex-1 flex flex-col items-center justify-center p-0 lg:p-8 overflow-hidden lg:ml-60">
           {isMobile ? (
-            <div className="w-full max-w-xs sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-3 pt-2">
+            <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-2 pt-2">
               {isLoading ? (
                 renderLoading()
               ) : noMoreProfiles || !currentProfile ? (
