@@ -86,6 +86,7 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
       onDragEnd={handleDragEnd}
       onClick={!isMobile ? handleCardClick : undefined}
       whileTap={{ cursor: 'grabbing' }}
+      data-tutorial="profile-card"
       className={cn(
         "bg-background rounded-3xl shadow-medium overflow-hidden max-w-sm w-full mx-auto cursor-grab relative flex flex-col",
         isMobile ? "touch-none h-full" : "touch-pan-y",
