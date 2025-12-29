@@ -219,8 +219,13 @@ export function useDiscoverProfiles() {
         .neq('id', user.id)
         .not('photos', 'is', null);
 
-      // Filter by gender preference
-      if (userPreferences.interested_in && userPreferences.interested_in.length > 0) {
+      // Strict opposite gender filtering - male sees female only, female sees male only
+      if (userPreferences.gender === 'male') {
+        query = query.eq('gender', 'female');
+      } else if (userPreferences.gender === 'female') {
+        query = query.eq('gender', 'male');
+      } else if (userPreferences.interested_in && userPreferences.interested_in.length > 0) {
+        // Fallback to preference if gender not set
         query = query.in('gender', userPreferences.interested_in as ('male' | 'female' | 'non_binary' | 'other' | 'prefer_not_to_say')[]);
       }
 
