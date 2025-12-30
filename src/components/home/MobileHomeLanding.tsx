@@ -1,9 +1,32 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import logo from '@/assets/logo.png';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MobileHomeLanding = () => {
+  const { user, loading } = useAuth();
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <img src={logo} alt="Find Fishing Dates" className="w-24 h-24 rounded-2xl shadow-lg animate-pulse" />
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Redirect authenticated users to the app
+  if (user) {
+    return <Navigate to="/app" replace />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
       {/* Logo */}
