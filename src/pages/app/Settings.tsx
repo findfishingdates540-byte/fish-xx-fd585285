@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { usePushNotificationsUnified } from "@/hooks/use-push-notifications-unified";
 import { useStripePortal } from "@/hooks/use-stripe-portal";
 import { ThemeSelector as AppearanceSelector } from "@/components/ui/theme-toggle";
 import { format } from "date-fns";
@@ -907,10 +907,13 @@ function NotificationsTab({
     isSubscribed,
     isLoading,
     permission,
-    vapidKeyLoaded,
     subscribe,
     unsubscribe,
-  } = usePushNotifications();
+    platform,
+  } = usePushNotificationsUnified();
+  
+  // For unified hook, we consider it "loaded" when not loading
+  const vapidKeyLoaded = !isLoading;
 
   const handlePushToggle = async (enabled: boolean) => {
     if (enabled) {
