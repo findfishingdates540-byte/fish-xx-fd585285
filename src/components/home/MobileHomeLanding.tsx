@@ -74,8 +74,16 @@ const MobileHomeLanding = () => {
         {/* Floating Fish Icon */}
         <motion.div 
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+          animate={{ 
+            opacity: 1, 
+            scale: 1,
+            y: [0, -8, 0]
+          }}
+          transition={{ 
+            opacity: { delay: 0.3, duration: 0.3 },
+            scale: { delay: 0.3, type: "spring", stiffness: 200 },
+            y: { delay: 0.6, duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+          }}
           className="absolute bottom-6 left-4 bg-background rounded-full p-2.5 shadow-xl"
         >
           <Fish className="w-5 h-5 text-foreground" />
@@ -84,8 +92,16 @@ const MobileHomeLanding = () => {
         {/* Floating Heart Icon */}
         <motion.div 
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+          animate={{ 
+            opacity: 1, 
+            scale: 1,
+            y: [0, -8, 0]
+          }}
+          transition={{ 
+            opacity: { delay: 0.4, duration: 0.3 },
+            scale: { delay: 0.4, type: "spring", stiffness: 200 },
+            y: { delay: 0.8, duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+          }}
           className="absolute bottom-10 right-4 bg-background rounded-full p-2.5 shadow-xl"
         >
           <Heart className="w-5 h-5 text-foreground fill-foreground" />
