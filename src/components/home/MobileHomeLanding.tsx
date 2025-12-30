@@ -66,7 +66,7 @@ const MobileHomeLanding = () => {
         {/* Brand Badge */}
         <div className="absolute top-4 left-4 bg-foreground text-background px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
           <Fish className="w-4 h-4" />
-          <span className="text-sm font-bold tracking-wide">FindFish</span>
+          <span className="text-sm font-bold tracking-wide">Find Fishing Dates</span>
         </div>
         
         {/* Floating Fish Icon */}
