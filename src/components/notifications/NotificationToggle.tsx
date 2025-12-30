@@ -1,9 +1,9 @@
 import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { usePushNotificationsUnified } from '@/hooks/use-push-notifications-unified';
 
 export function NotificationToggle() {
-  const { isSupported, isSubscribed, isLoading, permission, subscribe, unsubscribe } = usePushNotifications();
+  const { isSupported, isSubscribed, isLoading, permission, subscribe, unsubscribe } = usePushNotificationsUnified();
 
   if (!isSupported) {
     return null;
