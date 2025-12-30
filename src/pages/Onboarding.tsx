@@ -287,6 +287,10 @@ export default function Onboarding() {
     try {
       const locationName = [city, state].filter(Boolean).join(', ');
       
+      // Calculate 30-day free trial expiration
+      const trialExpiresAt = new Date();
+      trialExpiresAt.setDate(trialExpiresAt.getDate() + 30);
+
       const updateData: Record<string, any> = {
         display_name: firstName,
         date_of_birth: dateOfBirth,
@@ -294,6 +298,9 @@ export default function Onboarding() {
         location_name: locationName || null,
         max_distance_miles: maxDistance,
         onboarding_completed: true,
+        // Grant 30-day free trial to all users
+        is_premium: true,
+        premium_expires_at: trialExpiresAt.toISOString(),
       };
 
       if (accountMode === 'dating' || accountMode === 'both') {
