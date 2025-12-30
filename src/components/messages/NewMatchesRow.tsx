@@ -20,8 +20,8 @@ export function NewMatchesRow({ matches, likesCount = 0, onSelect }: NewMatchesR
   const placeholderCount = Math.max(0, 4 - matches.length);
   
   return (
-    <div className="px-4 py-3">
-      <h3 className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wide">
+    <div className="px-4 py-3 bg-background">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
         New Matches
       </h3>
       <ScrollArea className="w-full whitespace-nowrap">
@@ -38,7 +38,7 @@ export function NewMatchesRow({ matches, likesCount = 0, onSelect }: NewMatchesR
             >
               <div className={cn(
                 "relative w-16 h-20 rounded-lg overflow-hidden transition-transform group-hover:scale-105",
-                match.isNew && "ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900"
+                match.isNew && "ring-2 ring-amber-400 ring-offset-2 ring-offset-background"
               )}>
                 <img
                   src={match.photo}
@@ -52,7 +52,7 @@ export function NewMatchesRow({ matches, likesCount = 0, onSelect }: NewMatchesR
                   </div>
                 )}
               </div>
-              <span className="text-xs text-slate-400 truncate max-w-[64px]">
+              <span className="text-xs text-muted-foreground truncate max-w-[64px]">
                 {match.name.split(' ')[0]}
               </span>
             </button>
@@ -64,12 +64,12 @@ export function NewMatchesRow({ matches, likesCount = 0, onSelect }: NewMatchesR
               key={`placeholder-${i}`}
               className="flex flex-col items-center gap-1 flex-shrink-0"
             >
-              <div className="w-16 h-20 rounded-lg bg-slate-800 border border-slate-700 border-dashed" />
-              <span className="text-xs text-slate-600">—</span>
+              <div className="w-16 h-20 rounded-lg bg-muted border border-border border-dashed" />
+              <span className="text-xs text-muted-foreground/50">—</span>
             </div>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" className="bg-slate-800" />
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );

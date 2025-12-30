@@ -25,7 +25,7 @@ export function LikesCard({ likesCount = 0 }: LikesCardProps) {
           </div>
         )}
       </div>
-      <span className="text-xs text-slate-400 font-medium">Likes</span>
+      <span className="text-xs text-muted-foreground font-medium">Likes</span>
     </Link>
   );
 }

@@ -95,10 +95,10 @@ export default function Messages() {
     <div className="flex-1 p-4 space-y-4">
       {[1, 2, 3, 4].map((i) => (
         <div key={i} className="flex items-center gap-3 p-3">
-          <Skeleton className="h-14 w-14 rounded-full bg-slate-800" />
+          <Skeleton className="h-14 w-14 rounded-full" />
           <div className="flex-1">
-            <Skeleton className="h-4 w-24 mb-2 bg-slate-800" />
-            <Skeleton className="h-3 w-40 bg-slate-800" />
+            <Skeleton className="h-4 w-24 mb-2" />
+            <Skeleton className="h-3 w-40" />
           </div>
         </div>
       ))}
@@ -107,12 +107,12 @@ export default function Messages() {
 
   // Empty chat panel for desktop when no conversation is selected
   const renderEmptyChatPanel = () => (
-    <div className="flex-1 flex flex-col items-center justify-center bg-slate-800/50">
-      <div className="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center mb-4">
-        <Search className="h-10 w-10 text-slate-500" />
+    <div className="flex-1 flex flex-col items-center justify-center bg-muted/30">
+      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+        <Search className="h-10 w-10 text-muted-foreground" />
       </div>
-      <h3 className="text-xl font-semibold text-white mb-2">Select a conversation</h3>
-      <p className="text-slate-400 text-center max-w-sm">
+      <h3 className="text-xl font-semibold mb-2">Select a conversation</h3>
+      <p className="text-muted-foreground text-center max-w-sm">
         Choose a match from the list to start chatting
       </p>
     </div>
@@ -125,7 +125,7 @@ export default function Messages() {
         <EmptyMessagesState />
       ) : activeConversations.length === 0 ? (
         <div className="p-6 text-center">
-          <p className="text-slate-400 text-sm">
+          <p className="text-muted-foreground text-sm">
             No messages yet. Send a message to one of your matches above!
           </p>
         </div>
@@ -137,30 +137,30 @@ export default function Messages() {
             className={cn(
               'w-full flex items-center gap-3 p-4 text-left transition-colors',
               matchId === convo.id
-                ? 'bg-slate-800'
-                : 'hover:bg-slate-800/50'
+                ? 'bg-accent'
+                : 'hover:bg-accent/50'
             )}
           >
             {/* Avatar with online status */}
             <div className="relative flex-shrink-0">
               <Avatar className="h-14 w-14">
                 <AvatarImage src={convo.photo} alt={convo.name} />
-                <AvatarFallback className="bg-slate-700 text-white">{convo.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
               </Avatar>
               {convo.isOnline && (
-                <div className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-slate-900" />
+                <div className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-background" />
               )}
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold text-white">{convo.name}</span>
-                <span className="text-xs text-slate-400">{convo.time}</span>
+                <span className="font-semibold">{convo.name}</span>
+                <span className="text-xs text-muted-foreground">{convo.time}</span>
               </div>
               <div className="flex items-center justify-between">
                 <p className={cn(
                   "text-sm truncate pr-2",
-                  convo.unreadCount && convo.unreadCount > 0 ? "text-white font-medium" : "text-slate-400"
+                  convo.unreadCount && convo.unreadCount > 0 ? "text-foreground font-medium" : "text-muted-foreground"
                 )}>
                   {convo.lastMessage}
                 </p>
@@ -179,23 +179,23 @@ export default function Messages() {
     </div>
   );
 
-  // Conversation list panel (left side) - Dark Theme
+  // Conversation list panel (left side)
   const ConversationListPanel = () => (
-    <div className={`${isMobile && matchId ? 'hidden' : 'flex'} flex-col w-full lg:w-96 lg:border-r border-slate-800 bg-slate-900 h-full`}>
+    <div className={`${isMobile && matchId ? 'hidden' : 'flex'} flex-col w-full lg:w-96 lg:border-r border-border bg-background h-full`}>
       {/* Search Header */}
-      <div className="p-4 border-b border-slate-800">
+      <div className="p-4 border-b border-border">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={`Search ${conversations.length} Matches`}
-            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:ring-primary"
+            className="pl-10"
           />
         </div>
       </div>
 
       {/* New Matches Row */}
       {(newMatches.length > 0 || likesCount > 0) && (
-        <div className="border-b border-slate-800">
+        <div className="border-b border-border">
           <NewMatchesRow
             matches={newMatches}
             likesCount={likesCount}
@@ -211,7 +211,7 @@ export default function Messages() {
 
   // Right panel with header
   const RightPanel = () => (
-    <div className="flex-1 hidden lg:flex flex-col h-full bg-slate-900">
+    <div className="flex-1 hidden lg:flex flex-col h-full bg-background">
       {/* Header with navigation */}
       <MessagesHeader
         userName={profile?.display_name || 'User'}
@@ -230,7 +230,7 @@ export default function Messages() {
   );
 
   return (
-    <div className="flex h-[100dvh] bg-slate-900 overflow-hidden">
+    <div className="flex h-[100dvh] bg-background overflow-hidden">
       {/* Conversation List Panel (Left) */}
       <ConversationListPanel />
       
