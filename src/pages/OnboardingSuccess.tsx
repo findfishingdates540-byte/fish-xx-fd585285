@@ -141,15 +141,7 @@ export default function OnboardingSuccess() {
       if (profile) {
         setAccountMode(profile.account_mode || 'both');
         setDisplayName(profile.display_name || '');
-
-        const isAdmin = !!roleRow;
-
-        // Redirect non-premium fishing/both users to pricing page (admins are exempt)
-        const needsPremium = profile.account_mode === 'fishing' || profile.account_mode === 'both';
-        if (!isAdmin && needsPremium && !profile.is_premium) {
-          navigate('/pricing');
-          return;
-        }
+        // Note: Users now get a 30-day free trial, no pricing redirect needed
       }
 
       setLoading(false);
