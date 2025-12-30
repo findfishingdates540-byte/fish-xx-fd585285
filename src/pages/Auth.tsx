@@ -5,12 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
+import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
 import authBothImage from '@/assets/auth-couple-fishing.jpg';
 import authDatingImage from '@/assets/auth-dating.jpg';
 import authFishingImage from '@/assets/auth-fishing.jpg';
 import logo from '@/assets/logo.png';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -36,11 +43,34 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
   
-  const { signIn, signUp, user } = useAuth();
+  // Forgot password states
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotEmailSent, setForgotEmailSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  
+  // Recovery mode states (when user clicks email link)
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  
+  const { signIn, signUp, user, resetPassword, updatePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Detect recovery mode from URL
   useEffect(() => {
+    const type = searchParams.get('type');
+    if (type === 'recovery') {
+      setIsRecoveryMode(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    // Skip redirect logic if in recovery mode
+    if (isRecoveryMode) return;
+    
     const redirectTo = searchParams.get('redirect');
 
     const checkOnboardingAndPremium = async () => {
@@ -101,7 +131,7 @@ const Auth = () => {
     };
 
     checkOnboardingAndPremium();
-  }, [user, navigate, searchParams]);
+  }, [user, navigate, searchParams, isRecoveryMode]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; confirmPassword?: string } = {};
@@ -177,11 +207,167 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      emailSchema.parse(forgotEmail);
+    } catch {
+      toast({
+        title: 'Invalid email',
+        description: 'Please enter a valid email address.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setForgotLoading(true);
+    
+    try {
+      const { error } = await resetPassword(forgotEmail);
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
+        setForgotEmailSent(true);
+      }
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      passwordSchema.parse(newPassword);
+    } catch {
+      toast({
+        title: 'Invalid password',
+        description: 'Password must be at least 6 characters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (newPassword !== confirmNewPassword) {
+      toast({
+        title: 'Passwords do not match',
+        description: 'Please make sure both passwords match.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setRecoveryLoading(true);
+    
+    try {
+      const { error } = await updatePassword(newPassword);
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Password updated!',
+          description: 'Your password has been successfully changed.',
+        });
+        setIsRecoveryMode(false);
+        navigate('/app/discover');
+      }
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
   const accountModeOptions: { value: AccountMode; label: string; icon: React.ReactNode }[] = [
     { value: 'dating', label: 'Dating', icon: <Heart className="w-4 h-4" /> },
     { value: 'fishing', label: 'Fishing', icon: <Fish className="w-4 h-4" /> },
     { value: 'both', label: 'Both', icon: <><Heart className="w-3 h-3" /><Fish className="w-3 h-3" /></> },
   ];
+
+  // Recovery Mode UI
+  if (isRecoveryMode) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <div className="flex justify-center mb-8">
+            <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
+          </div>
+          
+          <h1 className="text-3xl font-bold mb-2 text-center">Set New Password</h1>
+          <p className="text-muted-foreground text-center mb-8">
+            Enter your new password below.
+          </p>
+          
+          <form onSubmit={handleResetPassword} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  id="newPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="h-12 pl-12 pr-12 bg-muted/30 border-border rounded-xl"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  id="confirmNewPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="h-12 pl-12 pr-12 bg-muted/30 border-border rounded-xl"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+            
+            <Button
+              type="submit"
+              disabled={recoveryLoading}
+              className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 rounded-xl text-base font-semibold"
+            >
+              {recoveryLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                'Update Password'
+              )}
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -283,7 +469,18 @@ const Auth = () => {
 
               {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
@@ -377,6 +574,76 @@ const Auth = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotPassword} onOpenChange={(open) => {
+        setShowForgotPassword(open);
+        if (!open) {
+          setForgotEmailSent(false);
+          setForgotEmail('');
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {forgotEmailSent ? 'Check your email' : 'Reset your password'}
+            </DialogTitle>
+            <DialogDescription>
+              {forgotEmailSent 
+                ? "We've sent you a password reset link. Please check your inbox."
+                : "Enter your email address and we'll send you a link to reset your password."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          {forgotEmailSent ? (
+            <div className="flex flex-col items-center py-6">
+              <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+              <p className="text-center text-muted-foreground mb-4">
+                Didn't receive the email? Check your spam folder or try again.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => setForgotEmailSent(false)}
+                className="gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Try again
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgotEmail">Email address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="forgotEmail"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <Button
+                type="submit"
+                disabled={forgotLoading}
+                className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 rounded-xl"
+              >
+                {forgotLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  'Send Reset Link'
+                )}
+              </Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
