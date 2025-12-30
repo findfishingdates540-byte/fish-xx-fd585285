@@ -2,7 +2,8 @@ import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import logo from '@/assets/logo.png';
+import { Fish, Heart } from 'lucide-react';
+import coupleFishing from '@/assets/couple-fishing.jpg';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,8 +36,10 @@ const MobileHomeLanding = () => {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
+          className="flex flex-col items-center gap-3"
         >
-          <img src={logo} alt="Find Fishing Dates" className="w-24 h-24 rounded-2xl shadow-lg animate-pulse" />
+          <Fish className="w-12 h-12 text-foreground animate-pulse" />
+          <span className="text-sm text-muted-foreground">Loading...</span>
         </motion.div>
       </div>
     );
@@ -49,66 +52,117 @@ const MobileHomeLanding = () => {
     } else if (accountMode === 'fishing') {
       return <Navigate to="/app/spots" replace />;
     } else {
-      // 'both' mode goes to dashboard
       return <Navigate to="/app/dashboard" replace />;
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
-      {/* Logo */}
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Hero Image Section */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-        className="mb-8"
-      >
-        <img src={logo} alt="Find Fishing Dates" className="w-28 h-28 rounded-2xl shadow-lg" />
-      </motion.div>
-
-      {/* Headline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="text-center mb-12"
+        transition={{ duration: 0.6 }}
+        className="relative mx-4 mt-4"
       >
-        <h1 className="text-3xl font-bold text-foreground mb-3">Find Fishing Dates</h1>
-        <p className="text-muted-foreground text-lg">
-          Connect with fellow fishing enthusiasts
-        </p>
+        <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
+          <img 
+            src={coupleFishing} 
+            alt="Couple fishing together" 
+            className="w-full h-full object-cover"
+          />
+          
+          {/* Brand badge */}
+          <div className="absolute top-4 left-4 bg-foreground/90 text-background px-3 py-1.5 rounded-full flex items-center gap-2">
+            <Fish className="w-4 h-4" />
+            <span className="text-sm font-semibold">FindFish</span>
+          </div>
+          
+          {/* Floating icons */}
+          <motion.div 
+            className="absolute bottom-8 left-4 bg-background rounded-full p-2 shadow-lg"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.4, type: "spring" }}
+          >
+            <Fish className="w-5 h-5 text-foreground" />
+          </motion.div>
+          
+          <motion.div 
+            className="absolute bottom-12 right-4 bg-background rounded-full p-2 shadow-lg"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.5, type: "spring" }}
+          >
+            <Heart className="w-5 h-5 text-foreground fill-foreground" />
+          </motion.div>
+        </div>
       </motion.div>
 
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="w-full space-y-4 max-w-sm"
-      >
-        <Link to="/auth?mode=signup" className="block w-full">
-          <Button className="w-full btn-primary py-6 text-lg font-semibold">
-            Get Started
-          </Button>
-        </Link>
-        <Link to="/auth?mode=signin" className="block w-full">
-          <Button variant="outline" className="w-full btn-outline py-6 text-lg font-semibold">
-            Sign In
-          </Button>
-        </Link>
-      </motion.div>
+      {/* Content Section */}
+      <div className="flex-1 flex flex-col px-6 pt-6 pb-8">
+        {/* Headline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-center mb-4"
+        >
+          <h1 className="text-3xl font-bold text-foreground leading-tight">
+            Catch feelings,
+            <br />
+            <span className="italic">catch fish.</span>
+          </h1>
+        </motion.div>
 
-      {/* Footer Links */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        className="mt-auto pt-12 pb-8 flex gap-6 text-sm text-muted-foreground"
-      >
-        <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-        <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-        <Link to="/help" className="hover:text-foreground transition-colors">Help</Link>
-      </motion.div>
+        {/* Subtitle */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="text-center mb-6"
+        >
+          <p className="text-muted-foreground">The #1 App for Anglers.</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Dating • Fishing Spots • Combo Mode
+          </p>
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="space-y-3 mb-6"
+        >
+          <Link to="/auth?mode=signup" className="block w-full">
+            <Button className="w-full bg-foreground text-background hover:bg-foreground/90 py-6 text-base font-semibold rounded-xl">
+              Sign Up Free
+            </Button>
+          </Link>
+          <Link to="/auth?mode=signin" className="block w-full">
+            <Button 
+              variant="secondary" 
+              className="w-full bg-muted text-foreground hover:bg-muted/80 py-6 text-base font-semibold rounded-xl border-0"
+            >
+              Log In
+            </Button>
+          </Link>
+        </motion.div>
+
+        {/* Terms */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="text-center text-xs text-muted-foreground mt-auto"
+        >
+          By continuing, you agree to our{' '}
+          <Link to="/terms" className="underline font-medium text-foreground">Terms</Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="underline font-medium text-foreground">Privacy Policy</Link>.
+        </motion.p>
+      </div>
     </div>
   );
 };
