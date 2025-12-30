@@ -113,13 +113,13 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
 
       {/* Photo Section */}
       <div className={cn(
-        "relative bg-muted",
+        "relative bg-muted overflow-hidden",
         isMobile ? "flex-1 min-h-0" : "aspect-[3/4]"
       )}>
         <img
           src={profile.photos[currentPhotoIndex]}
           alt={profile.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover absolute inset-0"
         />
 
         {/* Photo Navigation Dots */}
