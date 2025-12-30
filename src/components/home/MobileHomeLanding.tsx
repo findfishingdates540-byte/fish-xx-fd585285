@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Fish, Heart, Globe, Smartphone, Mail } from 'lucide-react';
 import coupleFishing from '@/assets/couple-fishing.jpg';
-import heroFishing1 from '@/assets/hero-fishing-1.jpg';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -53,166 +52,148 @@ const MobileHomeLanding = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Blurred Background */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroFishing1})` }}
-      >
-        <div className="absolute inset-0 backdrop-blur-xl bg-black/20" />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Hero Image */}
+      <div className="relative">
+        <div className="aspect-[4/3] overflow-hidden">
+          <img 
+            src={coupleFishing} 
+            alt="Couple fishing together" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Brand Badge */}
+        <div className="absolute top-4 left-4 bg-foreground text-background px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
+          <Fish className="w-4 h-4" />
+          <span className="text-sm font-bold tracking-wide">FindFish</span>
+        </div>
+        
+        {/* Floating Fish Icon */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+          className="absolute bottom-6 left-4 bg-background rounded-full p-2.5 shadow-xl"
+        >
+          <Fish className="w-5 h-5 text-foreground" />
+        </motion.div>
+        
+        {/* Floating Heart Icon */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+          className="absolute bottom-10 right-4 bg-background rounded-full p-2.5 shadow-xl"
+        >
+          <Heart className="w-5 h-5 text-foreground fill-foreground" />
+        </motion.div>
       </div>
 
-      {/* Card Container */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        className="relative z-10 min-h-screen flex items-center justify-center p-4"
-      >
-        <div className="w-full max-w-sm bg-background rounded-[2rem] shadow-2xl overflow-hidden">
-          {/* Hero Image */}
-          <div className="relative">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img 
-                src={coupleFishing} 
-                alt="Couple fishing together" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            {/* Brand Badge */}
-            <div className="absolute top-4 left-4 bg-foreground text-background px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
-              <Fish className="w-4 h-4" />
-              <span className="text-sm font-bold tracking-wide">FindFish</span>
-            </div>
-            
-            {/* Floating Fish Icon */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-              className="absolute bottom-6 left-4 bg-background rounded-full p-2.5 shadow-xl"
-            >
-              <Fish className="w-5 h-5 text-foreground" />
-            </motion.div>
-            
-            {/* Floating Heart Icon */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-              className="absolute bottom-10 right-4 bg-background rounded-full p-2.5 shadow-xl"
-            >
-              <Heart className="w-5 h-5 text-foreground fill-foreground" />
-            </motion.div>
-          </div>
+      {/* Content */}
+      <div className="flex-1 px-6 pt-6 pb-8 flex flex-col">
+        {/* Headline */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-2"
+        >
+          <h1 className="text-2xl font-bold text-foreground">
+            Catch feelings,
+          </h1>
+          <h1 className="text-2xl font-bold italic text-foreground">
+            catch fish.
+          </h1>
+        </motion.div>
 
-          {/* Content */}
-          <div className="px-6 pt-6 pb-8">
-            {/* Headline */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-center mb-2"
-            >
-              <h1 className="text-2xl font-bold text-foreground">
-                Catch feelings,
-              </h1>
-              <h1 className="text-2xl font-bold italic text-foreground">
-                catch fish.
-              </h1>
-            </motion.div>
+        {/* Subtitle */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-center mb-1"
+        >
+          <p className="text-muted-foreground text-sm">The #1 App for Anglers.</p>
+        </motion.div>
+        
+        {/* Features */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35 }}
+          className="text-center mb-6"
+        >
+          <p className="text-muted-foreground text-sm">
+            Dating • Fishing Spots • Combo Mode
+          </p>
+        </motion.div>
 
-            {/* Subtitle */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-center mb-1"
+        {/* Buttons */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-3 mb-6"
+        >
+          <Link to="/auth?mode=signup" className="block">
+            <Button className="w-full bg-foreground text-background hover:bg-foreground/90 h-14 text-base font-semibold rounded-2xl">
+              Sign Up Free
+            </Button>
+          </Link>
+          <Link to="/auth?mode=signin" className="block">
+            <Button 
+              variant="ghost" 
+              className="w-full bg-muted hover:bg-muted/80 text-foreground h-14 text-base font-semibold rounded-2xl"
             >
-              <p className="text-muted-foreground text-sm">The #1 App for Anglers.</p>
-            </motion.div>
-            
-            {/* Features */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.35 }}
-              className="text-center mb-6"
-            >
-              <p className="text-muted-foreground text-sm">
-                Dating • Fishing Spots • Combo Mode
-              </p>
-            </motion.div>
+              Log In
+            </Button>
+          </Link>
+        </motion.div>
 
-            {/* Buttons */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-3 mb-6"
-            >
-              <Link to="/auth?mode=signup" className="block">
-                <Button className="w-full bg-foreground text-background hover:bg-foreground/90 h-14 text-base font-semibold rounded-2xl">
-                  Sign Up Free
-                </Button>
-              </Link>
-              <Link to="/auth?mode=signin" className="block">
-                <Button 
-                  variant="ghost" 
-                  className="w-full bg-muted hover:bg-muted/80 text-foreground h-14 text-base font-semibold rounded-2xl"
-                >
-                  Log In
-                </Button>
-              </Link>
-            </motion.div>
+        {/* Divider */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.45 }}
+          className="flex items-center gap-3 mb-6"
+        >
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-xs text-muted-foreground uppercase tracking-wider">Or continue with</span>
+          <div className="flex-1 h-px bg-border" />
+        </motion.div>
 
-            {/* Divider */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.45 }}
-              className="flex items-center gap-3 mb-6"
-            >
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">Or continue with</span>
-              <div className="flex-1 h-px bg-border" />
-            </motion.div>
+        {/* Social Login */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex justify-center gap-4 mb-6"
+        >
+          <button className="w-16 h-12 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
+            <Globe className="w-5 h-5 text-foreground" />
+          </button>
+          <button className="w-16 h-12 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
+            <Smartphone className="w-5 h-5 text-foreground" />
+          </button>
+          <button className="w-16 h-12 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
+            <Mail className="w-5 h-5 text-foreground" />
+          </button>
+        </motion.div>
 
-            {/* Social Login */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex justify-center gap-4 mb-6"
-            >
-              <button className="w-16 h-12 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                <Globe className="w-5 h-5 text-foreground" />
-              </button>
-              <button className="w-16 h-12 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                <Smartphone className="w-5 h-5 text-foreground" />
-              </button>
-              <button className="w-16 h-12 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                <Mail className="w-5 h-5 text-foreground" />
-              </button>
-            </motion.div>
-
-            {/* Terms */}
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.55 }}
-              className="text-center text-xs text-muted-foreground"
-            >
-              By continuing, you agree to our{' '}
-              <Link to="/terms" className="font-semibold text-foreground underline">Terms</Link>
-              {' '}and{' '}
-              <Link to="/privacy" className="font-semibold text-foreground underline">Privacy Policy</Link>.
-            </motion.p>
-          </div>
-        </div>
-      </motion.div>
+        {/* Terms */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.55 }}
+          className="text-center text-xs text-muted-foreground mt-auto"
+        >
+          By continuing, you agree to our{' '}
+          <Link to="/terms" className="font-semibold text-foreground underline">Terms</Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="font-semibold text-foreground underline">Privacy Policy</Link>.
+        </motion.p>
+      </div>
     </div>
   );
 };
