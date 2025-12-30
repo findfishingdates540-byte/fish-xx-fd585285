@@ -14,8 +14,18 @@ import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 import { CountUp } from '@/components/ui/count-up';
+import { useIsMobile } from '@/hooks/use-mobile';
+import MobileHomeLanding from '@/components/home/MobileHomeLanding';
 
 const Index = () => {
+  const isMobile = useIsMobile();
+
+  // Mobile: Show clean app launcher screen (ideal for APK)
+  if (isMobile) {
+    return <MobileHomeLanding />;
+  }
+
+  // Desktop/Tablet: Show full marketing homepage
   return (
     <div className="min-h-screen bg-background">
       <PublicHeader />
