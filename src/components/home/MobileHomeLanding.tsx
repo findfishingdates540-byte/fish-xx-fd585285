@@ -54,7 +54,7 @@ const MobileHomeLanding = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Image */}
-      <div className="relative -mb-px">
+      <div className="relative">
         <div className="aspect-[4/3] overflow-hidden">
           <img 
             src={mobileHeroCouple} 
@@ -62,6 +62,8 @@ const MobileHomeLanding = () => {
             className="w-full h-full object-cover block"
           />
         </div>
+        {/* Gradient overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
         
         {/* Brand Badge */}
         <div className="absolute top-4 left-4 bg-foreground text-background px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
