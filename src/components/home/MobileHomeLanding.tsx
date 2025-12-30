@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Fish, Heart, Globe, Smartphone, Mail } from 'lucide-react';
-import coupleFishing from '@/assets/couple-fishing.jpg';
+import mobileHeroCouple from '@/assets/mobile-hero-couple.jpg';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,8 +57,8 @@ const MobileHomeLanding = () => {
       <div className="relative">
         <div className="aspect-[4/3] overflow-hidden">
           <img 
-            src={coupleFishing} 
-            alt="Couple fishing together" 
+            src={mobileHeroCouple} 
+            alt="Couple fishing together at sunset" 
             className="w-full h-full object-cover"
           />
         </div>
