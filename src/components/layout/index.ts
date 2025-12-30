@@ -9,3 +9,4 @@ export { BothHeader } from './BothHeader';
 export { ComboSharedHeader } from './ComboSharedHeader';
 export { MobileModeSwitcher } from './MobileModeSwitcher';
 export { PageTransition } from './PageTransition';
+export { ForceLightTheme } from './ForceLightTheme';

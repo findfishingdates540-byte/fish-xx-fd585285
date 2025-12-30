@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout";
 import { DatingRoute, FishingRoute } from "@/components/layout/RouteGuard";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
+import { ForceLightTheme } from "@/components/layout/ForceLightTheme";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
@@ -37,7 +38,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange={false}>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
@@ -45,22 +46,23 @@ const App = () => (
           <BrowserRouter>
           <ScrollToTop />
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/admin/login" element={<AdminAuth />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/dating" element={<Dating />} />
-            <Route path="/fishing" element={<Fishing />} />
-            <Route path="/safety" element={<Safety />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/help" element={<Help />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
+            {/* Public pages - force light theme */}
+            <Route path="/" element={<ForceLightTheme><Index /></ForceLightTheme>} />
+            <Route path="/auth" element={<ForceLightTheme><Auth /></ForceLightTheme>} />
+            <Route path="/admin/login" element={<ForceLightTheme><AdminAuth /></ForceLightTheme>} />
+            <Route path="/onboarding" element={<ForceLightTheme><Onboarding /></ForceLightTheme>} />
+            <Route path="/onboarding/success" element={<ForceLightTheme><OnboardingSuccess /></ForceLightTheme>} />
+            <Route path="/about" element={<ForceLightTheme><About /></ForceLightTheme>} />
+            <Route path="/dating" element={<ForceLightTheme><Dating /></ForceLightTheme>} />
+            <Route path="/fishing" element={<ForceLightTheme><Fishing /></ForceLightTheme>} />
+            <Route path="/safety" element={<ForceLightTheme><Safety /></ForceLightTheme>} />
+            <Route path="/privacy" element={<ForceLightTheme><Privacy /></ForceLightTheme>} />
+            <Route path="/terms" element={<ForceLightTheme><Terms /></ForceLightTheme>} />
+            <Route path="/contact" element={<ForceLightTheme><Contact /></ForceLightTheme>} />
+            <Route path="/help" element={<ForceLightTheme><Help /></ForceLightTheme>} />
+            <Route path="/pricing" element={<ForceLightTheme><Pricing /></ForceLightTheme>} />
+            <Route path="/checkout" element={<ForceLightTheme><Checkout /></ForceLightTheme>} />
+            <Route path="/payment-success" element={<ForceLightTheme><PaymentSuccess /></ForceLightTheme>} />
             
             {/* Logged-in app routes */}
             <Route path="/app" element={<AppLayout />}>
@@ -119,7 +121,7 @@ const App = () => (
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<ForceLightTheme><NotFound /></ForceLightTheme>} />
           </Routes>
         </BrowserRouter>
         </TooltipProvider>
