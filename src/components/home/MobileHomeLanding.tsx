@@ -54,12 +54,12 @@ const MobileHomeLanding = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Image */}
-      <div className="relative">
+      <div className="relative -mb-px">
         <div className="aspect-[4/3] overflow-hidden">
           <img 
             src={mobileHeroCouple} 
             alt="Couple fishing together at sunset" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover block"
           />
         </div>
         
