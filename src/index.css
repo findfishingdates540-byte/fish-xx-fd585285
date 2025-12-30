@@ -56,6 +56,16 @@
     --shadow-soft: 0 4px 20px hsla(0, 0%, 0%, 0.06);
     --shadow-medium: 0 8px 30px hsla(0, 0%, 0%, 0.1);
     --shadow-strong: 0 20px 50px hsla(0, 0%, 0%, 0.15);
+
+    /* Sidebar dark theme overrides */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 8%;
+    --sidebar-primary: 0 0% 8%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 8%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 8%;
   }
 
   .dark {
@@ -78,8 +88,24 @@
     --border: 0 0% 20%;
     --input: 0 0% 18%;
     --ring: 0 0% 98%;
+
+    /* Dark mode shadows */
+    --shadow-soft: 0 4px 20px hsla(0, 0%, 0%, 0.4);
+    --shadow-medium: 0 8px 30px hsla(0, 0%, 0%, 0.5);
+    --shadow-strong: 0 20px 50px hsla(0, 0%, 0%, 0.6);
+
+    /* Sidebar dark theme */
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 0 0% 98%;
   }
 }
+
 
 @layer base {
   * {

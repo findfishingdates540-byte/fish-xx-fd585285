@@ -14,6 +14,7 @@ import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useStripePortal } from "@/hooks/use-stripe-portal";
+import { ThemeSelector as AppearanceSelector } from "@/components/ui/theme-toggle";
 import { format } from "date-fns";
 import {
   User,
@@ -34,6 +35,7 @@ import {
   BellRing,
   ExternalLink,
   ArrowLeft,
+  Palette,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -43,6 +45,7 @@ const SUPABASE_URL = "https://zjmnlelqoiclkbrqefyv.supabase.co";
 
 const settingsNav = [
   { id: "account", label: "Account", icon: User },
+  { id: "appearance", label: "Appearance", icon: Palette },
   { id: "app-mode", label: "App Mode", icon: Smartphone },
   { id: "discovery", label: "Discovery", icon: Compass },
   { id: "notifications", label: "Notifications", icon: Bell },
@@ -580,6 +583,28 @@ export default function Settings() {
                   </CardContent>
                 </Card>
               )
+            )}
+
+            {/* Appearance Tab */}
+            {activeTab === "appearance" && (
+              <Card>
+                <CardContent className="p-6 space-y-6">
+                  <div>
+                    <h3 className="font-semibold mb-1">Appearance</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Customize how the app looks and feels.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label>Theme</Label>
+                    <AppearanceSelector />
+                    <p className="text-xs text-muted-foreground">
+                      Choose between light, dark, or system theme. System will automatically match your device settings.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Discovery Tab */}
