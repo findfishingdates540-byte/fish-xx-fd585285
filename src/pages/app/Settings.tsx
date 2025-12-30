@@ -36,6 +36,7 @@ import {
   ExternalLink,
   ArrowLeft,
   Palette,
+  Clock,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -739,37 +740,98 @@ export default function Settings() {
                       </div>
                     ) : isPremium ? (
                       <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 rounded-lg bg-primary/20">
-                              <Star className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <h4 className="font-semibold">
-                                {originalAccountMode === 'both' ? 'Trophy Member' : 'Angler Member'}
-                              </h4>
-                              <p className="text-sm text-muted-foreground">
-                                {originalAccountMode === 'both' 
-                                  ? 'Full access to fishing + dating features' 
-                                  : 'Access to all fishing features'}
-                              </p>
-                            </div>
-                          </div>
+                        {/* Check if user is on free trial */}
+                        {(() => {
+                          const isFreeTrial = premiumExpiresAt && (() => {
+                            const expiresDate = new Date(premiumExpiresAt);
+                            const now = new Date();
+                            const daysRemaining = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                            // Consider it a trial if expires within 30 days and they haven't paid via Stripe
+                            return daysRemaining > 0 && daysRemaining <= 30;
+                          })();
                           
-                          {/* Billing Info */}
-                          {premiumExpiresAt && (
-                            <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Next billing date</span>
-                                <span className="font-medium">{format(new Date(premiumExpiresAt), "MMMM d, yyyy")}</span>
+                          const daysRemaining = premiumExpiresAt 
+                            ? Math.ceil((new Date(premiumExpiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                            : 0;
+
+                          if (isFreeTrial && daysRemaining > 0) {
+                            return (
+                              <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/30">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="p-2 rounded-lg bg-amber-500/20">
+                                    <Clock className="h-5 w-5 text-amber-600" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-semibold">Free Trial</h4>
+                                      <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-700">
+                                        {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      Enjoying full access to {originalAccountMode === 'both' ? 'fishing + dating' : 'fishing'} features
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Trial Progress Bar */}
+                                <div className="mt-3 mb-4">
+                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300"
+                                      style={{ width: `${Math.max(0, (daysRemaining / 30) * 100)}%` }}
+                                    />
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Trial expires on {format(new Date(premiumExpiresAt), "MMMM d, yyyy")}
+                                  </p>
+                                </div>
+                                
+                                <Button asChild className="w-full">
+                                  <Link to="/pricing">
+                                    <Star className="h-4 w-4 mr-2" />
+                                    Upgrade Now to Keep Access
+                                  </Link>
+                                </Button>
                               </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Plan type</span>
-                                <span className="font-medium capitalize">{originalAccountMode === 'both' ? 'Combo' : 'Fishing Only'}</span>
+                            );
+                          }
+                          
+                          // Regular premium (paid) member
+                          return (
+                            <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 rounded-lg bg-primary/20">
+                                  <Star className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold">
+                                    {originalAccountMode === 'both' ? 'Trophy Member' : 'Angler Member'}
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {originalAccountMode === 'both' 
+                                      ? 'Full access to fishing + dating features' 
+                                      : 'Access to all fishing features'}
+                                  </p>
+                                </div>
                               </div>
+                              
+                              {/* Billing Info */}
+                              {premiumExpiresAt && (
+                                <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Next billing date</span>
+                                    <span className="font-medium">{format(new Date(premiumExpiresAt), "MMMM d, yyyy")}</span>
+                                  </div>
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Plan type</span>
+                                    <span className="font-medium capitalize">{originalAccountMode === 'both' ? 'Combo' : 'Fishing Only'}</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          );
+                        })()}
                         
                         {/* Upgrade Option for Angler users */}
                         {originalAccountMode === 'fishing' && (
