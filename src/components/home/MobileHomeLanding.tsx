@@ -1,14 +1,34 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import logo from '@/assets/logo.png';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const MobileHomeLanding = () => {
   const { user, loading } = useAuth();
+  const [accountMode, setAccountMode] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
-  // Show loading state while checking auth
-  if (loading) {
+  // Fetch user's account mode when authenticated
+  useEffect(() => {
+    if (user) {
+      setProfileLoading(true);
+      supabase
+        .from('profiles')
+        .select('account_mode')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          setAccountMode(data?.account_mode || 'both');
+          setProfileLoading(false);
+        });
+    }
+  }, [user]);
+
+  // Show loading state while checking auth or fetching profile
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <motion.div
@@ -22,9 +42,16 @@ const MobileHomeLanding = () => {
     );
   }
 
-  // Redirect authenticated users to the app
-  if (user) {
-    return <Navigate to="/app" replace />;
+  // Redirect authenticated users based on account mode
+  if (user && accountMode) {
+    if (accountMode === 'dating') {
+      return <Navigate to="/app/discover" replace />;
+    } else if (accountMode === 'fishing') {
+      return <Navigate to="/app/spots" replace />;
+    } else {
+      // 'both' mode goes to dashboard
+      return <Navigate to="/app/dashboard" replace />;
+    }
   }
 
   return (
