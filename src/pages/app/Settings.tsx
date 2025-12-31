@@ -204,7 +204,8 @@ export default function Settings() {
   };
 
   const getAccountModeLabel = () => {
-    switch (accountMode) {
+    // Use originalAccountMode to reflect actual database value
+    switch (originalAccountMode) {
       case "dating":
         return "Dating Mode User";
       case "fishing":
