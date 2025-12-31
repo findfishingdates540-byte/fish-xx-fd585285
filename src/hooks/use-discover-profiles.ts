@@ -292,7 +292,7 @@ export function useDiscoverProfiles() {
         // Update existing record
         const isUser1 = existing.user1_id === user.id;
         const updateField = isUser1 ? 'user1_liked' : 'user2_liked';
-        const otherLiked = isUser1 ? existing.user2_liked : existing.user1_liked;
+        const otherLiked = isUser1 ? (existing.user2_liked === true) : (existing.user1_liked === true);
         isMatch = liked && otherLiked;
         matchId = existing.id;
 
