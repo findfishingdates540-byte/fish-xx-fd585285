@@ -37,6 +37,8 @@ import {
   ArrowLeft,
   Palette,
   Clock,
+  MapPin,
+  Navigation,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -48,6 +50,7 @@ const settingsNav = [
   { id: "account", label: "Account", icon: User },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "app-mode", label: "App Mode", icon: Smartphone },
+  { id: "location", label: "Location", icon: MapPin },
   { id: "discovery", label: "Discovery", icon: Compass },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "privacy", label: "Privacy", icon: Shield },
@@ -82,6 +85,13 @@ export default function Settings() {
   // Discovery settings
   const [maxDistance, setMaxDistance] = useState(50);
   const [ageRange, setAgeRange] = useState<[number, number]>([18, 50]);
+  
+  // Location settings
+  const [locationName, setLocationName] = useState("");
+  const [locationLat, setLocationLat] = useState<number | null>(null);
+  const [locationLng, setLocationLng] = useState<number | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationPermission, setLocationPermission] = useState<PermissionState | null>(null);
   const [showOnlineStatus, setShowOnlineStatus] = useState(true);
 
   // Notification settings
@@ -93,8 +103,23 @@ export default function Settings() {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      checkLocationPermission();
     }
   }, [user]);
+
+  // Check current location permission status
+  const checkLocationPermission = async () => {
+    if ('permissions' in navigator) {
+      try {
+        const result = await navigator.permissions.query({ name: 'geolocation' });
+        setLocationPermission(result.state);
+        result.onchange = () => setLocationPermission(result.state);
+      } catch (e) {
+        // Some browsers don't support querying geolocation permission
+        console.log('Permission query not supported');
+      }
+    }
+  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -122,6 +147,9 @@ export default function Settings() {
       setPremiumExpiresAt(data.premium_expires_at || null);
       setMaxDistance(data.max_distance_miles || 50);
       setAgeRange([data.min_age_preference || 18, data.max_age_preference || 50]);
+      setLocationName(data.location_name || "");
+      setLocationLat(data.location_lat || null);
+      setLocationLng(data.location_lng || null);
     }
     setLoading(false);
   };
@@ -214,6 +242,88 @@ export default function Settings() {
     await signOut();
     toast.success("Signed out successfully");
     navigate("/auth");
+  };
+
+  // Get Mapbox token for geocoding
+  const getMapboxToken = async (): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+      if (error) throw error;
+      return data?.token || null;
+    } catch (e) {
+      console.error('Failed to get Mapbox token:', e);
+      return null;
+    }
+  };
+
+  // Handle enabling GPS location
+  const handleEnableLocation = async () => {
+    if (!user) return;
+    setLocationLoading(true);
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      
+      // Reverse geocode to get location name
+      const token = await getMapboxToken();
+      let newLocationName = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      
+      if (token) {
+        try {
+          const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&types=place,locality`
+          );
+          const data = await response.json();
+          if (data.features?.[0]?.place_name) {
+            newLocationName = data.features[0].place_name;
+          }
+        } catch (e) {
+          console.error('Reverse geocoding failed:', e);
+        }
+      }
+
+      // Save to database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          location_lat: latitude,
+          location_lng: longitude,
+          location_name: newLocationName,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setLocationLat(latitude);
+      setLocationLng(longitude);
+      setLocationName(newLocationName);
+      setLocationPermission('granted');
+      toast.success('Location updated successfully!');
+    } catch (error: unknown) {
+      if (error instanceof GeolocationPositionError) {
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationPermission('denied');
+          toast.error('Location access denied. Please enable it in your browser settings.');
+        } else if (error.code === error.TIMEOUT) {
+          toast.error('Location request timed out. Please try again.');
+        } else {
+          toast.error('Unable to get your location. Please try again.');
+        }
+      } else {
+        toast.error('Failed to update location');
+      }
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
   const getAccountModeLabel = () => {
@@ -617,6 +727,109 @@ export default function Settings() {
                     <p className="text-xs text-muted-foreground">
                       Choose between light, dark, or system theme. System will automatically match your device settings.
                     </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Location Tab */}
+            {activeTab === "location" && (
+              <Card>
+                <CardContent className="p-6 space-y-6">
+                  <div>
+                    <h3 className="font-semibold mb-1">Location Settings</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Manage your location for finding nearby spots and matches.
+                    </p>
+                  </div>
+
+                  {/* Current Location Status */}
+                  <div className="p-4 bg-muted rounded-lg space-y-3">
+                    <div className="flex items-center gap-3">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">Your Saved Location</p>
+                        <p className="text-sm text-muted-foreground">
+                          {locationName || 'No location set'}
+                        </p>
+                      </div>
+                      {locationLat && locationLng && (
+                        <div className="text-xs text-muted-foreground">
+                          {locationLat.toFixed(4)}, {locationLng.toFixed(4)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Permission Status */}
+                  {locationPermission && (
+                    <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${
+                      locationPermission === 'granted' 
+                        ? 'bg-green-500/10 text-green-700 dark:text-green-400' 
+                        : locationPermission === 'denied'
+                        ? 'bg-destructive/10 text-destructive'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {locationPermission === 'granted' ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          Location access granted
+                        </>
+                      ) : locationPermission === 'denied' ? (
+                        <>
+                          <Shield className="h-4 w-4" />
+                          Location access denied. Enable it in your browser settings.
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="h-4 w-4" />
+                          Location permission not yet requested
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Enable Location Button */}
+                  <div className="space-y-3">
+                    <Button
+                      onClick={handleEnableLocation}
+                      disabled={locationLoading}
+                      className="w-full"
+                    >
+                      {locationLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Getting your location...
+                        </>
+                      ) : (
+                        <>
+                          <Navigation className="h-4 w-4 mr-2" />
+                          {locationName ? 'Update to Current Location' : 'Enable Location Services'}
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Uses your device's GPS to find nearby fishing spots and matches.
+                    </p>
+                  </div>
+
+                  {/* Benefits */}
+                  <div className="border-t pt-4 space-y-3">
+                    <h4 className="font-medium text-sm">Why enable location?</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Find fishing spots near you, even when traveling</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <Heart className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>Get matched with people in your area</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <Compass className="h-4 w-4 mt-0.5 text-primary" />
+                        <span>See accurate distances to spots and buddies</span>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
