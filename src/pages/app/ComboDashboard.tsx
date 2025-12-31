@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMode } from "@/contexts/ActiveModeContext";
-import { useAccountModeSwitcher } from "@/hooks/use-account-mode-switcher";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,18 +125,7 @@ export default function ComboDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { activeMode, setActiveMode, setBaseAccountMode } = useActiveMode();
-  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
-    setBaseAccountMode(newMode);
-    // Map account mode to active mode for display
-    if (newMode === 'both') {
-      setActiveMode('unified');
-    } else if (newMode === 'dating') {
-      setActiveMode('dating');
-    } else {
-      setActiveMode('fishing');
-    }
-  }, { redirect: true }); // Enable redirect on switch
+  const { activeMode, setActiveMode } = useActiveMode();
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [nearbyAnglers, setNearbyAnglers] = useState<ProfileData[]>([]);
@@ -150,14 +139,22 @@ export default function ComboDashboard() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
 
-  // Map activeMode to accountMode for database
+  // For combo users, this just switches their view preference (not account type in DB)
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
-    const accountModeMap: Record<'unified' | 'dating' | 'fishing', AccountMode> = {
-      unified: 'both',
-      dating: 'dating',
-      fishing: 'fishing',
-    };
-    switchMode(accountModeMap[mode]);
+    setActiveMode(mode);
+    // Navigate to the appropriate home page for the selected mode
+    switch (mode) {
+      case 'dating':
+        navigate('/app/discover');
+        break;
+      case 'fishing':
+        navigate('/app/spots');
+        break;
+      case 'unified':
+      default:
+        navigate('/app/dashboard');
+        break;
+    }
   };
 
   // Request notification permission on mount
@@ -742,20 +739,14 @@ export default function ComboDashboard() {
                   <button
                     key={mode.value}
                     onClick={() => handleModeSwitch(mode.value as 'unified' | 'dating' | 'fishing')}
-                    disabled={isSwitching}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors",
                       activeMode === mode.value
                         ? "bg-background text-primary shadow-sm"
-                        : "text-muted-foreground hover:text-foreground",
-                      isSwitching && "opacity-50 cursor-not-allowed"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    {isSwitching && activeMode !== mode.value ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <mode.icon className="h-4 w-4" />
-                    )}
+                    <mode.icon className="h-4 w-4" />
                     {mode.label}
                   </button>
                 ))}
