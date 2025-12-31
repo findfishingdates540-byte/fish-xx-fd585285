@@ -36,15 +36,18 @@ export default function Messages() {
     enabled: !!user?.id,
   });
 
-  // Fetch likes count
+  // Fetch pending likes count (people who liked you but you haven't responded)
   const { data: likesCount = 0 } = useQuery({
-    queryKey: ['likes-count', user?.id],
+    queryKey: ['pending-likes-count', user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
       const { count, error } = await supabase
         .from('matches')
         .select('*', { count: 'exact', head: true })
-        .or(`and(user1_id.eq.${user.id},user2_liked.eq.true,user1_liked.is.null),and(user2_id.eq.${user.id},user1_liked.eq.true,user2_liked.is.null)`);
+        .eq('user2_id', user.id)
+        .eq('user1_liked', true)
+        .eq('user2_liked', false)
+        .eq('is_match', false);
       if (error) return 0;
       return count || 0;
     },
@@ -193,16 +196,14 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* New Matches Row */}
-      {(newMatches.length > 0 || likesCount > 0) && (
-        <div className="border-b border-border">
-          <NewMatchesRow
-            matches={newMatches}
-            likesCount={likesCount}
-            onSelect={handleSelectConversation}
-          />
-        </div>
-      )}
+      {/* New Matches Row - Always visible */}
+      <div className="border-b border-border">
+        <NewMatchesRow
+          matches={newMatches}
+          likesCount={likesCount}
+          onSelect={handleSelectConversation}
+        />
+      </div>
       
       {/* Content */}
       {isLoading ? renderLoading() : <DarkConversationList />}
