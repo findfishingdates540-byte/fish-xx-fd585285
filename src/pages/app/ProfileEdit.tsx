@@ -23,8 +23,9 @@ import { InterestSelector } from "@/components/profile";
 import { toast } from "sonner";
 import { 
   User, 
-  MapPin, 
-  Camera, 
+  MapPin,
+  Navigation,
+  Camera,
   Pencil, 
   Heart, 
   Shield, 
@@ -74,6 +75,9 @@ export default function ProfileEdit() {
   // Form state - Basic
   const [displayName, setDisplayName] = useState("");
   const [locationName, setLocationName] = useState("");
+  const [locationLat, setLocationLat] = useState<number | null>(null);
+  const [locationLng, setLocationLng] = useState<number | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [bio, setBio] = useState("");
   const [accountMode, setAccountMode] = useState<AccountMode>("both");
@@ -123,6 +127,8 @@ export default function ProfileEdit() {
     if (data) {
       setDisplayName(data.display_name || "");
       setLocationName(data.location_name || "");
+      setLocationLat(data.location_lat || null);
+      setLocationLng(data.location_lng || null);
       setDateOfBirth(data.date_of_birth || "");
       setBio(data.bio || "");
       setAccountMode(data.account_mode || "both");
@@ -326,15 +332,104 @@ export default function ProfileEdit() {
     setDragOverIndex(null);
   };
 
+  // Handle GPS location update
+  const handleGetCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setLocationLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocationLat(latitude);
+        setLocationLng(longitude);
+
+        // Reverse geocode to get location name
+        try {
+          const tokenResponse = await fetch('https://zjmnlelqoiclkbrqefyv.supabase.co/functions/v1/get-mapbox-token');
+          if (tokenResponse.ok) {
+            const { token } = await tokenResponse.json();
+            const geocodeResponse = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,region&access_token=${token}`
+            );
+            if (geocodeResponse.ok) {
+              const data = await geocodeResponse.json();
+              if (data.features && data.features.length > 0) {
+                const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
+                const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
+                const city = placeFeature?.text || '';
+                const state = regionFeature?.text || '';
+                const newLocationName = [city, state].filter(Boolean).join(', ');
+                if (newLocationName) {
+                  setLocationName(newLocationName);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+        }
+
+        setLocationLoading(false);
+        toast.success("Location updated");
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setLocationLoading(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error("Location permission denied. Please enable it in your browser settings.");
+        } else {
+          toast.error("Failed to get your location");
+        }
+      }
+    );
+  };
+
+  // Handle manual location change - geocode when saving
+  const handleLocationNameChange = (value: string) => {
+    setLocationName(value);
+    // Clear coordinates when manually editing - will be geocoded on save
+    setLocationLat(null);
+    setLocationLng(null);
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
+
+    // If location name changed but no coordinates, geocode it
+    let finalLat = locationLat;
+    let finalLng = locationLng;
+
+    if (!finalLat && !finalLng && locationName) {
+      try {
+        const parts = locationName.split(',').map(s => s.trim());
+        const city = parts[0] || '';
+        const state = parts[1] || '';
+        
+        const response = await supabase.functions.invoke('geocode-address', {
+          body: { city, state }
+        });
+        
+        if (response.data?.lat && response.data?.lng) {
+          finalLat = response.data.lat;
+          finalLng = response.data.lng;
+        }
+      } catch (geocodeError) {
+        console.warn('Geocoding failed:', geocodeError);
+      }
+    }
 
     const { error } = await supabase
       .from("profiles")
       .update({
         display_name: displayName,
         location_name: locationName,
+        location_lat: finalLat,
+        location_lng: finalLng,
         date_of_birth: dateOfBirth || null,
         bio: bio,
         account_mode: accountMode,
@@ -611,16 +706,38 @@ export default function ProfileEdit() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="location">Location</Label>
-                    <div className="relative mt-1.5">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="location"
-                        value={locationName}
-                        onChange={(e) => setLocationName(e.target.value)}
-                        placeholder="City, State"
-                        className="pl-10"
-                      />
+                    <div className="flex gap-2 mt-1.5">
+                      <div className="relative flex-1">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="location"
+                          value={locationName}
+                          onChange={(e) => handleLocationNameChange(e.target.value)}
+                          placeholder="City, State"
+                          className="pl-10"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleGetCurrentLocation}
+                        disabled={locationLoading}
+                        title="Use current location"
+                      >
+                        {locationLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Navigation className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
+                    {locationLat && locationLng && (
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                        Coordinates saved
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="birthday">Birthday</Label>
