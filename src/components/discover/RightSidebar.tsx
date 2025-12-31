@@ -72,30 +72,41 @@ export function RightSidebar({
 }: RightSidebarProps) {
   const navigate = useNavigate();
 
+  const hasUnread = conversations.some((c) => (c.unreadCount || 0) > 0);
+
   return (
     <aside data-tutorial="matches-sidebar" className="hidden xl:flex flex-col w-72 h-screen border-l border-border bg-background p-6">
-      {/* Who Likes You Section */}
-      {pendingLikes.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-lg flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary" />
-              Who Likes You
-            </h3>
-            <Badge className="bg-primary text-primary-foreground text-xs px-2">
-              {pendingLikes.length}
-            </Badge>
-          </div>
+      {/* Who Likes You */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <Heart className="h-5 w-5 text-primary" />
+            Who Likes You
+            {pendingLikes.length > 0 && (
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
+            )}
+          </h3>
+          <Badge className="bg-primary text-primary-foreground text-xs px-2">
+            {pendingLikes.length}
+          </Badge>
+        </div>
 
+        {pendingLikes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No likes yet</p>
+        ) : (
           <div className="flex gap-3 overflow-x-auto no-scrollbar py-2 px-1">
             {pendingLikes.slice(0, 5).map((like) => (
               <button
                 key={like.id}
-                onClick={() => isPremium ? navigate('/app/likes') : navigate('/pricing')}
+                onClick={() => (isPremium ? navigate('/app/likes') : navigate('/pricing'))}
                 className="flex flex-col items-center gap-1 flex-shrink-0 min-w-[56px] group"
               >
                 <div className="relative">
-                  <Avatar className={`h-14 w-14 ring-2 ring-primary/50 ring-offset-2 ring-offset-background ${!isPremium ? 'blur-[6px]' : ''}`}>
+                  <Avatar
+                    className={`h-14 w-14 ring-2 ring-primary/50 ring-offset-2 ring-offset-background ${
+                      !isPremium ? 'blur-[6px]' : ''
+                    }`}
+                  >
                     <AvatarImage src={like.photo} alt={like.name} />
                     <AvatarFallback>{like.name.charAt(0)}</AvatarFallback>
                   </Avatar>
@@ -113,25 +124,30 @@ export function RightSidebar({
               </button>
             ))}
           </div>
+        )}
 
-          {!isPremium && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full mt-3 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-              onClick={() => navigate('/pricing')}
-            >
-              <Lock className="h-3.5 w-3.5 mr-2" />
-              Unlock to see who likes you
-            </Button>
-          )}
-        </div>
-      )}
+        {!isPremium && pendingLikes.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-3 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+            onClick={() => navigate('/pricing')}
+          >
+            <Lock className="h-3.5 w-3.5 mr-2" />
+            Unlock to see who likes you
+          </Button>
+        )}
+      </div>
 
       {/* Today's Catch - Mutual Matches */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-lg">Today's Catch</h3>
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            Today's Catch
+            {newMatchCount > 0 && (
+              <span className="h-2 w-2 rounded-full bg-foreground animate-pulse" aria-hidden="true" />
+            )}
+          </h3>
           {newMatchCount > 0 && (
             <Badge className="bg-foreground text-background text-xs px-2">
               {newMatchCount} New
@@ -170,14 +186,15 @@ export function RightSidebar({
 
       {/* Conversations */}
       <div className="flex-1 overflow-hidden">
-        <h3 className="font-bold text-xs text-muted-foreground tracking-wider mb-4">
+        <h3 className="font-bold text-xs text-muted-foreground tracking-wider mb-4 flex items-center gap-2">
           CONVERSATIONS
+          {hasUnread && <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" aria-hidden="true" />}
         </h3>
 
         {conversations.length === 0 ? (
           <p className="text-sm text-muted-foreground">No conversations yet</p>
         ) : (
-          <div className="space-y-1 overflow-y-auto max-h-[calc(100vh-500px)]">
+          <div className="space-y-1 overflow-y-auto max-h-[calc(100vh-520px)]">
             {conversations.map((convo) => (
               <button
                 key={convo.id}
@@ -229,9 +246,7 @@ export function RightSidebar({
             </div>
             <div>
               <h4 className="font-bold text-sm">Go Premium</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Access premium fishing spots & features.
-              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">Access premium fishing spots & features.</p>
             </div>
           </div>
         </div>

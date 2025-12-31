@@ -91,20 +91,23 @@ export default function Discover() {
     queryKey: ['pending-likes-sidebar', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       const { data } = await supabase
         .from('matches')
         .select(`
           id,
           user1_id,
+          user1_liked,
+          user2_liked,
           user1:profiles!matches_user1_id_fkey(display_name, photos)
         `)
         .eq('user2_id', user.id)
         .eq('is_match', false)
-        .is('user2_liked', null)
+        .eq('user1_liked', true)
+        .eq('user2_liked', false)
         .order('created_at', { ascending: false })
         .limit(10);
-      
+
       return (data || []).map((match: any) => ({
         id: match.id,
         name: match.user1?.display_name || 'Someone',
@@ -235,15 +238,36 @@ export default function Discover() {
       .on(
         'postgres_changes',
         {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          const match = payload.new as any;
+          if (match.user1_id === user.id || match.user2_id === user.id) {
+            queryClient.invalidateQueries({ queryKey: ['pending-likes-sidebar', user.id] });
+            if (match.is_match) {
+              queryClient.invalidateQueries({ queryKey: ['recent-matches-sidebar', user.id] });
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
           event: 'UPDATE',
           schema: 'public',
           table: 'matches',
         },
         (payload) => {
           const match = payload.new as any;
-          // If a new match is created involving the current user
-          if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
-            queryClient.invalidateQueries({ queryKey: ['recent-matches-sidebar', user.id] });
+          if (match.user1_id === user.id || match.user2_id === user.id) {
+            queryClient.invalidateQueries({ queryKey: ['pending-likes-sidebar', user.id] });
+
+            if (match.is_match) {
+              queryClient.invalidateQueries({ queryKey: ['recent-matches-sidebar', user.id] });
+              queryClient.invalidateQueries({ queryKey: ['recent-conversations-sidebar', user.id] });
+            }
           }
         }
       )
@@ -255,7 +279,17 @@ export default function Discover() {
           table: 'messages',
         },
         () => {
-          // Refresh conversations when new message arrives
+          queryClient.invalidateQueries({ queryKey: ['recent-conversations-sidebar', user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
           queryClient.invalidateQueries({ queryKey: ['recent-conversations-sidebar', user.id] });
         }
       )
