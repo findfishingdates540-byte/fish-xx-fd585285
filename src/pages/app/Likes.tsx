@@ -3,11 +3,11 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Lock, Crown, X, Check, ArrowLeft } from "lucide-react";
+import { Heart, Lock, Crown, X, Check, ArrowLeft, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DiscoverSidebar } from "@/components/discover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 interface LikeProfile {
@@ -24,8 +24,10 @@ export default function Likes() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
-  const [likes, setLikes] = useState<LikeProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [likesReceived, setLikesReceived] = useState<LikeProfile[]>([]);
+  const [likesSent, setLikesSent] = useState<LikeProfile[]>([]);
+  const [loadingReceived, setLoadingReceived] = useState(true);
+  const [loadingSent, setLoadingSent] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
 
   // Get user profile for sidebar
@@ -45,7 +47,8 @@ export default function Likes() {
 
   useEffect(() => {
     if (user) {
-      fetchLikes();
+      fetchLikesReceived();
+      fetchLikesSent();
       checkPremiumStatus();
     }
   }, [user]);
@@ -60,9 +63,9 @@ export default function Likes() {
     setIsPremium(data?.is_premium ?? false);
   };
 
-  const fetchLikes = async () => {
+  const fetchLikesReceived = async () => {
     if (!user) return;
-    setLoading(true);
+    setLoadingReceived(true);
 
     try {
       // Get matches where other user liked current user, but current user hasn't liked back
@@ -94,8 +97,8 @@ export default function Likes() {
       });
 
       if (likerIds.length === 0) {
-        setLikes([]);
-        setLoading(false);
+        setLikesReceived([]);
+        setLoadingReceived(false);
         return;
       }
 
@@ -127,12 +130,90 @@ export default function Likes() {
         };
       });
 
-      setLikes(likeProfiles);
+      setLikesReceived(likeProfiles);
     } catch (error) {
-      console.error("Error fetching likes:", error);
+      console.error("Error fetching likes received:", error);
       toast.error("Failed to load likes");
     } finally {
-      setLoading(false);
+      setLoadingReceived(false);
+    }
+  };
+
+  const fetchLikesSent = async () => {
+    if (!user) return;
+    setLoadingSent(true);
+
+    try {
+      // Get matches where current user liked, but other user hasn't liked back (not a match yet)
+      const { data: matchesAsUser1, error: error1 } = await supabase
+        .from("matches")
+        .select("id, user2_id")
+        .eq("user1_id", user.id)
+        .eq("user1_liked", true)
+        .eq("user2_liked", false)
+        .eq("is_match", false);
+
+      const { data: matchesAsUser2, error: error2 } = await supabase
+        .from("matches")
+        .select("id, user1_id")
+        .eq("user2_id", user.id)
+        .eq("user2_liked", true)
+        .eq("user1_liked", false)
+        .eq("is_match", false);
+
+      if (error1 || error2) throw error1 || error2;
+
+      // Combine and get unique user IDs we liked
+      const likedIds: { matchId: string; oderId: string }[] = [];
+      
+      matchesAsUser1?.forEach((m) => {
+        likedIds.push({ matchId: m.id, oderId: m.user2_id });
+      });
+      
+      matchesAsUser2?.forEach((m) => {
+        likedIds.push({ matchId: m.id, oderId: m.user1_id });
+      });
+
+      if (likedIds.length === 0) {
+        setLikesSent([]);
+        setLoadingSent(false);
+        return;
+      }
+
+      // Fetch profiles for these users
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, display_name, date_of_birth, location_name, photos, bio")
+        .in("id", likedIds.map((l) => l.oderId));
+
+      if (profileError) throw profileError;
+
+      const likeProfiles: LikeProfile[] = likedIds.map((liked) => {
+        const profile = profiles?.find((p) => p.id === liked.oderId);
+        const age = profile?.date_of_birth
+          ? Math.floor(
+              (Date.now() - new Date(profile.date_of_birth).getTime()) /
+                (365.25 * 24 * 60 * 60 * 1000)
+            )
+          : null;
+
+        return {
+          id: liked.oderId,
+          matchId: liked.matchId,
+          displayName: profile?.display_name || "Unknown",
+          age,
+          location: profile?.location_name || null,
+          photo: profile?.photos?.[0] || null,
+          bio: profile?.bio || null,
+        };
+      });
+
+      setLikesSent(likeProfiles);
+    } catch (error) {
+      console.error("Error fetching likes sent:", error);
+      toast.error("Failed to load sent likes");
+    } finally {
+      setLoadingSent(false);
     }
   };
 
@@ -164,7 +245,7 @@ export default function Likes() {
       if (error) throw error;
 
       toast.success(`You matched with ${like.displayName}!`);
-      setLikes((prev) => prev.filter((l) => l.id !== like.id));
+      setLikesReceived((prev) => prev.filter((l) => l.id !== like.id));
     } catch (error) {
       console.error("Error liking back:", error);
       toast.error("Failed to like back");
@@ -172,176 +253,208 @@ export default function Likes() {
   };
 
   const handlePass = async (like: LikeProfile) => {
-    // For now, just remove from the list locally
-    // In production, you might want to mark this as "passed" in the database
-    setLikes((prev) => prev.filter((l) => l.id !== like.id));
+    setLikesReceived((prev) => prev.filter((l) => l.id !== like.id));
     toast("Passed", { description: `You passed on ${like.displayName}` });
   };
 
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-6">
-            <Heart className="w-6 h-6" />
-            <h1 className="text-2xl font-bold">Likes</h1>
+  const renderLoadingSkeleton = () => (
+    <div className="grid grid-cols-2 gap-4">
+      {[...Array(4)].map((_, i) => (
+        <Skeleton key={i} className="aspect-[3/4] rounded-xl" />
+      ))}
+    </div>
+  );
+
+  const renderEmptyState = (type: 'received' | 'sent') => (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
+      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+        {type === 'received' ? (
+          <Heart className="w-10 h-10 text-muted-foreground" />
+        ) : (
+          <Send className="w-10 h-10 text-muted-foreground" />
+        )}
+      </div>
+      <h2 className="text-xl font-semibold mb-2">
+        {type === 'received' ? "No likes yet" : "No pending likes"}
+      </h2>
+      <p className="text-muted-foreground max-w-xs">
+        {type === 'received' 
+          ? "When someone likes your profile, they'll appear here. Keep swiping to get more visibility!"
+          : "Profiles you've liked that haven't matched yet will appear here."
+        }
+      </p>
+    </div>
+  );
+
+  const renderProfileCard = (like: LikeProfile, showActions: boolean) => (
+    <Card
+      key={like.id}
+      className="relative overflow-hidden rounded-xl group"
+    >
+      <div className="aspect-[3/4] relative">
+        {/* Photo with blur for non-premium on received tab */}
+        <div
+          className={`absolute inset-0 bg-cover bg-center ${
+            !isPremium && showActions ? "blur-lg" : ""
+          }`}
+          style={{
+            backgroundImage: like.photo
+              ? `url(${like.photo})`
+              : "linear-gradient(135deg, hsl(var(--muted)), hsl(var(--muted-foreground)/0.2))",
+          }}
+        />
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+        {/* Lock icon for non-premium on received tab */}
+        {!isPremium && showActions && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center">
+              <Lock className="w-6 h-6 text-white" />
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="aspect-[3/4] rounded-xl" />
-            ))}
-          </div>
+        )}
+
+        {/* Profile info */}
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <h3 className="font-semibold text-white truncate">
+            {isPremium || !showActions ? like.displayName : "???"}
+            {like.age && (isPremium || !showActions) && (
+              <span className="font-normal">, {like.age}</span>
+            )}
+          </h3>
+          {like.location && (isPremium || !showActions) && (
+            <p className="text-white/70 text-sm truncate">
+              {like.location}
+            </p>
+          )}
         </div>
-      );
-    }
+
+        {/* Action buttons for premium users on received tab */}
+        {isPremium && showActions && (
+          <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="icon"
+              variant="outline"
+              className="w-10 h-10 rounded-full bg-white/90 hover:bg-white border-0"
+              onClick={() => handlePass(like)}
+            >
+              <X className="w-5 h-5 text-red-500" />
+            </Button>
+            <Button
+              size="icon"
+              className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 border-0"
+              onClick={() => handleLikeBack(like)}
+            >
+              <Check className="w-5 h-5 text-white" />
+            </Button>
+          </div>
+        )}
+
+        {/* Pending badge for sent likes */}
+        {!showActions && (
+          <div className="absolute top-2 right-2">
+            <span className="bg-amber-500/90 text-white text-xs font-medium px-2 py-1 rounded-full">
+              Pending
+            </span>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+
+  const renderReceivedContent = () => {
+    if (loadingReceived) return renderLoadingSkeleton();
+    if (likesReceived.length === 0) return renderEmptyState('received');
 
     return (
       <>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            {/* Mobile back button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden mr-2"
-              onClick={() => navigate("/app/discover")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <Heart className="w-6 h-6" />
-            <h1 className="text-2xl font-bold">Likes</h1>
-            {likes.length > 0 && (
-              <span className="bg-primary text-primary-foreground text-sm font-medium px-2 py-0.5 rounded-full">
-                {likes.length}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {likes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
-              <Heart className="w-10 h-10 text-muted-foreground" />
+        {/* Only show upgrade prompt for fishing/both accounts */}
+        {!isPremium && accountMode !== 'dating' && (
+          <Card className="p-4 mb-6 bg-gradient-to-r from-amber-500/10 to-amber-600/10 border-amber-500/20">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <Crown className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold mb-1">Upgrade to Premium</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  See who likes you instantly and match faster
+                </p>
+                <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
+                  Get Premium
+                </Button>
+              </div>
             </div>
-            <h2 className="text-xl font-semibold mb-2">No likes yet</h2>
-            <p className="text-muted-foreground max-w-xs">
-              When someone likes your profile, they'll appear here. Keep swiping to get more visibility!
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Only show upgrade prompt for fishing/both accounts */}
-            {!isPremium && accountMode !== 'dating' && (
-              <Card className="p-4 mb-6 bg-gradient-to-r from-amber-500/10 to-amber-600/10 border-amber-500/20">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                    <Crown className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">Upgrade to Premium</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      See who likes you instantly and match faster
-                    </p>
-                    <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
-                      Get Premium
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              {likes.map((like) => (
-                <Card
-                  key={like.id}
-                  className="relative overflow-hidden rounded-xl group"
-                >
-                  <div className="aspect-[3/4] relative">
-                    {/* Photo with blur for non-premium */}
-                    <div
-                      className={`absolute inset-0 bg-cover bg-center ${
-                        !isPremium ? "blur-lg" : ""
-                      }`}
-                      style={{
-                        backgroundImage: like.photo
-                          ? `url(${like.photo})`
-                          : "linear-gradient(135deg, hsl(var(--muted)), hsl(var(--muted-foreground)/0.2))",
-                      }}
-                    />
-
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                    {/* Lock icon for non-premium */}
-                    {!isPremium && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center">
-                          <Lock className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Profile info */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <h3 className="font-semibold text-white truncate">
-                        {isPremium ? like.displayName : "???"}
-                        {like.age && isPremium && (
-                          <span className="font-normal">, {like.age}</span>
-                        )}
-                      </h3>
-                      {like.location && isPremium && (
-                        <p className="text-white/70 text-sm truncate">
-                          {like.location}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Action buttons for premium users */}
-                    {isPremium && (
-                      <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="w-10 h-10 rounded-full bg-white/90 hover:bg-white border-0"
-                          onClick={() => handlePass(like)}
-                        >
-                          <X className="w-5 h-5 text-red-500" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 border-0"
-                          onClick={() => handleLikeBack(like)}
-                        >
-                          <Check className="w-5 h-5 text-white" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </>
+          </Card>
         )}
+
+        <div className="grid grid-cols-2 gap-4">
+          {likesReceived.map((like) => renderProfileCard(like, true))}
+        </div>
       </>
     );
   };
 
-  return (
-    <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
-      <DiscoverSidebar
-        accountMode={accountMode}
-        discoveryMode={accountMode === 'both' ? 'combo' : accountMode}
-        onDiscoveryModeChange={() => {}}
-        userName={profile?.display_name || 'User'}
-        userPhoto={profile?.photos?.[0]}
-        isPremium={profile?.is_premium || false}
-      />
+  const renderSentContent = () => {
+    if (loadingSent) return renderLoadingSkeleton();
+    if (likesSent.length === 0) return renderEmptyState('sent');
 
-      {/* Main Content */}
-      <main className="flex-1 p-4 pb-24 lg:ml-60">
-        {renderContent()}
-      </main>
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        {likesSent.map((like) => renderProfileCard(like, false))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex-1 p-4 pb-24">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-6">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <Heart className="w-6 h-6" />
+        <h1 className="text-2xl font-bold">Likes</h1>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="received" className="w-full">
+        <TabsList className="w-full mb-6">
+          <TabsTrigger value="received" className="flex-1 gap-2">
+            <Heart className="w-4 h-4" />
+            Who Likes You
+            {likesReceived.length > 0 && (
+              <span className="bg-primary text-primary-foreground text-xs font-medium px-1.5 py-0.5 rounded-full ml-1">
+                {likesReceived.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="sent" className="flex-1 gap-2">
+            <Send className="w-4 h-4" />
+            Likes Sent
+            {likesSent.length > 0 && (
+              <span className="bg-muted-foreground/20 text-muted-foreground text-xs font-medium px-1.5 py-0.5 rounded-full ml-1">
+                {likesSent.length}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="received" className="mt-0">
+          {renderReceivedContent()}
+        </TabsContent>
+
+        <TabsContent value="sent" className="mt-0">
+          {renderSentContent()}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
