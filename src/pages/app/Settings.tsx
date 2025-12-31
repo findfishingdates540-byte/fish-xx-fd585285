@@ -70,6 +70,7 @@ export default function Settings() {
   const [bio, setBio] = useState("");
   const [accountMode, setAccountMode] = useState<AccountMode>("both");
   const [originalAccountMode, setOriginalAccountMode] = useState<AccountMode>("both");
+  const [accountModeChanged, setAccountModeChanged] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [isVerified, setIsVerified] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -174,17 +175,23 @@ export default function Settings() {
     if (!user) return;
     setSaving(true);
 
+    const updateData: Record<string, unknown> = {
+      display_name: displayName,
+      bio: bio,
+      max_distance_miles: maxDistance,
+      min_age_preference: ageRange[0],
+      max_age_preference: ageRange[1],
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only update account_mode if user explicitly changed it on this page
+    if (accountModeChanged) {
+      updateData.account_mode = accountMode;
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({
-        display_name: displayName,
-        bio: bio,
-        account_mode: accountMode,
-        max_distance_miles: maxDistance,
-        min_age_preference: ageRange[0],
-        max_age_preference: ageRange[1],
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", user.id);
 
     setSaving(false);
@@ -192,6 +199,12 @@ export default function Settings() {
     if (error) {
       toast.error("Failed to save changes");
       return;
+    }
+
+    // Reset the flag and update original mode if it was changed
+    if (accountModeChanged) {
+      setOriginalAccountMode(accountMode);
+      setAccountModeChanged(false);
     }
 
     toast.success("Settings saved successfully");
@@ -368,7 +381,7 @@ export default function Settings() {
                       </p>
                       <div className="grid grid-cols-3 gap-3">
                         <button
-                          onClick={() => setAccountMode("dating")}
+                          onClick={() => { setAccountMode("dating"); setAccountModeChanged(true); }}
                           className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
                             accountMode === "dating"
                               ? "border-primary bg-primary/5 text-primary"
@@ -379,7 +392,7 @@ export default function Settings() {
                           Dating View
                         </button>
                         <button
-                          onClick={() => setAccountMode("fishing")}
+                          onClick={() => { setAccountMode("fishing"); setAccountModeChanged(true); }}
                           className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
                             accountMode === "fishing"
                               ? "border-primary bg-primary/5 text-primary"
@@ -390,7 +403,7 @@ export default function Settings() {
                           Fishing View
                         </button>
                         <button
-                          onClick={() => setAccountMode("both")}
+                          onClick={() => { setAccountMode("both"); setAccountModeChanged(true); }}
                           className={`flex items-center justify-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${
                             accountMode === "both"
                               ? "border-primary bg-primary/5 text-primary"
