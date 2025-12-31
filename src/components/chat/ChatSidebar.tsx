@@ -1,13 +1,11 @@
-import { Heart, MapPin, MessageSquare, ArrowLeft, LayoutDashboard, Anchor, Loader2 } from 'lucide-react';
-import { NavLink, Link } from 'react-router-dom';
+import { Heart, MapPin, MessageSquare, ArrowLeft, LayoutDashboard, Anchor } from 'lucide-react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
-import { useAccountModeSwitcher } from '@/hooks/use-account-mode-switcher';
 import logoImage from '@/assets/logo.png';
-import type { Database } from '@/integrations/supabase/types';
 
 interface Conversation {
   id: string;
@@ -33,30 +31,25 @@ const navItems = [
 ];
 
 export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount = 0, accountMode = 'dating' }: ChatSidebarProps) {
-  const { activeMode, setActiveMode, isComboUser, setBaseAccountMode } = useActiveMode();
+  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
+  const navigate = useNavigate();
 
-  type AccountModeType = Database['public']['Enums']['account_mode'];
-  
-  const { switchMode, isSwitching } = useAccountModeSwitcher((newMode) => {
-    setBaseAccountMode(newMode);
-    // Map account mode to active mode for display
-    if (newMode === 'both') {
-      setActiveMode('unified');
-    } else if (newMode === 'dating') {
-      setActiveMode('dating');
-    } else {
-      setActiveMode('fishing');
-    }
-  }, { redirect: true }); // Enable redirect on switch
-
-  // Map activeMode to accountMode for database
+  // For combo users, this just switches their view preference (not account type in DB)
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
-    const accountModeMap: Record<'unified' | 'dating' | 'fishing', AccountModeType> = {
-      unified: 'both',
-      dating: 'dating',
-      fishing: 'fishing',
-    };
-    switchMode(accountModeMap[mode]);
+    setActiveMode(mode);
+    // Navigate to the appropriate home page for the selected mode
+    switch (mode) {
+      case 'dating':
+        navigate('/app/discover');
+        break;
+      case 'fishing':
+        navigate('/app/spots');
+        break;
+      case 'unified':
+      default:
+        navigate('/app/dashboard');
+        break;
+    }
   };
   
   const getModeLabel = () => {
@@ -94,20 +87,14 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
               <button
                 key={mode.value}
                 onClick={() => handleModeSwitch(mode.value)}
-                disabled={isSwitching}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
                   activeMode === mode.value
                     ? "bg-background text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                  isSwitching && "opacity-50 cursor-not-allowed"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {isSwitching ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <mode.icon className="h-3 w-3" />
-                )}
+                <mode.icon className="h-3 w-3" />
                 {mode.label}
               </button>
             ))}
