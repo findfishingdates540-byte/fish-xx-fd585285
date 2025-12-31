@@ -39,6 +39,13 @@ const getInterestIcon = (interest: string) => {
   return interestIcons[interest] || <Heart className="h-4 w-4" />;
 };
 
+// Format interest string: replace underscores with spaces and capitalize each word
+const formatInterest = (interest: string) => {
+  return interest
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export function ProfileSidebar({
   name,
   age,
@@ -127,7 +134,7 @@ export function ProfileSidebar({
                   <div className="text-primary">
                     {getInterestIcon(interest)}
                   </div>
-                  <span className="text-xs text-foreground truncate">{interest}</span>
+                  <span className="text-xs text-foreground truncate">{formatInterest(interest)}</span>
                 </div>
               ))}
             </div>
