@@ -86,6 +86,34 @@ export default function Discover() {
     }
   }, [shouldShowTutorial, currentProfile, isLoading, startTutorial]);
 
+  // Fetch pending likes (people who liked current user but no mutual match yet)
+  const { data: pendingLikes } = useQuery({
+    queryKey: ['pending-likes-sidebar', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          user1_id,
+          user1:profiles!matches_user1_id_fkey(display_name, photos)
+        `)
+        .eq('user2_id', user.id)
+        .eq('is_match', false)
+        .is('user2_liked', null)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      return (data || []).map((match: any) => ({
+        id: match.id,
+        name: match.user1?.display_name || 'Someone',
+        photo: match.user1?.photos?.[0] || '',
+      }));
+    },
+    enabled: !!user?.id,
+  });
+
   // Fetch recent matches (last 7 days)
   const { data: recentMatches } = useQuery({
     queryKey: ['recent-matches-sidebar', user?.id],
@@ -442,6 +470,7 @@ export default function Discover() {
         <RightSidebar
           newMatches={recentMatches || []}
           newMatchCount={recentMatches?.length || 0}
+          pendingLikes={pendingLikes || []}
           conversations={conversations || []}
           isPremium={profile?.is_premium || false}
           accountMode={accountMode}
