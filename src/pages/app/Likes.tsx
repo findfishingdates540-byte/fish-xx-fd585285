@@ -55,6 +55,44 @@ export default function Likes() {
     }
   }, [user]);
 
+  // Real-time subscription for matches updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('likes-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          const record = payload.new as any;
+          const oldRecord = payload.old as any;
+          
+          // Check if this change involves the current user
+          const involvesUser = 
+            record?.user1_id === user.id || 
+            record?.user2_id === user.id ||
+            oldRecord?.user1_id === user.id ||
+            oldRecord?.user2_id === user.id;
+          
+          if (involvesUser) {
+            // Refetch both lists when matches change
+            fetchLikesReceived();
+            fetchLikesSent();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   const checkPremiumStatus = async () => {
     if (!user) return;
     const { data } = await supabase
