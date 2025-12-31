@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar } from 'lucide-react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,12 +23,14 @@ interface NavItem {
   hasMatchBadge?: boolean;
   hasBuddyMessageBadge?: boolean;
   hasTripBadge?: boolean;
+  hasLikesBadge?: boolean;
 }
 
 const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
   if (mode === 'dating') {
     const items: NavItem[] = [
       { to: '/app/discover', icon: Home, label: 'Discover' },
+      { to: '/app/likes', icon: Sparkles, label: 'Likes', hasLikesBadge: true },
       { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
       { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     ];
@@ -129,6 +131,25 @@ export function BottomNav({ accountMode }: BottomNavProps) {
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .eq("is_match", true)
         .gte("matched_at", twentyFourHoursAgo);
+
+      return count || 0;
+    },
+    enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
+  });
+
+  // Fetch pending likes count (people who liked you but you haven't responded)
+  const { data: pendingLikesCount = 0 } = useQuery({
+    queryKey: ["pending-likes-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { count } = await supabase
+        .from("matches")
+        .select("*", { count: "exact", head: true })
+        .eq("user2_id", user.id)
+        .eq("user1_liked", true)
+        .eq("user2_liked", false)
+        .eq("is_match", false);
 
       return count || 0;
     },
@@ -258,6 +279,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     if (item.hasMatchBadge) return newMatchesCount;
     if (item.hasBuddyMessageBadge) return unreadBuddyMessagesCount;
     if (item.hasTripBadge) return tripInvitesCount;
+    if (item.hasLikesBadge) return pendingLikesCount;
     return 0;
   };
 
