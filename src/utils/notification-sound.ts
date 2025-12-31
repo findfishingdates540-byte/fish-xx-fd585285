@@ -84,3 +84,41 @@ export const playBuddyRequestSound = () => {
     console.log('Could not play notification sound:', error);
   }
 };
+
+export const playLikeReceivedSound = () => {
+  try {
+    const ctx = getAudioContext();
+    
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+
+    // Create oscillator for a heart-like "flutter" sound
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.type = 'sine';
+
+    // Two quick ascending notes like a heartbeat
+    oscillator.frequency.setValueAtTime(698, now); // F5
+    oscillator.frequency.setValueAtTime(880, now + 0.08); // A5
+    oscillator.frequency.setValueAtTime(1047, now + 0.16); // C6
+
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(0.25, now + 0.02);
+    gainNode.gain.linearRampToValueAtTime(0.2, now + 0.08);
+    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
+    gainNode.gain.linearRampToValueAtTime(0.25, now + 0.16);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.35);
+  } catch (error) {
+    console.log('Could not play like notification sound:', error);
+  }
+};

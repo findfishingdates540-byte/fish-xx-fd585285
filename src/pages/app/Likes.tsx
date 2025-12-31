@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DiscoverSidebar } from "@/components/discover";
+import { playLikeReceivedSound } from "@/utils/notification-sound";
 
 interface LikeProfile {
   id: string;
@@ -64,7 +65,25 @@ export default function Likes() {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          const record = payload.new as any;
+          
+          // Check if someone liked the current user
+          if (record?.user1_id === user.id || record?.user2_id === user.id) {
+            playLikeReceivedSound();
+            fetchLikesReceived();
+            fetchLikesSent();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
           schema: 'public',
           table: 'matches',
         },
@@ -72,15 +91,20 @@ export default function Likes() {
           const record = payload.new as any;
           const oldRecord = payload.old as any;
           
-          // Check if this change involves the current user
           const involvesUser = 
             record?.user1_id === user.id || 
-            record?.user2_id === user.id ||
-            oldRecord?.user1_id === user.id ||
-            oldRecord?.user2_id === user.id;
+            record?.user2_id === user.id;
           
           if (involvesUser) {
-            // Refetch both lists when matches change
+            // Check if this is a new like received
+            const isNewLikeReceived = 
+              (record?.user1_id === user.id && record?.user2_liked === true && oldRecord?.user2_liked === false) ||
+              (record?.user2_id === user.id && record?.user1_liked === true && oldRecord?.user1_liked === false);
+            
+            if (isNewLikeReceived) {
+              playLikeReceivedSound();
+            }
+            
             fetchLikesReceived();
             fetchLikesSent();
           }
