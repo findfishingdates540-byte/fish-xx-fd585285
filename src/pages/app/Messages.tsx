@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +22,7 @@ export default function Messages() {
   const { matchId } = useParams();
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -112,10 +113,12 @@ export default function Messages() {
       .map(c => ({ id: c.id, name: c.name, photo: c.photo, isNew: true })),
     [conversationsWithStatus]);
 
-  // Conversations with messages (for list below)
+  // Conversations with messages (for list below), filtered by search
   const activeConversations = useMemo(() => 
-    conversationsWithStatus.filter(c => c.lastMessage),
-    [conversationsWithStatus]);
+    conversationsWithStatus
+      .filter(c => c.lastMessage)
+      .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())),
+    [conversationsWithStatus, searchQuery]);
 
   const handleSelectConversation = (id: string) => {
     navigate(`/app/messages/${id}`);
@@ -220,6 +223,8 @@ export default function Messages() {
           <Input
             placeholder={`Search ${conversations.length} Matches`}
             className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
