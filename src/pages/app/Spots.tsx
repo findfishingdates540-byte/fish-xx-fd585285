@@ -504,56 +504,6 @@ export default function Spots() {
         <div className="p-4 md:p-6">
           <h1 className="text-2xl font-bold mb-4">Explore Nearby</h1>
 
-          {/* Location Permission Banner */}
-          {showLocationBanner && locationPermission !== 'granted' && (
-            <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Navigation className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-foreground">Enable location for accurate distances</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {locationPermission === 'denied' 
-                      ? "Location access was denied. Enable it in your browser settings."
-                      : "See how far each fishing spot is from you."
-                    }
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    {locationPermission !== 'denied' && (
-                      <Button 
-                        size="sm" 
-                        variant="default"
-                        onClick={handleEnableLocation}
-                        disabled={locationPermission === 'loading'}
-                        className="h-7 text-xs"
-                      >
-                        {locationPermission === 'loading' ? (
-                          <>
-                            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-                            Detecting...
-                          </>
-                        ) : (
-                          <>
-                            <MapPin className="w-3 h-3 mr-1" />
-                            Enable Location
-                          </>
-                        )}
-                      </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => setShowLocationBanner(false)}
-                      className="h-7 text-xs text-muted-foreground"
-                    >
-                      Dismiss
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Search */}
           <div className="flex gap-2 mb-4">
