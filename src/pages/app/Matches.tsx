@@ -113,7 +113,7 @@ export default function Matches() {
           onDiscoveryModeChange={() => {}}
           userName={profile?.display_name || 'User'}
           userPhoto={profile?.photos?.[0]}
-          isPremium={profile?.is_premium}
+          isPremium={profile?.is_premium ?? false}
         />
       )}
 
