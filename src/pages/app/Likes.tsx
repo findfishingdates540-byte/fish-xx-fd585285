@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { DiscoverSidebar } from "@/components/discover";
 
 interface LikeProfile {
   id: string;
@@ -408,53 +410,73 @@ export default function Likes() {
     );
   };
 
+  const isMobile = useIsMobile();
+  const [discoveryMode, setDiscoveryMode] = useState<'fishing' | 'dating' | 'combo'>('dating');
+
   return (
-    <div className="flex-1 p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <Heart className="w-6 h-6" />
-        <h1 className="text-2xl font-bold">Likes</h1>
+    <div className="flex min-h-screen">
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <DiscoverSidebar
+          accountMode={accountMode}
+          discoveryMode={discoveryMode}
+          onDiscoveryModeChange={setDiscoveryMode}
+          userName={profile?.display_name || "User"}
+          userPhoto={profile?.photos?.[0]}
+          isPremium={isPremium}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className={`flex-1 ${!isMobile ? 'lg:ml-60' : ''}`}>
+        <div className="p-4 pb-24 max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-2 mb-6">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <Heart className="w-6 h-6" />
+            <h1 className="text-2xl font-bold">Likes</h1>
+          </div>
+
+          {/* Tabs */}
+          <Tabs defaultValue="received" className="w-full">
+            <TabsList className="w-full mb-6">
+              <TabsTrigger value="received" className="flex-1 gap-2">
+                <Heart className="w-4 h-4" />
+                Who Likes You
+                {likesReceived.length > 0 && (
+                  <span className="bg-primary text-primary-foreground text-xs font-medium px-1.5 py-0.5 rounded-full ml-1">
+                    {likesReceived.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="sent" className="flex-1 gap-2">
+                <Send className="w-4 h-4" />
+                Likes Sent
+                {likesSent.length > 0 && (
+                  <span className="bg-muted-foreground/20 text-muted-foreground text-xs font-medium px-1.5 py-0.5 rounded-full ml-1">
+                    {likesSent.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="received" className="mt-0">
+              {renderReceivedContent()}
+            </TabsContent>
+
+            <TabsContent value="sent" className="mt-0">
+              {renderSentContent()}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-
-      {/* Tabs */}
-      <Tabs defaultValue="received" className="w-full">
-        <TabsList className="w-full mb-6">
-          <TabsTrigger value="received" className="flex-1 gap-2">
-            <Heart className="w-4 h-4" />
-            Who Likes You
-            {likesReceived.length > 0 && (
-              <span className="bg-primary text-primary-foreground text-xs font-medium px-1.5 py-0.5 rounded-full ml-1">
-                {likesReceived.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="sent" className="flex-1 gap-2">
-            <Send className="w-4 h-4" />
-            Likes Sent
-            {likesSent.length > 0 && (
-              <span className="bg-muted-foreground/20 text-muted-foreground text-xs font-medium px-1.5 py-0.5 rounded-full ml-1">
-                {likesSent.length}
-              </span>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="received" className="mt-0">
-          {renderReceivedContent()}
-        </TabsContent>
-
-        <TabsContent value="sent" className="mt-0">
-          {renderSentContent()}
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
