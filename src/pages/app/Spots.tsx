@@ -93,6 +93,8 @@ export default function Spots() {
   const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapStyle, setMapStyle] = useState<'outdoors' | 'satellite' | 'streets'>('outdoors');
+  const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'loading'>('loading');
+  const [showLocationBanner, setShowLocationBanner] = useState(true);
 
   // Calculate distance between two points in miles (Haversine formula)
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -137,24 +139,69 @@ export default function Spots() {
     fetchSpots();
   }, []);
 
-  // Get user location
+  // Check location permission and get user location
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.log("Geolocation error:", error);
-          // Default to a central US location
-          setUserLocation({ lat: 39.8283, lng: -98.5795 });
+    const checkAndRequestLocation = async () => {
+      if (!navigator.geolocation) {
+        setLocationPermission('denied');
+        return;
+      }
+
+      // Check permission state if available
+      if (navigator.permissions) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' });
+          setLocationPermission(result.state as 'granted' | 'denied' | 'prompt');
+          
+          // Listen for permission changes
+          result.onchange = () => {
+            setLocationPermission(result.state as 'granted' | 'denied' | 'prompt');
+            if (result.state === 'granted') {
+              requestLocation();
+            }
+          };
+
+          if (result.state === 'granted') {
+            requestLocation();
+          }
+        } catch {
+          // Fallback for browsers that don't support permissions API
+          requestLocation();
         }
-      );
-    }
+      } else {
+        // Fallback for browsers that don't support permissions API
+        requestLocation();
+      }
+    };
+
+    checkAndRequestLocation();
   }, []);
+
+  const requestLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setLocationPermission('granted');
+        setShowLocationBanner(false);
+      },
+      (error) => {
+        console.log("Geolocation error:", error);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationPermission('denied');
+        }
+        // Default to a central US location for map centering
+        setUserLocation({ lat: 39.8283, lng: -98.5795 });
+      }
+    );
+  };
+
+  const handleEnableLocation = () => {
+    setLocationPermission('loading');
+    requestLocation();
+  };
 
   // Initialize map (skip on mobile)
   useEffect(() => {
@@ -456,6 +503,57 @@ export default function Spots() {
       <aside className={`${isMobile ? 'w-full' : 'w-[480px] border-r'} bg-background overflow-y-auto`}>
         <div className="p-4 md:p-6">
           <h1 className="text-2xl font-bold mb-4">Explore Nearby</h1>
+
+          {/* Location Permission Banner */}
+          {showLocationBanner && locationPermission !== 'granted' && (
+            <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Navigation className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-foreground">Enable location for accurate distances</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {locationPermission === 'denied' 
+                      ? "Location access was denied. Enable it in your browser settings."
+                      : "See how far each fishing spot is from you."
+                    }
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    {locationPermission !== 'denied' && (
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        onClick={handleEnableLocation}
+                        disabled={locationPermission === 'loading'}
+                        className="h-7 text-xs"
+                      >
+                        {locationPermission === 'loading' ? (
+                          <>
+                            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                            Detecting...
+                          </>
+                        ) : (
+                          <>
+                            <MapPin className="w-3 h-3 mr-1" />
+                            Enable Location
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => setShowLocationBanner(false)}
+                      className="h-7 text-xs text-muted-foreground"
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Search */}
           <div className="flex gap-2 mb-4">
