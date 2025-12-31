@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
@@ -20,6 +21,7 @@ export default function Messages() {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -53,6 +55,32 @@ export default function Messages() {
     },
     enabled: !!user?.id,
   });
+
+  // Real-time subscription for likes count updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('messages-likes-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+          filter: `user2_id=eq.${user.id}`,
+        },
+        () => {
+          // Invalidate likes count when matches involving this user change
+          queryClient.invalidateQueries({ queryKey: ['pending-likes-count', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   // Fetch real conversations
   const { conversations, isLoading, totalUnread } = useDatingConversations();
