@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star, Apple, Smartphone, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import logo from '@/assets/logo.png';
 import heroFishing1 from '@/assets/hero-fishing-1.jpg';
 import heroFishing2 from '@/assets/hero-fishing-2.jpg';
@@ -16,13 +17,59 @@ import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scr
 import { CountUp } from '@/components/ui/count-up';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobileHomeLanding from '@/components/home/MobileHomeLanding';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const { user, loading } = useAuth();
+  const [accountMode, setAccountMode] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setProfileLoading(true);
+      supabase
+        .from('profiles')
+        .select('account_mode')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          setAccountMode(data?.account_mode || 'both');
+          setProfileLoading(false);
+        });
+    }
+  }, [user]);
 
   // Mobile: Show clean app launcher screen (ideal for APK)
   if (isMobile) {
     return <MobileHomeLanding />;
+  }
+
+  // Show loading state while checking auth
+  if (loading || profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center gap-3"
+        >
+          <Fish className="w-12 h-12 text-foreground animate-pulse" />
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Redirect authenticated users to their dashboard
+  if (user && accountMode) {
+    if (accountMode === 'dating') {
+      return <Navigate to="/app/discover" replace />;
+    } else if (accountMode === 'fishing') {
+      return <Navigate to="/app/spots" replace />;
+    } else {
+      return <Navigate to="/app/dashboard" replace />;
+    }
   }
 
   // Desktop/Tablet: Show full marketing homepage
