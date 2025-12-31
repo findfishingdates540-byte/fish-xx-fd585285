@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft, LayoutDashboard, Anchor, Loader2 } from 'lucide-react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -64,9 +64,24 @@ export function DiscoverSidebar({
   // Get active mode context for combo users
   const { activeMode, setActiveMode, isComboUser } = useActiveMode();
   
-  // For combo users, this just switches their view preference (not account type)
+  const navigate = useNavigate();
+  
+  // For combo users, switch view preference and navigate to appropriate section
   const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
     setActiveMode(mode);
+    // Navigate to the appropriate home page for the selected mode
+    switch (mode) {
+      case 'dating':
+        navigate('/app/discover');
+        break;
+      case 'fishing':
+        navigate('/app/spots');
+        break;
+      case 'unified':
+      default:
+        navigate('/app/dashboard');
+        break;
+    }
   };
 
   // Fetch unread messages count
@@ -179,9 +194,18 @@ export function DiscoverSidebar({
   };
 
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
-  const isDatingMode = accountMode === 'dating';
-  // Combo mode users see dating nav items when in dating section
-  const navItems = isDatingMode || isComboUser ? datingNavItems : fishingNavItems;
+  
+  // Determine nav items based on account mode and active mode for combo users
+  const getNavItems = () => {
+    if (accountMode === 'dating') return datingNavItems;
+    if (accountMode === 'fishing') return fishingNavItems;
+    // For combo users, use activeMode to determine nav items
+    if (isComboUser) {
+      return activeMode === 'fishing' ? fishingNavItems : datingNavItems;
+    }
+    return datingNavItems;
+  };
+  const navItems = getNavItems();
 
   return (
     <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
