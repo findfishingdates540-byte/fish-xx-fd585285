@@ -95,6 +95,8 @@ export default function Spots() {
   const [mapStyle, setMapStyle] = useState<'outdoors' | 'satellite' | 'streets'>('outdoors');
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'loading'>('loading');
   const [showLocationBanner, setShowLocationBanner] = useState(true);
+  const [profileLocation, setProfileLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [usingProfileLocation, setUsingProfileLocation] = useState(false);
 
   // Calculate distance between two points in miles (Haversine formula)
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -117,7 +119,7 @@ export default function Spots() {
     streets: { id: 'mapbox://styles/mapbox/streets-v12', label: 'Streets', icon: Map },
   };
 
-  // Fetch fishing spots
+  // Fetch fishing spots and user profile location
   useEffect(() => {
     const fetchSpots = async () => {
       try {
@@ -136,8 +138,29 @@ export default function Spots() {
       }
     };
 
+    const fetchProfileLocation = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("location_lat, location_lng")
+          .eq("id", user.id)
+          .single();
+        
+        if (!error && data?.location_lat && data?.location_lng) {
+          setProfileLocation({
+            lat: data.location_lat,
+            lng: data.location_lng,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching profile location:", err);
+      }
+    };
+
     fetchSpots();
-  }, []);
+    fetchProfileLocation();
+  }, [user]);
 
   // Check location permission and get user location
   useEffect(() => {
@@ -186,14 +209,22 @@ export default function Spots() {
         });
         setLocationPermission('granted');
         setShowLocationBanner(false);
+        setUsingProfileLocation(false);
       },
       (error) => {
         console.log("Geolocation error:", error);
         if (error.code === error.PERMISSION_DENIED) {
           setLocationPermission('denied');
         }
-        // Default to a central US location for map centering
-        setUserLocation({ lat: 39.8283, lng: -98.5795 });
+        // Use profile location as fallback if available
+        if (profileLocation) {
+          setUserLocation(profileLocation);
+          setUsingProfileLocation(true);
+          setShowLocationBanner(false);
+        } else {
+          // Default to a central US location for map centering only
+          setUserLocation({ lat: 39.8283, lng: -98.5795 });
+        }
       }
     );
   };
@@ -458,8 +489,12 @@ export default function Spots() {
 
   const getDistanceText = (spotLat: number, spotLng: number): string => {
     if (!userLocation) return "Unknown";
+    // Don't show distance if using default US center (no real location)
+    if (!profileLocation && locationPermission !== 'granted') return "Unknown";
     const distance = calculateDistance(userLocation.lat, userLocation.lng, spotLat, spotLng);
-    return `${distance.toFixed(1)} miles away`;
+    // Show approximate indicator if using profile location instead of GPS
+    const prefix = usingProfileLocation ? "~" : "";
+    return `${prefix}${distance.toFixed(1)} mi away`;
   };
 
   if (tokenLoading || loading) {

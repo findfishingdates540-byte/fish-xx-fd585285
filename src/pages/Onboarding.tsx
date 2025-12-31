@@ -125,6 +125,8 @@ export default function Onboarding() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [locationLat, setLocationLat] = useState<number | null>(null);
+  const [locationLng, setLocationLng] = useState<number | null>(null);
   
   // Fishing
   const [fishingExperience, setFishingExperience] = useState<FishingExperience>('beginner');
@@ -291,11 +293,32 @@ export default function Onboarding() {
       const trialExpiresAt = new Date();
       trialExpiresAt.setDate(trialExpiresAt.getDate() + 30);
 
+      // If we have GPS coords, use them. Otherwise, try to geocode the address.
+      let finalLat = locationLat;
+      let finalLng = locationLng;
+      
+      if (!finalLat && !finalLng && (city || state || zipCode)) {
+        // Geocode the manually entered address
+        try {
+          const response = await supabase.functions.invoke('geocode-address', {
+            body: { city, state, zipCode }
+          });
+          if (response.data?.lat && response.data?.lng) {
+            finalLat = response.data.lat;
+            finalLng = response.data.lng;
+          }
+        } catch (geocodeError) {
+          console.warn('Geocoding failed, continuing without coordinates:', geocodeError);
+        }
+      }
+
       const updateData: Record<string, any> = {
         display_name: firstName,
         date_of_birth: dateOfBirth,
         photos,
         location_name: locationName || null,
+        location_lat: finalLat,
+        location_lng: finalLng,
         max_distance_miles: maxDistance,
         onboarding_completed: true,
         // Grant 30-day free trial to all users
@@ -327,7 +350,7 @@ export default function Onboarding() {
       console.log('Date of Birth:', dateOfBirth);
       console.log('Gender:', gender);
       console.log('Photos:', photos);
-      console.log('Location:', { city, state, zipCode, combined: locationName });
+      console.log('Location:', { city, state, zipCode, combined: locationName, lat: finalLat, lng: finalLng });
       console.log('Max Distance (miles):', maxDistance);
       console.log('Age Range:', ageRange);
       console.log('Interested In:', interestedIn);
@@ -402,6 +425,10 @@ export default function Onboarding() {
             setState={setState}
             zipCode={zipCode}
             setZipCode={setZipCode}
+            locationLat={locationLat}
+            setLocationLat={setLocationLat}
+            locationLng={locationLng}
+            setLocationLng={setLocationLng}
           />
         );
       case 'experience':

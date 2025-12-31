@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { AnimatedInput } from "@/components/ui/animated-input";
-import { Label } from "@/components/ui/label";
 import { MapPin, Heart, Navigation, Shield } from "lucide-react";
 
 interface StepLocationProps {
@@ -11,6 +10,10 @@ interface StepLocationProps {
   setState: (value: string) => void;
   zipCode: string;
   setZipCode: (value: string) => void;
+  locationLat?: number | null;
+  setLocationLat?: (value: number | null) => void;
+  locationLng?: number | null;
+  setLocationLng?: (value: number | null) => void;
   onEnableLocation?: () => void;
 }
 
@@ -39,10 +42,13 @@ export function StepLocation({
   setState,
   zipCode,
   setZipCode,
+  setLocationLat,
+  setLocationLng,
   onEnableLocation,
 }: StepLocationProps) {
   const [locationLoading, setLocationLoading] = useState(false);
   const [cityTouched, setCityTouched] = useState(false);
+  const [locationGranted, setLocationGranted] = useState(false);
 
   const handleEnableLocation = async () => {
     if (!navigator.geolocation) {
@@ -53,6 +59,37 @@ export function StepLocation({
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Pass coordinates to parent
+        setLocationLat?.(latitude);
+        setLocationLng?.(longitude);
+        setLocationGranted(true);
+        
+        // Try to reverse geocode to get city/state
+        try {
+          const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,region&access_token=${await getMapboxToken()}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.features && data.features.length > 0) {
+              // Extract city and state from response
+              const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
+              const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
+              
+              if (placeFeature) {
+                setCity(placeFeature.text || '');
+              }
+              if (regionFeature) {
+                setState(regionFeature.text || '');
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+        }
+        
         onEnableLocation?.();
         setLocationLoading(false);
       },
@@ -61,6 +98,20 @@ export function StepLocation({
         setLocationLoading(false);
       }
     );
+  };
+
+  // Helper to get mapbox token
+  const getMapboxToken = async (): Promise<string> => {
+    try {
+      const response = await fetch('https://zjmnlelqoiclkbrqefyv.supabase.co/functions/v1/get-mapbox-token');
+      if (response.ok) {
+        const data = await response.json();
+        return data.token || '';
+      }
+    } catch (error) {
+      console.error('Error fetching mapbox token:', error);
+    }
+    return '';
   };
 
   return (
@@ -75,24 +126,36 @@ export function StepLocation({
           {/* Enable Location Button */}
           <motion.button
             onClick={handleEnableLocation}
-            disabled={locationLoading}
-            className="w-full p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors flex items-center gap-4"
+            disabled={locationLoading || locationGranted}
+            className={`w-full p-4 rounded-xl border-2 border-dashed transition-colors flex items-center gap-4 ${
+              locationGranted 
+                ? 'border-green-500/50 bg-green-500/10 cursor-default' 
+                : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
+            }`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={locationGranted ? {} : { scale: 1.02 }}
+            whileTap={locationGranted ? {} : { scale: 0.98 }}
           >
             <motion.div 
-              className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center"
+              className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                locationGranted ? 'bg-green-500/20' : 'bg-primary/20'
+              }`}
               animate={locationLoading ? { rotate: 360 } : {}}
               transition={locationLoading ? { repeat: Infinity, duration: 1, ease: "linear" } : {}}
             >
-              <MapPin className="w-6 h-6 text-primary" />
+              <MapPin className={`w-6 h-6 ${locationGranted ? 'text-green-600' : 'text-primary'}`} />
             </motion.div>
             <div className="text-left">
-              <p className="font-semibold text-primary">Enable Location Services</p>
+              <p className={`font-semibold ${locationGranted ? 'text-green-600' : 'text-primary'}`}>
+                {locationGranted ? 'Location Enabled ✓' : 'Enable Location Services'}
+              </p>
               <p className="text-sm text-muted-foreground">
-                {locationLoading ? 'Getting your location...' : 'Automatically find your spot'}
+                {locationLoading 
+                  ? 'Getting your location...' 
+                  : locationGranted 
+                    ? 'Your coordinates have been saved'
+                    : 'Automatically find your spot'}
               </p>
             </div>
           </motion.button>
