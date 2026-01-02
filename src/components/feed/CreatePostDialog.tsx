@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +10,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { AnimatePresence, motion } from 'framer-motion';
+
+interface MentionedUser {
+  username: string;
+  profile?: {
+    id: string;
+    display_name: string | null;
+    photos: string[] | null;
+  };
+}
 
 interface CreatePostDialogProps {
   isOpen: boolean;
@@ -26,11 +36,33 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
+  const [mentionedUsers, setMentionedUsers] = useState<MentionedUser[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const { user } = useAuth();
   const createPost = useCreatePost();
   const mentionSuggestions = useMentionSuggestions();
+
+  // Extract mentions from content
+  const extractedMentions = useMemo(() => {
+    const mentionRegex = /@(\w+)/g;
+    const matches = content.match(mentionRegex) || [];
+    return [...new Set(matches.map(m => m.slice(1)))];
+  }, [content]);
+
+  // Update mentioned users when a suggestion is selected
+  const updateMentionedUsers = (displayName: string, profile?: MentionedUser['profile']) => {
+    const username = displayName.replace(/\s+/g, '');
+    setMentionedUsers(prev => {
+      if (prev.some(u => u.username === username)) return prev;
+      return [...prev, { username, profile }];
+    });
+  };
+
+  // Filter out mentioned users that are no longer in content
+  useEffect(() => {
+    setMentionedUsers(prev => prev.filter(u => extractedMentions.includes(u.username)));
+  }, [extractedMentions]);
 
   // Handle @ mention detection
   useEffect(() => {
@@ -51,7 +83,7 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
     }
   }, [content, cursorPosition]);
 
-  const insertMention = (displayName: string) => {
+  const insertMention = (displayName: string, profile?: MentionedUser['profile']) => {
     const lastAtIndex = content.lastIndexOf('@', cursorPosition);
     if (lastAtIndex !== -1) {
       const before = content.slice(0, lastAtIndex);
@@ -59,8 +91,14 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
       const mentionText = `@${displayName.replace(/\s+/g, '')} `;
       setContent(before + mentionText + after);
       setShowMentions(false);
+      updateMentionedUsers(displayName, profile);
       textareaRef.current?.focus();
     }
+  };
+
+  const removeMention = (username: string) => {
+    const regex = new RegExp(`@${username}\\s?`, 'g');
+    setContent(prev => prev.replace(regex, ''));
   };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -227,11 +265,15 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50"
                 >
-                  {mentionSuggestions.data.map((profile) => (
+                {mentionSuggestions.data.map((profile) => (
                     <button
                       key={profile.id}
                       type="button"
-                      onClick={() => insertMention(profile.display_name || 'User')}
+                      onClick={() => insertMention(profile.display_name || 'User', {
+                        id: profile.id,
+                        display_name: profile.display_name,
+                        photos: profile.photos
+                      })}
                       className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors text-left"
                     >
                       <Avatar className="h-6 w-6">
@@ -242,6 +284,36 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
                       </Avatar>
                       <span className="text-sm font-medium">{profile.display_name}</span>
                     </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Mention preview chips */}
+            <AnimatePresence>
+              {mentionedUsers.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex flex-wrap gap-2 mt-2"
+                >
+                  {mentionedUsers.map(({ username, profile }) => (
+                    <Badge
+                      key={username}
+                      variant="secondary"
+                      className="flex items-center gap-1.5 pr-1 cursor-pointer hover:bg-secondary/80"
+                      onClick={() => removeMention(username)}
+                    >
+                      <Avatar className="h-4 w-4">
+                        <AvatarImage src={profile?.photos?.[0]} alt={username} />
+                        <AvatarFallback className="text-[8px]">
+                          <User className="h-2 w-2" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs">@{username}</span>
+                      <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    </Badge>
                   ))}
                 </motion.div>
               )}
