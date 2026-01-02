@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'feed_like' | 'feed_comment' | 'match' | 'message' | 'buddy_request' | 'buddy_message' | 'trip_invite' | 'comment_mention';
+  type: string; // Allow any string type for flexibility
   title: string;
   body: string | null;
   data: {
@@ -28,6 +28,11 @@ export interface Notification {
   created_at: string;
 }
 
+export interface NotificationWithProfile extends Notification {
+  mentioner_photo?: string;
+  mentioner_name?: string;
+}
+
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -45,7 +50,42 @@ export function useNotifications() {
         .limit(50);
 
       if (error) throw error;
-      return data as Notification[];
+
+      // Fetch profile photos for mention notifications
+      const mentionNotifications = (data || []).filter(n => {
+        const notifData = n.data as Record<string, unknown> | null;
+        return n.type === 'comment_mention' && notifData?.commenter_id;
+      });
+      const commenterIds = [...new Set(mentionNotifications.map(n => {
+        const notifData = n.data as Record<string, unknown>;
+        return notifData.commenter_id as string;
+      }))];
+      
+      let profilesMap: Record<string, { photo: string; name: string }> = {};
+      if (commenterIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, photos')
+          .in('id', commenterIds);
+        
+        if (profiles) {
+          profilesMap = profiles.reduce((acc, p) => {
+            acc[p.id] = { photo: p.photos?.[0] || '', name: p.display_name || 'Someone' };
+            return acc;
+          }, {} as Record<string, { photo: string; name: string }>);
+        }
+      }
+
+      // Enrich notifications with mentioner info
+      return (data || []).map(n => {
+        const notifData = n.data as Record<string, unknown> | null;
+        const commenterId = notifData?.commenter_id as string | undefined;
+        return {
+          ...n,
+          mentioner_photo: commenterId ? profilesMap[commenterId]?.photo : undefined,
+          mentioner_name: commenterId ? profilesMap[commenterId]?.name : undefined,
+        };
+      }) as NotificationWithProfile[];
     },
     enabled: !!user?.id,
   });
