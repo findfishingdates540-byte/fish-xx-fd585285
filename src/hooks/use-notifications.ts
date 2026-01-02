@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'feed_like' | 'feed_comment' | 'match' | 'message' | 'buddy_request' | 'buddy_message' | 'trip_invite';
+  type: 'feed_like' | 'feed_comment' | 'match' | 'message' | 'buddy_request' | 'buddy_message' | 'trip_invite' | 'comment_mention';
   title: string;
   body: string | null;
   data: {
@@ -115,6 +115,56 @@ export function useUnreadNotificationsCount() {
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['unread-notifications-count', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
+  return query;
+}
+
+export function useUnreadMentionsCount() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ['unread-mentions-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('type', 'comment_mention')
+        .eq('is_read', false);
+
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('mentions-count-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['unread-mentions-count', user.id] });
         }
       )
       .subscribe();

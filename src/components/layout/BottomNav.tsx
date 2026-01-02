@@ -24,6 +24,7 @@ interface NavItem {
   hasBuddyMessageBadge?: boolean;
   hasTripBadge?: boolean;
   hasLikesBadge?: boolean;
+  hasMentionsBadge?: boolean;
 }
 
 const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
@@ -44,7 +45,7 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
 
   if (mode === 'fishing') {
     const items: NavItem[] = [
-      { to: '/app/feed', icon: Rss, label: 'Feed' },
+      { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
       { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessageBadge: true },
@@ -60,7 +61,7 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
   // Both mode - dashboard-centric navigation
   return [
     { to: '/app/dashboard', icon: Home, label: 'Home' },
-    { to: '/app/feed', icon: Rss, label: 'Feed' },
+    { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
     { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     { to: '/app/profile', icon: User, label: 'Profile' },
   ];
@@ -203,6 +204,24 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
   });
 
+  // Fetch unread mentions count
+  const { data: unreadMentionsCount = 0 } = useQuery({
+    queryKey: ["unread-mentions-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { count } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("type", "comment_mention")
+        .eq("is_read", false);
+
+      return count || 0;
+    },
+    enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
+  });
+
   // Real-time subscriptions
   useEffect(() => {
     if (!user?.id) return;
@@ -266,6 +285,18 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           queryClient.invalidateQueries({ queryKey: ["trip-invites-count", user.id] });
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["unread-mentions-count", user.id] });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -280,6 +311,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     if (item.hasBuddyMessageBadge) return unreadBuddyMessagesCount;
     if (item.hasTripBadge) return tripInvitesCount;
     if (item.hasLikesBadge) return pendingLikesCount;
+    if (item.hasMentionsBadge) return unreadMentionsCount;
     return 0;
   };
 
