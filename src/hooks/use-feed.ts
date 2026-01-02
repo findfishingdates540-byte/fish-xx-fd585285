@@ -331,6 +331,25 @@ export function useDeleteComment() {
   });
 }
 
+export function useEditComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ commentId, content, postId }: { commentId: string; content: string; postId: string }) => {
+      const { error } = await supabase
+        .from('feed_comments')
+        .update({ content, updated_at: new Date().toISOString() })
+        .eq('id', commentId);
+
+      if (error) throw error;
+      return { postId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['feed-comments', data.postId] });
+    },
+  });
+}
+
 export function useToggleCommentReaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

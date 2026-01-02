@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, User, CornerDownRight, Smile, X, Trash2, MoreHorizontal } from 'lucide-react';
-import { useFeedComments, useAddComment, useToggleCommentReaction, useDeleteComment, useMentionSuggestions, FeedComment } from '@/hooks/use-feed';
+import { Send, User, CornerDownRight, Smile, X, Trash2, MoreHorizontal, Pencil, Check } from 'lucide-react';
+import { useFeedComments, useAddComment, useToggleCommentReaction, useDeleteComment, useEditComment, useMentionSuggestions, FeedComment } from '@/hooks/use-feed';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -230,7 +230,18 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
   const { user } = useAuth();
   const toggleReaction = useToggleCommentReaction();
   const deleteComment = useDeleteComment();
+  const editComment = useEditComment();
   const isOwnComment = user?.id === comment.user_id;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && editInputRef.current) {
+      editInputRef.current.focus();
+    }
+  }, [isEditing]);
 
   // Group reactions by emoji with count
   const reactionCounts = comment.reactions.reduce((acc, r) => {
@@ -255,6 +266,27 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
     } catch (error) {
       toast.error('Failed to delete comment');
     }
+  };
+
+  const handleEdit = () => {
+    setEditContent(comment.content);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editContent.trim()) return;
+    try {
+      await editComment.mutateAsync({ commentId: comment.id, content: editContent.trim(), postId });
+      setIsEditing(false);
+      toast.success('Comment updated');
+    } catch (error) {
+      toast.error('Failed to update comment');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(comment.content);
   };
 
   // Render @mentions as highlighted text
@@ -299,6 +331,10 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuItem onClick={handleEdit}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit comment
+                  </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleDelete}
                     className="text-destructive focus:text-destructive"
@@ -311,7 +347,41 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
               </DropdownMenu>
             )}
           </div>
-          <p className="text-sm mt-0.5 break-words">{renderContent(comment.content)}</p>
+          
+          {/* Edit mode or display content */}
+          {isEditing ? (
+            <div className="flex items-center gap-2 mt-1">
+              <Input
+                ref={editInputRef}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="flex-1 h-8 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEdit();
+                  if (e.key === 'Escape') handleCancelEdit();
+                }}
+              />
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-7 w-7"
+                onClick={handleSaveEdit}
+                disabled={editComment.isPending}
+              >
+                <Check className="h-4 w-4 text-primary" />
+              </Button>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-7 w-7"
+                onClick={handleCancelEdit}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm mt-0.5 break-words">{renderContent(comment.content)}</p>
+          )}
           
           {/* Reactions and Reply button */}
           <div className="flex items-center gap-2 mt-2">
