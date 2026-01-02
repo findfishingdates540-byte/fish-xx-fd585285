@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
 import { useMessageNotifications } from '@/hooks/use-message-notifications';
+import { useMentionNotifications } from '@/hooks/use-mention-notifications';
 
 function AppLayoutContent() {
   const location = useLocation();
@@ -27,6 +28,9 @@ function AppLayoutContent() {
 
   // Listen for new message notifications
   useMessageNotifications();
+
+  // Listen for mention notifications (play sound + toast)
+  useMentionNotifications();
   
   // Check if we're on the combo dashboard - it has its own layout
   const isComboDashboard = location.pathname === '/app/dashboard';

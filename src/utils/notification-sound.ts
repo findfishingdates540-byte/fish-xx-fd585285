@@ -122,3 +122,41 @@ export const playLikeReceivedSound = () => {
     console.log('Could not play like notification sound:', error);
   }
 };
+
+export const playMentionSound = () => {
+  try {
+    const ctx = getAudioContext();
+    
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+
+    // Create oscillator for an attention-grabbing mention sound
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.type = 'sine';
+
+    // Three quick notes - attention-grabbing pattern
+    oscillator.frequency.setValueAtTime(880, now); // A5
+    oscillator.frequency.setValueAtTime(1047, now + 0.08); // C6
+    oscillator.frequency.setValueAtTime(1319, now + 0.16); // E6
+
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+    gainNode.gain.linearRampToValueAtTime(0.25, now + 0.08);
+    gainNode.gain.linearRampToValueAtTime(0.35, now + 0.1);
+    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.16);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.4);
+  } catch (error) {
+    console.log('Could not play mention notification sound:', error);
+  }
+};

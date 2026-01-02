@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FeedPost, CreatePostDialog, SponsoredPost } from '@/components/feed';
@@ -17,6 +18,10 @@ type FeedItem =
 
 export default function Feed() {
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [searchParams] = useSearchParams();
+  const highlightedPostId = searchParams.get('post');
+  const highlightedCommentId = searchParams.get('comment');
+  const postRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { user } = useAuth();
   const { data: posts = [], isLoading: postsLoading, refetch } = useFeedPosts();
   const queryClient = useQueryClient();
@@ -93,6 +98,20 @@ export default function Feed() {
     };
   }, [queryClient]);
 
+  // Scroll to highlighted post when coming from a mention notification
+  useEffect(() => {
+    if (highlightedPostId && !postsLoading) {
+      // Small delay to ensure posts are rendered
+      const timer = setTimeout(() => {
+        const postElement = postRefs.current.get(highlightedPostId);
+        if (postElement) {
+          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedPostId, postsLoading, posts]);
+
   const handleRefresh = async () => {
     await refetch();
   };
@@ -161,7 +180,18 @@ export default function Feed() {
                   ) : (
                     feedItems.map((item, index) => (
                       item.type === 'post' ? (
-                        <FeedPost key={`post-${item.data.id}`} post={item.data} />
+                        <div 
+                          key={`post-${item.data.id}`}
+                          ref={(el) => {
+                            if (el) postRefs.current.set(item.data.id, el);
+                          }}
+                        >
+                          <FeedPost 
+                            post={item.data} 
+                            isHighlighted={highlightedPostId === item.data.id}
+                            autoOpenComments={highlightedPostId === item.data.id && !!highlightedCommentId}
+                          />
+                        </div>
                       ) : (
                         <SponsoredPost key={`ad-${item.data.id}-${index}`} ad={item.data} />
                       )

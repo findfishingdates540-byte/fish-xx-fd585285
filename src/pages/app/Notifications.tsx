@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Mail, Heart, MapPin, Settings, Check, MoreHorizontal, Calendar, Anchor, Users, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Bell, Mail, Heart, MapPin, Settings, Check, MoreHorizontal, Calendar, Anchor, Users, MessageCircle, ArrowLeft, AtSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -10,13 +10,14 @@ import { cn } from '@/lib/utils';
 import { 
   useNotifications, 
   useUnreadNotificationsCount, 
+  useUnreadMentionsCount,
   useMarkNotificationRead, 
   useMarkAllNotificationsRead,
   useClearNotifications,
   type Notification 
 } from '@/hooks/use-notifications';
 
-type FilterType = 'all' | 'unread' | 'matches' | 'spots' | 'system';
+type FilterType = 'all' | 'unread' | 'mentions' | 'matches' | 'spots' | 'system';
 
 interface EnrichedNotification {
   id: string;
@@ -36,6 +37,7 @@ export default function Notifications() {
   
   const { data: notifications = [], isLoading } = useNotifications();
   const { data: unreadCount = 0 } = useUnreadNotificationsCount();
+  const { data: unreadMentionsCount = 0 } = useUnreadMentionsCount();
   const markAsRead = useMarkNotificationRead();
   const markAllAsRead = useMarkAllNotificationsRead();
 
@@ -62,6 +64,8 @@ export default function Notifications() {
     switch (activeFilter) {
       case 'unread':
         return allNotifications.filter(n => !n.is_read);
+      case 'mentions':
+        return allNotifications.filter(n => n.type === 'comment_mention');
       case 'matches':
         return allNotifications.filter(n => n.type === 'match' || n.type === 'feed_like' || n.type === 'message');
       case 'spots':
@@ -116,6 +120,8 @@ export default function Notifications() {
         return MessageCircle;
       case 'feed_comment':
         return MessageCircle;
+      case 'comment_mention':
+        return AtSign;
       default:
         return Settings;
     }
@@ -138,6 +144,8 @@ export default function Notifications() {
         return 'text-purple-500';
       case 'feed_comment':
         return 'text-orange-500';
+      case 'comment_mention':
+        return 'text-cyan-500';
       default:
         return 'text-muted-foreground';
     }
@@ -158,6 +166,8 @@ export default function Notifications() {
       case 'feed_like':
       case 'feed_comment':
         return '/app/feed';
+      case 'comment_mention':
+        return `/app/feed?post=${notification.data?.post_id}&comment=${notification.data?.comment_id}`;
       case 'spot_update':
       case 'fishing_alert':
         return '/app/spots';
@@ -175,6 +185,7 @@ export default function Notifications() {
   const filters = [
     { id: 'all' as FilterType, label: 'All Notifications', icon: Bell },
     { id: 'unread' as FilterType, label: 'Unread', icon: Mail },
+    { id: 'mentions' as FilterType, label: 'Mentions', icon: AtSign, badge: unreadMentionsCount },
     { id: 'matches' as FilterType, label: 'Matches', icon: Heart },
     { id: 'spots' as FilterType, label: 'Fishing Spots', icon: MapPin },
     { id: 'system' as FilterType, label: 'System', icon: Settings },
@@ -308,6 +319,11 @@ export default function Notifications() {
                   >
                     <filter.icon className="h-4 w-4" />
                     {filter.label}
+                    {'badge' in filter && filter.badge > 0 && (
+                      <Badge className="ml-auto bg-cyan-500 text-white text-xs h-5 min-w-5 flex items-center justify-center">
+                        {filter.badge}
+                      </Badge>
+                    )}
                   </button>
                 ))}
               </div>
@@ -360,10 +376,15 @@ export default function Notifications() {
                   variant={activeFilter === filter.id ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveFilter(filter.id)}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 relative"
                 >
                   <filter.icon className="h-4 w-4 mr-1" />
                   {filter.label}
+                  {'badge' in filter && filter.badge > 0 && (
+                    <Badge className="ml-1.5 bg-cyan-500 text-white text-xs h-4 min-w-4 px-1 flex items-center justify-center">
+                      {filter.badge > 9 ? '9+' : filter.badge}
+                    </Badge>
+                  )}
                 </Button>
               ))}
             </div>
