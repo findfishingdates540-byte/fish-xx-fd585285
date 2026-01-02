@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { Send, User, CornerDownRight, Smile, X, Trash2, MoreHorizontal, Pencil, Check } from 'lucide-react';
 import { useFeedComments, useAddComment, useToggleCommentReaction, useDeleteComment, useEditComment, useMentionSuggestions, FeedComment } from '@/hooks/use-feed';
 import { formatDistanceToNow } from 'date-fns';
@@ -12,6 +13,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+
+interface MentionedUser {
+  username: string;
+  profile?: {
+    id: string;
+    display_name: string | null;
+    photos: string[] | null;
+  };
+}
 
 interface CommentSheetProps {
   postId: string;
@@ -28,11 +38,32 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [mentionedUsers, setMentionedUsers] = useState<MentionedUser[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { data: comments = [], isLoading } = useFeedComments(postId);
   const addComment = useAddComment();
   const mentionSuggestions = useMentionSuggestions();
+
+  // Extract mentions from comment
+  const extractedMentions = useMemo(() => {
+    const mentionRegex = /@(\w+)/g;
+    const matches = newComment.match(mentionRegex) || [];
+    return [...new Set(matches.map(m => m.slice(1)))];
+  }, [newComment]);
+
+  // Filter out mentioned users that are no longer in content
+  useEffect(() => {
+    setMentionedUsers(prev => prev.filter(u => extractedMentions.includes(u.username)));
+  }, [extractedMentions]);
+
+  const updateMentionedUsers = (displayName: string, profile?: MentionedUser['profile']) => {
+    const username = displayName.replace(/\s+/g, '');
+    setMentionedUsers(prev => {
+      if (prev.some(u => u.username === username)) return prev;
+      return [...prev, { username, profile }];
+    });
+  };
 
   // Handle @ mention detection
   useEffect(() => {
@@ -63,7 +94,7 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
     setCursorPosition((e.target as HTMLInputElement).selectionStart || 0);
   };
 
-  const insertMention = (displayName: string) => {
+  const insertMention = (displayName: string, profile?: MentionedUser['profile']) => {
     const lastAtIndex = newComment.lastIndexOf('@', cursorPosition);
     if (lastAtIndex !== -1) {
       const before = newComment.slice(0, lastAtIndex);
@@ -71,8 +102,14 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
       const mentionText = `@${displayName.replace(/\s+/g, '')} `;
       setNewComment(before + mentionText + after);
       setShowMentions(false);
+      updateMentionedUsers(displayName, profile);
       inputRef.current?.focus();
     }
+  };
+
+  const removeMention = (username: string) => {
+    const regex = new RegExp(`@${username}\\s?`, 'g');
+    setNewComment(prev => prev.replace(regex, ''));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,6 +124,7 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
       });
       setNewComment('');
       setReplyingTo(null);
+      setMentionedUsers([]);
     } catch (error) {
       console.error('Failed to add comment:', error);
     }
@@ -173,7 +211,11 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
                   {mentionSuggestions.data.map((profile) => (
                     <button
                       key={profile.id}
-                      onClick={() => insertMention(profile.display_name || 'User')}
+                      onClick={() => insertMention(profile.display_name || 'User', {
+                        id: profile.id,
+                        display_name: profile.display_name,
+                        photos: profile.photos
+                      })}
                       className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors text-left"
                     >
                       <Avatar className="h-6 w-6">
@@ -184,6 +226,36 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
                       </Avatar>
                       <span className="text-sm font-medium">{profile.display_name}</span>
                     </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Mention preview chips */}
+            <AnimatePresence>
+              {mentionedUsers.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex flex-wrap gap-1.5 mb-2"
+                >
+                  {mentionedUsers.map(({ username, profile }) => (
+                    <Badge
+                      key={username}
+                      variant="secondary"
+                      className="flex items-center gap-1 pr-0.5 cursor-pointer hover:bg-secondary/80 text-xs"
+                      onClick={() => removeMention(username)}
+                    >
+                      <Avatar className="h-3.5 w-3.5">
+                        <AvatarImage src={profile?.photos?.[0]} alt={username} />
+                        <AvatarFallback className="text-[6px]">
+                          <User className="h-2 w-2" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>@{username}</span>
+                      <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    </Badge>
                   ))}
                 </motion.div>
               )}
