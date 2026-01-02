@@ -130,17 +130,15 @@ export default function Feed() {
             <main className="lg:col-span-6">
               <PullToRefresh onRefresh={handleRefresh}>
                 <div className="space-y-4">
-                  {/* Create post button - mobile */}
+                  {/* Create post button */}
                   {user && (
-                    <div className="lg:hidden">
-                      <Button 
-                        onClick={() => setShowCreatePost(true)}
-                        className="w-full gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Create Post
-                      </Button>
-                    </div>
+                    <Button 
+                      onClick={() => setShowCreatePost(true)}
+                      className="w-full gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create Post
+                    </Button>
                   )}
 
                   {postsLoading ? (
