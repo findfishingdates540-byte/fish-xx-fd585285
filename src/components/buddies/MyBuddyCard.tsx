@@ -57,30 +57,30 @@ export function MyBuddyCard({
     <>
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 sm:gap-4">
             <div 
-              className="relative cursor-pointer group"
+              className="relative cursor-pointer group shrink-0"
               onClick={handleViewProfile}
             >
-              <Avatar className="h-16 w-16 ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
+              <Avatar className="h-12 w-12 sm:h-16 sm:w-16 ring-2 ring-transparent group-hover:ring-primary/50 transition-all">
                 <AvatarImage src={profile.photos?.[0]} className="object-cover" />
-                <AvatarFallback className="text-lg">
+                <AvatarFallback className="text-sm sm:text-lg">
                   {profile.display_name?.charAt(0)?.toUpperCase() || '?'}
                 </AvatarFallback>
               </Avatar>
               {/* Online indicator */}
               <span className={cn(
-                "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-background",
+                "absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 rounded-full border-2 border-background",
                 isOnline ? "bg-green-500" : 
                 isRecentlyActive(lastSeen) ? "bg-yellow-500" : 
                 "bg-muted-foreground/30"
               )} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
                   <h4 
-                    className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                    className="font-semibold cursor-pointer hover:text-primary transition-colors truncate"
                     onClick={handleViewProfile}
                   >
                     {profile.display_name || 'Anonymous'}
@@ -95,64 +95,65 @@ export function MyBuddyCard({
                     ) : null}
                   </p>
                   {profile.location_name && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {profile.location_name}
+                    <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 truncate">
+                      <MapPin className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{profile.location_name}</span>
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="text-right">
-                    <div className="flex items-center gap-1">
-                      <Fish className="w-4 h-4" />
-                      <span className="text-sm font-medium">{catchCount}</span>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+                  <Fish className="w-4 h-4" />
+                  <span className="text-sm font-medium">{catchCount}</span>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-2 flex-wrap">
                 {profile.fishing_experience && (
                   <Badge variant="secondary" className="text-xs">
-                    <Award className="w-3 h-3 mr-1" />
-                    {experienceLabels[profile.fishing_experience]}
+                    <Award className="w-3 h-3 mr-1 shrink-0" />
+                    <span className="truncate">{experienceLabels[profile.fishing_experience]}</span>
                   </Badge>
                 )}
                 {profile.preferred_species?.slice(0, 2).map((species) => (
-                  <Badge key={species} variant="outline" className="text-xs">
+                  <Badge key={species} variant="outline" className="text-xs max-w-[80px] sm:max-w-none truncate">
                     {species}
                   </Badge>
                 ))}
               </div>
 
-              <div className="flex gap-2 mt-3">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-3">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleViewProfile}
+                  className="text-xs sm:text-sm h-8 px-2 sm:px-3"
                 >
-                  View Profile
+                  <span className="hidden sm:inline">View Profile</span>
+                  <span className="sm:hidden">Profile</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="default"
                   onClick={() => onMessage(buddyId)}
+                  className="text-xs sm:text-sm h-8 px-2 sm:px-3"
                 >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Message
+                  <MessageCircle className="w-4 h-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Message</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={() => setSpotDialogOpen(true)}
+                  className="text-xs sm:text-sm h-8 px-2 sm:px-3"
                 >
-                  <CalendarPlus className="w-4 h-4 mr-2" />
-                  Plan Trip
+                  <CalendarPlus className="w-4 h-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Plan Trip</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => onRemove(profile.id)}
+                  className="h-8 px-2"
                 >
                   <UserMinus className="w-4 h-4" />
                 </Button>
