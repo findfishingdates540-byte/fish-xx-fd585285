@@ -369,12 +369,12 @@ export default function Buddies() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex w-full h-auto p-1">
-          <TabsTrigger value="discover" className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+        <TabsList className="flex w-full h-auto p-1 overflow-hidden">
+          <TabsTrigger value="discover" className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
             <UserPlus className="w-4 h-4 shrink-0" />
             <span className="truncate">Discover</span>
           </TabsTrigger>
-          <TabsTrigger value="requests" className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm relative">
+          <TabsTrigger value="requests" className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm relative">
             <Inbox className="w-4 h-4 shrink-0" />
             <span className="truncate">Requests</span>
             {pendingCount > 0 && (
@@ -383,7 +383,7 @@ export default function Buddies() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="buddies" className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+          <TabsTrigger value="buddies" className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
             <Users className="w-4 h-4 shrink-0" />
             <span className="truncate">Buddies</span>
           </TabsTrigger>
