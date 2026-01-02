@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ImagePlus, MapPin, X, Loader2 } from 'lucide-react';
-import { useCreatePost } from '@/hooks/use-feed';
+import { ImagePlus, MapPin, X, Loader2, User } from 'lucide-react';
+import { useCreatePost, useMentionSuggestions } from '@/hooks/use-feed';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface CreatePostDialogProps {
   isOpen: boolean;
@@ -21,9 +23,58 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreview, setPhotoPreview] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const { user } = useAuth();
   const createPost = useCreatePost();
+  const mentionSuggestions = useMentionSuggestions();
+
+  // Handle @ mention detection
+  useEffect(() => {
+    const lastAtIndex = content.lastIndexOf('@', cursorPosition);
+    if (lastAtIndex !== -1) {
+      const textAfterAt = content.slice(lastAtIndex + 1, cursorPosition);
+      if (!textAfterAt.includes(' ') && textAfterAt.length >= 0) {
+        setMentionSearch(textAfterAt);
+        setShowMentions(true);
+        if (textAfterAt.length >= 2) {
+          mentionSuggestions.mutate(textAfterAt);
+        }
+      } else {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
+    }
+  }, [content, cursorPosition]);
+
+  const insertMention = (displayName: string) => {
+    const lastAtIndex = content.lastIndexOf('@', cursorPosition);
+    if (lastAtIndex !== -1) {
+      const before = content.slice(0, lastAtIndex);
+      const after = content.slice(cursorPosition);
+      const mentionText = `@${displayName.replace(/\s+/g, '')} `;
+      setContent(before + mentionText + after);
+      setShowMentions(false);
+      textareaRef.current?.focus();
+    }
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+    setCursorPosition(e.target.selectionStart || 0);
+  };
+
+  const handleContentKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    setCursorPosition((e.target as HTMLTextAreaElement).selectionStart || 0);
+  };
+
+  const handleContentClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    setCursorPosition((e.target as HTMLTextAreaElement).selectionStart || 0);
+  };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -150,19 +201,51 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
             )}
           </div>
 
-          {/* Caption */}
-          <div>
+          {/* Caption with mentions */}
+          <div className="relative">
             <Label htmlFor="content" className="text-sm text-muted-foreground">
-              Caption
+              Caption (type @ to mention someone)
             </Label>
             <Textarea
+              ref={textareaRef}
               id="content"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your fishing story..."
+              onChange={handleContentChange}
+              onKeyUp={handleContentKeyUp}
+              onClick={handleContentClick}
+              placeholder="Share your fishing story... @mention friends"
               rows={3}
               className="mt-1.5"
             />
+            
+            {/* Mention suggestions dropdown */}
+            <AnimatePresence>
+              {showMentions && mentionSuggestions.data && mentionSuggestions.data.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50"
+                >
+                  {mentionSuggestions.data.map((profile) => (
+                    <button
+                      key={profile.id}
+                      type="button"
+                      onClick={() => insertMention(profile.display_name || 'User')}
+                      className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors text-left"
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={profile.photos?.[0]} alt={profile.display_name || 'User'} />
+                        <AvatarFallback>
+                          <User className="h-3 w-3" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{profile.display_name}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Location */}

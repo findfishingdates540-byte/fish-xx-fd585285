@@ -14,19 +14,12 @@ import {
   useMarkNotificationRead, 
   useMarkAllNotificationsRead,
   useClearNotifications,
-  type Notification 
+  type NotificationWithProfile 
 } from '@/hooks/use-notifications';
 
 type FilterType = 'all' | 'unread' | 'mentions' | 'matches' | 'spots' | 'system';
 
-interface EnrichedNotification {
-  id: string;
-  type: string;
-  title: string;
-  body: string | null;
-  data: any;
-  is_read: boolean;
-  created_at: string;
+interface EnrichedNotification extends NotificationWithProfile {
   photo?: string;
   senderName?: string;
 }
@@ -194,6 +187,9 @@ export default function Notifications() {
   const renderNotification = (notification: EnrichedNotification) => {
     const Icon = getNotificationIcon(notification.type);
     const iconColor = getNotificationColor(notification.type);
+    
+    // Use mentioner photo for mention notifications, or fallback to existing photo
+    const displayPhoto = notification.mentioner_photo || notification.photo;
 
     return (
       <Link
@@ -209,10 +205,10 @@ export default function Notifications() {
           <div className="flex gap-3 md:gap-4">
             {/* Photo/Avatar */}
             <div className="flex-shrink-0">
-              {notification.photo ? (
+              {displayPhoto ? (
                 <div className="relative">
                   <img 
-                    src={notification.photo} 
+                    src={displayPhoto} 
                     alt="" 
                     className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
                   />
