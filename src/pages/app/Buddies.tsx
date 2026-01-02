@@ -368,24 +368,24 @@ export default function Buddies() {
         <p className="text-muted-foreground">Connect with fellow anglers</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="discover" className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4" />
-            <span className="hidden sm:inline">Discover</span>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="flex w-full h-auto p-1">
+          <TabsTrigger value="discover" className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+            <UserPlus className="w-4 h-4 shrink-0" />
+            <span className="truncate">Discover</span>
           </TabsTrigger>
-          <TabsTrigger value="requests" className="flex items-center gap-2 relative">
-            <Inbox className="w-4 h-4" />
-            <span className="hidden sm:inline">Requests</span>
+          <TabsTrigger value="requests" className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm relative">
+            <Inbox className="w-4 h-4 shrink-0" />
+            <span className="truncate">Requests</span>
             {pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {pendingCount}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="buddies" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">My Buddies</span>
+          <TabsTrigger value="buddies" className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+            <Users className="w-4 h-4 shrink-0" />
+            <span className="truncate">Buddies</span>
           </TabsTrigger>
         </TabsList>
 
