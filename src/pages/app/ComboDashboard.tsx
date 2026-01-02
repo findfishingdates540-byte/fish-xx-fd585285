@@ -423,7 +423,7 @@ export default function ComboDashboard() {
       // Fetch user profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, display_name, photos, location_name")
+        .select("id, display_name, photos, location_name, gender")
         .eq("id", user.id)
         .single();
       
@@ -438,14 +438,42 @@ export default function ComboDashboard() {
       
       setMatchCount(count || 0);
 
-      // Fetch nearby anglers (profiles)
-      const { data: anglers } = await supabase
+      // Fetch already swiped profile IDs to exclude them
+      const { data: existingMatches } = await supabase
+        .from("matches")
+        .select("user1_id, user2_id")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+      const swipedIds = new Set<string>();
+      existingMatches?.forEach((match) => {
+        if (match.user1_id === user.id) {
+          swipedIds.add(match.user2_id);
+        } else {
+          swipedIds.add(match.user1_id);
+        }
+      });
+
+      // Fetch nearby anglers (profiles), excluding already swiped ones
+      let anglersQuery = supabase
         .from("profiles")
-        .select("id, display_name, photos, date_of_birth, fishing_experience, preferred_species, fishing_gear, location_name")
+        .select("id, display_name, photos, date_of_birth, fishing_experience, preferred_species, fishing_gear, location_name, gender")
         .eq("is_active", true)
         .neq("id", user.id)
-        .not("photos", "is", null)
-        .limit(5);
+        .not("photos", "is", null);
+
+      // Exclude already swiped profiles
+      if (swipedIds.size > 0) {
+        anglersQuery = anglersQuery.not("id", "in", `(${Array.from(swipedIds).join(",")})`);
+      }
+
+      // Apply opposite gender filtering (male sees female, female sees male)
+      if (profile?.gender === 'male') {
+        anglersQuery = anglersQuery.eq('gender', 'female');
+      } else if (profile?.gender === 'female') {
+        anglersQuery = anglersQuery.eq('gender', 'male');
+      }
+
+      const { data: anglers } = await anglersQuery.limit(5);
       
       setNearbyAnglers(anglers || []);
 
