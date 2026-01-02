@@ -29,17 +29,28 @@ export interface FeedPost {
   user_has_liked: boolean;
 }
 
+export interface CommentReaction {
+  id: string;
+  comment_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+}
+
 export interface FeedComment {
   id: string;
   post_id: string;
   user_id: string;
   content: string;
   created_at: string;
+  parent_id: string | null;
   profile: {
     id: string;
     display_name: string | null;
     photos: string[] | null;
   } | null;
+  reactions: CommentReaction[];
+  replies?: FeedComment[];
 }
 
 export function useFeedPosts() {
@@ -119,6 +130,7 @@ export function useFeedComments(postId: string) {
 
       // Get unique user IDs
       const userIds = [...new Set(comments.map(c => c.user_id))];
+      const commentIds = comments.map(c => c.id);
 
       // Fetch profiles
       const { data: profiles } = await supabase
@@ -126,12 +138,46 @@ export function useFeedComments(postId: string) {
         .select('id, display_name, photos')
         .in('id', userIds);
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p]));
+      // Fetch reactions for all comments
+      const { data: reactions } = await supabase
+        .from('feed_comment_reactions')
+        .select('*')
+        .in('comment_id', commentIds);
 
-      return comments.map(comment => ({
+      const profileMap = new Map(profiles?.map(p => [p.id, p]));
+      const reactionsMap = new Map<string, CommentReaction[]>();
+      
+      reactions?.forEach(r => {
+        const existing = reactionsMap.get(r.comment_id) || [];
+        existing.push(r);
+        reactionsMap.set(r.comment_id, existing);
+      });
+
+      // Build comment tree (top-level and nested)
+      const commentsWithData = comments.map(comment => ({
         ...comment,
-        profile: profileMap.get(comment.user_id) || null
+        profile: profileMap.get(comment.user_id) || null,
+        reactions: reactionsMap.get(comment.id) || [],
+        replies: [] as FeedComment[]
       })) as FeedComment[];
+
+      // Organize into tree structure
+      const topLevelComments: FeedComment[] = [];
+      const commentMap = new Map<string, FeedComment>();
+      
+      commentsWithData.forEach(c => commentMap.set(c.id, c));
+      
+      commentsWithData.forEach(comment => {
+        if (comment.parent_id && commentMap.has(comment.parent_id)) {
+          const parent = commentMap.get(comment.parent_id)!;
+          if (!parent.replies) parent.replies = [];
+          parent.replies.push(comment);
+        } else if (!comment.parent_id) {
+          topLevelComments.push(comment);
+        }
+      });
+
+      return topLevelComments;
     },
     enabled: !!postId,
   });
@@ -201,12 +247,17 @@ export function useAddComment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+    mutationFn: async ({ postId, content, parentId }: { postId: string; content: string; parentId?: string }) => {
       if (!user?.id) throw new Error('Must be logged in');
 
       const { data, error } = await supabase
         .from('feed_comments')
-        .insert({ post_id: postId, user_id: user.id, content })
+        .insert({ 
+          post_id: postId, 
+          user_id: user.id, 
+          content,
+          parent_id: parentId || null
+        })
         .select()
         .single();
 
@@ -216,6 +267,48 @@ export function useAddComment() {
     onSuccess: (_, { postId }) => {
       queryClient.invalidateQueries({ queryKey: ['feed-comments', postId] });
       queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
+    },
+  });
+}
+
+export function useToggleCommentReaction() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ commentId, emoji, postId }: { commentId: string; emoji: string; postId: string }) => {
+      if (!user?.id) throw new Error('Must be logged in');
+
+      // Check if reaction already exists
+      const { data: existing } = await supabase
+        .from('feed_comment_reactions')
+        .select('id')
+        .eq('comment_id', commentId)
+        .eq('user_id', user.id)
+        .eq('emoji', emoji)
+        .maybeSingle();
+
+      if (existing) {
+        // Remove reaction
+        const { error } = await supabase
+          .from('feed_comment_reactions')
+          .delete()
+          .eq('id', existing.id);
+        
+        if (error) throw error;
+        return { action: 'removed' };
+      } else {
+        // Add reaction
+        const { error } = await supabase
+          .from('feed_comment_reactions')
+          .insert({ comment_id: commentId, user_id: user.id, emoji });
+        
+        if (error) throw error;
+        return { action: 'added' };
+      }
+    },
+    onSuccess: (_, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['feed-comments', postId] });
     },
   });
 }
