@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, User, CornerDownRight, Smile, X } from 'lucide-react';
-import { useFeedComments, useAddComment, useToggleCommentReaction, FeedComment } from '@/hooks/use-feed';
+import { Send, User, CornerDownRight, Smile, X, Trash2, MoreHorizontal } from 'lucide-react';
+import { useFeedComments, useAddComment, useToggleCommentReaction, useDeleteComment, useMentionSuggestions, FeedComment } from '@/hooks/use-feed';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface CommentSheetProps {
   postId: string;
@@ -23,9 +25,55 @@ const REACTION_EMOJIS = ['❤️', '😂', '😮', '😢', '😡', '👍'];
 export function CommentSheet({ postId, isOpen, onClose, commentsCount }: CommentSheetProps) {
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { data: comments = [], isLoading } = useFeedComments(postId);
   const addComment = useAddComment();
+  const mentionSuggestions = useMentionSuggestions();
+
+  // Handle @ mention detection
+  useEffect(() => {
+    const lastAtIndex = newComment.lastIndexOf('@', cursorPosition);
+    if (lastAtIndex !== -1) {
+      const textAfterAt = newComment.slice(lastAtIndex + 1, cursorPosition);
+      // Check if there's no space after @ and we're still typing the mention
+      if (!textAfterAt.includes(' ') && textAfterAt.length >= 0) {
+        setMentionSearch(textAfterAt);
+        setShowMentions(true);
+        if (textAfterAt.length >= 2) {
+          mentionSuggestions.mutate(textAfterAt);
+        }
+      } else {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
+    }
+  }, [newComment, cursorPosition]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewComment(e.target.value);
+    setCursorPosition(e.target.selectionStart || 0);
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    setCursorPosition((e.target as HTMLInputElement).selectionStart || 0);
+  };
+
+  const insertMention = (displayName: string) => {
+    const lastAtIndex = newComment.lastIndexOf('@', cursorPosition);
+    if (lastAtIndex !== -1) {
+      const before = newComment.slice(0, lastAtIndex);
+      const after = newComment.slice(cursorPosition);
+      const mentionText = `@${displayName.replace(/\s+/g, '')} `;
+      setNewComment(before + mentionText + after);
+      setShowMentions(false);
+      inputRef.current?.focus();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,10 +94,14 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
 
   const handleReply = (commentId: string, displayName: string) => {
     setReplyingTo({ id: commentId, name: displayName });
+    // Pre-fill with @mention
+    setNewComment(`@${displayName.replace(/\s+/g, '')} `);
+    inputRef.current?.focus();
   };
 
   const cancelReply = () => {
     setReplyingTo(null);
+    setNewComment('');
   };
 
   return (
@@ -85,7 +137,7 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
         </ScrollArea>
 
         {user ? (
-          <div className="pt-4 border-t border-border">
+          <div className="pt-4 border-t border-border relative">
             <AnimatePresence>
               {replyingTo && (
                 <motion.div
@@ -108,11 +160,42 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Mention suggestions dropdown */}
+            <AnimatePresence>
+              {showMentions && mentionSuggestions.data && mentionSuggestions.data.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute bottom-full left-0 right-0 mb-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50"
+                >
+                  {mentionSuggestions.data.map((profile) => (
+                    <button
+                      key={profile.id}
+                      onClick={() => insertMention(profile.display_name || 'User')}
+                      className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors text-left"
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={profile.photos?.[0]} alt={profile.display_name || 'User'} />
+                        <AvatarFallback>
+                          <User className="h-3 w-3" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{profile.display_name}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Input
+                ref={inputRef}
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder={replyingTo ? `Reply to ${replyingTo.name}...` : "Add a comment..."}
+                onChange={handleInputChange}
+                onKeyUp={handleKeyUp}
+                placeholder={replyingTo ? `Reply to ${replyingTo.name}...` : "Add a comment... Use @ to mention"}
                 className="flex-1"
               />
               <Button 
@@ -146,6 +229,8 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
   const displayName = comment.profile?.display_name || 'Anonymous';
   const { user } = useAuth();
   const toggleReaction = useToggleCommentReaction();
+  const deleteComment = useDeleteComment();
+  const isOwnComment = user?.id === comment.user_id;
 
   // Group reactions by emoji with count
   const reactionCounts = comment.reactions.reduce((acc, r) => {
@@ -161,6 +246,30 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
   const handleReaction = (emoji: string) => {
     if (!user) return;
     toggleReaction.mutate({ commentId: comment.id, emoji, postId });
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteComment.mutateAsync({ commentId: comment.id, postId });
+      toast.success('Comment deleted');
+    } catch (error) {
+      toast.error('Failed to delete comment');
+    }
+  };
+
+  // Render @mentions as highlighted text
+  const renderContent = (content: string) => {
+    const parts = content.split(/(@\w+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return (
+          <span key={index} className="text-primary font-medium">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
   };
 
   const maxDepth = 2; // Limit nesting depth
@@ -180,8 +289,29 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
             <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
             </span>
+            
+            {/* More options menu for own comments */}
+            {isOwnComment && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto">
+                    <MoreHorizontal className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuItem 
+                    onClick={handleDelete}
+                    className="text-destructive focus:text-destructive"
+                    disabled={deleteComment.isPending}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete comment
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
-          <p className="text-sm mt-0.5 break-words">{comment.content}</p>
+          <p className="text-sm mt-0.5 break-words">{renderContent(comment.content)}</p>
           
           {/* Reactions and Reply button */}
           <div className="flex items-center gap-2 mt-2">
