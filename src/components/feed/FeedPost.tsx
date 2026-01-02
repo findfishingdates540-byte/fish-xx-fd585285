@@ -28,10 +28,12 @@ import { cn } from '@/lib/utils';
 
 interface FeedPostProps {
   post: FeedPostType;
+  isHighlighted?: boolean;
+  autoOpenComments?: boolean;
 }
 
-export function FeedPost({ post }: FeedPostProps) {
-  const [showComments, setShowComments] = useState(false);
+export function FeedPost({ post, isHighlighted = false, autoOpenComments = false }: FeedPostProps) {
+  const [showComments, setShowComments] = useState(autoOpenComments);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const { user } = useAuth();
   const likePost = useLikePost();
@@ -66,7 +68,10 @@ export function FeedPost({ post }: FeedPostProps) {
 
   return (
     <>
-      <Card className="overflow-hidden bg-background">
+      <Card className={cn(
+        "overflow-hidden bg-background transition-all duration-500",
+        isHighlighted && "ring-2 ring-cyan-500 ring-offset-2 ring-offset-background"
+      )}>
         {/* Header */}
         <div className="flex items-start justify-between p-4 pb-3">
           <div className="flex items-center gap-3">
