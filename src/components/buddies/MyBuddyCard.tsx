@@ -116,7 +116,7 @@ export function MyBuddyCard({
                 )}
                 {profile.preferred_species?.slice(0, 2).map((species) => (
                   <Badge key={species} variant="outline" className="text-xs max-w-[80px] sm:max-w-none truncate">
-                    {species}
+                    {species.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                   </Badge>
                 ))}
               </div>
