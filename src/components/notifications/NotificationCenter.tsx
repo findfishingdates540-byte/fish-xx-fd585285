@@ -353,7 +353,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
     previousCountRef.current = totalCount;
   }, [totalCount]);
 
-  // Mark all messages as read
+  // Mark all notifications as read
   const handleMarkAllRead = async () => {
     if (!user?.id) return;
 
@@ -384,13 +384,20 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
         }
       }
 
-      // Invalidate queries to refresh the notification counts
-      if (showDating) {
-        queryClient.invalidateQueries({ queryKey: ['unread-messages-notif'] });
-      }
-      if (showFishing) {
-        queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif'] });
-      }
+      // Mark notifications in the notifications table as read
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      // Invalidate all relevant queries to refresh the notification counts
+      queryClient.invalidateQueries({ queryKey: ['unread-messages-notif'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-buddy-messages-notif'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-matches-notif'] });
+      queryClient.invalidateQueries({ queryKey: ['trip-invites-notif'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
     } catch (error) {
       console.error('Error marking notifications as read:', error);
     }
