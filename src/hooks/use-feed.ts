@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 export interface FeedPost {
   id: string;
@@ -115,6 +116,45 @@ export function useFeedPosts() {
 }
 
 export function useFeedComments(postId: string) {
+  const queryClient = useQueryClient();
+
+  // Set up real-time subscription for comments and reactions
+  useEffect(() => {
+    if (!postId) return;
+
+    const channel = supabase
+      .channel(`comments-${postId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'feed_comments',
+          filter: `post_id=eq.${postId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['feed-comments', postId] });
+          queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'feed_comment_reactions'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['feed-comments', postId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [postId, queryClient]);
+
   return useQuery({
     queryKey: ['feed-comments', postId],
     queryFn: async () => {
@@ -271,6 +311,26 @@ export function useAddComment() {
   });
 }
 
+export function useDeleteComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ commentId, postId }: { commentId: string; postId: string }) => {
+      const { error } = await supabase
+        .from('feed_comments')
+        .delete()
+        .eq('id', commentId);
+
+      if (error) throw error;
+      return { postId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['feed-comments', data.postId] });
+      queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
+    },
+  });
+}
+
 export function useToggleCommentReaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -309,6 +369,24 @@ export function useToggleCommentReaction() {
     },
     onSuccess: (_, { postId }) => {
       queryClient.invalidateQueries({ queryKey: ['feed-comments', postId] });
+    },
+  });
+}
+
+export function useMentionSuggestions() {
+  return useMutation({
+    mutationFn: async (searchTerm: string) => {
+      if (!searchTerm || searchTerm.length < 2) return [];
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, photos')
+        .ilike('display_name', `%${searchTerm}%`)
+        .eq('is_active', true)
+        .limit(5);
+
+      if (error) throw error;
+      return data || [];
     },
   });
 }
