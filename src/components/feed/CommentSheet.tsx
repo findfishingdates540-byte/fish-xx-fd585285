@@ -459,21 +459,28 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
           <div className="flex items-center gap-2 mt-2">
             {/* Existing reactions */}
             <div className="flex items-center gap-1 flex-wrap">
-              {Object.entries(reactionCounts).map(([emoji, count]) => (
-                <motion.button
-                  key={emoji}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleReaction(emoji)}
-                  className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition-colors ${
-                    userReactions.has(emoji) 
-                      ? 'bg-primary/20 text-primary' 
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}
-                >
-                  <span>{emoji}</span>
-                  <span>{count}</span>
-                </motion.button>
-              ))}
+              <AnimatePresence mode="popLayout">
+                {Object.entries(reactionCounts).map(([emoji, count]) => (
+                  <motion.button
+                    key={emoji}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                    whileTap={{ scale: 0.9 }}
+                    layout
+                    onClick={() => handleReaction(emoji)}
+                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition-colors ${
+                      userReactions.has(emoji) 
+                        ? 'bg-primary/20 text-primary' 
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{emoji}</span>
+                    <span>{count}</span>
+                  </motion.button>
+                ))}
+              </AnimatePresence>
             </div>
 
             {/* Add reaction button */}
