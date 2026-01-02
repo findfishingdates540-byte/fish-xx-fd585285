@@ -375,7 +375,7 @@ export function useToggleCommentReaction() {
           .eq('id', existing.id);
         
         if (error) throw error;
-        return { action: 'removed' };
+        return { action: 'removed', postId };
       } else {
         // Add reaction
         const { error } = await supabase
@@ -383,11 +383,78 @@ export function useToggleCommentReaction() {
           .insert({ comment_id: commentId, user_id: user.id, emoji });
         
         if (error) throw error;
-        return { action: 'added' };
+        return { action: 'added', postId };
       }
     },
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['feed-comments', postId] });
+    onMutate: async ({ commentId, emoji, postId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['feed-comments', postId] });
+      
+      // Snapshot the previous value
+      const previousComments = queryClient.getQueryData(['feed-comments', postId]);
+      
+      // Optimistically update the cache
+      queryClient.setQueryData(['feed-comments', postId], (old: FeedComment[] | undefined) => {
+        if (!old || !user?.id) return old;
+        
+        const updateCommentReactions = (comments: FeedComment[]): FeedComment[] => {
+          return comments.map(comment => {
+            if (comment.id === commentId) {
+              const existingReaction = comment.reactions.find(
+                r => r.user_id === user.id && r.emoji === emoji
+              );
+              
+              if (existingReaction) {
+                // Remove reaction
+                return {
+                  ...comment,
+                  reactions: comment.reactions.filter(r => r.id !== existingReaction.id)
+                };
+              } else {
+                // Add reaction
+                return {
+                  ...comment,
+                  reactions: [
+                    ...comment.reactions,
+                    {
+                      id: `temp-${Date.now()}`,
+                      comment_id: commentId,
+                      user_id: user.id,
+                      emoji,
+                      created_at: new Date().toISOString()
+                    }
+                  ]
+                };
+              }
+            }
+            
+            // Check nested replies
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: updateCommentReactions(comment.replies)
+              };
+            }
+            
+            return comment;
+          });
+        };
+        
+        return updateCommentReactions(old);
+      });
+      
+      return { previousComments };
+    },
+    onError: (err, { postId }, context) => {
+      // Rollback on error
+      if (context?.previousComments) {
+        queryClient.setQueryData(['feed-comments', postId], context.previousComments);
+      }
+    },
+    onSettled: (data) => {
+      if (data?.postId) {
+        queryClient.invalidateQueries({ queryKey: ['feed-comments', data.postId] });
+      }
     },
   });
 }
