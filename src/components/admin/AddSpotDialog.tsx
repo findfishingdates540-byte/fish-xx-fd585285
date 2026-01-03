@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuditAction } from '@/hooks/use-audit-logs';
+import { Upload, X, Loader2 } from 'lucide-react';
 
 interface AddSpotDialogProps {
   open: boolean;
@@ -26,6 +27,9 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
     setName('');
@@ -35,6 +39,60 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
     setDescription('');
     setIsPublic(true);
     setIsVerified(false);
+    setPhotos([]);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const newPhotos: string[] = [];
+
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} is not an image`);
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large (max 5MB)`);
+          continue;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('spot-photos')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('spot-photos')
+          .getPublicUrl(fileName);
+
+        newPhotos.push(publicUrl);
+      }
+
+      if (newPhotos.length > 0) {
+        setPhotos(prev => [...prev, ...newPhotos]);
+        toast.success(`Uploaded ${newPhotos.length} photo(s)`);
+      }
+    } catch (error) {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removePhoto = (url: string) => {
+    setPhotos(prev => prev.filter(p => p !== url));
   };
 
   const { mutate: addSpot, isPending } = useMutation({
@@ -53,6 +111,7 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
           is_public: isPublic,
           is_verified: isVerified,
           created_by: user.id,
+          photos: photos.length > 0 ? photos : null,
         })
         .select()
         .single();
@@ -166,6 +225,47 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
               className="bg-slate-800 border-slate-700 text-white resize-none"
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Photos</Label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full border-slate-600 text-slate-300 hover:bg-slate-800"
+            >
+              {uploading ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+              ) : (
+                <><Upload className="w-4 h-4 mr-2" /> Upload Photos</>
+              )}
+            </Button>
+            {photos.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {photos.map((url, i) => (
+                  <div key={i} className="relative group">
+                    <img src={url} alt="" className="w-full h-20 object-cover rounded" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(url)}
+                      className="absolute top-1 right-1 bg-red-600 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
