@@ -25,6 +25,7 @@ export type AuditAction =
   | 'premium_granted'
   | 'premium_revoked'
   | 'setting_updated'
+  | 'spot_created'
   | 'spot_verified'
   | 'spot_unverified'
   | 'spot_deleted'
