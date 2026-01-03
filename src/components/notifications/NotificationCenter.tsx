@@ -379,6 +379,21 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
           .from('messages')
           .update({ is_read: true })
           .neq('sender_id', user.id);
+
+        // Also mark matches as viewed so they stop counting in the bell
+        const now = new Date().toISOString();
+        await Promise.all([
+          supabase
+            .from('matches')
+            .update({ user1_viewed_at: now })
+            .eq('user1_id', user.id)
+            .eq('is_match', true),
+          supabase
+            .from('matches')
+            .update({ user2_viewed_at: now })
+            .eq('user2_id', user.id)
+            .eq('is_match', true),
+        ]);
       }
 
       // Mark buddy messages as read (only if showing fishing)
