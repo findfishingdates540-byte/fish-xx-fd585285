@@ -265,7 +265,7 @@ export default function Profile() {
                   <div className="flex flex-wrap gap-2">
                     {profile.preferred_species.slice(0, 4).map(interest => (
                       <Badge key={interest} variant="secondary" className="text-xs">
-                        #{interest}
+                        #{interest.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                       </Badge>
                     ))}
                   </div>
