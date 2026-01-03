@@ -659,13 +659,13 @@ export default function BuddyChat() {
                 {catchItem.weight_kg && (
                   <span className="flex items-center gap-1">
                     <Scale className="w-3 h-3" />
-                    {catchItem.weight_kg}kg
+                    {catchItem.weight_kg} lbs
                   </span>
                 )}
                 {catchItem.length_cm && (
                   <span className="flex items-center gap-1">
                     <Ruler className="w-3 h-3" />
-                    {catchItem.length_cm}cm
+                    {catchItem.length_cm} in
                   </span>
                 )}
               </div>

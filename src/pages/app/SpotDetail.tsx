@@ -911,13 +911,13 @@ export default function SpotDetail() {
                             {catchItem.weight_kg && (
                               <span className="flex items-center gap-1">
                                 <Scale className="h-3 w-3" />
-                                {catchItem.weight_kg} kg
+                                {catchItem.weight_kg} lbs
                               </span>
                             )}
                             {catchItem.length_cm && (
                               <span className="flex items-center gap-1">
                                 <Ruler className="h-3 w-3" />
-                                {catchItem.length_cm} cm
+                                {catchItem.length_cm} in
                               </span>
                             )}
                             {catchItem.caught_at && (

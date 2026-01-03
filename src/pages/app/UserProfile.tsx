@@ -336,7 +336,7 @@ export default function UserProfile() {
                       <CardContent className="p-2">
                         <p className="font-medium text-sm truncate">{catchItem.species_name || 'Unknown'}</p>
                         {catchItem.weight_kg && (
-                          <p className="text-xs text-muted-foreground">{catchItem.weight_kg} kg</p>
+                          <p className="text-xs text-muted-foreground">{catchItem.weight_kg} lbs</p>
                         )}
                       </CardContent>
                     </Card>

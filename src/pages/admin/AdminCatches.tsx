@@ -157,10 +157,10 @@ export default function AdminCatches() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       {c.weight_kg && (
-                        <span className="text-white font-medium">{c.weight_kg} kg</span>
+                        <span className="text-white font-medium">{c.weight_kg} lbs</span>
                       )}
                       {c.length_cm && (
-                        <span className="text-slate-400">• {c.length_cm} cm</span>
+                        <span className="text-slate-400">• {c.length_cm} in</span>
                       )}
                     </div>
                     {c.spot && (
@@ -241,11 +241,11 @@ export default function AdminCatches() {
                 </div>
                 <div>
                   <p className="text-slate-400">Weight</p>
-                  <p className="text-white font-medium">{selectedCatch.weight_kg ? `${selectedCatch.weight_kg} kg` : 'N/A'}</p>
+                  <p className="text-white font-medium">{selectedCatch.weight_kg ? `${selectedCatch.weight_kg} lbs` : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-slate-400">Length</p>
-                  <p className="text-white font-medium">{selectedCatch.length_cm ? `${selectedCatch.length_cm} cm` : 'N/A'}</p>
+                  <p className="text-white font-medium">{selectedCatch.length_cm ? `${selectedCatch.length_cm} in` : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-slate-400">Bait Used</p>

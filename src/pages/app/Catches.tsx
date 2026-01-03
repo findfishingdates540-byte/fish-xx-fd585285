@@ -411,7 +411,7 @@ export default function Catches() {
               {/* Weight & Length */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Label htmlFor="weight">Weight (lbs)</Label>
                   <Input
                     id="weight"
                     type="number"
@@ -422,7 +422,7 @@ export default function Catches() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="length">Length (cm)</Label>
+                  <Label htmlFor="length">Length (in)</Label>
                   <Input
                     id="length"
                     type="number"
@@ -608,13 +608,13 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
           {catchData.weight_kg && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Scale className="h-3 w-3" />
-              {catchData.weight_kg} kg
+              {catchData.weight_kg} lbs
             </Badge>
           )}
           {catchData.length_cm && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Ruler className="h-3 w-3" />
-              {catchData.length_cm} cm
+              {catchData.length_cm} in
             </Badge>
           )}
           {catchData.bait_used && (
