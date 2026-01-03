@@ -149,7 +149,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
     };
   }, [user?.id, queryClient, mode, showDating, showFishing]);
 
-  // Fetch recent matches (only for dating mode)
+  // Fetch recent UNVIEWED matches (only for dating mode)
   const { data: recentMatches } = useQuery({
     queryKey: ['recent-matches-notif', user?.id],
     queryFn: async () => {
@@ -161,6 +161,8 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
           matched_at,
           user1_id,
           user2_id,
+          user1_viewed_at,
+          user2_viewed_at,
           user1:profiles!matches_user1_id_fkey(display_name, photos),
           user2:profiles!matches_user2_id_fkey(display_name, photos)
         `)
@@ -168,7 +170,20 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('matched_at', { ascending: false })
         .limit(10);
-      return data || [];
+      
+      // Filter to only unviewed matches
+      const unviewedMatches = (data || []).filter((match: any) => {
+        const isUser1 = match.user1_id === user.id;
+        const viewedAt = isUser1 ? match.user1_viewed_at : match.user2_viewed_at;
+        
+        // If never viewed, it's new
+        if (!viewedAt) return true;
+        
+        // If matched after last viewed, it's new
+        return match.matched_at && new Date(match.matched_at) > new Date(viewedAt);
+      });
+      
+      return unviewedMatches;
     },
     enabled: !!user?.id && showDating,
   });
