@@ -621,7 +621,7 @@ export default function Profile() {
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Favorite Species</p>
                     <div className="flex flex-wrap gap-2">
                       {profile?.preferred_species?.slice(0, 3).map(species => (
-                        <Badge key={species} variant="secondary">{species}</Badge>
+                        <Badge key={species} variant="secondary">{species.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Badge>
                       )) || <span className="text-sm text-muted-foreground">Not specified</span>}
                     </div>
                   </div>
