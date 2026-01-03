@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
+import { InviteFriendsCard } from '@/components/feed';
 import { cn } from '@/lib/utils';
 
 const accountModes = [{
@@ -245,6 +246,9 @@ export default function Profile() {
                 prompt_responses: promptResponses,
               }} 
             />
+
+            {/* Invite Friends */}
+            <InviteFriendsCard />
 
             {/* About Me */}
             <Card>

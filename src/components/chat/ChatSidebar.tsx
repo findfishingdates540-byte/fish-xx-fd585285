@@ -1,5 +1,7 @@
-import { Heart, MapPin, MessageSquare, ArrowLeft, LayoutDashboard, Anchor } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, MapPin, MessageSquare, ArrowLeft, LayoutDashboard, Anchor, UserPlus, Check } from 'lucide-react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +69,48 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
     return accountMode === 'both' ? 'Combo Mode' : 'Dating Mode';
   };
 
+  // Invite button component
+  const InviteButton = () => {
+    const [copied, setCopied] = useState(false);
+    
+    const handleInvite = async () => {
+      const PRODUCTION_URL = 'https://findfishingdates.net';
+      const inviteUrl = `${PRODUCTION_URL}?ref=invite`;
+      
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Join me on Find Fishing Dates!',
+            text: 'Find fishing buddies and dates who share your passion.',
+            url: inviteUrl,
+          });
+        } else {
+          await navigator.clipboard.writeText(inviteUrl);
+          setCopied(true);
+          toast.success('Invite link copied!');
+          setTimeout(() => setCopied(false), 2000);
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          await navigator.clipboard.writeText(inviteUrl);
+          setCopied(true);
+          toast.success('Invite link copied!');
+          setTimeout(() => setCopied(false), 2000);
+        }
+      }
+    };
+
+    return (
+      <button 
+        onClick={handleInvite}
+        className="text-muted-foreground hover:text-foreground transition-colors"
+        title="Invite Friends"
+      >
+        {copied ? <Check className="h-5 w-5 text-green-500" /> : <UserPlus className="h-5 w-5" />}
+      </button>
+    );
+  };
+
   return (
     <aside className="hidden md:flex flex-col w-72 h-screen border-r border-border bg-background flex-shrink-0">
       {/* Mode Switcher for Combo Users */}
@@ -104,12 +148,15 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
 
       {/* Logo */}
       <div className={cn("p-6 border-b border-border", isComboUser && "pt-2")}>
-        <div className="flex items-center gap-2">
-          <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
-          <div>
-            <span className="font-bold text-lg block">Find Fishing Dates</span>
-            <span className="text-xs text-primary">{getModeLabel()}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
+            <div>
+              <span className="font-bold text-lg block">Find Fishing Dates</span>
+              <span className="text-xs text-primary">{getModeLabel()}</span>
+            </div>
           </div>
+          <InviteButton />
         </div>
       </div>
 

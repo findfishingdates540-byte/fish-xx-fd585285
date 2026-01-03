@@ -9,7 +9,8 @@ export function InviteFriendsCard() {
   const [copied, setCopied] = useState(false);
 
   const handleShareInvite = async () => {
-    const inviteUrl = `${window.location.origin}?ref=${user?.id?.slice(0, 8)}`;
+    const PRODUCTION_URL = 'https://findfishingdates.net';
+    const inviteUrl = `${PRODUCTION_URL}?ref=${user?.id?.slice(0, 8)}`;
     const shareData = {
       title: 'Join me on Find Fishing Dates!',
       text: 'Find fishing buddies and dates who share your passion for fishing.',
