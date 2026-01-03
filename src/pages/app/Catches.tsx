@@ -48,8 +48,8 @@ interface Catch {
   id: string;
   species_name: string | null;
   species_id: string | null;
-  weight_kg: number | null;
-  length_cm: number | null;
+  weight_lbs: number | null;
+  length_in: number | null;
   photos: string[] | null;
   notes: string | null;
   bait_used: string | null;
@@ -605,16 +605,16 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
 
         {/* Stats */}
         <div className="flex flex-wrap gap-2 mb-3">
-          {catchData.weight_kg && (
+          {catchData.weight_lbs && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Scale className="h-3 w-3" />
-              {catchData.weight_kg} lbs
+              {catchData.weight_lbs} lbs
             </Badge>
           )}
-          {catchData.length_cm && (
+          {catchData.length_in && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Ruler className="h-3 w-3" />
-              {catchData.length_cm} in
+              {catchData.length_in} in
             </Badge>
           )}
           {catchData.bait_used && (

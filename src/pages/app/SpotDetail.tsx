@@ -69,8 +69,8 @@ interface FishingSpot {
 interface SpotCatch {
   id: string;
   species_name: string | null;
-  weight_kg: number | null;
-  length_cm: number | null;
+  weight_lbs: number | null;
+  length_in: number | null;
   photos: string[] | null;
   caught_at: string | null;
   user_id: string;
@@ -169,8 +169,8 @@ export default function SpotDetail() {
             .select(`
               id,
               species_name,
-              weight_kg,
-              length_cm,
+              weight_lbs,
+              length_in,
               photos,
               caught_at,
               user_id,
@@ -908,16 +908,16 @@ export default function SpotDetail() {
                             </span>
                           </div>
                           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            {catchItem.weight_kg && (
+                            {catchItem.weight_lbs && (
                               <span className="flex items-center gap-1">
                                 <Scale className="h-3 w-3" />
-                                {catchItem.weight_kg} lbs
+                                {catchItem.weight_lbs} lbs
                               </span>
                             )}
-                            {catchItem.length_cm && (
+                            {catchItem.length_in && (
                               <span className="flex items-center gap-1">
                                 <Ruler className="h-3 w-3" />
-                                {catchItem.length_cm} in
+                                {catchItem.length_in} in
                               </span>
                             )}
                             {catchItem.caught_at && (

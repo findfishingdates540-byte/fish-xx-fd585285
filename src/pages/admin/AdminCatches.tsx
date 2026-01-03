@@ -16,8 +16,8 @@ import { toast } from 'sonner';
 interface Catch {
   id: string;
   species_name: string | null;
-  weight_kg: number | null;
-  length_cm: number | null;
+  weight_lbs: number | null;
+  length_in: number | null;
   photos: string[] | null;
   notes: string | null;
   caught_at: string | null;
@@ -156,11 +156,11 @@ export default function AdminCatches() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      {c.weight_kg && (
-                        <span className="text-white font-medium">{c.weight_kg} lbs</span>
+                      {c.weight_lbs && (
+                        <span className="text-white font-medium">{c.weight_lbs} lbs</span>
                       )}
-                      {c.length_cm && (
-                        <span className="text-slate-400">• {c.length_cm} in</span>
+                      {c.length_in && (
+                        <span className="text-slate-400">• {c.length_in} in</span>
                       )}
                     </div>
                     {c.spot && (
@@ -241,11 +241,11 @@ export default function AdminCatches() {
                 </div>
                 <div>
                   <p className="text-slate-400">Weight</p>
-                  <p className="text-white font-medium">{selectedCatch.weight_kg ? `${selectedCatch.weight_kg} lbs` : 'N/A'}</p>
+                  <p className="text-white font-medium">{selectedCatch.weight_lbs ? `${selectedCatch.weight_lbs} lbs` : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-slate-400">Length</p>
-                  <p className="text-white font-medium">{selectedCatch.length_cm ? `${selectedCatch.length_cm} in` : 'N/A'}</p>
+                  <p className="text-white font-medium">{selectedCatch.length_in ? `${selectedCatch.length_in} in` : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-slate-400">Bait Used</p>
