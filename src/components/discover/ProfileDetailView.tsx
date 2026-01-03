@@ -9,7 +9,7 @@ import { ProfilePrompt } from '@/components/profile';
 export interface ProfileDetailData {
   id: string;
   name: string;
-  age: number;
+  age?: number;
   location: string;
   distance: string;
   bio: string;
@@ -131,14 +131,16 @@ export function ProfileDetailView({ profile, onClose, onPass, onSuperLike, onLik
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold">{profile.name}, {profile.age}</h1>
+                    <h1 className="text-2xl font-bold">{profile.name}{profile.age ? `, ${profile.age}` : ''}</h1>
                     {profile.isVerified && (
                       <CheckCircle className="h-5 w-5 text-primary fill-primary/20" />
                     )}
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1">
                     <MapPin className="h-4 w-4" />
-                    <span>{profile.distance}</span>
+                    <span>{profile.location}</span>
+                    {profile.distance && <span className="mx-1">•</span>}
+                    {profile.distance && <span>{profile.distance}</span>}
                   </div>
                 </div>
                 {profile.isActive && (

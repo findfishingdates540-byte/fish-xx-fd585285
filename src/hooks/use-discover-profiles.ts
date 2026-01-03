@@ -146,6 +146,9 @@ function mapToProfileDetailData(
         : [])
     : [];
   
+  // Format interests and species with proper capitalization
+  const formatLabel = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  
   return {
     ...basicData,
     isVerified: profile.is_verified || false,
@@ -157,8 +160,8 @@ function mapToProfileDetailData(
     occupation: profile.occupation || undefined,
     zodiacSign: profile.zodiac_sign || undefined,
     personalityType: profile.personality_type || undefined,
-    targetSpecies: profile.preferred_species?.join(', ') || undefined,
-    interests: profile.interests || profile.preferred_species || [],
+    targetSpecies: profile.preferred_species?.map(formatLabel).join(', ') || undefined,
+    interests: (profile.interests || profile.preferred_species || []).map(formatLabel),
     promptResponses: promptResponses.filter(p => p.question && p.answer),
   };
 }
