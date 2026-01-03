@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock } from 'lucide-react';
+import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAdminSpots, useVerifySpot, useToggleSpotPublic } from '@/hooks/use-admin-spots';
 import { SpotDetailsModal } from '@/components/admin/SpotDetailsModal';
 import { DeleteSpotDialog } from '@/components/admin/DeleteSpotDialog';
+import { AddSpotDialog } from '@/components/admin/AddSpotDialog';
 
 type SpotType = NonNullable<ReturnType<typeof useAdminSpots>['data']>[number];
 
@@ -20,6 +21,7 @@ export default function AdminSpots() {
   const [selectedSpot, setSelectedSpot] = useState<SpotType | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   // Mutations
   const { mutate: verifySpot, isPending: verifyPending } = useVerifySpot();
@@ -51,6 +53,13 @@ export default function AdminSpots() {
           <h1 className="text-2xl font-bold text-white">Fishing Spots</h1>
           <p className="text-slate-400 mt-1">Manage all fishing spots on the platform</p>
         </div>
+        <Button 
+          onClick={() => setAddDialogOpen(true)}
+          className="bg-cyan-600 hover:bg-cyan-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Spot
+        </Button>
       </div>
 
       {/* Search */}
@@ -213,6 +222,10 @@ export default function AdminSpots() {
         spot={selectedSpot} 
         open={deleteDialogOpen} 
         onOpenChange={setDeleteDialogOpen} 
+      />
+      <AddSpotDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
       />
     </div>
   );
