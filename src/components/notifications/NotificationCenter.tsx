@@ -250,7 +250,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
     enabled: !!user?.id && showFishing,
   });
 
-  // Fetch trip invitations (only for fishing mode)
+  // Fetch UNSEEN trip invitations (only for fishing mode)
   const { data: tripInvites } = useQuery({
     queryKey: ['trip-invites-notif', user?.id],
     queryFn: async () => {
@@ -261,11 +261,13 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
           id,
           created_at,
           status,
+          seen_at,
           trip_id,
           trip:fishing_trips(title, trip_date, user_id)
         `)
         .eq('user_id', user.id)
         .in('status', ['pending', 'invited'])
+        .is('seen_at', null)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -412,6 +414,15 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
             .in('buddy_id', buddyIds)
             .neq('sender_id', user.id);
         }
+        
+        // Mark trip invites as seen
+        const now = new Date().toISOString();
+        await supabase
+          .from('trip_participants')
+          .update({ seen_at: now })
+          .eq('user_id', user.id)
+          .in('status', ['pending', 'invited'])
+          .is('seen_at', null);
       }
 
       // Mark notifications in the notifications table as read
