@@ -312,7 +312,7 @@ export type Database = {
           fishing_spot_id: string | null
           gear_used: string[] | null
           id: string
-          length_cm: number | null
+          length_in: number | null
           location_lat: number | null
           location_lng: number | null
           notes: string | null
@@ -320,7 +320,7 @@ export type Database = {
           species_id: string | null
           species_name: string | null
           user_id: string
-          weight_kg: number | null
+          weight_lbs: number | null
         }
         Insert: {
           bait_used?: string | null
@@ -329,7 +329,7 @@ export type Database = {
           fishing_spot_id?: string | null
           gear_used?: string[] | null
           id?: string
-          length_cm?: number | null
+          length_in?: number | null
           location_lat?: number | null
           location_lng?: number | null
           notes?: string | null
@@ -337,7 +337,7 @@ export type Database = {
           species_id?: string | null
           species_name?: string | null
           user_id: string
-          weight_kg?: number | null
+          weight_lbs?: number | null
         }
         Update: {
           bait_used?: string | null
@@ -346,7 +346,7 @@ export type Database = {
           fishing_spot_id?: string | null
           gear_used?: string[] | null
           id?: string
-          length_cm?: number | null
+          length_in?: number | null
           location_lat?: number | null
           location_lng?: number | null
           notes?: string | null
@@ -354,7 +354,7 @@ export type Database = {
           species_id?: string | null
           species_name?: string | null
           user_id?: string
-          weight_kg?: number | null
+          weight_lbs?: number | null
         }
         Relationships: [
           {

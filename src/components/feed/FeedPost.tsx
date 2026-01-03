@@ -165,9 +165,9 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                 {post.catch_data.species_name}
               </Badge>
             )}
-            {post.catch_data.weight_kg && (
+            {post.catch_data.weight_lbs && (
               <Badge variant="outline" className="text-xs">
-                {post.catch_data.weight_kg} lbs
+                {post.catch_data.weight_lbs} lbs
               </Badge>
             )}
           </div>

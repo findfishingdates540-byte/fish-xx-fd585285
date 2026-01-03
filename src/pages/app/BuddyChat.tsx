@@ -46,8 +46,8 @@ interface FishingSpot {
 interface Catch {
   id: string;
   species_name: string | null;
-  weight_kg: number | null;
-  length_cm: number | null;
+  weight_lbs: number | null;
+  length_in: number | null;
   photos: string[] | null;
   caught_at: string | null;
 }
@@ -238,7 +238,7 @@ export default function BuddyChat() {
     if (catchIds.length > 0) {
       const { data } = await supabase
         .from('catches')
-        .select('id, species_name, weight_kg, length_cm, photos, caught_at')
+        .select('id, species_name, weight_lbs, length_in, photos, caught_at')
         .in('id', catchIds);
       
       if (data) {
@@ -306,7 +306,7 @@ export default function BuddyChat() {
     if (!user) return;
     const { data } = await supabase
       .from('catches')
-      .select('id, species_name, weight_kg, length_cm, photos, caught_at')
+      .select('id, species_name, weight_lbs, length_in, photos, caught_at')
       .eq('user_id', user.id)
       .order('caught_at', { ascending: false });
     setCatches(data || []);
@@ -656,16 +656,16 @@ export default function BuddyChat() {
                 {catchItem.species_name || 'Unknown species'}
               </p>
               <div className={cn("flex gap-3 text-xs mt-1", isOwn ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                {catchItem.weight_kg && (
+                {catchItem.weight_lbs && (
                   <span className="flex items-center gap-1">
                     <Scale className="w-3 h-3" />
-                    {catchItem.weight_kg} lbs
+                    {catchItem.weight_lbs} lbs
                   </span>
                 )}
-                {catchItem.length_cm && (
+                {catchItem.length_in && (
                   <span className="flex items-center gap-1">
                     <Ruler className="w-3 h-3" />
-                    {catchItem.length_cm} in
+                    {catchItem.length_in} in
                   </span>
                 )}
               </div>
@@ -1166,8 +1166,8 @@ export default function BuddyChat() {
                         {c.species_name || 'Unknown species'}
                       </p>
                       <div className="flex gap-3 text-sm text-muted-foreground">
-                        {c.weight_kg && <span>{c.weight_kg}kg</span>}
-                        {c.length_cm && <span>{c.length_cm}cm</span>}
+                        {c.weight_lbs && <span>{c.weight_lbs} lbs</span>}
+                        {c.length_in && <span>{c.length_in} in</span>}
                       </div>
                     </div>
                   </button>

@@ -23,8 +23,8 @@ export interface FeedPost {
   catch_data: {
     id: string;
     species_name: string | null;
-    weight_kg: number | null;
-    length_cm: number | null;
+    weight_lbs: number | null;
+    length_in: number | null;
     photos: string[] | null;
   } | null;
   user_has_liked: boolean;
@@ -81,11 +81,11 @@ export function useFeedPosts() {
         .in('id', userIds);
 
       // Fetch catches if any
-      let catches: { id: string; species_name: string | null; weight_kg: number | null; length_cm: number | null; photos: string[] | null }[] = [];
+      let catches: { id: string; species_name: string | null; weight_lbs: number | null; length_in: number | null; photos: string[] | null }[] = [];
       if (catchIds.length > 0) {
         const { data: catchData } = await supabase
           .from('catches')
-          .select('id, species_name, weight_kg, length_cm, photos')
+          .select('id, species_name, weight_lbs, length_in, photos')
           .in('id', catchIds);
         catches = catchData || [];
       }
