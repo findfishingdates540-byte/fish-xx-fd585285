@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus } from 'lucide-react';
+import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { useAdminSpots, useVerifySpot, useToggleSpotPublic } from '@/hooks/use-a
 import { SpotDetailsModal } from '@/components/admin/SpotDetailsModal';
 import { DeleteSpotDialog } from '@/components/admin/DeleteSpotDialog';
 import { AddSpotDialog } from '@/components/admin/AddSpotDialog';
+import { EditSpotDialog } from '@/components/admin/EditSpotDialog';
 
 type SpotType = NonNullable<ReturnType<typeof useAdminSpots>['data']>[number];
 
@@ -22,6 +23,7 @@ export default function AdminSpots() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Mutations
   const { mutate: verifySpot, isPending: verifyPending } = useVerifySpot();
@@ -35,6 +37,11 @@ export default function AdminSpots() {
   const handleDeleteSpot = (spot: SpotType) => {
     setSelectedSpot(spot);
     setDeleteDialogOpen(true);
+  };
+
+  const handleEditSpot = (spot: SpotType) => {
+    setSelectedSpot(spot);
+    setEditDialogOpen(true);
   };
 
   const handleVerifySpot = (spot: SpotType) => {
@@ -139,11 +146,18 @@ export default function AdminSpots() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                      <DropdownMenuItem 
-                        onClick={() => handleViewDetails(spot)}
-                        className="text-slate-300 focus:text-white focus:bg-slate-700"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
+                        <DropdownMenuItem 
+                          onClick={() => handleEditSpot(spot)}
+                          className="text-slate-300 focus:text-white focus:bg-slate-700"
+                        >
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Edit Spot
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleViewDetails(spot)}
+                          className="text-slate-300 focus:text-white focus:bg-slate-700"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-slate-700" />
@@ -226,6 +240,11 @@ export default function AdminSpots() {
       <AddSpotDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
+      />
+      <EditSpotDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        spot={selectedSpot}
       />
     </div>
   );

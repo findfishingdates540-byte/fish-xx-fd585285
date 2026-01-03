@@ -5,11 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuditAction } from '@/hooks/use-audit-logs';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { useFishSpecies } from '@/hooks/use-fish-species';
+import { Upload, X, Loader2, Fish } from 'lucide-react';
 
 interface AddSpotDialogProps {
   open: boolean;
@@ -19,6 +22,7 @@ interface AddSpotDialogProps {
 export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
   const queryClient = useQueryClient();
   const { logAction } = useAuditAction();
+  const { data: fishSpecies } = useFishSpecies();
   
   const [name, setName] = useState('');
   const [locationName, setLocationName] = useState('');
@@ -28,6 +32,7 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
   const [isPublic, setIsPublic] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,6 +45,15 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
     setIsPublic(true);
     setIsVerified(false);
     setPhotos([]);
+    setSelectedSpecies([]);
+  };
+
+  const toggleSpecies = (speciesName: string) => {
+    setSelectedSpecies(prev => 
+      prev.includes(speciesName) 
+        ? prev.filter(s => s !== speciesName)
+        : [...prev, speciesName]
+    );
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,6 +126,7 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
           is_verified: isVerified,
           created_by: user.id,
           photos: photos.length > 0 ? photos : null,
+          species_available: selectedSpecies.length > 0 ? selectedSpecies : null,
         })
         .select()
         .single();
@@ -157,10 +172,12 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
+      <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add New Fishing Spot</DialogTitle>
         </DialogHeader>
+        
+        <ScrollArea className="max-h-[calc(90vh-120px)] pr-4">
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -268,6 +285,37 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Fish className="w-4 h-4" />
+              Species Available
+            </Label>
+            {fishSpecies && fishSpecies.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-slate-800 rounded-md border border-slate-700">
+                {fishSpecies.map((species) => (
+                  <div key={species.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`species-${species.id}`}
+                      checked={selectedSpecies.includes(species.name)}
+                      onCheckedChange={() => toggleSpecies(species.name)}
+                    />
+                    <label
+                      htmlFor={`species-${species.id}`}
+                      className="text-sm text-slate-300 cursor-pointer"
+                    >
+                      {species.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">No species available</p>
+            )}
+            {selectedSpecies.length > 0 && (
+              <p className="text-xs text-slate-400">{selectedSpecies.length} species selected</p>
+            )}
+          </div>
+
           <div className="flex items-center justify-between">
             <Label htmlFor="isPublic">Public Spot</Label>
             <Switch
@@ -304,6 +352,7 @@ export function AddSpotDialog({ open, onOpenChange }: AddSpotDialogProps) {
             </Button>
           </DialogFooter>
         </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
