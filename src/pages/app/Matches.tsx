@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Bell, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MatchCard } from '@/components/matches/MatchCard';
@@ -6,7 +6,7 @@ import { MatchFilters } from '@/components/matches/MatchFilters';
 import { DiscoverSidebar } from '@/components/discover/DiscoverSidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link, useNavigate } from 'react-router-dom';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 export default function Matches() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
@@ -59,6 +60,35 @@ export default function Matches() {
 
     return filtered;
   }, [matches, searchQuery, activeFilter, isOnline]);
+
+  // Mark matches as viewed when the page loads
+  useEffect(() => {
+    const markMatchesAsViewed = async () => {
+      if (!user?.id || matches.length === 0) return;
+      
+      const now = new Date().toISOString();
+      
+      // Update all matches where current user is user1
+      await supabase
+        .from('matches')
+        .update({ user1_viewed_at: now })
+        .eq('user1_id', user.id)
+        .eq('is_match', true);
+      
+      // Update all matches where current user is user2
+      await supabase
+        .from('matches')
+        .update({ user2_viewed_at: now })
+        .eq('user2_id', user.id)
+        .eq('is_match', true);
+      
+      // Invalidate the match count queries to update badges
+      queryClient.invalidateQueries({ queryKey: ['new-matches-count'] });
+      queryClient.invalidateQueries({ queryKey: ['header-new-matches'] });
+    };
+    
+    markMatchesAsViewed();
+  }, [user?.id, matches.length, queryClient]);
 
   const handleStartChat = (matchId: string) => {
     navigate(`/app/messages/${matchId}`);
