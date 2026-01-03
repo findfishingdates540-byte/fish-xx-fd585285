@@ -6,3 +6,4 @@ export { FeedLeftSidebar } from './FeedLeftSidebar';
 export { FeedRightSidebar } from './FeedRightSidebar';
 export { ReportDialog } from './ReportDialog';
 export { SponsoredPost } from './SponsoredPost';
+export { InviteFriendsCard } from './InviteFriendsCard';

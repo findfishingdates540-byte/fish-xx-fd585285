@@ -1,9 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Fish, Users, Eye, Target } from 'lucide-react';
+import { Heart, Fish, Users, Eye, Target, ChevronRight, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { InviteFriendsCard } from './InviteFriendsCard';
 
 const modeItems = [
   { to: '/app/discover', icon: Heart, label: 'Dating Mode', color: 'text-pink-500' },
@@ -27,12 +29,64 @@ export function FeedLeftSidebar() {
         .eq('user_id', user.id);
 
       return {
-        profileViews: Math.floor(Math.random() * 200) + 50, // Placeholder - would need actual tracking
+        profileViews: Math.floor(Math.random() * 200) + 50,
         catchesLogged: catchesCount || 0,
       };
     },
     enabled: !!user?.id,
   });
+
+  // Fetch accepted fishing buddies
+  const { data: buddies } = useQuery({
+    queryKey: ['sidebar-buddies', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data: relationships } = await supabase
+        .from('fishing_buddies')
+        .select('requester_id, recipient_id')
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .eq('status', 'accepted')
+        .limit(6);
+
+      if (!relationships || relationships.length === 0) return [];
+
+      const buddyIds = relationships.map(r => 
+        r.requester_id === user.id ? r.recipient_id : r.requester_id
+      );
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, photos, last_active_at')
+        .in('id', buddyIds);
+
+      return profiles || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch pending buddy requests count
+  const { data: pendingCount } = useQuery({
+    queryKey: ['pending-buddy-requests', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+
+      const { count } = await supabase
+        .from('fishing_buddies')
+        .select('*', { count: 'exact', head: true })
+        .eq('recipient_id', user.id)
+        .eq('status', 'pending');
+
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  const isOnline = (lastActive: string | null) => {
+    if (!lastActive) return false;
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    return new Date(lastActive) > fiveMinutesAgo;
+  };
 
   return (
     <div className="sticky top-20 space-y-4">
@@ -79,6 +133,69 @@ export function FeedLeftSidebar() {
           </div>
         </div>
       </div>
+
+      {/* Your Buddies */}
+      <div className="bg-background rounded-xl border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-cyan-500" />
+            <h3 className="font-semibold text-sm">Your Buddies</h3>
+            {pendingCount && pendingCount > 0 && (
+              <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                {pendingCount}
+              </span>
+            )}
+          </div>
+          <Link 
+            to="/app/buddies" 
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+          >
+            View All
+            <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        {buddies && buddies.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {buddies.slice(0, 6).map((buddy) => (
+              <Link
+                key={buddy.id}
+                to={`/app/user/${buddy.id}`}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted transition-colors"
+              >
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={buddy.photos?.[0]} alt={buddy.display_name || ''} />
+                    <AvatarFallback className="text-xs">
+                      {buddy.display_name?.charAt(0) || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isOnline(buddy.last_active_at) && (
+                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-background" />
+                  )}
+                </div>
+                <span className="text-xs text-muted-foreground truncate w-full text-center">
+                  {buddy.display_name?.split(' ')[0] || 'Buddy'}
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-3">
+            <p className="text-xs text-muted-foreground mb-2">No buddies yet</p>
+            <Link 
+              to="/app/buddies" 
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <UserPlus className="h-3 w-3" />
+              Find Buddies
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Invite Friends */}
+      <InviteFriendsCard />
     </div>
   );
 }
