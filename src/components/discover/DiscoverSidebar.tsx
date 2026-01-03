@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
-import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft, LayoutDashboard, Anchor, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft, LayoutDashboard, Anchor, Loader2, UserPlus, Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -207,6 +208,48 @@ export function DiscoverSidebar({
   };
   const navItems = getNavItems();
 
+  // Invite button component
+  const InviteButton = ({ userId }: { userId?: string }) => {
+    const [copied, setCopied] = useState(false);
+    
+    const handleInvite = async () => {
+      const PRODUCTION_URL = 'https://findfishingdates.net';
+      const inviteUrl = `${PRODUCTION_URL}?ref=${userId?.slice(0, 8)}`;
+      
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Join me on Find Fishing Dates!',
+            text: 'Find fishing buddies and dates who share your passion.',
+            url: inviteUrl,
+          });
+        } else {
+          await navigator.clipboard.writeText(inviteUrl);
+          setCopied(true);
+          toast.success('Invite link copied!');
+          setTimeout(() => setCopied(false), 2000);
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          await navigator.clipboard.writeText(inviteUrl);
+          setCopied(true);
+          toast.success('Invite link copied!');
+          setTimeout(() => setCopied(false), 2000);
+        }
+      }
+    };
+
+    return (
+      <button 
+        onClick={handleInvite}
+        className="text-muted-foreground hover:text-foreground transition-colors"
+        title="Invite Friends"
+      >
+        {copied ? <Check className="h-5 w-5 text-green-500" /> : <UserPlus className="h-5 w-5" />}
+      </button>
+    );
+  };
+
   return (
     <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
       {/* Mode Switcher for Combo Users */}
@@ -326,6 +369,7 @@ export function DiscoverSidebar({
             </p>
           </div>
         </NavLink>
+        <InviteButton userId={user?.id} />
         <NavLink to="/app/settings" className="text-muted-foreground hover:text-foreground">
           <Settings className="h-5 w-5" />
         </NavLink>

@@ -117,6 +117,7 @@ const sidebarItems = [
   { label: "Map Spots", icon: Map, href: "/app/spots" },
   { label: "Messages", icon: MessageSquare, href: "/app/messages" },
   { label: "Planned Trips", icon: Calendar, href: "/app/trips" },
+  { label: "Invite Friends", icon: Users, href: "/app/settings?tab=invite" },
 ];
 
 type AccountMode = Database['public']['Enums']['account_mode'];
