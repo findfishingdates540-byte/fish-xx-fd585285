@@ -115,22 +115,34 @@ export function DiscoverSidebar({
     enabled: !!user?.id,
   });
 
-  // Fetch new matches count (within last 24 hours)
+  // Fetch new matches count (unviewed matches)
   const { data: newMatchesCount = 0 } = useQuery({
     queryKey: ["new-matches-count", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
       
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      
-      const { count } = await supabase
+      // Get all matches with viewed timestamps
+      const { data: matches } = await supabase
         .from("matches")
-        .select("*", { count: "exact", head: true })
+        .select("id, user1_id, user2_id, matched_at, user1_viewed_at, user2_viewed_at")
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .eq("is_match", true)
-        .gte("matched_at", twentyFourHoursAgo);
+        .eq("is_match", true);
 
-      return count || 0;
+      if (!matches) return 0;
+
+      // Count unviewed matches
+      const unviewedCount = matches.filter(m => {
+        const isUser1 = m.user1_id === user.id;
+        const viewedAt = isUser1 ? m.user1_viewed_at : m.user2_viewed_at;
+        
+        // If never viewed, it's new
+        if (!viewedAt) return true;
+        
+        // If matched after last viewed, it's new
+        return m.matched_at && new Date(m.matched_at) > new Date(viewedAt);
+      }).length;
+
+      return unviewedCount;
     },
     enabled: !!user?.id,
   });

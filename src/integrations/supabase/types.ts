@@ -747,8 +747,10 @@ export type Database = {
           matched_at: string | null
           user1_id: string
           user1_liked: boolean | null
+          user1_viewed_at: string | null
           user2_id: string
           user2_liked: boolean | null
+          user2_viewed_at: string | null
         }
         Insert: {
           created_at?: string
@@ -757,8 +759,10 @@ export type Database = {
           matched_at?: string | null
           user1_id: string
           user1_liked?: boolean | null
+          user1_viewed_at?: string | null
           user2_id: string
           user2_liked?: boolean | null
+          user2_viewed_at?: string | null
         }
         Update: {
           created_at?: string
@@ -767,8 +771,10 @@ export type Database = {
           matched_at?: string | null
           user1_id?: string
           user1_liked?: boolean | null
+          user1_viewed_at?: string | null
           user2_id?: string
           user2_liked?: boolean | null
+          user2_viewed_at?: string | null
         }
         Relationships: [
           {

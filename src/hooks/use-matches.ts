@@ -27,13 +27,13 @@ function calculateAge(dateOfBirth: string | null): number | null {
   return age;
 }
 
-// Check if match is new (within last 24 hours)
-function isNewMatch(matchedAt: string | null): boolean {
+// Check if match is new (not yet viewed by user)
+function isNewMatch(matchedAt: string | null, viewedAt: string | null): boolean {
   if (!matchedAt) return false;
-  const matchDate = new Date(matchedAt);
-  const now = new Date();
-  const hoursDiff = (now.getTime() - matchDate.getTime()) / (1000 * 60 * 60);
-  return hoursDiff < 24;
+  // If never viewed, it's new
+  if (!viewedAt) return true;
+  // If matched after last viewed, it's new
+  return new Date(matchedAt) > new Date(viewedAt);
 }
 
 export function useMatches() {
@@ -47,7 +47,7 @@ export function useMatches() {
       // Fetch all mutual matches (is_match = true)
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
-        .select('id, user1_id, user2_id, matched_at')
+        .select('id, user1_id, user2_id, matched_at, user1_viewed_at, user2_viewed_at')
         .eq('is_match', true)
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('matched_at', { ascending: false });
@@ -77,6 +77,10 @@ export function useMatches() {
           
           if (!profile) return null;
 
+          // Determine the correct viewed_at timestamp for the current user
+          const isUser1 = match.user1_id === user.id;
+          const viewedAt = isUser1 ? match.user1_viewed_at : match.user2_viewed_at;
+
           return {
             id: otherUserId,
             matchId: match.id,
@@ -85,7 +89,7 @@ export function useMatches() {
             photo: profile.photos?.[0] || '',
             bio: profile.bio || '',
             isVerified: profile.is_verified || false,
-            isNew: isNewMatch(match.matched_at),
+            isNew: isNewMatch(match.matched_at, viewedAt),
             matchedAt: match.matched_at,
           };
         })
