@@ -1,12 +1,13 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, Anchor, History, Megaphone, BarChart3 } from 'lucide-react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, X } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import logo from '@/assets/logo.png';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useState, useEffect } from 'react';
 
 const navItems = [{
   to: '/admin',
@@ -29,6 +30,10 @@ const navItems = [{
   to: '/admin/posts',
   icon: MessageSquare,
   label: 'Feed Posts'
+}, {
+  to: '/admin/comments',
+  icon: MessageCircle,
+  label: 'Comments'
 }, {
   to: '/admin/trips',
   icon: Anchor,
@@ -60,50 +65,49 @@ const bottomItems = [{
   icon: Settings,
   label: 'Settings'
 }];
-export function AdminSidebar() {
-  const {
-    user,
-    signOut
-  } = useAuth();
+
+function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const {
-    data: profile
-  } = useQuery({
+
+  const { data: profile } = useQuery({
     queryKey: ['admin-profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const {
-        data
-      } = await supabase.from('profiles').select('display_name, photos').eq('id', user.id).single();
+      const { data } = await supabase.from('profiles').select('display_name, photos').eq('id', user.id).single();
       return data;
     },
     enabled: !!user
   });
-  const {
-    data: role
-  } = useQuery({
+
+  const { data: role } = useQuery({
     queryKey: ['user-role', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const {
-        data
-      } = await supabase.from('user_roles').select('role').eq('user_id', user.id).in('role', ['admin', 'moderator']).maybeSingle();
+      const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id).in('role', ['admin', 'moderator']).maybeSingle();
       return data?.role || 'Admin';
     },
     enabled: !!user
   });
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
+
   const handleBackToApp = () => {
     navigate('/app');
   };
-  return <aside className="w-64 min-h-screen bg-slate-900 flex flex-col border-r border-slate-800">
+
+  const handleNavItemClick = () => {
+    onNavClick?.();
+  };
+
+  return (
+    <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="p-6 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          
           <div>
             <h1 className="font-bold text-white">Fishing Dates Admin</h1>
             <p className="text-xs text-slate-400">v2.4.0 (Stable)</p>
@@ -112,27 +116,48 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        {navItems.map(item => <NavLink key={item.to} to={item.to} end={item.end} className={({
-        isActive
-      }) => cn('flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors', isActive ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50')}>
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {navItems.map(item => (
+          <NavLink 
+            key={item.to} 
+            to={item.to} 
+            end={item.end} 
+            onClick={handleNavItemClick}
+            className={({ isActive }) => cn(
+              'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+              isActive ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            )}
+          >
             <item.icon className="w-5 h-5" />
             {item.label}
-          </NavLink>)}
+          </NavLink>
+        ))}
 
         <div className="pt-4 border-t border-slate-800 mt-4">
-          {bottomItems.map(item => <NavLink key={item.to} to={item.to} className={({
-          isActive
-        }) => cn('flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors', isActive ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50')}>
+          {bottomItems.map(item => (
+            <NavLink 
+              key={item.to} 
+              to={item.to} 
+              onClick={handleNavItemClick}
+              className={({ isActive }) => cn(
+                'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                isActive ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              )}
+            >
               <item.icon className="w-5 h-5" />
               {item.label}
-            </NavLink>)}
+            </NavLink>
+          ))}
         </div>
       </nav>
 
       {/* Back to App Button */}
       <div className="p-4 border-t border-slate-800">
-        <Button variant="outline" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" onClick={handleBackToApp}>
+        <Button 
+          variant="outline" 
+          className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" 
+          onClick={handleBackToApp}
+        >
           ← Back to App
         </Button>
       </div>
@@ -154,10 +179,50 @@ export function AdminSidebar() {
               {role === 'admin' ? 'Super Admin' : role}
             </p>
           </div>
-          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-800" onClick={handleSignOut}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-slate-400 hover:text-white hover:bg-slate-800" 
+            onClick={handleSignOut}
+          >
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </div>
-    </aside>;
+    </div>
+  );
+}
+
+export function AdminSidebar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  return (
+    <>
+      {/* Desktop Sidebar - hidden on mobile/tablet */}
+      <aside className="hidden lg:flex w-64 min-h-screen bg-slate-900 flex-col border-r border-slate-800">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile/Tablet - Hamburger button and Sheet overlay */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center gap-3">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-slate-800">
+              <Menu className="w-6 h-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-64 bg-slate-900 border-slate-800">
+            <SidebarContent onNavClick={() => setIsOpen(false)} />
+          </SheetContent>
+        </Sheet>
+        <h1 className="font-bold text-white">Fishing Dates Admin</h1>
+      </div>
+    </>
+  );
 }
