@@ -933,6 +933,7 @@ export type Database = {
         Row: {
           account_mode: Database["public"]["Enums"]["account_mode"] | null
           bio: string | null
+          city: string | null
           cover_photo: string | null
           created_at: string
           date_of_birth: string | null
@@ -972,13 +973,16 @@ export type Database = {
           premium_expires_at: string | null
           prompt_responses: Json | null
           smoking: Database["public"]["Enums"]["smoking_habit"] | null
+          state: string | null
           stripe_customer_id: string | null
           updated_at: string
+          zip_code: string | null
           zodiac_sign: string | null
         }
         Insert: {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
           bio?: string | null
+          city?: string | null
           cover_photo?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1018,13 +1022,16 @@ export type Database = {
           premium_expires_at?: string | null
           prompt_responses?: Json | null
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
+          state?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
+          zip_code?: string | null
           zodiac_sign?: string | null
         }
         Update: {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
           bio?: string | null
+          city?: string | null
           cover_photo?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1064,8 +1071,10 @@ export type Database = {
           premium_expires_at?: string | null
           prompt_responses?: Json | null
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
+          state?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
+          zip_code?: string | null
           zodiac_sign?: string | null
         }
         Relationships: []
