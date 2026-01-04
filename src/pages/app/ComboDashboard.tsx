@@ -849,7 +849,7 @@ export default function ComboDashboard() {
                     </Button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <AnimatePresence mode="popLayout">
                       {nearbyAnglers
                         .filter((angler) => !swipedAnglers.has(angler.id))
@@ -858,104 +858,98 @@ export default function ComboDashboard() {
                           <motion.div
                             key={angler.id}
                             layout
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 100, scale: 0.8 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
                             transition={{ duration: 0.3, delay: index * 0.1 }}
                           >
                             <Card 
-                              className="overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+                              className="overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 border-0 bg-card"
                               onClick={() => handleAnglerCardClick(angler.id)}
                             >
-                              <CardContent className="p-3 sm:p-4">
-                                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                                                  <Avatar className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg flex-shrink-0 ring-2 ring-primary/10 hover:ring-primary/30 transition-all aspect-square">
-                                                    <AvatarImage src={angler.photos?.[0]} className="object-cover w-full h-full" />
-                                                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
-                                                      {angler.display_name?.[0] || "?"}
-                                                    </AvatarFallback>
-                                                  </Avatar>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                      <div className="min-w-0">
-                                        <h3 className="font-semibold truncate">
-                                          {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground capitalize truncate">
-                                          {angler.fishing_experience || "Fishing Enthusiast"}
-                                        </p>
-                                        {angler.location_name && (
-                                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                                            <MapPin className="h-3 w-3" />
-                                            {angler.location_name}
-                                          </p>
-                                        )}
-                                      </div>
-                                      <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                        <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.1 }}>
-                                          <Button 
-                                            variant="outline" 
-                                            size="icon" 
-                                            className="rounded-full h-8 w-8 sm:h-10 sm:w-10 border-2 hover:border-muted-foreground hover:bg-muted transition-all"
-                                            onClick={() => handlePassAngler(angler)}
-                                            disabled={swipeMutation.isPending}
-                                          >
-                                            <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                                          </Button>
-                                        </motion.div>
-                                        <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.1 }}>
-                                          <Button 
-                                            size="icon" 
-                                            className="rounded-full h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 shadow-lg shadow-rose-500/25 transition-all"
-                                            onClick={() => handleLikeAngler(angler)}
-                                            disabled={swipeMutation.isPending}
-                                          >
-                                            <Heart className="h-4 w-4 sm:h-5 sm:w-5 fill-white" />
-                                          </Button>
-                                        </motion.div>
-                                      </div>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
-                                      {angler.preferred_species?.slice(0, 2).map((species, i) => (
-                                        <Badge key={i} variant="secondary" className="text-xs">
-                                          {species}
-                                        </Badge>
-                                      ))}
-                                      {angler.fishing_gear?.slice(0, 1).map((gear, i) => (
-                                        <Badge key={i} variant="outline" className="text-xs text-primary border-primary/30 bg-primary/5">
-                                          <Fish className="h-3 w-3 mr-1" />
-                                          {gear}
-                                        </Badge>
-                                      ))}
-                                    </div>
+                              <div className="relative aspect-[4/5] overflow-hidden">
+                                <img 
+                                  src={angler.photos?.[0] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"} 
+                                  alt={angler.display_name || "Angler"}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                
+                                {angler.fishing_experience && (
+                                  <Badge className="absolute top-3 left-3 bg-white/90 text-foreground backdrop-blur-sm capitalize text-xs">
+                                    {angler.fishing_experience}
+                                  </Badge>
+                                )}
+                                
+                                <div className="absolute bottom-0 left-0 right-0 p-4">
+                                  <h3 className="font-bold text-lg text-white mb-1">
+                                    {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
+                                  </h3>
+                                  {angler.location_name && (
+                                    <p className="text-sm text-white/80 flex items-center gap-1 mb-3">
+                                      <MapPin className="h-3.5 w-3.5" />
+                                      {angler.location_name}
+                                    </p>
+                                  )}
+                                  
+                                  <div className="flex flex-wrap gap-1.5 mb-4">
+                                    {angler.preferred_species?.slice(0, 2).map((species, i) => (
+                                      <Badge key={i} className="bg-white/20 text-white border-0 backdrop-blur-sm text-xs">
+                                        {species}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-center gap-4" onClick={(e) => e.stopPropagation()}>
+                                    <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.1 }}>
+                                      <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className="rounded-full h-12 w-12 bg-white/10 border-white/30 hover:bg-white/20 backdrop-blur-sm transition-all"
+                                        onClick={() => handlePassAngler(angler)}
+                                        disabled={swipeMutation.isPending}
+                                      >
+                                        <X className="h-5 w-5 text-white" />
+                                      </Button>
+                                    </motion.div>
+                                    <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.1 }}>
+                                      <Button 
+                                        size="icon" 
+                                        className="rounded-full h-14 w-14 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 shadow-lg shadow-rose-500/40 transition-all border-2 border-white/20"
+                                        onClick={() => handleLikeAngler(angler)}
+                                        disabled={swipeMutation.isPending}
+                                      >
+                                        <Heart className="h-6 w-6 fill-white text-white" />
+                                      </Button>
+                                    </motion.div>
                                   </div>
                                 </div>
-                              </CardContent>
+                              </div>
                             </Card>
                           </motion.div>
                         ))}
                     </AnimatePresence>
-                    
-                    {/* Empty state when all profiles swiped */}
-                    {nearbyAnglers.filter((a) => !swipedAnglers.has(a.id)).length === 0 && nearbyAnglers.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-center py-8"
-                      >
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                          <Heart className="h-8 w-8 text-primary" />
-                        </div>
-                        <h3 className="font-semibold mb-2">You've seen everyone nearby!</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Check back later for new anglers or explore more profiles.
-                        </p>
-                        <Button onClick={() => navigate("/app/discover")}>
-                          Discover More
-                        </Button>
-                      </motion.div>
-                    )}
                   </div>
+                    
+                  {/* Empty state when all profiles swiped */}
+                  {nearbyAnglers.filter((a) => !swipedAnglers.has(a.id)).length === 0 && nearbyAnglers.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                        <Heart className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="font-semibold mb-2">You've seen everyone nearby!</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Check back later for new anglers or explore more profiles.
+                      </p>
+                      <Button onClick={() => navigate("/app/discover")}>
+                        Discover More
+                      </Button>
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
 
