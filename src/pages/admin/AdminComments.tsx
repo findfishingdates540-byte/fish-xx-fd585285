@@ -54,8 +54,7 @@ export default function AdminComments() {
           post_id,
           user_id,
           parent_id,
-          profile:profiles!feed_comments_user_id_fkey(display_name, photos),
-          post:feed_posts!feed_comments_post_id_fkey(id, content, user_id)
+          post:feed_posts(id, content, user_id)
         `)
         .order('created_at', { ascending: false })
         .limit(100);
@@ -70,9 +69,23 @@ export default function AdminComments() {
         query = query.is('parent_id', null);
       }
 
-      const { data, error } = await query;
+      const { data: commentsData, error } = await query;
       if (error) throw error;
-      return data as unknown as FeedComment[];
+
+      // Get unique user IDs and fetch profiles
+      const userIds = [...new Set(commentsData?.map(c => c.user_id) || [])];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, photos')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Merge profiles with comments
+      return (commentsData || []).map(comment => ({
+        ...comment,
+        profile: profileMap.get(comment.user_id) || null
+      })) as FeedComment[];
     }
   });
 
