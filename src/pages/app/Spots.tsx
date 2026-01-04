@@ -807,16 +807,16 @@ export default function Spots() {
       {/* Add Spot FAB - visible on all screen sizes */}
       <Button
         className={cn(
-          "fixed z-20 shadow-lg md:absolute md:bottom-6 md:right-6",
+          "fixed z-20 shadow-lg md:absolute md:bottom-6 md:right-6 md:w-auto md:px-4",
           showsModeSwitcher 
             ? "bottom-36 right-4"  // Above the mode switcher FAB
             : "bottom-20 right-4"  // Standard position above BottomNav
         )}
-        size="lg"
+        size="icon"
         onClick={() => navigate("/app/spots/new")}
       >
-        <Fish className="h-5 w-5 mr-2" />
-        Add Spot
+        <Fish className="h-5 w-5 md:mr-2" />
+        <span className="hidden md:inline">Add Spot</span>
       </Button>
     </div>
   );
