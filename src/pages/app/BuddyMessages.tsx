@@ -231,24 +231,8 @@ export default function BuddyMessages() {
       "flex flex-col bg-background border-r border-border",
       isMobile ? "w-full h-full" : "w-80 lg:w-96 flex-shrink-0"
     )}>
-      {/* Header - hidden on mobile */}
+      {/* Search - hidden on mobile */}
       <div className="p-4 border-b border-border hidden lg:block">
-      <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Fish className="h-5 w-5" />
-                Buddy Messages
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {conversations.length} {conversations.length === 1 ? 'buddy' : 'buddies'}
-                {totalUnread > 0 && ` • ${totalUnread} unread`}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
