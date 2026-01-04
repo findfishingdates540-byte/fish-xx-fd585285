@@ -105,7 +105,7 @@ export function AdminSidebar() {
         <div className="flex items-center gap-3">
           
           <div>
-            <h1 className="font-bold text-white">Reel Catch Admin</h1>
+            <h1 className="font-bold text-white">Fishing Dates Admin</h1>
             <p className="text-xs text-slate-400">v2.4.0 (Stable)</p>
           </div>
         </div>
