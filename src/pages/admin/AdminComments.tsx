@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MoreVertical, Eye, Trash2, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Search, MoreVertical, Eye, Trash2, MessageSquare, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -39,11 +39,33 @@ export default function AdminComments() {
   const [selectedComment, setSelectedComment] = useState<FeedComment | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
   const queryClient = useQueryClient();
 
-  const { data: comments, isLoading } = useQuery({
-    queryKey: ['admin-comments', searchQuery, filterType],
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-comments', searchQuery, filterType, currentPage],
     queryFn: async () => {
+      // First get total count
+      let countQuery = supabase
+        .from('feed_comments')
+        .select('id', { count: 'exact', head: true });
+
+      if (searchQuery) {
+        countQuery = countQuery.ilike('content', `%${searchQuery}%`);
+      }
+      if (filterType === 'replies') {
+        countQuery = countQuery.not('parent_id', 'is', null);
+      } else if (filterType === 'top-level') {
+        countQuery = countQuery.is('parent_id', null);
+      }
+
+      const { count } = await countQuery;
+
+      // Fetch paginated comments
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+
       let query = supabase
         .from('feed_comments')
         .select(`
@@ -57,7 +79,7 @@ export default function AdminComments() {
           post:feed_posts(id, content, user_id)
         `)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .range(from, to);
 
       if (searchQuery) {
         query = query.ilike('content', `%${searchQuery}%`);
@@ -82,12 +104,29 @@ export default function AdminComments() {
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
       // Merge profiles with comments
-      return (commentsData || []).map(comment => ({
+      const comments = (commentsData || []).map(comment => ({
         ...comment,
         profile: profileMap.get(comment.user_id) || null
       })) as FeedComment[];
+
+      return { comments, totalCount: count || 0 };
     }
   });
+
+  const comments = data?.comments || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (newFilter: typeof filterType) => {
+    setCurrentPage(1);
+    setFilterType(newFilter);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setCurrentPage(1);
+    setSearchQuery(value);
+  };
 
   const { mutate: deleteComment, isPending: deletePending } = useMutation({
     mutationFn: async (commentId: string) => {
@@ -138,11 +177,11 @@ export default function AdminComments() {
           <Input
             placeholder="Search comments..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
           />
         </div>
-        <Select value={filterType} onValueChange={(v) => setFilterType(v as typeof filterType)}>
+        <Select value={filterType} onValueChange={(v) => handleFilterChange(v as typeof filterType)}>
           <SelectTrigger className="w-full sm:w-48 bg-slate-800 border-slate-700 text-white">
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
@@ -154,12 +193,16 @@ export default function AdminComments() {
         </Select>
       </div>
 
-      {/* Stats */}
       <div className="flex gap-4 flex-wrap">
         <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 px-4 py-2">
           <MessageSquare className="w-4 h-4 mr-2" />
-          {comments?.length || 0} Comments
+          {totalCount} Total Comments
         </Badge>
+        {totalPages > 1 && (
+          <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 px-4 py-2">
+            Page {currentPage} of {totalPages}
+          </Badge>
+        )}
       </div>
 
       {/* Comments Table */}
@@ -264,6 +307,65 @@ export default function AdminComments() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-t border-slate-800">
+            <div className="text-sm text-slate-400">
+              Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} comments
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="border-slate-700 text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={currentPage === pageNum 
+                        ? "bg-primary text-primary-foreground" 
+                        : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                      }
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="border-slate-700 text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+              >
+                Next
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Comment Details Modal */}
