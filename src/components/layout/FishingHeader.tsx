@@ -144,7 +144,7 @@ export function FishingHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-background border-b">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="px-4 lg:px-8 h-16 flex items-center justify-between">
         {/* Left side - Logo and Nav */}
         <div className="flex items-center gap-8">
           {/* Logo */}
