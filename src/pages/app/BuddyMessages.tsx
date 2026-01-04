@@ -1,173 +1,33 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate, useParams, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, MessageCircle, Fish, ArrowLeft, Users } from 'lucide-react';
+import { Search, MessageCircle, Fish, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { playNotificationSound } from '@/utils/notification-sound';
-
-interface BuddyConversation {
-  buddyId: string;
-  buddyUserId: string;
-  buddyProfile: {
-    id: string;
-    display_name: string | null;
-    photos: string[] | null;
-  };
-  lastMessage?: {
-    content: string;
-    created_at: string;
-    sender_id: string;
-  };
-  unreadCount: number;
-}
+import { useBuddyConversations } from '@/hooks/use-buddy-conversations';
+import { useState } from 'react';
 
 export default function BuddyMessages() {
   const { buddyId } = useParams<{ buddyId?: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [conversations, setConversations] = useState<BuddyConversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchConversations();
-    }
-  }, [user]);
-
-  // Real-time subscription for new messages
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('buddy-messages-list')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'buddy_messages',
-        },
-        (payload) => {
-          // Play notification sound if message is from someone else
-          if (payload.new && payload.new.sender_id !== user.id) {
-            playNotificationSound();
-          }
-          fetchConversations();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'buddy_messages',
-        },
-        () => {
-          fetchConversations();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  const fetchConversations = async () => {
-    if (!user) return;
-    setLoading(true);
-
-    try {
-      // Get all accepted buddy relationships
-      const { data: buddies } = await supabase
-        .from('fishing_buddies')
-        .select('id, requester_id, recipient_id')
-        .eq('status', 'accepted')
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
-
-      if (!buddies || buddies.length === 0) {
-        setConversations([]);
-        setLoading(false);
-        return;
-      }
-
-      // Get buddy profile IDs
-      const buddyProfileIds = buddies.map(b => 
-        b.requester_id === user.id ? b.recipient_id : b.requester_id
-      );
-
-      // Fetch profiles
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, photos')
-        .in('id', buddyProfileIds);
-
-      const profileMap = new Map(profiles?.map(p => [p.id, p]));
-
-      // Fetch last message and unread count for each buddy
-      const conversationData: BuddyConversation[] = [];
-
-      for (const buddy of buddies) {
-        const otherUserId = buddy.requester_id === user.id ? buddy.recipient_id : buddy.requester_id;
-        const profile = profileMap.get(otherUserId);
-
-        if (!profile) continue;
-
-        // Get last message
-        const { data: lastMessages } = await supabase
-          .from('buddy_messages')
-          .select('content, created_at, sender_id')
-          .eq('buddy_id', buddy.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        // Get unread count
-        const { count: unreadCount } = await supabase
-          .from('buddy_messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('buddy_id', buddy.id)
-          .eq('is_read', false)
-          .neq('sender_id', user.id);
-
-        conversationData.push({
-          buddyId: buddy.id,
-          buddyUserId: otherUserId,
-          buddyProfile: profile,
-          lastMessage: lastMessages?.[0],
-          unreadCount: unreadCount || 0
-        });
-      }
-
-      // Sort by last message time
-      conversationData.sort((a, b) => {
-        const timeA = a.lastMessage?.created_at || '1970-01-01';
-        const timeB = b.lastMessage?.created_at || '1970-01-01';
-        return new Date(timeB).getTime() - new Date(timeA).getTime();
-      });
-
-      setConversations(conversationData);
-    } catch (error) {
-      console.error('Error fetching buddy conversations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { conversations, isLoading } = useBuddyConversations();
 
   // Get online status for all buddies
   const buddyUserIds = useMemo(() => conversations.map(c => c.buddyUserId), [conversations]);
   const { isOnline, getLastSeen } = useOnlineStatus(buddyUserIds);
 
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | null) => {
+    if (!dateStr) return '';
     const date = new Date(dateStr);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -185,10 +45,8 @@ export default function BuddyMessages() {
   };
 
   const filteredConversations = conversations.filter(conv =>
-    conv.buddyProfile.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
   const handleSelectConversation = (id: string) => {
     if (isMobile) {
@@ -198,7 +56,7 @@ export default function BuddyMessages() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] p-4">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -265,9 +123,9 @@ export default function BuddyMessages() {
                 {/* Avatar with online indicator */}
                 <div className="relative flex-shrink-0">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={conv.buddyProfile.photos?.[0]} className="object-cover" />
+                    <AvatarImage src={conv.photo} className="object-cover" />
                     <AvatarFallback>
-                      {conv.buddyProfile.display_name?.charAt(0)?.toUpperCase() || '?'}
+                      {conv.displayName?.charAt(0)?.toUpperCase() || '?'}
                     </AvatarFallback>
                   </Avatar>
                   <div className={cn(
@@ -283,16 +141,16 @@ export default function BuddyMessages() {
                         "font-semibold text-sm",
                         conv.unreadCount > 0 && "font-bold"
                       )}>
-                        {conv.buddyProfile.display_name || 'Anonymous'}
+                        {conv.displayName}
                       </span>
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50">
                         <Fish className="h-2.5 w-2.5 mr-0.5" />
                         BUDDY
                       </Badge>
                     </div>
-                    {conv.lastMessage && (
+                    {conv.lastMessageTime && (
                       <span className="text-xs text-muted-foreground">
-                        {formatTime(conv.lastMessage.created_at)}
+                        {formatTime(conv.lastMessageTime)}
                       </span>
                     )}
                   </div>
@@ -308,16 +166,16 @@ export default function BuddyMessages() {
                       "text-sm truncate pr-2",
                       conv.unreadCount > 0 ? "text-foreground font-medium" : "text-muted-foreground"
                     )}>
-                      {conv.lastMessage?.sender_id === user?.id && (
+                      {conv.lastMessageSenderId === user?.id && (
                         <span className="text-muted-foreground">You: </span>
                       )}
-                      {conv.lastMessage?.content || 'No messages yet'}
+                      {conv.lastMessage || 'No messages yet'}
                     </p>
                     {conv.unreadCount > 0 ? (
                       <Badge className="bg-primary text-primary-foreground text-xs h-5 min-w-[20px] flex items-center justify-center">
                         {conv.unreadCount}
                       </Badge>
-                    ) : conv.lastMessage?.sender_id === user?.id ? (
+                    ) : conv.lastMessageSenderId === user?.id ? (
                       <span className="text-sm flex-shrink-0" title="Sent">🎣</span>
                     ) : null}
                   </div>

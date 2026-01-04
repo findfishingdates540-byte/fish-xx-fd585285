@@ -1335,6 +1335,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_buddy_conversations: {
+        Args: { p_user_id: string }
+        Returns: {
+          buddy_id: string
+          buddy_user_id: string
+          display_name: string
+          last_message: string
+          last_message_sender_id: string
+          last_message_time: string
+          photo: string
+          unread_count: number
+        }[]
+      }
+      get_dating_conversations: {
+        Args: { p_user_id: string }
+        Returns: {
+          display_name: string
+          last_message: string
+          last_message_time: string
+          match_id: string
+          matched_at: string
+          matched_user_id: string
+          photo: string
+          unread_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
