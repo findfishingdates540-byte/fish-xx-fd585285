@@ -155,7 +155,7 @@ export function AppLayout() {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 0,
+    staleTime: 60000, // Cache for 1 minute
     retry: 2,
   });
 
@@ -172,7 +172,7 @@ export function AppLayout() {
       return data?.role ?? null;
     },
     enabled: !!user?.id,
-    staleTime: 0,
+    staleTime: 60000, // Cache for 1 minute
     retry: 2,
   });
 

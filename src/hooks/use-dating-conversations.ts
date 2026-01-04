@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 export interface DatingConversation {
   id: string; // match_id
@@ -35,79 +36,29 @@ export function useDatingConversations() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all matches with their profiles and latest messages
+  // Fetch all matches with their profiles and latest messages using optimized RPC
   const { data: conversations, isLoading, refetch } = useQuery({
     queryKey: ['dating-conversations', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Get all mutual matches
-      const { data: matches, error: matchError } = await supabase
-        .from('matches')
-        .select('id, user1_id, user2_id, matched_at')
-        .eq('is_match', true)
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .order('matched_at', { ascending: false });
+      const { data, error } = await supabase
+        .rpc('get_dating_conversations', { p_user_id: user.id });
 
-      if (matchError) throw matchError;
-      if (!matches || matches.length === 0) return [];
+      if (error) throw error;
 
-      // Get other user IDs
-      const otherUserIds = matches.map(m => 
-        m.user1_id === user.id ? m.user2_id : m.user1_id
-      );
-
-      // Fetch profiles
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, display_name, photos')
-        .in('id', otherUserIds);
-
-      if (profileError) throw profileError;
-
-      // Fetch latest message for each match
-      const conversationPromises = matches.map(async (match) => {
-        const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
-        const profile = profiles?.find(p => p.id === otherUserId);
-
-        // Get latest message
-        const { data: latestMsg } = await supabase
-          .from('messages')
-          .select('content, created_at, sender_id, is_read')
-          .eq('match_id', match.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        // Get unread count
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('match_id', match.id)
-          .eq('is_read', false)
-          .neq('sender_id', user.id);
-
-        return {
-          id: match.id,
-          matchedUserId: otherUserId,
-          name: profile?.display_name || 'Anonymous',
-          photo: profile?.photos?.[0] || '',
-          lastMessage: latestMsg?.content || null,
-          lastMessageTime: latestMsg?.created_at || match.matched_at,
-          unreadCount: count || 0,
-        } as DatingConversation;
-      });
-
-      const results = await Promise.all(conversationPromises);
-      
-      // Sort by last message time
-      return results.sort((a, b) => {
-        const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
-        const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
-        return timeB - timeA;
-      });
+      return (data || []).map(row => ({
+        id: row.match_id,
+        matchedUserId: row.matched_user_id,
+        name: row.display_name || 'Anonymous',
+        photo: row.photo || '',
+        lastMessage: row.last_message || null,
+        lastMessageTime: row.last_message_time || row.matched_at,
+        unreadCount: Number(row.unread_count) || 0,
+      })) as DatingConversation[];
     },
     enabled: !!user?.id,
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   // Subscribe to new messages for real-time updates
