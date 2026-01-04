@@ -869,12 +869,12 @@ export default function ComboDashboard() {
                             >
                               <CardContent className="p-3 sm:p-4">
                                 <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                                  <Avatar className="h-14 w-14 sm:h-20 sm:w-20 rounded-lg flex-shrink-0 ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
-                                    <AvatarImage src={angler.photos?.[0]} className="object-cover" />
-                                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
-                                      {angler.display_name?.[0] || "?"}
-                                    </AvatarFallback>
-                                  </Avatar>
+                                                  <Avatar className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg flex-shrink-0 ring-2 ring-primary/10 hover:ring-primary/30 transition-all aspect-square">
+                                                    <AvatarImage src={angler.photos?.[0]} className="object-cover w-full h-full" />
+                                                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+                                                      {angler.display_name?.[0] || "?"}
+                                                    </AvatarFallback>
+                                                  </Avatar>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                       <div className="min-w-0">
