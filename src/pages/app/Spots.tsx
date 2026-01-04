@@ -812,11 +812,11 @@ export default function Spots() {
             ? "bottom-36 right-4"  // Above the mode switcher FAB
             : "bottom-20 right-4"  // Standard position above BottomNav
         )}
-        size="lg"
+        size="icon"
         onClick={() => navigate("/app/spots/new")}
       >
-        <Fish className="h-5 w-5 mr-2" />
-        Add Spot
+        <Fish className="h-5 w-5" />
+        <span className="sr-only">Add Spot</span>
       </Button>
     </div>
   );
