@@ -231,8 +231,8 @@ export default function BuddyMessages() {
       "flex flex-col bg-background border-r border-border",
       isMobile ? "w-full h-full" : "w-80 lg:w-96 flex-shrink-0"
     )}>
-      {/* Header */}
-      <div className="p-4 border-b border-border">
+      {/* Header - hidden on mobile */}
+      <div className="p-4 border-b border-border hidden lg:block">
       <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div>
