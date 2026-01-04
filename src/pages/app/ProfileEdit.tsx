@@ -75,6 +75,9 @@ export default function ProfileEdit() {
   // Form state - Basic
   const [displayName, setDisplayName] = useState("");
   const [locationName, setLocationName] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [locationLat, setLocationLat] = useState<number | null>(null);
   const [locationLng, setLocationLng] = useState<number | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -127,6 +130,9 @@ export default function ProfileEdit() {
     if (data) {
       setDisplayName(data.display_name || "");
       setLocationName(data.location_name || "");
+      setCity((data as any).city || "");
+      setState((data as any).state || "");
+      setZipCode((data as any).zip_code || "");
       setLocationLat(data.location_lat || null);
       setLocationLng(data.location_lng || null);
       setDateOfBirth(data.date_of_birth || "");
@@ -347,22 +353,30 @@ export default function ProfileEdit() {
         setLocationLat(latitude);
         setLocationLng(longitude);
 
-        // Reverse geocode to get location name
+        // Reverse geocode to get city, state, and zip
         try {
           const tokenResponse = await fetch('https://zjmnlelqoiclkbrqefyv.supabase.co/functions/v1/get-mapbox-token');
           if (tokenResponse.ok) {
             const { token } = await tokenResponse.json();
             const geocodeResponse = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,region&access_token=${token}`
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=postcode,place,region&access_token=${token}`
             );
             if (geocodeResponse.ok) {
               const data = await geocodeResponse.json();
               if (data.features && data.features.length > 0) {
                 const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
                 const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
-                const city = placeFeature?.text || '';
-                const state = regionFeature?.text || '';
-                const newLocationName = [city, state].filter(Boolean).join(', ');
+                const postcodeFeature = data.features.find((f: any) => f.place_type?.includes('postcode'));
+                
+                const newCity = placeFeature?.text || '';
+                const newState = regionFeature?.text || '';
+                const newZip = postcodeFeature?.text || '';
+                
+                setCity(newCity);
+                setState(newState);
+                setZipCode(newZip);
+                
+                const newLocationName = [newCity, newState].filter(Boolean).join(', ');
                 if (newLocationName) {
                   setLocationName(newLocationName);
                 }
@@ -388,9 +402,17 @@ export default function ProfileEdit() {
     );
   };
 
-  // Handle manual location change - geocode when saving
-  const handleLocationNameChange = (value: string) => {
-    setLocationName(value);
+  // Handle manual location field changes - clear coordinates, will geocode on save
+  const handleLocationFieldChange = (field: 'city' | 'state' | 'zipCode', value: string) => {
+    if (field === 'city') setCity(value);
+    else if (field === 'state') setState(value);
+    else if (field === 'zipCode') setZipCode(value);
+    
+    // Update the combined location name
+    const newCity = field === 'city' ? value : city;
+    const newState = field === 'state' ? value : state;
+    setLocationName([newCity, newState].filter(Boolean).join(', '));
+    
     // Clear coordinates when manually editing - will be geocoded on save
     setLocationLat(null);
     setLocationLng(null);
@@ -400,18 +422,14 @@ export default function ProfileEdit() {
     if (!user) return;
     setSaving(true);
 
-    // If location name changed but no coordinates, geocode it
+    // If no coordinates, geocode using city/state/zip for precision
     let finalLat = locationLat;
     let finalLng = locationLng;
 
-    if (!finalLat && !finalLng && locationName) {
+    if (!finalLat && !finalLng && (city || state || zipCode)) {
       try {
-        const parts = locationName.split(',').map(s => s.trim());
-        const city = parts[0] || '';
-        const state = parts[1] || '';
-        
         const response = await supabase.functions.invoke('geocode-address', {
-          body: { city, state }
+          body: { city, state, zipCode }
         });
         
         if (response.data?.lat && response.data?.lng) {
@@ -423,11 +441,17 @@ export default function ProfileEdit() {
       }
     }
 
+    // Combine city and state for display name
+    const combinedLocationName = [city, state].filter(Boolean).join(', ');
+
     const { error } = await supabase
       .from("profiles")
       .update({
         display_name: displayName,
-        location_name: locationName,
+        location_name: combinedLocationName || locationName,
+        city: city || null,
+        state: state || null,
+        zip_code: zipCode || null,
         location_lat: finalLat,
         location_lng: finalLng,
         date_of_birth: dateOfBirth || null,
@@ -703,52 +727,78 @@ export default function ProfileEdit() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="location">Location</Label>
-                    <div className="flex gap-2 mt-1.5">
-                      <div className="relative flex-1">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="location"
-                          value={locationName}
-                          onChange={(e) => handleLocationNameChange(e.target.value)}
-                          placeholder="City, State"
-                          className="pl-10"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={handleGetCurrentLocation}
-                        disabled={locationLoading}
-                        title="Use current location"
-                      >
-                        {locationLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Navigation className="h-4 w-4" />
-                        )}
-                      </Button>
+                {/* Location Fields */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Location
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGetCurrentLocation}
+                      disabled={locationLoading}
+                      className="h-8"
+                    >
+                      {locationLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Navigation className="h-4 w-4 mr-2" />
+                      )}
+                      {locationLoading ? 'Getting...' : 'Use GPS'}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="col-span-2">
+                      <Input
+                        id="city"
+                        value={city}
+                        onChange={(e) => handleLocationFieldChange('city', e.target.value)}
+                        placeholder="City"
+                      />
                     </div>
-                    {locationLat && locationLng && (
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                        Coordinates saved
-                      </p>
-                    )}
+                    <div>
+                      <Input
+                        id="state"
+                        value={state}
+                        onChange={(e) => handleLocationFieldChange('state', e.target.value)}
+                        placeholder="State"
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        id="zipCode"
+                        value={zipCode}
+                        onChange={(e) => handleLocationFieldChange('zipCode', e.target.value)}
+                        placeholder="Zip Code"
+                        maxLength={10}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="birthday">Birthday</Label>
-                    <Input
-                      id="birthday"
-                      type="date"
-                      value={dateOfBirth}
-                      onChange={(e) => setDateOfBirth(e.target.value)}
-                      className="mt-1.5"
-                    />
-                  </div>
+                  {locationLat && locationLng ? (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                      Precise coordinates saved
+                    </p>
+                  ) : (city || state || zipCode) ? (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                      Coordinates will be calculated when you save
+                    </p>
+                  ) : null}
+                </div>
+
+                <div>
+                  <Label htmlFor="birthday">Birthday</Label>
+                  <Input
+                    id="birthday"
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                    className="mt-1.5"
+                  />
                 </div>
 
                 <div>

@@ -66,23 +66,27 @@ export function StepLocation({
         setLocationLng?.(longitude);
         setLocationGranted(true);
         
-        // Try to reverse geocode to get city/state
+        // Try to reverse geocode to get city/state/zip
         try {
           const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,region&access_token=${await getMapboxToken()}`
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=postcode,place,region&access_token=${await getMapboxToken()}`
           );
           if (response.ok) {
             const data = await response.json();
             if (data.features && data.features.length > 0) {
-              // Extract city and state from response
+              // Extract city, state, and zip from response
               const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
               const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
+              const postcodeFeature = data.features.find((f: any) => f.place_type?.includes('postcode'));
               
               if (placeFeature) {
                 setCity(placeFeature.text || '');
               }
               if (regionFeature) {
                 setState(regionFeature.text || '');
+              }
+              if (postcodeFeature) {
+                setZipCode(postcodeFeature.text || '');
               }
             }
           }
