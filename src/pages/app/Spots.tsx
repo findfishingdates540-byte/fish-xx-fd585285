@@ -2,7 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveMode } from "@/contexts/ActiveModeContext";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { useMapboxToken } from "@/hooks/use-mapbox-token";
 import { useSavedSpots } from "@/hooks/use-saved-spots";
 import { Input } from "@/components/ui/input";
@@ -64,6 +66,10 @@ export default function Spots() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { isComboUser, isPremium } = useActiveMode();
+  
+  // Determine if mode switcher FAB is visible (combo user with active premium)
+  const showsModeSwitcher = isMobile && isComboUser && isPremium;
   const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const { isSpotSaved, toggleSaveSpot } = useSavedSpots();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -795,17 +801,23 @@ export default function Spots() {
           </DropdownMenu>
         </div>
 
-        {/* Add Spot FAB */}
-        <Button
-          className="absolute bottom-6 right-6 z-10 shadow-lg"
-          size="lg"
-          onClick={() => navigate("/app/spots/new")}
-        >
-          <Fish className="h-5 w-5 mr-2" />
-          Add Spot
-        </Button>
       </div>
       )}
+
+      {/* Add Spot FAB - visible on all screen sizes */}
+      <Button
+        className={cn(
+          "fixed z-20 shadow-lg md:absolute md:bottom-6 md:right-6",
+          showsModeSwitcher 
+            ? "bottom-36 right-4"  // Above the mode switcher FAB
+            : "bottom-20 right-4"  // Standard position above BottomNav
+        )}
+        size="lg"
+        onClick={() => navigate("/app/spots/new")}
+      >
+        <Fish className="h-5 w-5 mr-2" />
+        Add Spot
+      </Button>
     </div>
   );
 }
