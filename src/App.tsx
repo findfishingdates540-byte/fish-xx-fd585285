@@ -37,7 +37,7 @@ import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
 
 import { AdminLayout } from "@/components/admin";
-import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
 
 const queryClient = new QueryClient();
 
@@ -128,6 +128,7 @@ const App = () => (
               <Route path="ads" element={<AdminAds />} />
               <Route path="ad-analytics" element={<AdminAdAnalytics />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
+              <Route path="support" element={<AdminSupportTickets />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
