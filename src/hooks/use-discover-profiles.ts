@@ -44,6 +44,13 @@ interface DiscoverProfile {
   zodiac_sign: string | null;
   interests: string[] | null;
   prompt_responses: { question: string; answer: string }[] | null;
+  // Dating-specific fields
+  height_cm: number | null;
+  smoking: string | null;
+  drinking: string | null;
+  education: string | null;
+  occupation: string | null;
+  personality_type: string | null;
 }
 
 // Age is pre-calculated by the public_profiles view, so calculateAge is no longer needed for display
@@ -136,14 +143,14 @@ function mapToProfileDetailData(
     idVerified: profile.id_verified || false,
     liveVerified: profile.live_verified || false,
     isActive: profile.is_active || false,
-    // These fields are not available in public_profiles for privacy
-    heightCm: undefined,
-    smoker: undefined,
-    drinker: undefined,
-    education: undefined,
-    occupation: undefined,
+    // Dating-specific fields from public_profiles view
+    heightCm: profile.height_cm || undefined,
+    smoker: profile.smoking || undefined,
+    drinker: profile.drinking || undefined,
+    education: profile.education || undefined,
+    occupation: profile.occupation || undefined,
     zodiacSign: profile.zodiac_sign || undefined,
-    personalityType: undefined, // Not available in public_profiles for privacy
+    personalityType: profile.personality_type || undefined,
     targetSpecies: profile.preferred_species?.map(formatLabel).join(', ') || undefined,
     interests: (profile.interests || profile.preferred_species || []).map(formatLabel),
     promptResponses: promptResponses.filter(p => p.question && p.answer),
@@ -202,7 +209,7 @@ export function useDiscoverProfiles() {
       // Note: personality_type is not available in public_profiles view
       let query = supabase
         .from('public_profiles')
-        .select('id, display_name, age, location_name, city, state, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, id_verified, live_verified, is_active, zodiac_sign, interests, prompt_responses')
+        .select('id, display_name, age, location_name, city, state, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, id_verified, live_verified, is_active, zodiac_sign, interests, prompt_responses, height_cm, smoking, drinking, education, occupation, personality_type')
         .neq('id', user.id)
         .not('photos', 'is', null);
 
