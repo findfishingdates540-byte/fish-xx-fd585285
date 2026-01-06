@@ -79,6 +79,31 @@ export default function AdminVerifications() {
     },
   });
 
+  const sendVerificationEmail = async (
+    email: string,
+    displayName: string,
+    verificationType: 'id' | 'live',
+    status: 'approved' | 'rejected',
+    rejectionReason?: string
+  ) => {
+    try {
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          email,
+          displayName,
+          verificationType,
+          status,
+          rejectionReason,
+        },
+      });
+      if (error) {
+        console.error('Failed to send verification email:', error);
+      }
+    } catch (err) {
+      console.error('Failed to send verification email:', err);
+    }
+  };
+
   const handleApprove = async (request: VerificationRequest) => {
     setIsProcessing(true);
     try {
@@ -126,6 +151,16 @@ export default function AdminVerifications() {
         },
       });
 
+      // Send approval email
+      if (request.user?.email) {
+        await sendVerificationEmail(
+          request.user.email,
+          request.user.display_name || 'User',
+          request.type as 'id' | 'live',
+          'approved'
+        );
+      }
+
       toast.success(`${request.type === 'id' ? 'ID' : 'Live'} verification approved`);
       queryClient.invalidateQueries({ queryKey: ['admin-verification-requests'] });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -170,6 +205,17 @@ export default function AdminVerifications() {
           reason: rejectionReason,
         },
       });
+
+      // Send rejection email
+      if (request.user?.email) {
+        await sendVerificationEmail(
+          request.user.email,
+          request.user.display_name || 'User',
+          request.type as 'id' | 'live',
+          'rejected',
+          rejectionReason
+        );
+      }
 
       toast.success('Verification request rejected');
       queryClient.invalidateQueries({ queryKey: ['admin-verification-requests'] });
