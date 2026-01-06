@@ -1665,11 +1665,14 @@ export type Database = {
           cover_photo: string | null
           created_at: string | null
           display_name: string | null
+          drinking: Database["public"]["Enums"]["drinking_habit"] | null
+          education: string | null
           fishing_experience:
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear: string[] | null
           gender: Database["public"]["Enums"]["gender_type"] | null
+          height_cm: number | null
           id: string | null
           id_verified: boolean | null
           interested_in: Database["public"]["Enums"]["gender_type"][] | null
@@ -1682,10 +1685,19 @@ export type Database = {
           live_verified: boolean | null
           location_name: string | null
           looking_for: Database["public"]["Enums"]["looking_for_type"][] | null
+          matching_style: Database["public"]["Enums"]["matching_style"] | null
+          max_age_preference: number | null
+          max_distance_miles: number | null
+          min_age_preference: number | null
+          occupation: string | null
           onboarding_completed: boolean | null
+          personality_type:
+            | Database["public"]["Enums"]["personality_type"]
+            | null
           photos: string[] | null
           preferred_species: string[] | null
           prompt_responses: Json | null
+          smoking: Database["public"]["Enums"]["smoking_habit"] | null
           state: string | null
           zodiac_sign: string | null
         }
@@ -1697,11 +1709,14 @@ export type Database = {
           cover_photo?: string | null
           created_at?: string | null
           display_name?: string | null
+          drinking?: Database["public"]["Enums"]["drinking_habit"] | null
+          education?: string | null
           fishing_experience?:
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear?: string[] | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          height_cm?: number | null
           id?: string | null
           id_verified?: boolean | null
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
@@ -1714,10 +1729,19 @@ export type Database = {
           live_verified?: boolean | null
           location_name?: string | null
           looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
+          matching_style?: Database["public"]["Enums"]["matching_style"] | null
+          max_age_preference?: number | null
+          max_distance_miles?: number | null
+          min_age_preference?: number | null
+          occupation?: string | null
           onboarding_completed?: boolean | null
+          personality_type?:
+            | Database["public"]["Enums"]["personality_type"]
+            | null
           photos?: string[] | null
           preferred_species?: string[] | null
           prompt_responses?: Json | null
+          smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
           zodiac_sign?: string | null
         }
@@ -1729,11 +1753,14 @@ export type Database = {
           cover_photo?: string | null
           created_at?: string | null
           display_name?: string | null
+          drinking?: Database["public"]["Enums"]["drinking_habit"] | null
+          education?: string | null
           fishing_experience?:
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear?: string[] | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          height_cm?: number | null
           id?: string | null
           id_verified?: boolean | null
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
@@ -1746,10 +1773,19 @@ export type Database = {
           live_verified?: boolean | null
           location_name?: string | null
           looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
+          matching_style?: Database["public"]["Enums"]["matching_style"] | null
+          max_age_preference?: number | null
+          max_distance_miles?: number | null
+          min_age_preference?: number | null
+          occupation?: string | null
           onboarding_completed?: boolean | null
+          personality_type?:
+            | Database["public"]["Enums"]["personality_type"]
+            | null
           photos?: string[] | null
           preferred_species?: string[] | null
           prompt_responses?: Json | null
+          smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
           zodiac_sign?: string | null
         }
