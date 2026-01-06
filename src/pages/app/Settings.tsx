@@ -46,6 +46,7 @@ import {
   Mail,
   MessageCircle,
   BadgeCheck,
+  Ticket,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -933,6 +934,12 @@ export default function Settings() {
                   </div>
 
                   <div className="space-y-4">
+                    <Button variant="outline" className="w-full justify-start" asChild>
+                      <Link to="/app/my-tickets">
+                        <Ticket className="h-4 w-4 mr-2" />
+                        My Support Tickets
+                      </Link>
+                    </Button>
                     <Button variant="outline" className="w-full justify-start">
                       <Shield className="h-4 w-4 mr-2" />
                       Manage Blocked Users
