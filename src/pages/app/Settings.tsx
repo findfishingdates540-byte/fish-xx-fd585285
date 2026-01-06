@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { usePushNotificationsUnified } from "@/hooks/use-push-notifications-unified";
 import { useStripePortal } from "@/hooks/use-stripe-portal";
 import { ThemeSelector as AppearanceSelector } from "@/components/ui/theme-toggle";
+import { VerificationSection } from "@/components/settings/VerificationSection";
 import { format } from "date-fns";
 import {
   User,
@@ -44,6 +45,7 @@ import {
   Check,
   Mail,
   MessageCircle,
+  BadgeCheck,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -53,6 +55,7 @@ const SUPABASE_URL = "https://zjmnlelqoiclkbrqefyv.supabase.co";
 
 const settingsNav = [
   { id: "account", label: "Account", icon: User },
+  { id: "verification", label: "Verification", icon: Shield },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "app-mode", label: "App Mode", icon: Smartphone },
   { id: "location", label: "Location", icon: MapPin },
@@ -82,6 +85,8 @@ export default function Settings() {
   const [accountModeChanged, setAccountModeChanged] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [isVerified, setIsVerified] = useState(false);
+  const [idVerified, setIdVerified] = useState(false);
+  const [liveVerified, setLiveVerified] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [premiumExpiresAt, setPremiumExpiresAt] = useState<string | null>(null);
 
@@ -149,6 +154,8 @@ export default function Settings() {
       setOriginalAccountMode(data.account_mode || "both");
       setPhotos(data.photos || []);
       setIsVerified(data.is_verified || false);
+      setIdVerified(data.id_verified || false);
+      setLiveVerified(data.live_verified || false);
       setIsPremium(data.is_premium || false);
       setPremiumExpiresAt(data.premium_expires_at || null);
       setMaxDistance(data.max_distance_miles || 50);
@@ -623,6 +630,11 @@ export default function Settings() {
                   </Card>
                 )}
               </div>
+            )}
+
+            {/* Verification Tab */}
+            {activeTab === "verification" && (
+              <VerificationSection idVerified={idVerified} liveVerified={liveVerified} />
             )}
 
             {/* App Mode Tab - Only for Combo users */}
