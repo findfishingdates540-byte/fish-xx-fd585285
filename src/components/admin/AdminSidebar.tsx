@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, X, ShieldCheck } from 'lucide-react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,10 @@ const navItems = [{
   to: '/admin/users',
   icon: Users,
   label: 'User Management'
+}, {
+  to: '/admin/verifications',
+  icon: ShieldCheck,
+  label: 'Verifications'
 }, {
   to: '/admin/spots',
   icon: MapPin,
