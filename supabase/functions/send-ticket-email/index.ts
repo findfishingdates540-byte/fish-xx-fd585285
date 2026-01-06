@@ -85,7 +85,7 @@ const handler = async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "Find Fishing Dates <onboarding@resend.dev>",
+          from: "Find Fishing Dates <team@findfishingdates.net>",
           to: ["findfishingdates540@gmail.com"],
           subject: emailSubject,
           html: emailBody,
@@ -183,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Find Fishing Dates <onboarding@resend.dev>",
+        from: "Find Fishing Dates <team@findfishingdates.net>",
         to: [ticket.email],
         subject: emailSubject,
         html: emailBody,
