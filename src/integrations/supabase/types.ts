@@ -200,10 +200,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "blocked_users_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "blocked_users_blocker_id_fkey"
             columns: ["blocker_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_users_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -302,6 +316,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "buddy_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       catches: {
@@ -376,6 +397,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -647,6 +675,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fishing_spots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       fishing_trips: {
@@ -737,6 +772,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fishing_trips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       matches: {
@@ -785,10 +827,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "matches_user1_id_fkey"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "matches_user2_id_fkey"
             columns: ["user2_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_user2_id_fkey"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -828,6 +884,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -892,6 +955,13 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1208,8 +1278,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reports_reported_user_id_fkey"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reports_reporter_id_fkey"
             columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1218,7 +1309,7 @@ export type Database = {
             foreignKeyName: "reports_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1266,6 +1357,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "spot_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       support_ticket_responses: {
@@ -1299,6 +1397,13 @@ export type Database = {
             columns: ["responder_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_responses_responder_id_fkey"
+            columns: ["responder_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1368,10 +1473,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "support_tickets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1414,6 +1533,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1519,11 +1645,116 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          account_mode: Database["public"]["Enums"]["account_mode"] | null
+          age: number | null
+          bio: string | null
+          city: string | null
+          cover_photo: string | null
+          created_at: string | null
+          display_name: string | null
+          fishing_experience:
+            | Database["public"]["Enums"]["fishing_experience"]
+            | null
+          fishing_gear: string[] | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          id: string | null
+          id_verified: boolean | null
+          interested_in: Database["public"]["Enums"]["gender_type"][] | null
+          interests: string[] | null
+          is_active: boolean | null
+          is_banned: boolean | null
+          is_premium: boolean | null
+          is_verified: boolean | null
+          last_active_at: string | null
+          live_verified: boolean | null
+          location_name: string | null
+          looking_for: Database["public"]["Enums"]["looking_for_type"][] | null
+          onboarding_completed: boolean | null
+          photos: string[] | null
+          preferred_species: string[] | null
+          prompt_responses: Json | null
+          state: string | null
+          zodiac_sign: string | null
+        }
+        Insert: {
+          account_mode?: Database["public"]["Enums"]["account_mode"] | null
+          age?: never
+          bio?: string | null
+          city?: string | null
+          cover_photo?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          fishing_experience?:
+            | Database["public"]["Enums"]["fishing_experience"]
+            | null
+          fishing_gear?: string[] | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string | null
+          id_verified?: boolean | null
+          interested_in?: Database["public"]["Enums"]["gender_type"][] | null
+          interests?: string[] | null
+          is_active?: boolean | null
+          is_banned?: boolean | null
+          is_premium?: boolean | null
+          is_verified?: boolean | null
+          last_active_at?: string | null
+          live_verified?: boolean | null
+          location_name?: string | null
+          looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
+          onboarding_completed?: boolean | null
+          photos?: string[] | null
+          preferred_species?: string[] | null
+          prompt_responses?: Json | null
+          state?: string | null
+          zodiac_sign?: string | null
+        }
+        Update: {
+          account_mode?: Database["public"]["Enums"]["account_mode"] | null
+          age?: never
+          bio?: string | null
+          city?: string | null
+          cover_photo?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          fishing_experience?:
+            | Database["public"]["Enums"]["fishing_experience"]
+            | null
+          fishing_gear?: string[] | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string | null
+          id_verified?: boolean | null
+          interested_in?: Database["public"]["Enums"]["gender_type"][] | null
+          interests?: string[] | null
+          is_active?: boolean | null
+          is_banned?: boolean | null
+          is_premium?: boolean | null
+          is_verified?: boolean | null
+          last_active_at?: string | null
+          live_verified?: boolean | null
+          location_name?: string | null
+          looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
+          onboarding_completed?: boolean | null
+          photos?: string[] | null
+          preferred_species?: string[] | null
+          prompt_responses?: Json | null
+          state?: string | null
+          zodiac_sign?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_buddy_conversations: {
