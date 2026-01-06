@@ -119,6 +119,53 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Failed to send confirmation email:", emailError);
     }
 
+    // Send notification email to admin
+    try {
+      const adminEmailHtml = `
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0;">🎫 New Support Ticket</h1>
+          </div>
+          <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb;">
+            <p>A new support ticket has been submitted:</p>
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p><strong>Ticket Number:</strong> <span style="color: #0ea5e9;">${ticket.ticket_number}</span></p>
+              <p><strong>From:</strong> ${name} (${email})</p>
+              <p><strong>Category:</strong> ${category}</p>
+              <p><strong>Subject:</strong> ${subject}</p>
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 15px 0;" />
+              <p><strong>Message:</strong></p>
+              <p style="white-space: pre-wrap; background: #f3f4f6; padding: 15px; border-radius: 6px;">${message}</p>
+            </div>
+            <p style="text-align: center;">
+              <a href="https://findfishingdates.com/admin/support" style="display: inline-block; background: #0ea5e9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">View in Admin Panel</a>
+            </p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const adminEmailRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Find Fishing Dates <onboarding@resend.dev>",
+          to: ["findfishingdates540@gmail.com"],
+          subject: `[NEW TICKET] ${ticket.ticket_number} - ${subject}`,
+          html: adminEmailHtml,
+        }),
+      });
+
+      console.log("Admin notification email sent:", await adminEmailRes.json());
+    } catch (adminEmailError) {
+      console.error("Failed to send admin notification email:", adminEmailError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
