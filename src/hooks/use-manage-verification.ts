@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuditAction } from './use-audit-logs';
+import { addYears } from 'date-fns';
 
 interface UpdateVerificationParams {
   userId: string;
@@ -20,17 +21,21 @@ export function useManageVerification() {
       if (!user) throw new Error('Not authenticated');
 
       const updates: Record<string, unknown> = {};
+      const now = new Date();
+      const expiryDate = addYears(now, 1).toISOString(); // Verification expires in 1 year
       
       if (idVerified !== undefined) {
         updates.id_verified = idVerified;
-        updates.id_verified_at = idVerified ? new Date().toISOString() : null;
+        updates.id_verified_at = idVerified ? now.toISOString() : null;
         updates.id_verified_by = idVerified ? user.id : null;
+        updates.id_verified_expires_at = idVerified ? expiryDate : null;
       }
       
       if (liveVerified !== undefined) {
         updates.live_verified = liveVerified;
-        updates.live_verified_at = liveVerified ? new Date().toISOString() : null;
+        updates.live_verified_at = liveVerified ? now.toISOString() : null;
         updates.live_verified_by = liveVerified ? user.id : null;
+        updates.live_verified_expires_at = liveVerified ? expiryDate : null;
       }
       
       if (notes !== undefined) {
@@ -47,6 +52,7 @@ export function useManageVerification() {
     },
     onSuccess: async ({ userId, idVerified, liveVerified }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-verified-members'] });
       
       const changes = [];
       if (idVerified !== undefined) {
