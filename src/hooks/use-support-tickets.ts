@@ -154,10 +154,18 @@ export function useUpdateTicket() {
       // Send status update email if requested
       if (sendEmail && updates.status) {
         try {
+          // Use specific email types for resolved/closed statuses
+          let emailType: 'status_update' | 'ticket_resolved' | 'ticket_closed' = 'status_update';
+          if (updates.status === 'resolved') {
+            emailType = 'ticket_resolved';
+          } else if (updates.status === 'closed') {
+            emailType = 'ticket_closed';
+          }
+          
           await supabase.functions.invoke('send-ticket-email', {
             body: {
               ticketId,
-              type: 'status_update',
+              type: emailType,
               newStatus: updates.status,
             },
           });
