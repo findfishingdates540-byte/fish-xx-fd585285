@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Lightbox } from '@/components/ui/lightbox';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 import { MessageReactions } from './MessageReactions';
 import { MessageStatusIndicator } from './MessageStatusIndicator';
 import { QuotedMessage } from './QuotedMessage';
@@ -63,6 +64,8 @@ interface ChatAreaProps {
   onDeleteMessage?: (messageId: string, deleteForEveryone: boolean) => Promise<void>;
   showBackButton?: boolean;
   onBack?: () => void;
+  matchIdVerified?: boolean;
+  matchLiveVerified?: boolean;
 }
 
 const quickReplies = [
@@ -104,6 +107,8 @@ export function ChatArea({
   onDeleteMessage,
   showBackButton,
   onBack,
+  matchIdVerified,
+  matchLiveVerified,
 }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -329,7 +334,14 @@ export function ChatArea({
           </Avatar>
           <div className="cursor-pointer" onClick={onShowProfile}>
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-sm md:text-base">{matchName}</h2>
+              <h2 className="font-semibold text-sm md:text-base flex items-center gap-1">
+                {matchName}
+                <VerificationBadge 
+                  idVerified={matchIdVerified} 
+                  liveVerified={matchLiveVerified} 
+                  size="sm" 
+                />
+              </h2>
               {chatType === 'date' ? (
                 <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] px-1.5 py-0 h-4">
                   💕 DATE

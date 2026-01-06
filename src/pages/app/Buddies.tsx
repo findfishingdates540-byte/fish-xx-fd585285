@@ -17,6 +17,8 @@ interface Profile {
   fishing_experience: string | null;
   preferred_species: string[] | null;
   bio: string | null;
+  id_verified?: boolean;
+  live_verified?: boolean;
 }
 
 interface BuddyRequest {
@@ -96,7 +98,7 @@ export default function Buddies() {
       // Fetch profiles for discover (fishing or both mode, excluding existing buddies)
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio')
+        .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio, id_verified, live_verified')
         .in('account_mode', ['fishing', 'both'])
         .neq('id', user.id)
         .eq('is_active', true)
@@ -110,7 +112,7 @@ export default function Buddies() {
       if (receivedPending.length > 0) {
         const { data: receivedProfiles } = await supabase
           .from('profiles')
-          .select('id, display_name, photos, location_name, fishing_experience')
+          .select('id, display_name, photos, location_name, fishing_experience, id_verified, live_verified')
           .in('id', receivedPending.map(r => r.requester_id));
 
         const profileMap = new Map(receivedProfiles?.map(p => [p.id, p]));
@@ -126,7 +128,7 @@ export default function Buddies() {
       if (sentPending.length > 0) {
         const { data: sentProfiles } = await supabase
           .from('profiles')
-          .select('id, display_name, photos, location_name, fishing_experience')
+          .select('id, display_name, photos, location_name, fishing_experience, id_verified, live_verified')
           .in('id', sentPending.map(r => r.recipient_id));
 
         const profileMap = new Map(sentProfiles?.map(p => [p.id, p]));
@@ -142,7 +144,7 @@ export default function Buddies() {
       if (acceptedBuddies.length > 0) {
         const { data: buddyProfiles } = await supabase
           .from('profiles')
-          .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio')
+          .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio, id_verified, live_verified')
           .in('id', acceptedBuddies.map(b => b.otherId));
         
         const profileMap = new Map(buddyProfiles?.map(p => [p.id, p]));

@@ -22,6 +22,8 @@ interface MatchProfile {
   bio: string | null;
   location_name: string | null;
   preferred_species: string[] | null;
+  id_verified?: boolean;
+  live_verified?: boolean;
 }
 
 export function useDatingChat(matchId: string | undefined) {
@@ -142,12 +144,12 @@ export function useDatingChat(matchId: string | undefined) {
       // Get the other user's profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, display_name, photos, bio, location_name, preferred_species')
+        .select('id, display_name, photos, bio, location_name, preferred_species, id_verified, live_verified')
         .eq('id', otherUserId)
         .maybeSingle();
 
       if (profileError) throw profileError;
-      setMatchProfile(profile);
+      setMatchProfile(profile as MatchProfile);
 
       // Get messages
       const { data: msgs, error: msgsError } = await supabase

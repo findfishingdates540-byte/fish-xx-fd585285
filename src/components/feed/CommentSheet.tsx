@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface MentionedUser {
   username: string;
@@ -387,12 +388,19 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
             <User className="h-4 w-4" />
           </AvatarFallback>
         </Avatar>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-medium text-sm">{displayName}</span>
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-            </span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="font-medium text-sm flex items-center gap-1">
+                {displayName}
+                <VerificationBadge 
+                  idVerified={comment.profile?.id_verified} 
+                  liveVerified={comment.profile?.live_verified} 
+                  size="sm" 
+                />
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+              </span>
             
             {/* More options menu for own comments */}
             {isOwnComment && (

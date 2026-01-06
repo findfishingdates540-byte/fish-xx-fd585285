@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -145,7 +146,14 @@ export default function UserProfile() {
         {/* Title Section */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold">{profile.display_name || 'Anonymous Angler'}</h1>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              {profile.display_name || 'Anonymous Angler'}
+              <VerificationBadge 
+                idVerified={profile.id_verified} 
+                liveVerified={profile.live_verified} 
+                size="lg" 
+              />
+            </h1>
             <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
               <div className="flex items-center gap-1">
                 <Fish className="w-4 h-4 text-primary" />

@@ -10,6 +10,7 @@ import { CommentSheet } from './CommentSheet';
 import { ReportDialog } from './ReportDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,7 +83,14 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-sm">{displayName}</p>
+              <p className="font-semibold text-sm flex items-center gap-1">
+                {displayName}
+                <VerificationBadge 
+                  idVerified={post.profile?.id_verified} 
+                  liveVerified={post.profile?.live_verified} 
+                  size="sm" 
+                />
+              </p>
               <p className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                 {post.location_name && ` • ${post.location_name}`}

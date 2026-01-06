@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { isRecentlyActive } from '@/hooks/use-online-presence';
 import { useNavigate } from 'react-router-dom';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface BuddyCardProps {
   profile: {
@@ -15,6 +16,8 @@ interface BuddyCardProps {
     fishing_experience: string | null;
     preferred_species: string[] | null;
     bio: string | null;
+    id_verified?: boolean;
+    live_verified?: boolean;
   };
   catchCount?: number;
   isRequested?: boolean;
@@ -90,8 +93,13 @@ export function BuddyCard({
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-semibold text-lg">
+            <h3 className="font-semibold text-lg flex items-center gap-1">
               {profile.display_name || 'Anonymous'}
+              <VerificationBadge 
+                idVerified={profile.id_verified} 
+                liveVerified={profile.live_verified} 
+                size="sm" 
+              />
             </h3>
             {profile.location_name && (
               <p className="text-sm text-muted-foreground flex items-center gap-1">

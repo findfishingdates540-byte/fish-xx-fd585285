@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface Conversation {
   id: string;
@@ -15,6 +16,8 @@ interface Conversation {
   isOnline?: boolean;
   isRead?: boolean;
   lastSeen?: string;
+  idVerified?: boolean;
+  liveVerified?: boolean;
 }
 
 interface SwipeableConversationItemProps {
@@ -145,7 +148,14 @@ export function SwipeableConversationItem({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-0.5">
-              <span className="font-semibold text-sm">{conversation.name}</span>
+              <span className="font-semibold text-sm flex items-center gap-1">
+                {conversation.name}
+                <VerificationBadge 
+                  idVerified={conversation.idVerified} 
+                  liveVerified={conversation.liveVerified} 
+                  size="sm" 
+                />
+              </span>
               <span className="text-xs text-primary">{conversation.time}</span>
             </div>
             {!conversation.isOnline && conversation.lastSeen && (

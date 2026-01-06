@@ -184,6 +184,8 @@ export default function Chat() {
             onDeleteMessage={deleteMessage}
             showBackButton={isInline}
             onBack={() => navigate('/app/messages')}
+            matchIdVerified={matchProfile.id_verified}
+            matchLiveVerified={matchProfile.live_verified}
           />
         </motion.div>
       )}
@@ -202,6 +204,8 @@ export default function Chat() {
             photos={matchProfile.photos || []}
             className="h-full"
             chatType="date"
+            idVerified={matchProfile.id_verified}
+            liveVerified={matchProfile.live_verified}
           />
         </div>
       )}
@@ -224,6 +228,8 @@ export default function Chat() {
               photos={matchProfile.photos || []}
               className="h-full"
               chatType="date"
+              idVerified={matchProfile.id_verified}
+              liveVerified={matchProfile.live_verified}
             />
           </SheetContent>
         </Sheet>

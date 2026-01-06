@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  MapPin, Share2, Pencil, Heart, Fish, Layers, CheckCircle2, 
+  MapPin, Share2, Pencil, Heart, Fish, Layers, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
   ArrowLeft, Settings
 } from 'lucide-react';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -178,15 +179,15 @@ export default function Profile() {
                   <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
                   <AvatarFallback className="text-2xl md:text-3xl bg-muted">{initials}</AvatarFallback>
                 </Avatar>
-                {profile?.is_verified && (
-                  <div className="absolute bottom-1 right-1 h-6 w-6 bg-primary rounded-full flex items-center justify-center border-2 border-white">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
-                  </div>
-                )}
               </div>
               <div className="text-center md:text-left md:mb-2">
-                <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-md">
+                <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-md flex items-center gap-2 justify-center md:justify-start">
                   {profile?.display_name || 'User'}{age ? `, ${age}` : ''}
+                  <VerificationBadge 
+                    idVerified={profile?.id_verified} 
+                    liveVerified={profile?.live_verified} 
+                    size="md" 
+                  />
                 </h1>
                 {profile?.location_name && (
                   <div className="flex items-center justify-center md:justify-start gap-1 text-white/90 mt-0.5">

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 export interface ProfileData {
   id: string;
@@ -15,6 +16,8 @@ export interface ProfileData {
   photos: string[];
   tags: { icon?: string; label: string }[];
   fishingType?: string;
+  idVerified?: boolean;
+  liveVerified?: boolean;
 }
 
 interface ProfileCardProps {
@@ -186,8 +189,13 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
             isMobile ? "p-3 pt-12" : "p-4 pt-16"
           )}
         >
-          <h2 className={cn("font-bold text-background", isMobile ? "text-lg" : "text-xl")}>
+          <h2 className={cn("font-bold text-background flex items-center gap-1", isMobile ? "text-lg" : "text-xl")}>
             {profile.name}, {profile.age}
+            <VerificationBadge 
+              idVerified={profile.idVerified} 
+              liveVerified={profile.liveVerified} 
+              size="sm" 
+            />
           </h2>
           <div className="flex items-center gap-1 text-background/90 text-sm mt-1">
             <MapPin className="h-4 w-4" />

@@ -19,6 +19,8 @@ export interface FeedPost {
     id: string;
     display_name: string | null;
     photos: string[] | null;
+    id_verified?: boolean;
+    live_verified?: boolean;
   } | null;
   catch_data: {
     id: string;
@@ -49,6 +51,8 @@ export interface FeedComment {
     id: string;
     display_name: string | null;
     photos: string[] | null;
+    id_verified?: boolean;
+    live_verified?: boolean;
   } | null;
   reactions: CommentReaction[];
   replies?: FeedComment[];
@@ -77,7 +81,7 @@ export function useFeedPosts() {
       // Fetch profiles
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, display_name, photos')
+        .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
 
       // Fetch catches if any
@@ -175,7 +179,7 @@ export function useFeedComments(postId: string) {
       // Fetch profiles
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, display_name, photos')
+        .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
 
       // Fetch reactions for all comments
