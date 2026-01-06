@@ -169,9 +169,9 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px]">
-        <div className="flex h-full">
+        <div className="grid grid-cols-[1fr_380px] h-full">
           {/* Left side - Image(s) */}
-          <div className="flex-1 bg-black flex items-center justify-center min-w-0">
+          <div className="bg-black flex items-center justify-center min-w-0 overflow-hidden">
             {allPhotos.length === 0 ? (
               <div className="text-muted-foreground p-8 text-center">
                 <p className="text-lg font-medium">{post.content}</p>
@@ -204,7 +204,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
           </div>
 
           {/* Right side - Post info & Comments */}
-          <div className="w-[380px] flex flex-col bg-background border-l border-border overflow-hidden">
+          <div className="flex flex-col bg-background border-l border-border h-full overflow-hidden">
             {/* Post header */}
             <div className="flex-shrink-0 flex items-center gap-3 p-4 border-b border-border">
               <Avatar className="h-10 w-10">
