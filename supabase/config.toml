@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.send-verification-email]
 verify_jwt = true
+
+[functions.send-verification-reminder]
+verify_jwt = false

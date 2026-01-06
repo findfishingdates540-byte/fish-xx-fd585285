@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, ShieldCheck, BadgeCheck, Users, ExternalLink } from "lucide-react";
-import { format } from "date-fns";
+import { Search, ShieldCheck, BadgeCheck, Users, ExternalLink, AlertTriangle, Settings } from "lucide-react";
+import { format, addYears, isBefore, differenceInDays } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { ManageVerificationDialog } from "./ManageVerificationDialog";
 
 interface VerifiedMember {
   id: string;
@@ -20,21 +21,36 @@ interface VerifiedMember {
   live_verified: boolean;
   id_verified_at: string | null;
   live_verified_at: string | null;
+  id_verified_expires_at: string | null;
+  live_verified_expires_at: string | null;
   account_mode: string | null;
+  verification_notes: string | null;
 }
 
-type FilterType = "all" | "id" | "live" | "both";
+type FilterType = "all" | "id" | "live" | "both" | "expiring";
+
+// Helper to check if verification is expiring within 30 days
+function isExpiringOrExpired(expiresAt: string | null): "expired" | "expiring" | "valid" {
+  if (!expiresAt) return "valid";
+  const expiryDate = new Date(expiresAt);
+  const now = new Date();
+  if (isBefore(expiryDate, now)) return "expired";
+  if (differenceInDays(expiryDate, now) <= 30) return "expiring";
+  return "valid";
+}
 
 export function AdminVerifiedMembers() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState<VerifiedMember | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: members, isLoading } = useQuery({
     queryKey: ["admin-verified-members", filter],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, email, photos, bio, id_verified, live_verified, id_verified_at, live_verified_at, account_mode")
+        .select("id, display_name, email, photos, bio, id_verified, live_verified, id_verified_at, live_verified_at, id_verified_expires_at, live_verified_expires_at, account_mode, verification_notes")
         .or("id_verified.eq.true,live_verified.eq.true")
         .order("live_verified_at", { ascending: false, nullsFirst: false });
 
@@ -48,6 +64,11 @@ export function AdminVerifiedMembers() {
     if (filter === "id" && !member.id_verified) return false;
     if (filter === "live" && !member.live_verified) return false;
     if (filter === "both" && (!member.id_verified || !member.live_verified)) return false;
+    if (filter === "expiring") {
+      const idExpiry = isExpiringOrExpired(member.id_verified_expires_at);
+      const liveExpiry = isExpiringOrExpired(member.live_verified_expires_at);
+      if (idExpiry === "valid" && liveExpiry === "valid") return false;
+    }
 
     // Apply search filter
     if (searchQuery) {
@@ -61,11 +82,18 @@ export function AdminVerifiedMembers() {
     return true;
   });
 
+  const expiringCount = members?.filter((m) => {
+    const idStatus = isExpiringOrExpired(m.id_verified_expires_at);
+    const liveStatus = isExpiringOrExpired(m.live_verified_expires_at);
+    return idStatus !== "valid" || liveStatus !== "valid";
+  }).length || 0;
+
   const stats = {
     total: members?.length || 0,
     idVerified: members?.filter((m) => m.id_verified).length || 0,
     liveVerified: members?.filter((m) => m.live_verified).length || 0,
     fullyVerified: members?.filter((m) => m.id_verified && m.live_verified).length || 0,
+    expiring: expiringCount,
   };
 
   return (
@@ -128,6 +156,10 @@ export function AdminVerifiedMembers() {
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
               Both
             </TabsTrigger>
+            <TabsTrigger value="expiring" className="data-[state=active]:bg-slate-700 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 text-amber-400" />
+              Expiring {stats.expiring > 0 && `(${stats.expiring})`}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -161,7 +193,7 @@ export function AdminVerifiedMembers() {
                   Verification
                 </th>
                 <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3 hidden md:table-cell">
-                  Verified At
+                  Expires
                 </th>
                 <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3 hidden lg:table-cell">
                   Mode
@@ -205,12 +237,20 @@ export function AdminVerifiedMembers() {
                     </div>
                   </td>
                   <td className="px-6 py-4 hidden md:table-cell">
-                    <div className="text-sm text-slate-400">
-                      {member.id_verified_at && (
-                        <div>ID: {format(new Date(member.id_verified_at), "MMM d, yyyy")}</div>
+                    <div className="text-sm space-y-1">
+                      {member.id_verified && (
+                        <ExpiryBadge 
+                          expiresAt={member.id_verified_expires_at} 
+                          verifiedAt={member.id_verified_at}
+                          type="ID"
+                        />
                       )}
-                      {member.live_verified_at && (
-                        <div>Live: {format(new Date(member.live_verified_at), "MMM d, yyyy")}</div>
+                      {member.live_verified && (
+                        <ExpiryBadge 
+                          expiresAt={member.live_verified_expires_at}
+                          verifiedAt={member.live_verified_at}
+                          type="Live"
+                        />
                       )}
                     </div>
                   </td>
@@ -220,14 +260,29 @@ export function AdminVerifiedMembers() {
                     </Badge>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-slate-400 hover:text-white"
-                      onClick={() => window.open(`/app/profile/${member.id}`, "_blank")}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-400 hover:text-white"
+                        onClick={() => {
+                          setSelectedUser(member);
+                          setIsDialogOpen(true);
+                        }}
+                        title="Manage Verification"
+                      >
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-400 hover:text-white"
+                        onClick={() => window.open(`/app/profile/${member.id}`, "_blank")}
+                        title="View Profile"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -235,6 +290,54 @@ export function AdminVerifiedMembers() {
           </table>
         </div>
       )}
+
+      <ManageVerificationDialog
+        user={selectedUser}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </div>
+  );
+}
+
+// Helper component for expiry badges
+function ExpiryBadge({ expiresAt, verifiedAt, type }: { 
+  expiresAt: string | null; 
+  verifiedAt: string | null;
+  type: string;
+}) {
+  // If no expiry set, calculate from verified date (1 year)
+  const effectiveExpiry = expiresAt || (verifiedAt ? addYears(new Date(verifiedAt), 1).toISOString() : null);
+  const status = isExpiringOrExpired(effectiveExpiry);
+  
+  if (!effectiveExpiry) {
+    return <span className="text-slate-500 text-xs">{type}: No expiry</span>;
+  }
+
+  const expiryDate = new Date(effectiveExpiry);
+  const daysUntilExpiry = differenceInDays(expiryDate, new Date());
+  
+  if (status === "expired") {
+    return (
+      <div className="flex items-center gap-1.5 text-red-400">
+        <AlertTriangle className="w-3 h-3" />
+        <span className="text-xs">{type}: Expired</span>
+      </div>
+    );
+  }
+  
+  if (status === "expiring") {
+    return (
+      <div className="flex items-center gap-1.5 text-amber-400">
+        <AlertTriangle className="w-3 h-3" />
+        <span className="text-xs">{type}: {daysUntilExpiry}d left</span>
+      </div>
+    );
+  }
+  
+  return (
+    <span className="text-slate-400 text-xs">
+      {type}: {format(expiryDate, "MMM d, yyyy")}
+    </span>
   );
 }

@@ -951,6 +951,7 @@ export type Database = {
           id_verified: boolean | null
           id_verified_at: string | null
           id_verified_by: string | null
+          id_verified_expires_at: string | null
           interested_in: Database["public"]["Enums"]["gender_type"][] | null
           interests: string[] | null
           is_active: boolean | null
@@ -961,6 +962,7 @@ export type Database = {
           live_verified: boolean | null
           live_verified_at: string | null
           live_verified_by: string | null
+          live_verified_expires_at: string | null
           location_lat: number | null
           location_lng: number | null
           location_name: string | null
@@ -983,6 +985,7 @@ export type Database = {
           stripe_customer_id: string | null
           updated_at: string
           verification_notes: string | null
+          verification_reminder_sent_at: string | null
           zip_code: string | null
           zodiac_sign: string | null
         }
@@ -1007,6 +1010,7 @@ export type Database = {
           id_verified?: boolean | null
           id_verified_at?: string | null
           id_verified_by?: string | null
+          id_verified_expires_at?: string | null
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
           interests?: string[] | null
           is_active?: boolean | null
@@ -1017,6 +1021,7 @@ export type Database = {
           live_verified?: boolean | null
           live_verified_at?: string | null
           live_verified_by?: string | null
+          live_verified_expires_at?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
@@ -1039,6 +1044,7 @@ export type Database = {
           stripe_customer_id?: string | null
           updated_at?: string
           verification_notes?: string | null
+          verification_reminder_sent_at?: string | null
           zip_code?: string | null
           zodiac_sign?: string | null
         }
@@ -1063,6 +1069,7 @@ export type Database = {
           id_verified?: boolean | null
           id_verified_at?: string | null
           id_verified_by?: string | null
+          id_verified_expires_at?: string | null
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
           interests?: string[] | null
           is_active?: boolean | null
@@ -1073,6 +1080,7 @@ export type Database = {
           live_verified?: boolean | null
           live_verified_at?: string | null
           live_verified_by?: string | null
+          live_verified_expires_at?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
@@ -1095,6 +1103,7 @@ export type Database = {
           stripe_customer_id?: string | null
           updated_at?: string
           verification_notes?: string | null
+          verification_reminder_sent_at?: string | null
           zip_code?: string | null
           zodiac_sign?: string | null
         }
