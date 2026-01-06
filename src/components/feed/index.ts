@@ -1,6 +1,7 @@
 export { FeedPost } from './FeedPost';
 export { LikeButton } from './LikeButton';
 export { CommentSheet } from './CommentSheet';
+export { PostDetailModal } from './PostDetailModal';
 export { CreatePostDialog } from './CreatePostDialog';
 export { FeedLeftSidebar } from './FeedLeftSidebar';
 export { FeedRightSidebar } from './FeedRightSidebar';
