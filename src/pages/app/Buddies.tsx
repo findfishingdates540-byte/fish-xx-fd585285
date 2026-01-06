@@ -95,13 +95,12 @@ export default function Buddies() {
 
       setRequestedIds(pendingRequestedIds);
 
-      // Fetch profiles for discover (fishing or both mode, excluding existing buddies)
+      // Fetch profiles for discover using public_profiles view for privacy
       const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio, id_verified, live_verified')
+        .from('public_profiles')
+        .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio, id_verified, live_verified, account_mode, onboarding_completed')
         .in('account_mode', ['fishing', 'both'])
         .neq('id', user.id)
-        .eq('is_active', true)
         .eq('onboarding_completed', true);
 
       // Filter out existing buddy relationships
@@ -111,7 +110,7 @@ export default function Buddies() {
       // Fetch profiles for received requests
       if (receivedPending.length > 0) {
         const { data: receivedProfiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name, photos, location_name, fishing_experience, id_verified, live_verified')
           .in('id', receivedPending.map(r => r.requester_id));
 
@@ -127,7 +126,7 @@ export default function Buddies() {
       // Fetch profiles for sent requests
       if (sentPending.length > 0) {
         const { data: sentProfiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name, photos, location_name, fishing_experience, id_verified, live_verified')
           .in('id', sentPending.map(r => r.recipient_id));
 
@@ -140,10 +139,10 @@ export default function Buddies() {
         setSentRequests([]);
       }
 
-      // Fetch my buddies profiles
+      // Fetch my buddies profiles using public_profiles view for privacy
       if (acceptedBuddies.length > 0) {
         const { data: buddyProfiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio, id_verified, live_verified')
           .in('id', acceptedBuddies.map(b => b.otherId));
         

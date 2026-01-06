@@ -55,9 +55,9 @@ export function useMessageNotifications() {
           if (!match) return;
           if (match.user1_id !== user.id && match.user2_id !== user.id) return;
 
-          // Get sender's name
+          // Get sender's name using public_profiles view for privacy
           const { data: sender } = await supabase
-            .from("profiles")
+            .from("public_profiles")
             .select("display_name")
             .eq("id", newMessage.sender_id)
             .single();

@@ -166,22 +166,18 @@ export default function Likes() {
         return;
       }
 
-      // Fetch profiles for these users
+      // Fetch profiles using public_profiles view for privacy (age is pre-calculated)
       const { data: profiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, display_name, date_of_birth, location_name, photos, bio")
+        .from("public_profiles")
+        .select("id, display_name, age, location_name, photos, bio")
         .in("id", likerIds.map((l) => l.oderId));
 
       if (profileError) throw profileError;
 
       const likeProfiles: LikeProfile[] = likerIds.map((liker) => {
         const profile = profiles?.find((p) => p.id === liker.oderId);
-        const age = profile?.date_of_birth
-          ? Math.floor(
-              (Date.now() - new Date(profile.date_of_birth).getTime()) /
-                (365.25 * 24 * 60 * 60 * 1000)
-            )
-          : null;
+        // Age is pre-calculated in public_profiles view
+        const age = profile?.age ?? null;
 
         return {
           id: liker.oderId,
@@ -244,22 +240,18 @@ export default function Likes() {
         return;
       }
 
-      // Fetch profiles for these users
+      // Fetch profiles using public_profiles view for privacy (age is pre-calculated)
       const { data: profiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, display_name, date_of_birth, location_name, photos, bio")
+        .from("public_profiles")
+        .select("id, display_name, age, location_name, photos, bio")
         .in("id", likedIds.map((l) => l.oderId));
 
       if (profileError) throw profileError;
 
       const likeProfiles: LikeProfile[] = likedIds.map((liked) => {
         const profile = profiles?.find((p) => p.id === liked.oderId);
-        const age = profile?.date_of_birth
-          ? Math.floor(
-              (Date.now() - new Date(profile.date_of_birth).getTime()) /
-                (365.25 * 24 * 60 * 60 * 1000)
-            )
-          : null;
+        // Age is pre-calculated in public_profiles view
+        const age = profile?.age ?? null;
 
         return {
           id: liked.oderId,

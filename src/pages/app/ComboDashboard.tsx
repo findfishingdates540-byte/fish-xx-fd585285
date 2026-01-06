@@ -71,11 +71,12 @@ interface ProfileData {
   id: string;
   display_name: string | null;
   photos: string[] | null;
-  date_of_birth: string | null;
+  age: number | null;  // Pre-calculated by public_profiles view
   fishing_experience: string | null;
   preferred_species: string[] | null;
   fishing_gear: string[] | null;
   location_name: string | null;
+  gender?: string | null;
 }
 
 interface FishingSpot {
@@ -454,11 +455,10 @@ export default function ComboDashboard() {
         }
       });
 
-      // Fetch nearby anglers (profiles), excluding already swiped ones
+      // Fetch nearby anglers using public_profiles view for privacy (age is pre-calculated)
       let anglersQuery = supabase
-        .from("profiles")
-        .select("id, display_name, photos, date_of_birth, fishing_experience, preferred_species, fishing_gear, location_name, gender")
-        .eq("is_active", true)
+        .from("public_profiles")
+        .select("id, display_name, photos, age, fishing_experience, preferred_species, fishing_gear, location_name, gender")
         .neq("id", user.id)
         .not("photos", "is", null);
 
@@ -883,7 +883,7 @@ export default function ComboDashboard() {
                                 
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
                                   <h3 className="font-bold text-lg text-white mb-1">
-                                    {angler.display_name || "Anonymous"}{calculateAge(angler.date_of_birth) ? `, ${calculateAge(angler.date_of_birth)}` : ""}
+                                    {angler.display_name || "Anonymous"}{angler.age ? `, ${angler.age}` : ""}
                                   </h3>
                                   {angler.location_name && (
                                     <p className="text-sm text-white/80 flex items-center gap-1 mb-3">
@@ -1179,7 +1179,7 @@ export default function ComboDashboard() {
                 id: matchedProfile.id,
                 matchId: currentMatchId,
                 name: matchedProfile.display_name || "Anonymous",
-                age: calculateAge(matchedProfile.date_of_birth) || null,
+                age: matchedProfile.age || null,
                 photo: matchedProfile.photos?.[0] || "",
                 fishingType: matchedProfile.fishing_experience || undefined,
                 bio: matchedProfile.preferred_species?.join(", ") || undefined,
