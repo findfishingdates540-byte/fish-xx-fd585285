@@ -168,10 +168,10 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px]">
-        <div className="grid grid-cols-[1fr_380px] h-full">
+      <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px] min-h-0">
+        <div className="grid grid-cols-[1fr_380px] h-full min-h-0 min-w-0">
           {/* Left side - Image(s) */}
-          <div className="bg-black flex items-center justify-center min-w-0 overflow-hidden">
+          <div className="bg-black flex items-center justify-center min-w-0 min-h-0 overflow-hidden">
             {allPhotos.length === 0 ? (
               <div className="text-muted-foreground p-8 text-center">
                 <p className="text-lg font-medium">{post.content}</p>
@@ -204,7 +204,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
           </div>
 
           {/* Right side - Post info & Comments */}
-          <div className="flex flex-col bg-background border-l border-border h-full overflow-hidden">
+          <div className="grid grid-rows-[auto_1fr_auto_auto] bg-background border-l border-border h-full min-h-0 min-w-0 overflow-hidden">
             {/* Post header */}
             <div className="flex-shrink-0 flex items-center gap-3 p-4 border-b border-border">
               <Avatar className="h-10 w-10">
@@ -229,69 +229,71 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
             </div>
 
             {/* Caption and Comments */}
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="p-4 space-y-4">
-                {/* Post caption */}
-                {post.content && (
-                  <div className="flex gap-3">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={avatarUrl} alt={displayName} />
-                      <AvatarFallback>
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm">
-                        <span className="font-semibold mr-1">{displayName}</span>
-                        {post.content}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                      </p>
+            <div className="min-h-0">
+              <ScrollArea className="h-full">
+                <div className="p-4 space-y-4">
+                  {/* Post caption */}
+                  {post.content && (
+                    <div className="flex gap-3">
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarImage src={avatarUrl} alt={displayName} />
+                        <AvatarFallback>
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">
+                          <span className="font-semibold mr-1">{displayName}</span>
+                          {post.content}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Catch details */}
-                {post.catch_data && (
-                  <div className="flex flex-wrap gap-2">
-                    {post.catch_data.species_name && (
-                      <Badge variant="outline" className="text-xs">
-                        {post.catch_data.species_name}
-                      </Badge>
-                    )}
-                    {post.catch_data.weight_lbs && (
-                      <Badge variant="outline" className="text-xs">
-                        {post.catch_data.weight_lbs} lbs
-                      </Badge>
-                    )}
-                  </div>
-                )}
+                  {/* Catch details */}
+                  {post.catch_data && (
+                    <div className="flex flex-wrap gap-2">
+                      {post.catch_data.species_name && (
+                        <Badge variant="outline" className="text-xs">
+                          {post.catch_data.species_name}
+                        </Badge>
+                      )}
+                      {post.catch_data.weight_lbs && (
+                        <Badge variant="outline" className="text-xs">
+                          {post.catch_data.weight_lbs} lbs
+                        </Badge>
+                      )}
+                    </div>
+                  )}
 
-                {/* Comments */}
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-foreground" />
-                  </div>
-                ) : comments.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p className="text-sm">No comments yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {comments.map((comment) => (
-                      <ModalCommentItem 
-                        key={comment.id} 
-                        comment={comment} 
-                        postId={post.id}
-                        onReply={handleReply}
-                        depth={0}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
+                  {/* Comments */}
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-foreground" />
+                    </div>
+                  ) : comments.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p className="text-sm">No comments yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {comments.map((comment) => (
+                        <ModalCommentItem
+                          key={comment.id}
+                          comment={comment}
+                          postId={post.id}
+                          onReply={handleReply}
+                          depth={0}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
 
             {/* Actions bar */}
             <div className="flex-shrink-0 p-4 border-t border-border">
