@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Ticket, Clock, CheckCircle2, AlertCircle, MessageSquare, Plus, RefreshCw, Send } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Ticket, Clock, CheckCircle2, AlertCircle, MessageSquare, Plus, RefreshCw, Send, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,6 +57,13 @@ export default function MyTickets() {
   const queryClient = useQueryClient();
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
+  const [showNewTicketForm, setShowNewTicketForm] = useState(false);
+  const [newTicket, setNewTicket] = useState({
+    subject: '',
+    message: '',
+    category: 'general',
+  });
+  const [submittingNewTicket, setSubmittingNewTicket] = useState(false);
 
   // Fetch user's tickets
   const { data: tickets, isLoading, refetch } = useQuery({
@@ -183,6 +193,40 @@ export default function MyTickets() {
     submitReply.mutate({ ticketId: selectedTicketId, message: replyMessage });
   };
 
+  // Submit new ticket handler
+  const handleSubmitNewTicket = async () => {
+    if (!newTicket.subject.trim() || !newTicket.message.trim() || !user) return;
+    
+    setSubmittingNewTicket(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-support-ticket', {
+        body: {
+          name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+          email: user.email,
+          subject: newTicket.subject,
+          message: newTicket.message,
+          category: newTicket.category,
+          userId: user.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({ title: 'Ticket submitted successfully', description: `Ticket #${data.ticketNumber} created` });
+      setNewTicket({ subject: '', message: '', category: 'general' });
+      setShowNewTicketForm(false);
+      refetch();
+    } catch (error) {
+      toast({ 
+        title: 'Failed to submit ticket', 
+        description: error instanceof Error ? error.message : 'Please try again', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setSubmittingNewTicket(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
@@ -212,14 +256,76 @@ export default function MyTickets() {
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Link to="/contact">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Ticket
-            </Button>
-          </Link>
+          <Button onClick={() => setShowNewTicketForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Ticket
+          </Button>
         </div>
       </div>
+
+      {/* New Ticket Form */}
+      {showNewTicketForm && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Submit New Ticket</CardTitle>
+              <Button variant="ghost" size="icon" onClick={() => setShowNewTicketForm(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select 
+                value={newTicket.category} 
+                onValueChange={(value) => setNewTicket(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General Inquiry</SelectItem>
+                  <SelectItem value="technical">Technical Support</SelectItem>
+                  <SelectItem value="billing">Billing</SelectItem>
+                  <SelectItem value="safety">Safety Concern</SelectItem>
+                  <SelectItem value="partnership">Partnership</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                placeholder="Brief summary of your issue"
+                value={newTicket.subject}
+                onChange={(e) => setNewTicket(prev => ({ ...prev, subject: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Describe your issue in detail..."
+                className="min-h-[120px]"
+                value={newTicket.message}
+                onChange={(e) => setNewTicket(prev => ({ ...prev, message: e.target.value }))}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowNewTicketForm(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSubmitNewTicket}
+                disabled={!newTicket.subject.trim() || !newTicket.message.trim() || submittingNewTicket}
+              >
+                {submittingNewTicket ? 'Submitting...' : 'Submit Ticket'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tickets List */}
       <Card>
@@ -233,9 +339,7 @@ export default function MyTickets() {
             <div className="p-8 text-center">
               <Ticket className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">You haven't submitted any support tickets yet.</p>
-              <Link to="/contact">
-                <Button>Submit a Ticket</Button>
-              </Link>
+              <Button onClick={() => setShowNewTicketForm(true)}>Submit a Ticket</Button>
             </div>
           ) : (
             <div className="divide-y">
@@ -355,7 +459,7 @@ export default function MyTickets() {
                   <div className="text-center text-muted-foreground bg-muted/50 rounded-lg p-4">
                     <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-500" />
                     <p>This ticket has been {selectedTicket.status}.</p>
-                    <p className="text-sm mt-1">Need more help? <Link to="/contact" className="text-primary underline">Submit a new ticket</Link></p>
+                    <p className="text-sm mt-1">Need more help? <button onClick={() => { setSelectedTicketId(null); setShowNewTicketForm(true); }} className="text-primary underline">Submit a new ticket</button></p>
                   </div>
                 )}
               </div>

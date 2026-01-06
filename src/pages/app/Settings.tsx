@@ -11,11 +11,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { usePushNotificationsUnified } from "@/hooks/use-push-notifications-unified";
 import { useStripePortal } from "@/hooks/use-stripe-portal";
 import { ThemeSelector as AppearanceSelector } from "@/components/ui/theme-toggle";
 import { VerificationSection } from "@/components/settings/VerificationSection";
+import { useUnreadTicketCount } from "@/hooks/use-unread-ticket-count";
 import { format } from "date-fns";
 import {
   User,
@@ -66,6 +68,25 @@ const settingsNav = [
   { id: "subscription", label: "Subscription", icon: CreditCard },
   { id: "invite", label: "Invite Friends", icon: UserPlus },
 ];
+
+// Component for ticket link with unread badge
+function TicketLinkWithBadge() {
+  const { data: unreadCount } = useUnreadTicketCount();
+  
+  return (
+    <Button variant="outline" className="w-full justify-start relative" asChild>
+      <Link to="/app/my-tickets">
+        <Ticket className="h-4 w-4 mr-2" />
+        My Support Tickets
+        {unreadCount && unreadCount > 0 && (
+          <Badge className="ml-auto bg-primary text-primary-foreground text-xs px-1.5 py-0.5 min-w-[20px] flex items-center justify-center">
+            {unreadCount}
+          </Badge>
+        )}
+      </Link>
+    </Button>
+  );
+}
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -934,12 +955,7 @@ export default function Settings() {
                   </div>
 
                   <div className="space-y-4">
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/app/my-tickets">
-                        <Ticket className="h-4 w-4 mr-2" />
-                        My Support Tickets
-                      </Link>
-                    </Button>
+                    <TicketLinkWithBadge />
                     <Button variant="outline" className="w-full justify-start">
                       <Shield className="h-4 w-4 mr-2" />
                       Manage Blocked Users
