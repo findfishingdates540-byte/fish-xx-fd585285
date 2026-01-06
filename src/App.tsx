@@ -32,7 +32,7 @@ import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
 import { AdminLayout } from "@/components/admin";
-import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications } from "./pages/admin";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +108,7 @@ const App = () => (
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="verifications" element={<AdminVerifications />} />
               <Route path="spots" element={<AdminSpots />} />
               <Route path="catches" element={<AdminCatches />} />
               <Route path="posts" element={<AdminPosts />} />
