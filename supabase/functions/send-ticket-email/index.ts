@@ -10,9 +10,10 @@ const corsHeaders = {
 
 interface EmailRequest {
   ticketId: string;
-  type: "status_update" | "admin_response" | "ticket_resolved" | "ticket_closed";
+  type: "status_update" | "admin_response" | "ticket_resolved" | "ticket_closed" | "ticket_reopened";
   message?: string;
   newStatus?: string;
+  reopenReason?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,7 +22,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { ticketId, type, message, newStatus }: EmailRequest = await req.json();
+    const { ticketId, type, message, newStatus, reopenReason }: EmailRequest = await req.json();
     console.log(`Sending ${type} email for ticket:`, ticketId);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -43,7 +44,63 @@ const handler = async (req: Request): Promise<Response> => {
     let emailSubject = "";
     let emailBody = "";
 
-    if (type === "ticket_resolved") {
+    if (type === "ticket_reopened") {
+      // Send to admin
+      emailSubject = `Ticket #${ticket.ticket_number} Reopened - Action Required`;
+      emailBody = `
+        <html>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+            <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; background: #fef3c7; color: #92400e; padding: 12px 24px; border-radius: 50px; font-weight: 600;">
+                  ⚠️ Ticket Reopened
+                </div>
+              </div>
+              <h2 style="color: #111827; margin-bottom: 16px;">A User Has Reopened Their Ticket</h2>
+              <p style="color: #374151;"><strong>${ticket.name}</strong> (${ticket.email}) has reopened ticket <strong>#${ticket.ticket_number}</strong>.</p>
+              <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;"><strong>Subject:</strong></p>
+                <p style="margin: 0; color: #111827;">${ticket.subject}</p>
+              </div>
+              ${reopenReason ? `
+              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px;"><strong>Reason for reopening:</strong></p>
+                <p style="margin: 0; color: #78350f; white-space: pre-wrap;">${reopenReason.replace(/\n/g, "<br>")}</p>
+              </div>
+              ` : ""}
+              <p style="color: #374151;">Please review this ticket and respond to the user.</p>
+              <div style="margin-top: 24px; text-align: center;">
+                <a href="https://findfishingdates.lovable.app/admin/support-tickets" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">View in Admin Panel</a>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Send to admin email
+      const adminEmailRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Find Fishing Dates <onboarding@resend.dev>",
+          to: ["findfishingdates540@gmail.com"],
+          subject: emailSubject,
+          html: emailBody,
+        }),
+      });
+
+      const adminEmailData = await adminEmailRes.json();
+      if (!adminEmailRes.ok) {
+        console.error("Admin email send error:", adminEmailData);
+      } else {
+        console.log("Admin notification sent:", adminEmailData);
+      }
+
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    } else if (type === "ticket_resolved") {
       emailSubject = `Ticket #${ticket.ticket_number} - Issue Resolved ✓`;
       emailBody = `
         <html>

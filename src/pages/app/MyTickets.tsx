@@ -58,6 +58,8 @@ export default function MyTickets() {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
+  const [showReopenDialog, setShowReopenDialog] = useState(false);
+  const [reopenReason, setReopenReason] = useState('');
   const [newTicket, setNewTicket] = useState({
     subject: '',
     message: '',
@@ -190,7 +192,7 @@ export default function MyTickets() {
 
   // Reopen ticket mutation
   const reopenTicket = useMutation({
-    mutationFn: async (ticketId: string) => {
+    mutationFn: async ({ ticketId, reason }: { ticketId: string; reason: string }) => {
       const { error } = await supabase
         .from('support_tickets')
         .update({ 
@@ -201,12 +203,40 @@ export default function MyTickets() {
         .eq('id', ticketId)
         .eq('user_id', user?.id); // Ensure user owns the ticket
       if (error) throw error;
+
+      // Add the reopen reason as a response
+      if (reason.trim()) {
+        await supabase
+          .from('support_ticket_responses')
+          .insert({
+            ticket_id: ticketId,
+            responder_id: user?.id,
+            message: `**Reason for reopening:** ${reason}`,
+            is_internal: false,
+          });
+      }
+
+      // Send email notification to admin
+      try {
+        await supabase.functions.invoke('send-ticket-email', {
+          body: {
+            ticketId,
+            type: 'ticket_reopened',
+            reopenReason: reason,
+          },
+        });
+      } catch (emailError) {
+        console.error('Failed to send reopen notification:', emailError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-tickets'] });
       queryClient.invalidateQueries({ queryKey: ['my-ticket', selectedTicketId] });
+      queryClient.invalidateQueries({ queryKey: ['my-ticket-responses', selectedTicketId] });
       queryClient.invalidateQueries({ queryKey: ['unread-ticket-count'] });
-      toast({ title: 'Ticket reopened', description: 'You can now add more details to your ticket.' });
+      setShowReopenDialog(false);
+      setReopenReason('');
+      toast({ title: 'Ticket reopened', description: 'Our support team has been notified.' });
     },
     onError: (error: Error) => {
       toast({ title: 'Failed to reopen ticket', description: error.message, variant: 'destructive' });
@@ -480,7 +510,7 @@ export default function MyTickets() {
                   </div>
                 )}
 
-                {(selectedTicket.status === 'closed' || selectedTicket.status === 'resolved') && (
+                {(selectedTicket.status === 'closed' || selectedTicket.status === 'resolved') && !showReopenDialog && (
                   <div className="text-center bg-muted/50 rounded-lg p-4 space-y-4">
                     <div>
                       <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-500" />
@@ -489,11 +519,10 @@ export default function MyTickets() {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                       <Button
                         variant="outline"
-                        onClick={() => reopenTicket.mutate(selectedTicket.id)}
-                        disabled={reopenTicket.isPending}
+                        onClick={() => setShowReopenDialog(true)}
                       >
                         <RotateCcw className="w-4 h-4 mr-2" />
-                        {reopenTicket.isPending ? 'Reopening...' : 'Reopen Ticket'}
+                        Reopen Ticket
                       </Button>
                       <span className="text-sm text-muted-foreground">or</span>
                       <Button 
@@ -505,6 +534,40 @@ export default function MyTickets() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">Reopen if your issue wasn't fully addressed</p>
+                  </div>
+                )}
+
+                {/* Reopen Ticket Form */}
+                {(selectedTicket.status === 'closed' || selectedTicket.status === 'resolved') && showReopenDialog && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <RotateCcw className="w-5 h-5 text-amber-500" />
+                      <h4 className="font-medium">Reopen This Ticket</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Please let us know why you need to reopen this ticket so we can better assist you.
+                    </p>
+                    <Textarea
+                      placeholder="Describe why you're reopening this ticket..."
+                      value={reopenReason}
+                      onChange={(e) => setReopenReason(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => { setShowReopenDialog(false); setReopenReason(''); }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => reopenTicket.mutate({ ticketId: selectedTicket.id, reason: reopenReason })}
+                        disabled={!reopenReason.trim() || reopenTicket.isPending}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        {reopenTicket.isPending ? 'Reopening...' : 'Reopen Ticket'}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
