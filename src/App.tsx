@@ -31,6 +31,7 @@ import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
+import VerifiedMembers from "./pages/app/VerifiedMembers";
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications } from "./pages/admin";
 
@@ -98,6 +99,7 @@ const App = () => (
               
               {/* Shared routes (all account types) */}
               <Route path="notifications" element={<Notifications />} />
+              <Route path="verified-members" element={<VerifiedMembers />} />
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
               <Route path="profile/:userId" element={<UserProfile />} />
