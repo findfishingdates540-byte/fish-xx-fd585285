@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,7 @@ import {
 } from '@/hooks/use-support-tickets';
 import { format } from 'date-fns';
 import { Send, Clock, AlertCircle, CheckCircle2, MessageSquare, Mail, Lock, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TicketDetailModalProps {
   ticketId: string | null;
@@ -37,8 +38,8 @@ const priorityConfig: Record<string, { label: string; color: string }> = {
 };
 
 export function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps) {
-  const { data: ticket, isLoading: ticketLoading } = useSupportTicket(ticketId);
-  const { data: responses, isLoading: responsesLoading } = useTicketResponses(ticketId);
+  const { data: ticket, isLoading: ticketLoading, refetch: refetchTicket } = useSupportTicket(ticketId);
+  const { data: responses, isLoading: responsesLoading, refetch: refetchResponses } = useTicketResponses(ticketId);
   const updateTicket = useUpdateTicket();
   const addResponse = useAddTicketResponse();
 
@@ -47,6 +48,39 @@ export function TicketDetailModal({ ticketId, onClose }: TicketDetailModalProps)
   const [sendEmail, setSendEmail] = useState(true);
   const [newStatus, setNewStatus] = useState<string>('');
   const [newPriority, setNewPriority] = useState<string>('');
+
+  // Real-time subscription for ticket and responses
+  useEffect(() => {
+    if (!ticketId) return;
+
+    const ticketChannel = supabase
+      .channel(`ticket-${ticketId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_tickets',
+          filter: `id=eq.${ticketId}`
+        },
+        () => refetchTicket()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_ticket_responses',
+          filter: `ticket_id=eq.${ticketId}`
+        },
+        () => refetchResponses()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ticketChannel);
+    };
+  }, [ticketId, refetchTicket, refetchResponses]);
 
   const handleStatusChange = (status: string) => {
     setNewStatus(status);
