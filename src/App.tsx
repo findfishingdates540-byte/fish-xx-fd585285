@@ -25,6 +25,7 @@ import Help from "./pages/Help";
 import Pricing from "./pages/Pricing";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import CommunityGuidelines from "./pages/CommunityGuidelines";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed } from "./pages/app";
 import Notifications from "./pages/app/Notifications";
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/pricing" element={<ForceLightTheme><Pricing /></ForceLightTheme>} />
             <Route path="/checkout" element={<ForceLightTheme><Checkout /></ForceLightTheme>} />
             <Route path="/payment-success" element={<ForceLightTheme><PaymentSuccess /></ForceLightTheme>} />
+            <Route path="/guidelines" element={<ForceLightTheme><CommunityGuidelines /></ForceLightTheme>} />
             
             {/* Logged-in app routes */}
             <Route path="/app" element={<AppLayout />}>
