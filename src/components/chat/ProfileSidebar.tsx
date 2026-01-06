@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface ProfileSidebarProps {
   name: string;
@@ -17,6 +18,8 @@ interface ProfileSidebarProps {
   favoriteSpot?: { name: string; location?: string };
   recentCatches?: { photo: string; species?: string }[];
   chatType?: 'date' | 'buddy';
+  idVerified?: boolean;
+  liveVerified?: boolean;
 }
 
 // Map interests to icons
@@ -59,6 +62,8 @@ export function ProfileSidebar({
   favoriteSpot,
   recentCatches = [],
   chatType = 'date',
+  idVerified,
+  liveVerified,
 }: ProfileSidebarProps) {
   return (
     <aside className={cn("flex flex-col bg-background overflow-y-auto", className)}>
@@ -74,7 +79,14 @@ export function ProfileSidebar({
         {/* Name overlay at bottom */}
         <div className="absolute bottom-4 left-4 right-4">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-xl font-bold text-foreground">{name}</h3>
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-1">
+              {name}
+              <VerificationBadge 
+                idVerified={idVerified} 
+                liveVerified={liveVerified} 
+                size="sm" 
+              />
+            </h3>
             {chatType === 'date' ? (
               <span className="text-lg">💕</span>
             ) : (

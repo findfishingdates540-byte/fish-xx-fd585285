@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { SwipeableConversationItem } from './SwipeableConversationItem';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface Conversation {
   id: string;
@@ -20,6 +21,8 @@ interface Conversation {
   isRead?: boolean;
   lastSeen?: string;
   type?: 'date' | 'buddy';
+  idVerified?: boolean;
+  liveVerified?: boolean;
 }
 
 interface NewBite {
@@ -191,7 +194,14 @@ export function ConversationList({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{convo.name}</span>
+                    <span className="font-semibold text-sm flex items-center gap-1">
+                      {convo.name}
+                      <VerificationBadge 
+                        idVerified={convo.idVerified} 
+                        liveVerified={convo.liveVerified} 
+                        size="sm" 
+                      />
+                    </span>
                     {convo.type === 'buddy' ? (
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50">
                         <Fish className="h-2.5 w-2.5 mr-0.5" />

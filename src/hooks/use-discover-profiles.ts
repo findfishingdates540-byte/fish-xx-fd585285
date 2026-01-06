@@ -129,6 +129,8 @@ function mapToProfileData(
     photos: profile.photos || [],
     fishingType: profile.fishing_experience || undefined,
     tags: tags.length > 0 ? tags : undefined,
+    idVerified: profile.id_verified || false,
+    liveVerified: profile.live_verified || false,
   };
 }
 

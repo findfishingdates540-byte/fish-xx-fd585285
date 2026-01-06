@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface BuddyRequestCardProps {
   request: {
@@ -14,6 +15,8 @@ interface BuddyRequestCardProps {
       photos: string[] | null;
       location_name: string | null;
       fishing_experience: string | null;
+      id_verified?: boolean;
+      live_verified?: boolean;
     };
   };
   type: 'received' | 'sent';
@@ -42,8 +45,13 @@ export function BuddyRequestCard({
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold truncate">
+            <h4 className="font-semibold truncate flex items-center gap-1">
               {profile.display_name || 'Anonymous'}
+              <VerificationBadge 
+                idVerified={profile.id_verified} 
+                liveVerified={profile.live_verified} 
+                size="sm" 
+              />
             </h4>
             {profile.location_name && (
               <p className="text-sm text-muted-foreground truncate">

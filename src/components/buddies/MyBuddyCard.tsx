@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 import { SpotSelectionDialog } from './SpotSelectionDialog';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface MyBuddyCardProps {
   buddyId: string;
@@ -18,6 +19,8 @@ interface MyBuddyCardProps {
     location_name: string | null;
     fishing_experience: string | null;
     preferred_species: string[] | null;
+    id_verified?: boolean;
+    live_verified?: boolean;
   };
   catchCount?: number;
   isOnline?: boolean;
@@ -80,10 +83,15 @@ export function MyBuddyCard({
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <h4 
-                    className="font-semibold cursor-pointer hover:text-primary transition-colors truncate"
+                    className="font-semibold cursor-pointer hover:text-primary transition-colors truncate flex items-center gap-1"
                     onClick={handleViewProfile}
                   >
                     {profile.display_name || 'Anonymous'}
+                    <VerificationBadge 
+                      idVerified={profile.id_verified} 
+                      liveVerified={profile.live_verified} 
+                      size="sm" 
+                    />
                   </h4>
                   <p className="text-xs text-muted-foreground">
                     {isOnline ? (

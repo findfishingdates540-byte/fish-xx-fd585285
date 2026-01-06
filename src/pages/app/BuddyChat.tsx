@@ -16,6 +16,7 @@ import { useBuddyMessageReactions } from '@/hooks/use-buddy-message-reactions';
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
 import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage, DeleteMessageDialog, DeletedMessagePlaceholder, VoiceMessagePlayer, WaveformVisualizer } from '@/components/chat';
 import { toast } from 'sonner';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 interface Message {
   id: string;
@@ -34,6 +35,8 @@ interface BuddyProfile {
   id: string;
   display_name: string | null;
   photos: string[] | null;
+  id_verified?: boolean;
+  live_verified?: boolean;
 }
 
 interface FishingSpot {
@@ -269,7 +272,7 @@ export default function BuddyChat() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, display_name, photos')
+        .select('id, display_name, photos, id_verified, live_verified')
         .eq('id', otherUserId)
         .single();
 
@@ -752,7 +755,14 @@ export default function BuddyChat() {
           )} />
         </div>
         <div className="flex-1">
-          <h2 className="font-semibold">{buddyProfile?.display_name || 'Anonymous'}</h2>
+          <h2 className="font-semibold flex items-center gap-1">
+            {buddyProfile?.display_name || 'Anonymous'}
+            <VerificationBadge 
+              idVerified={buddyProfile?.id_verified} 
+              liveVerified={buddyProfile?.live_verified} 
+              size="sm" 
+            />
+          </h2>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             {isTyping ? (
               <span className="text-primary animate-pulse">typing...</span>
