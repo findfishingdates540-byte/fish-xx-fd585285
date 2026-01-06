@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Ticket, Clock, CheckCircle2, AlertCircle, MessageSquare, Plus, RefreshCw, Send, X } from 'lucide-react';
+import { Ticket, Clock, CheckCircle2, AlertCircle, MessageSquare, Plus, RefreshCw, Send, X, RotateCcw } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -185,6 +185,31 @@ export default function MyTickets() {
     },
     onError: (error: Error) => {
       toast({ title: 'Failed to send reply', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Reopen ticket mutation
+  const reopenTicket = useMutation({
+    mutationFn: async (ticketId: string) => {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update({ 
+          status: 'open',
+          resolved_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', ticketId)
+        .eq('user_id', user?.id); // Ensure user owns the ticket
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['my-ticket', selectedTicketId] });
+      queryClient.invalidateQueries({ queryKey: ['unread-ticket-count'] });
+      toast({ title: 'Ticket reopened', description: 'You can now add more details to your ticket.' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Failed to reopen ticket', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -456,10 +481,30 @@ export default function MyTickets() {
                 )}
 
                 {(selectedTicket.status === 'closed' || selectedTicket.status === 'resolved') && (
-                  <div className="text-center text-muted-foreground bg-muted/50 rounded-lg p-4">
-                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                    <p>This ticket has been {selectedTicket.status}.</p>
-                    <p className="text-sm mt-1">Need more help? <button onClick={() => { setSelectedTicketId(null); setShowNewTicketForm(true); }} className="text-primary underline">Submit a new ticket</button></p>
+                  <div className="text-center bg-muted/50 rounded-lg p-4 space-y-4">
+                    <div>
+                      <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                      <p className="text-muted-foreground">This ticket has been {selectedTicket.status}.</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => reopenTicket.mutate(selectedTicket.id)}
+                        disabled={reopenTicket.isPending}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        {reopenTicket.isPending ? 'Reopening...' : 'Reopen Ticket'}
+                      </Button>
+                      <span className="text-sm text-muted-foreground">or</span>
+                      <Button 
+                        variant="ghost"
+                        onClick={() => { setSelectedTicketId(null); setShowNewTicketForm(true); }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Submit New Ticket
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Reopen if your issue wasn't fully addressed</p>
                   </div>
                 )}
               </div>
