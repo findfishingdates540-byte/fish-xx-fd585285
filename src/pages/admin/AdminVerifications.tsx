@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ShieldCheck, CheckCircle, XCircle, Eye, MoreVertical, BadgeCheck, FileText, Camera } from 'lucide-react';
+import { ShieldCheck, CheckCircle, XCircle, Eye, MoreVertical, BadgeCheck, FileText, Camera, ClipboardList, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { AdminVerifiedMembers } from '@/components/admin/AdminVerifiedMembers';
 
 interface VerificationRequest {
   id: string;
@@ -40,6 +41,7 @@ interface VerificationRequest {
 
 export default function AdminVerifications() {
   const { user } = useAuth();
+  const [mainTab, setMainTab] = useState('queue');
   const [statusFilter, setStatusFilter] = useState('pending');
   const [typeFilter, setTypeFilter] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
@@ -264,10 +266,10 @@ export default function AdminVerifications() {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Verification Queue</h1>
-          <p className="text-slate-400 mt-1">Review and process user verification requests</p>
+          <h1 className="text-2xl font-bold text-white">Verifications</h1>
+          <p className="text-slate-400 mt-1">Manage verification requests and verified members</p>
         </div>
         {pendingCount > 0 && (
           <Badge className="bg-amber-500/20 text-amber-400 border-0 text-lg px-4 py-2">
@@ -276,8 +278,22 @@ export default function AdminVerifications() {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
+      {/* Main Tabs */}
+      <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
+        <TabsList className="bg-slate-800 border border-slate-700">
+          <TabsTrigger value="queue" className="data-[state=active]:bg-slate-700 flex items-center gap-2">
+            <ClipboardList className="w-4 h-4" />
+            Verification Queue
+          </TabsTrigger>
+          <TabsTrigger value="directory" className="data-[state=active]:bg-slate-700 flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Verified Members
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="queue" className="mt-0">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 mb-6">
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
           <TabsList className="bg-slate-800 border border-slate-700">
             <TabsTrigger value="pending" className="data-[state=active]:bg-slate-700">
@@ -433,6 +449,12 @@ export default function AdminVerifications() {
           ))
         )}
       </div>
+        </TabsContent>
+
+        <TabsContent value="directory" className="mt-0">
+          <AdminVerifiedMembers />
+        </TabsContent>
+      </Tabs>
 
       {/* Rejection Dialog */}
       <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>

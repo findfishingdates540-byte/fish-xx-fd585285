@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,8 +16,6 @@ import {
   FileText,
   ShieldCheck,
   BadgeCheck,
-  Users,
-  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -203,19 +200,6 @@ export function VerificationSection({ idVerified, liveVerified }: VerificationSe
             </div>
           </div>
           
-          {/* Link to Verified Members Directory */}
-          <div className="mt-4 pt-4 border-t">
-            <Link to="/app/verified-members" className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors group">
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-medium">Verified Members Directory</p>
-                  <p className="text-sm text-muted-foreground">Browse all verified members in our community</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </Link>
-          </div>
         </CardContent>
       </Card>
 
