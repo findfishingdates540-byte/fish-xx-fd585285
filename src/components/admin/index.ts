@@ -9,3 +9,4 @@ export { SpotDetailsModal } from './SpotDetailsModal';
 export { DeleteSpotDialog } from './DeleteSpotDialog';
 export { FishSpeciesManagement } from './FishSpeciesManagement';
 export { FishSpeciesDialog } from './FishSpeciesDialog';
+export { TicketDetailModal } from './TicketDetailModal';
