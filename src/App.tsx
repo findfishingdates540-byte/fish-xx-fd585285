@@ -9,6 +9,7 @@ import { AppLayout } from "@/components/layout";
 import { DatingRoute, FishingRoute } from "@/components/layout/RouteGuard";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { ForceLightTheme } from "@/components/layout/ForceLightTheme";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
@@ -26,6 +27,8 @@ import Pricing from "./pages/Pricing";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import CommunityGuidelines from "./pages/CommunityGuidelines";
+import CookiePolicy from "./pages/CookiePolicy";
+import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed } from "./pages/app";
 import Notifications from "./pages/app/Notifications";
@@ -66,6 +69,8 @@ const App = () => (
             <Route path="/checkout" element={<ForceLightTheme><Checkout /></ForceLightTheme>} />
             <Route path="/payment-success" element={<ForceLightTheme><PaymentSuccess /></ForceLightTheme>} />
             <Route path="/guidelines" element={<ForceLightTheme><CommunityGuidelines /></ForceLightTheme>} />
+            <Route path="/cookies" element={<ForceLightTheme><CookiePolicy /></ForceLightTheme>} />
+            <Route path="/accessibility" element={<ForceLightTheme><Accessibility /></ForceLightTheme>} />
             
             {/* Logged-in app routes */}
             <Route path="/app" element={<AppLayout />}>
@@ -129,6 +134,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<ForceLightTheme><NotFound /></ForceLightTheme>} />
           </Routes>
+          <CookieConsentBanner />
         </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
