@@ -124,9 +124,9 @@ export function CookieConsentBanner() {
                 </div>
               </div>
 
-              {/* Close button - dismiss but will show again on next visit */}
+              {/* Close button - saves essential only and dismisses */}
               <button
-                onClick={() => setShowBanner(false)}
+                onClick={acceptEssentialOnly}
                 className="p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
                 aria-label="Dismiss cookie banner"
               >
