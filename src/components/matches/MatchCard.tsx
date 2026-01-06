@@ -1,7 +1,8 @@
-import { MessageSquare, Waves, BadgeCheck } from 'lucide-react';
+import { MessageSquare, Waves } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 type OnlineStatus = 'online' | 'gone_fishing' | 'offline';
 
@@ -11,7 +12,8 @@ interface MatchCardProps {
   age: number;
   photo: string;
   bio: string;
-  isVerified?: boolean;
+  idVerified?: boolean;
+  liveVerified?: boolean;
   isNew?: boolean;
   status: OnlineStatus;
   lastSeen?: string;
@@ -25,7 +27,8 @@ export function MatchCard({
   age,
   photo,
   bio,
-  isVerified,
+  idVerified,
+  liveVerified,
   isNew,
   status,
   lastSeen,
@@ -122,7 +125,7 @@ export function MatchCard({
 
       <div className="flex items-center gap-1 mb-1">
         <h3 className="font-bold text-lg">{name}, {age}</h3>
-        {isVerified && <BadgeCheck className="h-4 w-4 text-blue-500" />}
+        <VerificationBadge idVerified={idVerified} liveVerified={liveVerified} />
       </div>
 
       {getStatusText()}

@@ -24,6 +24,8 @@ export type AuditAction =
   | 'role_changed'
   | 'premium_granted'
   | 'premium_revoked'
+  | 'verification_granted'
+  | 'verification_revoked'
   | 'setting_updated'
   | 'spot_created'
   | 'spot_updated'

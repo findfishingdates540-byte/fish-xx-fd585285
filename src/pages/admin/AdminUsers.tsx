@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MoreVertical, Shield, Ban, Crown, Eye, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Search, MoreVertical, Shield, Ban, Crown, Eye, ShieldCheck, ShieldOff, BadgeCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,6 +12,8 @@ import { UserDetailsModal } from '@/components/admin/UserDetailsModal';
 import { BanUserDialog } from '@/components/admin/BanUserDialog';
 import { ChangeRoleDialog } from '@/components/admin/ChangeRoleDialog';
 import { ManagePremiumDialog } from '@/components/admin/ManagePremiumDialog';
+import { ManageVerificationDialog } from '@/components/admin/ManageVerificationDialog';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 type UserType = NonNullable<ReturnType<typeof useAdminUsers>['data']>[number];
 
@@ -25,6 +27,7 @@ export default function AdminUsers() {
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [premiumDialogOpen, setPremiumDialogOpen] = useState(false);
+  const [verificationDialogOpen, setVerificationDialogOpen] = useState(false);
 
   const handleViewDetails = (user: UserType) => {
     setSelectedUser(user);
@@ -44,6 +47,11 @@ export default function AdminUsers() {
   const handleManagePremium = (user: UserType) => {
     setSelectedUser(user);
     setPremiumDialogOpen(true);
+  };
+
+  const handleManageVerification = (user: UserType) => {
+    setSelectedUser(user);
+    setVerificationDialogOpen(true);
   };
 
   return (
@@ -76,6 +84,7 @@ export default function AdminUsers() {
             <tr className="border-b border-slate-700 text-left text-xs text-slate-400 uppercase">
               <th className="px-6 py-4">User</th>
               <th className="px-6 py-4">Email</th>
+              <th className="px-6 py-4">Verified</th>
               <th className="px-6 py-4">Account Mode</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Joined</th>
@@ -88,6 +97,7 @@ export default function AdminUsers() {
                 <tr key={i}>
                   <td className="px-6 py-4"><Skeleton className="h-10 w-48 bg-slate-700" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-4 w-40 bg-slate-700" /></td>
+                  <td className="px-6 py-4"><Skeleton className="h-6 w-12 bg-slate-700" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-6 w-20 bg-slate-700" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-6 w-16 bg-slate-700" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-4 w-24 bg-slate-700" /></td>
@@ -96,7 +106,7 @@ export default function AdminUsers() {
               ))
             ) : users?.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                   No users found
                 </td>
               </tr>
@@ -124,6 +134,17 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-6 py-4 text-slate-300">
                     {user.email || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4">
+                    {user.id_verified || user.live_verified ? (
+                      <VerificationBadge 
+                        idVerified={user.id_verified ?? false} 
+                        liveVerified={user.live_verified ?? false} 
+                        size="md"
+                      />
+                    ) : (
+                      <span className="text-slate-500 text-sm">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <Badge 
@@ -178,6 +199,13 @@ export default function AdminUsers() {
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-slate-700" />
+                        <DropdownMenuItem 
+                          onClick={() => handleManageVerification(user)}
+                          className="text-blue-400 focus:text-blue-300 focus:bg-slate-700"
+                        >
+                          <BadgeCheck className="w-4 h-4 mr-2" />
+                          Manage Verification
+                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleChangeRole(user)}
                           className="text-slate-300 focus:text-white focus:bg-slate-700"
@@ -242,6 +270,11 @@ export default function AdminUsers() {
         user={selectedUser} 
         open={premiumDialogOpen} 
         onOpenChange={setPremiumDialogOpen} 
+      />
+      <ManageVerificationDialog 
+        user={selectedUser} 
+        open={verificationDialogOpen} 
+        onOpenChange={setVerificationDialogOpen} 
       />
     </div>
   );

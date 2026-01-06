@@ -948,6 +948,9 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"] | null
           height_cm: number | null
           id: string
+          id_verified: boolean | null
+          id_verified_at: string | null
+          id_verified_by: string | null
           interested_in: Database["public"]["Enums"]["gender_type"][] | null
           interests: string[] | null
           is_active: boolean | null
@@ -955,6 +958,9 @@ export type Database = {
           is_premium: boolean | null
           is_verified: boolean | null
           last_active_at: string | null
+          live_verified: boolean | null
+          live_verified_at: string | null
+          live_verified_by: string | null
           location_lat: number | null
           location_lng: number | null
           location_name: string | null
@@ -976,6 +982,7 @@ export type Database = {
           state: string | null
           stripe_customer_id: string | null
           updated_at: string
+          verification_notes: string | null
           zip_code: string | null
           zodiac_sign: string | null
         }
@@ -997,6 +1004,9 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id: string
+          id_verified?: boolean | null
+          id_verified_at?: string | null
+          id_verified_by?: string | null
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
           interests?: string[] | null
           is_active?: boolean | null
@@ -1004,6 +1014,9 @@ export type Database = {
           is_premium?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
+          live_verified?: boolean | null
+          live_verified_at?: string | null
+          live_verified_by?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
@@ -1025,6 +1038,7 @@ export type Database = {
           state?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
+          verification_notes?: string | null
           zip_code?: string | null
           zodiac_sign?: string | null
         }
@@ -1046,6 +1060,9 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string
+          id_verified?: boolean | null
+          id_verified_at?: string | null
+          id_verified_by?: string | null
           interested_in?: Database["public"]["Enums"]["gender_type"][] | null
           interests?: string[] | null
           is_active?: boolean | null
@@ -1053,6 +1070,9 @@ export type Database = {
           is_premium?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
+          live_verified?: boolean | null
+          live_verified_at?: string | null
+          live_verified_by?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
@@ -1074,6 +1094,7 @@ export type Database = {
           state?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
+          verification_notes?: string | null
           zip_code?: string | null
           zodiac_sign?: string | null
         }
@@ -1326,6 +1347,59 @@ export type Database = {
             columns: ["spot_id"]
             isOneToOne: false
             referencedRelation: "fishing_spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          id_document_type: string | null
+          id_document_url: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_url: string | null
+          status: string
+          submitted_at: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          id_document_type?: string | null
+          id_document_url?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          id_document_type?: string | null
+          id_document_url?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
