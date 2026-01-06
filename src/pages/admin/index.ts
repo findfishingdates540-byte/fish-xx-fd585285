@@ -12,3 +12,4 @@ export { default as AdminAuditLogs } from './AdminAuditLogs';
 export { default as AdminAds } from './AdminAds';
 export { default as AdminAdAnalytics } from './AdminAdAnalytics';
 export { default as AdminVerifications } from './AdminVerifications';
+export { default as AdminSupportTickets } from './AdminSupportTickets';
