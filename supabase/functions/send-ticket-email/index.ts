@@ -10,7 +10,7 @@ const corsHeaders = {
 
 interface EmailRequest {
   ticketId: string;
-  type: "status_update" | "admin_response";
+  type: "status_update" | "admin_response" | "ticket_resolved" | "ticket_closed";
   message?: string;
   newStatus?: string;
 }
@@ -43,7 +43,44 @@ const handler = async (req: Request): Promise<Response> => {
     let emailSubject = "";
     let emailBody = "";
 
-    if (type === "status_update") {
+    if (type === "ticket_resolved") {
+      emailSubject = `Ticket #${ticket.ticket_number} - Issue Resolved ✓`;
+      emailBody = `
+        <html>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+            <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; background: #d1fae5; color: #065f46; padding: 12px 24px; border-radius: 50px; font-weight: 600;">
+                  ✓ Issue Resolved
+                </div>
+              </div>
+              <h2 style="color: #111827; margin-bottom: 16px;">Your Ticket Has Been Resolved</h2>
+              <p style="color: #374151;">Hi ${ticket.name},</p>
+              <p style="color: #374151;">Great news! Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${ticket.subject}</em>" has been resolved.</p>
+              ${message ? `<div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;"><p style="margin: 0; color: #166534; white-space: pre-wrap;">${message.replace(/\n/g, "<br>")}</p></div>` : ""}
+              <p style="color: #374151;">If you have any further questions or need additional assistance, feel free to open a new ticket.</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks for your patience,<br>Find Fishing Dates Team</p>
+            </div>
+          </body>
+        </html>
+      `;
+    } else if (type === "ticket_closed") {
+      emailSubject = `Ticket #${ticket.ticket_number} - Closed`;
+      emailBody = `
+        <html>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+            <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <h2 style="color: #111827; margin-bottom: 16px;">Your Ticket Has Been Closed</h2>
+              <p style="color: #374151;">Hi ${ticket.name},</p>
+              <p style="color: #374151;">Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${ticket.subject}</em>" has been closed.</p>
+              ${message ? `<div style="background: #f3f4f6; padding: 16px; margin: 20px 0; border-radius: 8px;"><p style="margin: 0; color: #374151; white-space: pre-wrap;">${message.replace(/\n/g, "<br>")}</p></div>` : ""}
+              <p style="color: #374151;">If you need further assistance, you can always submit a new support ticket.</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Find Fishing Dates Team</p>
+            </div>
+          </body>
+        </html>
+      `;
+    } else if (type === "status_update") {
       emailSubject = `Ticket #${ticket.ticket_number} - Status Update`;
       emailBody = `
         <html>
