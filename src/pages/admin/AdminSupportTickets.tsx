@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Search, Ticket, Clock, CheckCircle2, AlertCircle, MessageSquare, Filter
 import { useSupportTickets, useOpenTicketCount, type SupportTicket, type TicketFilters } from '@/hooks/use-support-tickets';
 import { TicketDetailModal } from '@/components/admin/TicketDetailModal';
 import { format } from 'date-fns';
-
+import { supabase } from '@/integrations/supabase/client';
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   open: { label: 'Open', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: AlertCircle },
   in_progress: { label: 'In Progress', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: Clock },
@@ -38,7 +38,30 @@ export default function AdminSupportTickets() {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   
   const { data: tickets, isLoading, refetch } = useSupportTickets(filters);
-  const { data: openCount } = useOpenTicketCount();
+  const { data: openCount, refetch: refetchOpenCount } = useOpenTicketCount();
+
+  // Real-time subscription for auto-updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('support-tickets-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_tickets'
+        },
+        () => {
+          refetch();
+          refetchOpenCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch, refetchOpenCount]);
 
   const handleSearch = () => {
     setFilters(prev => ({ ...prev, search: searchInput }));
