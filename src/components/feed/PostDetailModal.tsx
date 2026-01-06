@@ -204,9 +204,9 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
           </div>
 
           {/* Right side - Post info & Comments */}
-          <div className="w-[380px] flex flex-col bg-background border-l border-border">
+          <div className="w-[380px] flex flex-col bg-background border-l border-border overflow-hidden">
             {/* Post header */}
-            <div className="flex items-center gap-3 p-4 border-b border-border">
+            <div className="flex-shrink-0 flex items-center gap-3 p-4 border-b border-border">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={avatarUrl} alt={displayName} />
                 <AvatarFallback>
@@ -229,7 +229,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
             </div>
 
             {/* Caption and Comments */}
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 min-h-0">
               <div className="p-4 space-y-4">
                 {/* Post caption */}
                 {post.content && (
@@ -294,7 +294,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
             </ScrollArea>
 
             {/* Actions bar */}
-            <div className="p-4 border-t border-border">
+            <div className="flex-shrink-0 p-4 border-t border-border">
               <div className="flex items-center gap-4 mb-3">
                 <button
                   onClick={handleLike}
@@ -323,7 +323,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
             {/* Comment input */}
             {user ? (
-              <div className="p-4 border-t border-border relative">
+              <div className="flex-shrink-0 p-4 border-t border-border relative">
                 <AnimatePresence>
                   {replyingTo && (
                     <motion.div
