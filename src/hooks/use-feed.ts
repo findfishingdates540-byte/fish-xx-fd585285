@@ -78,9 +78,9 @@ export function useFeedPosts() {
       const userIds = [...new Set(posts.map(p => p.user_id))];
       const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
 
-      // Fetch profiles
+      // Fetch profiles using public_profiles view for privacy
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
 
@@ -176,9 +176,9 @@ export function useFeedComments(postId: string) {
       const userIds = [...new Set(comments.map(c => c.user_id))];
       const commentIds = comments.map(c => c.id);
 
-      // Fetch profiles
+      // Fetch profiles using public_profiles view for privacy
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
 
@@ -469,10 +469,9 @@ export function useMentionSuggestions() {
       if (!searchTerm || searchTerm.length < 2) return [];
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, display_name, photos')
         .ilike('display_name', `%${searchTerm}%`)
-        .eq('is_active', true)
         .limit(5);
 
       if (error) throw error;

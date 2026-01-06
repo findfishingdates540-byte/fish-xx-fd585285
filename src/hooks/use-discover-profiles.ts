@@ -28,10 +28,10 @@ interface UserPreferences {
 interface DiscoverProfile {
   id: string;
   display_name: string | null;
-  date_of_birth: string | null;
+  age: number | null;  // Pre-calculated by public_profiles view
   location_name: string | null;
-  location_lat: number | null;
-  location_lng: number | null;
+  city: string | null;
+  state: string | null;
   bio: string | null;
   photos: string[] | null;
   gender: string | null;
@@ -41,29 +41,12 @@ interface DiscoverProfile {
   id_verified: boolean | null;
   live_verified: boolean | null;
   is_active: boolean | null;
-  height_cm: number | null;
-  smoking: string | null;
-  drinking: string | null;
-  education: string | null;
-  occupation: string | null;
   zodiac_sign: string | null;
-  personality_type: string | null;
   interests: string[] | null;
   prompt_responses: { question: string; answer: string }[] | null;
 }
 
-// Calculate age from date of birth
-function calculateAge(dateOfBirth: string | null): number | null {
-  if (!dateOfBirth) return null;
-  const today = new Date();
-  const birth = new Date(dateOfBirth);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age;
-}
+// Age is pre-calculated by the public_profiles view, so calculateAge is no longer needed for display
 
 // Calculate distance between two coordinates in km
 function calculateDistance(
@@ -98,14 +81,10 @@ function mapToProfileData(
   userLat: number | null,
   userLng: number | null
 ): ProfileData {
-  const age = calculateAge(profile.date_of_birth);
-  const distanceKm = calculateDistance(
-    userLat,
-    userLng,
-    profile.location_lat,
-    profile.location_lng
-  );
-  const distanceMiles = distanceKm ? kmToMiles(distanceKm) : null;
+  // Age is pre-calculated by public_profiles view
+  const age = profile.age;
+  // Distance can't be calculated from public_profiles (no exact coordinates for privacy)
+  // We'll show location_name instead
 
   // Create tags from fishing data
   const tags: { icon: string; label: string }[] = [];
@@ -123,8 +102,8 @@ function mapToProfileData(
     id: profile.id,
     name: profile.display_name || 'Anonymous',
     age: age || undefined,
-    location: profile.location_name || 'Unknown location',
-    distance: distanceMiles ? `${distanceMiles} miles away` : 'Distance unknown',
+    location: profile.location_name || (profile.city && profile.state ? `${profile.city}, ${profile.state}` : 'Unknown location'),
+    distance: profile.location_name || (profile.city ? `Near ${profile.city}` : 'Location not shared'),
     bio: profile.bio || '',
     photos: profile.photos || [],
     fishingType: profile.fishing_experience || undefined,
@@ -157,13 +136,14 @@ function mapToProfileDetailData(
     idVerified: profile.id_verified || false,
     liveVerified: profile.live_verified || false,
     isActive: profile.is_active || false,
-    heightCm: profile.height_cm || undefined,
-    smoker: profile.smoking || undefined,
-    drinker: profile.drinking || undefined,
-    education: profile.education || undefined,
-    occupation: profile.occupation || undefined,
+    // These fields are not available in public_profiles for privacy
+    heightCm: undefined,
+    smoker: undefined,
+    drinker: undefined,
+    education: undefined,
+    occupation: undefined,
     zodiacSign: profile.zodiac_sign || undefined,
-    personalityType: profile.personality_type || undefined,
+    personalityType: undefined, // Not available in public_profiles for privacy
     targetSpecies: profile.preferred_species?.map(formatLabel).join(', ') || undefined,
     interests: (profile.interests || profile.preferred_species || []).map(formatLabel),
     promptResponses: promptResponses.filter(p => p.question && p.answer),
@@ -218,11 +198,11 @@ export function useDiscoverProfiles() {
     queryFn: async () => {
       if (!user?.id || !userPreferences) return [];
 
-      // Build the query
+      // Build the query using public_profiles view for privacy (excludes email, exact coords, etc.)
+      // Note: personality_type is not available in public_profiles view
       let query = supabase
-        .from('profiles')
-        .select('id, display_name, date_of_birth, location_name, location_lat, location_lng, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, id_verified, live_verified, is_active, height_cm, smoking, drinking, education, occupation, zodiac_sign, personality_type, interests, prompt_responses')
-        .eq('is_active', true)
+        .from('public_profiles')
+        .select('id, display_name, age, location_name, city, state, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, id_verified, live_verified, is_active, zodiac_sign, interests, prompt_responses')
         .neq('id', user.id)
         .not('photos', 'is', null);
 
@@ -253,29 +233,19 @@ export function useDiscoverProfiles() {
       
       if (error) throw error;
 
-      // Filter by age in memory (since we need to calculate from DOB)
+      // Filter by age in memory (age is pre-calculated in public_profiles view)
       const filtered = (data as DiscoverProfile[]).filter(profile => {
-        const age = calculateAge(profile.date_of_birth);
-        if (!age) return true; // Include if no DOB set
+        const age = profile.age;
+        if (!age) return true; // Include if no age set
         return age >= userPreferences.min_age_preference && 
                age <= userPreferences.max_age_preference;
       });
 
-      // Filter by distance in memory (user preference is in miles, convert to km for comparison)
-      const withDistance = filtered.filter(profile => {
-        const distanceKm = calculateDistance(
-          userPreferences.location_lat,
-          userPreferences.location_lng,
-          profile.location_lat,
-          profile.location_lng
-        );
-        if (!distanceKm) return true; // Include if no location set
-        // Convert user's max distance from miles to km for comparison
-        const maxDistanceKm = userPreferences.max_distance_miles * 1.60934;
-        return distanceKm <= maxDistanceKm;
-      });
+      // Note: Distance filtering is not possible with public_profiles view
+      // since exact coordinates are hidden for privacy. Users will see
+      // profiles from all locations.
 
-      return withDistance;
+      return filtered;
     },
     enabled: !!user?.id && !!userPreferences,
   });
@@ -285,10 +255,10 @@ export function useDiscoverProfiles() {
     mutationFn: async ({ targetUserId, liked, isSuperLike = false }: { targetUserId: string; liked: boolean; isSuperLike?: boolean }) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      // Get the target profile first for match celebration
+      // Get the target profile first for match celebration (using public_profiles for privacy)
       const { data: targetProfile } = await supabase
-        .from('profiles')
-        .select('id, display_name, date_of_birth, photos, bio, fishing_experience, location_name, location_lat, location_lng')
+        .from('public_profiles')
+        .select('id, display_name, age, photos, bio, fishing_experience, location_name')
         .eq('id', targetUserId)
         .maybeSingle();
 
@@ -338,15 +308,7 @@ export function useDiscoverProfiles() {
         matchId = newMatch.id;
       }
 
-      // Calculate distance for matched profile
-      const distanceKm = userPreferences ? calculateDistance(
-        userPreferences.location_lat,
-        userPreferences.location_lng,
-        targetProfile?.location_lat || null,
-        targetProfile?.location_lng || null
-      ) : null;
-      const distanceMiles = distanceKm ? kmToMiles(distanceKm) : null;
-
+      // Distance info from public_profiles (no exact coordinates for privacy)
       return { 
         isMatch, 
         targetUserId, 
@@ -355,9 +317,9 @@ export function useDiscoverProfiles() {
           id: targetProfile.id,
           matchId,
           name: targetProfile.display_name || 'Anonymous',
-          age: calculateAge(targetProfile.date_of_birth),
+          age: targetProfile.age,
           photo: targetProfile.photos?.[0] || '',
-          distance: distanceMiles ? `${distanceMiles} miles away` : undefined,
+          distance: targetProfile.location_name || undefined,
           fishingType: targetProfile.fishing_experience || undefined,
           bio: targetProfile.bio || undefined,
         } : null

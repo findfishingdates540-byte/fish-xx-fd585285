@@ -141,9 +141,9 @@ export function useDatingChat(matchId: string | undefined) {
 
       const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
 
-      // Get the other user's profile
+      // Get the other user's profile using public_profiles view for privacy
       const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, display_name, photos, bio, location_name, preferred_species, id_verified, live_verified')
         .eq('id', otherUserId)
         .maybeSingle();

@@ -24,8 +24,9 @@ export default function UserProfile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile', userId],
     queryFn: async () => {
+      // Use public_profiles view for privacy when viewing other users
       const { data, error } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('*')
         .eq('id', userId)
         .single();
