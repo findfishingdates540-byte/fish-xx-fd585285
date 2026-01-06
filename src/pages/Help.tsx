@@ -369,7 +369,7 @@ const Help = () => {
                 </Button>
               </Link>
               <a href="mailto:support@findfishingdates.com">
-                <Button size="lg" variant="outline" className="border-background/20 text-background hover:bg-background/10 font-semibold rounded-full px-10 py-6">
+                <Button size="lg" variant="outline" className="border-background bg-transparent text-background hover:bg-background/10 font-semibold rounded-full px-10 py-6">
                   Email Us
                 </Button>
               </a>
