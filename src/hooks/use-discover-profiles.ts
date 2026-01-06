@@ -38,7 +38,8 @@ interface DiscoverProfile {
   fishing_experience: string | null;
   preferred_species: string[] | null;
   fishing_gear: string[] | null;
-  is_verified: boolean | null;
+  id_verified: boolean | null;
+  live_verified: boolean | null;
   is_active: boolean | null;
   height_cm: number | null;
   smoking: string | null;
@@ -151,7 +152,8 @@ function mapToProfileDetailData(
   
   return {
     ...basicData,
-    isVerified: profile.is_verified || false,
+    idVerified: profile.id_verified || false,
+    liveVerified: profile.live_verified || false,
     isActive: profile.is_active || false,
     heightCm: profile.height_cm || undefined,
     smoker: profile.smoking || undefined,
@@ -217,7 +219,7 @@ export function useDiscoverProfiles() {
       // Build the query
       let query = supabase
         .from('profiles')
-        .select('id, display_name, date_of_birth, location_name, location_lat, location_lng, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, is_verified, is_active, height_cm, smoking, drinking, education, occupation, zodiac_sign, personality_type, interests, prompt_responses')
+        .select('id, display_name, date_of_birth, location_name, location_lat, location_lng, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, id_verified, live_verified, is_active, height_cm, smoking, drinking, education, occupation, zodiac_sign, personality_type, interests, prompt_responses')
         .eq('is_active', true)
         .neq('id', user.id)
         .not('photos', 'is', null);

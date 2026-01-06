@@ -23,6 +23,11 @@ interface AdminUser {
   date_of_birth: string | null;
   onboarding_completed: boolean | null;
   last_active_at: string | null;
+  id_verified: boolean | null;
+  id_verified_at: string | null;
+  live_verified: boolean | null;
+  live_verified_at: string | null;
+  verification_notes: string | null;
 }
 
 export function useAdminUsers(search?: string) {

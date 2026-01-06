@@ -30,6 +30,8 @@ const actionLabels: Record<AuditAction, { label: string; color: string }> = {
   role_changed: { label: 'Role Changed', color: 'bg-purple-500/20 text-purple-400' },
   premium_granted: { label: 'Premium Granted', color: 'bg-amber-500/20 text-amber-400' },
   premium_revoked: { label: 'Premium Revoked', color: 'bg-orange-500/20 text-orange-400' },
+  verification_granted: { label: 'Verification Granted', color: 'bg-blue-500/20 text-blue-400' },
+  verification_revoked: { label: 'Verification Revoked', color: 'bg-slate-500/20 text-slate-400' },
   setting_updated: { label: 'Setting Updated', color: 'bg-blue-500/20 text-blue-400' },
   spot_created: { label: 'Spot Created', color: 'bg-green-500/20 text-green-400' },
   spot_updated: { label: 'Spot Updated', color: 'bg-blue-500/20 text-blue-400' },

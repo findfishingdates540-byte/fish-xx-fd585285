@@ -198,7 +198,8 @@ export default function Matches() {
                     age={match.age || 0}
                     photo={match.photo}
                     bio={match.bio}
-                    isVerified={match.isVerified}
+                    idVerified={match.idVerified}
+                    liveVerified={match.liveVerified}
                     isNew={match.isNew}
                     status={online ? 'online' : 'offline'}
                     lastSeen={!online ? formatLastSeen(lastSeen) || undefined : undefined}

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { X, Heart, MapPin, Camera, ChevronLeft, ChevronRight, Shield, Flag, Fish, Trophy, Anchor, CheckCircle, Ruler, Wine, Cigarette, GraduationCap, Briefcase, Star, Brain, MessageCircle } from 'lucide-react';
+import { X, Heart, MapPin, Camera, ChevronLeft, ChevronRight, Shield, Flag, Fish, Trophy, Anchor, Ruler, Wine, Cigarette, GraduationCap, Briefcase, Star, Brain, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProfilePrompt } from '@/components/profile';
+import { VerificationBadge } from '@/components/ui/verification-badge';
 
 export interface ProfileDetailData {
   id: string;
@@ -14,7 +15,8 @@ export interface ProfileDetailData {
   distance: string;
   bio: string;
   photos: string[];
-  isVerified?: boolean;
+  idVerified?: boolean;
+  liveVerified?: boolean;
   isActive?: boolean;
   height?: string;
   heightCm?: number;
@@ -132,9 +134,7 @@ export function ProfileDetailView({ profile, onClose, onPass, onSuperLike, onLik
                 <div>
                   <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-bold">{profile.name}{profile.age ? `, ${profile.age}` : ''}</h1>
-                    {profile.isVerified && (
-                      <CheckCircle className="h-5 w-5 text-primary fill-primary/20" />
-                    )}
+                    <VerificationBadge idVerified={profile.idVerified} liveVerified={profile.liveVerified} size="lg" />
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1">
                     <MapPin className="h-4 w-4" />
@@ -195,11 +195,13 @@ export function ProfileDetailView({ profile, onClose, onPass, onSuperLike, onLik
             </div>
 
             {/* Verification Notice */}
-            {profile.isVerified && (
+            {(profile.idVerified || profile.liveVerified) && (
               <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3">
                 <Shield className="h-5 w-5 text-primary mt-0.5" />
                 <div>
-                  <p className="font-medium text-primary text-sm">Catch with Confidence</p>
+                  <p className="font-medium text-primary text-sm">
+                    {profile.liveVerified ? 'Live Verified' : 'ID Verified'}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {profile.name}'s profile is verified. Remember to stay safe and meet in public places for your first date.
                   </p>

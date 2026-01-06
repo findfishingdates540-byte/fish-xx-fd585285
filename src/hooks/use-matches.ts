@@ -9,7 +9,8 @@ export interface MatchProfile {
   age: number | null;
   photo: string;
   bio: string;
-  isVerified: boolean;
+  idVerified: boolean;
+  liveVerified: boolean;
   isNew: boolean;
   matchedAt: string | null;
 }
@@ -63,7 +64,7 @@ export function useMatches() {
       // Fetch profiles for all matched users
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select('id, display_name, date_of_birth, bio, photos, is_verified, is_active')
+        .select('id, display_name, date_of_birth, bio, photos, id_verified, live_verified, is_active')
         .in('id', otherUserIds)
         .eq('is_active', true);
 
@@ -88,7 +89,8 @@ export function useMatches() {
             age: calculateAge(profile.date_of_birth),
             photo: profile.photos?.[0] || '',
             bio: profile.bio || '',
-            isVerified: profile.is_verified || false,
+            idVerified: profile.id_verified || false,
+            liveVerified: profile.live_verified || false,
             isNew: isNewMatch(match.matched_at, viewedAt),
             matchedAt: match.matched_at,
           };
