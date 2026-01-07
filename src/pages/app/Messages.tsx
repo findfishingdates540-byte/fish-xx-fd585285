@@ -198,7 +198,7 @@ export default function Messages() {
                 )}>
                   {convo.lastMessage}
                 </p>
-                {convo.unreadCount && convo.unreadCount > 0 && (
+                {convo.unreadCount > 0 && (
                   <div className="flex-shrink-0 h-5 min-w-[20px] bg-primary rounded-full flex items-center justify-center">
                     <span className="text-xs font-bold text-primary-foreground px-1.5">
                       {convo.unreadCount > 9 ? '9+' : convo.unreadCount}
