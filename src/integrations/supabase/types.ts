@@ -1683,6 +1683,8 @@ export type Database = {
           is_verified: boolean | null
           last_active_at: string | null
           live_verified: boolean | null
+          location_lat: number | null
+          location_lng: number | null
           location_name: string | null
           looking_for: Database["public"]["Enums"]["looking_for_type"][] | null
           matching_style: Database["public"]["Enums"]["matching_style"] | null
@@ -1727,6 +1729,8 @@ export type Database = {
           is_verified?: boolean | null
           last_active_at?: string | null
           live_verified?: boolean | null
+          location_lat?: number | null
+          location_lng?: number | null
           location_name?: string | null
           looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
           matching_style?: Database["public"]["Enums"]["matching_style"] | null
@@ -1771,6 +1775,8 @@ export type Database = {
           is_verified?: boolean | null
           last_active_at?: string | null
           live_verified?: boolean | null
+          location_lat?: number | null
+          location_lng?: number | null
           location_name?: string | null
           looking_for?: Database["public"]["Enums"]["looking_for_type"][] | null
           matching_style?: Database["public"]["Enums"]["matching_style"] | null

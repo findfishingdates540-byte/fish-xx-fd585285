@@ -890,15 +890,20 @@ export default function Settings() {
                     <div>
                       <div className="flex justify-between items-center mb-3">
                         <Label>Maximum Distance</Label>
-                        <span className="text-sm text-muted-foreground">{maxDistance} miles</span>
+                        <span className="text-sm text-muted-foreground">
+                          {maxDistance >= 500 ? 'Unlimited' : `${maxDistance} miles`}
+                        </span>
                       </div>
                       <Slider
                         value={[maxDistance]}
                         onValueChange={(v) => setMaxDistance(v[0])}
                         min={5}
-                        max={200}
+                        max={500}
                         step={5}
                       />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Slide to max for unlimited distance
+                      </p>
                     </div>
 
                     <div>
