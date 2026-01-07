@@ -51,6 +51,9 @@ interface DiscoverProfile {
   education: string | null;
   occupation: string | null;
   personality_type: string | null;
+  // Coordinates for distance calculation (not displayed in UI)
+  location_lat: number | null;
+  location_lng: number | null;
 }
 
 // Age is pre-calculated by the public_profiles view, so calculateAge is no longer needed for display
@@ -90,8 +93,16 @@ function mapToProfileData(
 ): ProfileData {
   // Age is pre-calculated by public_profiles view
   const age = profile.age;
-  // Distance can't be calculated from public_profiles (no exact coordinates for privacy)
-  // We'll show location_name instead
+  
+  // Calculate distance if coordinates available
+  let distanceText = profile.location_name || (profile.city ? `Near ${profile.city}` : 'Location not shared');
+  if (userLat && userLng && profile.location_lat && profile.location_lng) {
+    const distanceKm = calculateDistance(userLat, userLng, profile.location_lat, profile.location_lng);
+    if (distanceKm !== null) {
+      const distanceMiles = kmToMiles(distanceKm);
+      distanceText = `${distanceMiles} miles away`;
+    }
+  }
 
   // Create tags from fishing data
   const tags: { icon: string; label: string }[] = [];
@@ -110,7 +121,7 @@ function mapToProfileData(
     name: profile.display_name || 'Anonymous',
     age: age || undefined,
     location: profile.location_name || (profile.city && profile.state ? `${profile.city}, ${profile.state}` : 'Unknown location'),
-    distance: profile.location_name || (profile.city ? `Near ${profile.city}` : 'Location not shared'),
+    distance: distanceText,
     bio: profile.bio || '',
     photos: profile.photos || [],
     fishingType: profile.fishing_experience || undefined,
@@ -209,7 +220,7 @@ export function useDiscoverProfiles() {
       // Note: personality_type is not available in public_profiles view
       let query = supabase
         .from('public_profiles')
-        .select('id, display_name, age, location_name, city, state, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, id_verified, live_verified, is_active, zodiac_sign, interests, prompt_responses, height_cm, smoking, drinking, education, occupation, personality_type')
+        .select('id, display_name, age, location_name, city, state, bio, photos, gender, fishing_experience, preferred_species, fishing_gear, id_verified, live_verified, is_active, zodiac_sign, interests, prompt_responses, height_cm, smoking, drinking, education, occupation, personality_type, location_lat, location_lng')
         .neq('id', user.id)
         .not('photos', 'is', null);
 
@@ -236,21 +247,35 @@ export function useDiscoverProfiles() {
         query = query.not('id', 'in', `(${excludeIds.join(',')})`);
       }
 
-      const { data, error } = await query.limit(20);
+      const { data, error } = await query.limit(50);
       
       if (error) throw error;
 
-      // Filter by age in memory (age is pre-calculated in public_profiles view)
-      const filtered = (data as DiscoverProfile[]).filter(profile => {
-        const age = profile.age;
-        if (!age) return true; // Include if no age set
-        return age >= userPreferences.min_age_preference && 
-               age <= userPreferences.max_age_preference;
-      });
+      const userLat = userPreferences.location_lat;
+      const userLng = userPreferences.location_lng;
+      const maxDistanceMiles = userPreferences.max_distance_miles || 50;
 
-      // Note: Distance filtering is not possible with public_profiles view
-      // since exact coordinates are hidden for privacy. Users will see
-      // profiles from all locations.
+      // Filter by age and distance in memory
+      const filtered = (data as DiscoverProfile[]).filter(profile => {
+        // Age filter
+        const age = profile.age;
+        if (age && (age < userPreferences.min_age_preference || age > userPreferences.max_age_preference)) {
+          return false;
+        }
+        
+        // Distance filter (500+ miles = unlimited)
+        if (maxDistanceMiles < 500 && userLat && userLng && profile.location_lat && profile.location_lng) {
+          const distanceKm = calculateDistance(userLat, userLng, profile.location_lat, profile.location_lng);
+          if (distanceKm !== null) {
+            const distanceMiles = kmToMiles(distanceKm);
+            if (distanceMiles > maxDistanceMiles) {
+              return false;
+            }
+          }
+        }
+        
+        return true;
+      });
 
       return filtered;
     },
