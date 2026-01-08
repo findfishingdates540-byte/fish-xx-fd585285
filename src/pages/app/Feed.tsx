@@ -2,10 +2,11 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FeedPost, CreatePostDialog, SponsoredPost } from '@/components/feed';
 import { FeedLeftSidebar } from '@/components/feed/FeedLeftSidebar';
 import { FeedRightSidebar } from '@/components/feed/FeedRightSidebar';
-import { useFeedPosts, type FeedPost as FeedPostType } from '@/hooks/use-feed';
+import { useFeedPosts, useFollowingFeedPosts, type FeedPost as FeedPostType } from '@/hooks/use-feed';
 import { useActiveAds, type Advertisement } from '@/hooks/use-admin-ads';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,15 +17,22 @@ type FeedItem =
   | { type: 'post'; data: FeedPostType }
   | { type: 'ad'; data: Advertisement };
 
+type FeedFilter = 'for-you' | 'following';
+
 export default function Feed() {
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [feedFilter, setFeedFilter] = useState<FeedFilter>('for-you');
   const [searchParams] = useSearchParams();
   const highlightedPostId = searchParams.get('post');
   const highlightedCommentId = searchParams.get('comment');
   const postRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { user } = useAuth();
-  const { data: posts = [], isLoading: postsLoading, refetch } = useFeedPosts();
+  const { data: forYouPosts = [], isLoading: forYouLoading, refetch: refetchForYou } = useFeedPosts();
+  const { data: followingPosts = [], isLoading: followingLoading, refetch: refetchFollowing } = useFollowingFeedPosts();
   const queryClient = useQueryClient();
+  
+  const posts = feedFilter === 'for-you' ? forYouPosts : followingPosts;
+  const postsLoading = feedFilter === 'for-you' ? forYouLoading : followingLoading;
 
   // Fetch user profile for ad targeting
   const { data: userProfile } = useQuery({
@@ -113,7 +121,11 @@ export default function Feed() {
   }, [highlightedPostId, postsLoading, posts]);
 
   const handleRefresh = async () => {
-    await refetch();
+    if (feedFilter === 'for-you') {
+      await refetchForYou();
+    } else {
+      await refetchFollowing();
+    }
   };
 
   return (
@@ -130,6 +142,16 @@ export default function Feed() {
             <main className="lg:col-span-6">
               <PullToRefresh onRefresh={handleRefresh}>
                 <div className="space-y-4">
+                  {/* Feed Tabs */}
+                  {user && (
+                    <Tabs value={feedFilter} onValueChange={(v) => setFeedFilter(v as FeedFilter)} className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="for-you">For You</TabsTrigger>
+                        <TabsTrigger value="following">Following</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  )}
+
                   {/* Create post button */}
                   {user && (
                     <Button 
