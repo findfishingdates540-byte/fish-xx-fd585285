@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const likePost = useLikePost();
   const deletePost = useDeletePost();
   const isMobile = useIsMobile();
-
+  const navigate = useNavigate();
   const avatarUrl = post.profile?.photos?.[0];
   const displayName = post.profile?.display_name || 'Anonymous';
   const isOwnPost = user?.id === post.user_id;
@@ -99,14 +100,20 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
       >
         {/* Header */}
         <div className="flex items-start justify-between p-4 pb-3">
-          <div className="flex items-center gap-3">
+          <button 
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/app/u/${post.user_id}`);
+            }}
+          >
             <Avatar className="h-10 w-10">
               <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback>
                 <User className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="text-left">
               <p className="font-semibold text-sm flex items-center gap-1">
                 {displayName}
                 <VerificationBadge 
@@ -120,7 +127,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                 {post.location_name && ` • ${post.location_name}`}
               </p>
             </div>
-          </div>
+          </button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>

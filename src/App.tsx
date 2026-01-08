@@ -110,7 +110,8 @@ const App = () => (
               <Route path="u/:userId" element={<SocialProfile />} />
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
-              <Route path="profile/:userId" element={<UserProfile />} />
+              <Route path="profile/:userId" element={<Navigate to="/app/u/:userId" replace />} />
+              <Route path="user/:userId" element={<Navigate to="/app/u/:userId" replace />} />
               <Route path="settings" element={<Settings />} />
             </Route>
 

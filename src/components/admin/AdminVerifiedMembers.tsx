@@ -277,7 +277,7 @@ export function AdminVerifiedMembers() {
                         variant="ghost"
                         size="sm"
                         className="text-slate-400 hover:text-white"
-                        onClick={() => window.open(`/app/profile/${member.id}`, "_blank")}
+                        onClick={() => window.open(`/app/u/${member.id}`, "_blank")}
                         title="View Profile"
                       >
                         <ExternalLink className="w-4 h-4" />

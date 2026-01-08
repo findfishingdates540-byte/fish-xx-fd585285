@@ -160,7 +160,7 @@ export function FeedLeftSidebar() {
             {buddies.slice(0, 6).map((buddy) => (
               <Link
                 key={buddy.id}
-                to={`/app/user/${buddy.id}`}
+                to={`/app/u/${buddy.id}`}
                 className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted transition-colors"
               >
                 <div className="relative">
