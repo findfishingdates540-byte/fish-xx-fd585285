@@ -119,6 +119,72 @@ export function useFeedPosts() {
   });
 }
 
+export function useFollowingFeedPosts() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['feed-posts-following', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // Get users that the current user follows
+      const { data: following } = await supabase
+        .from('user_follows')
+        .select('following_id')
+        .eq('follower_id', user.id);
+      
+      const followingIds = following?.map(f => f.following_id) || [];
+      if (followingIds.length === 0) return [];
+      
+      // Get posts from followed users
+      const { data: posts, error } = await supabase
+        .from('feed_posts')
+        .select('*')
+        .in('user_id', followingIds)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      if (!posts || posts.length === 0) return [];
+
+      const userIds = [...new Set(posts.map(p => p.user_id))];
+      const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
+
+      const { data: profiles } = await supabase
+        .from('public_profiles')
+        .select('id, display_name, photos, id_verified, live_verified')
+        .in('id', userIds);
+
+      let catches: any[] = [];
+      if (catchIds.length > 0) {
+        const { data: catchData } = await supabase
+          .from('catches')
+          .select('id, species_name, weight_lbs, length_in, photos')
+          .in('id', catchIds);
+        catches = catchData || [];
+      }
+
+      const { data: likes } = await supabase
+        .from('feed_likes')
+        .select('post_id')
+        .eq('user_id', user.id);
+      
+      const userLikes = likes?.map(l => l.post_id) || [];
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]));
+      const catchMap = new Map(catches.map(c => [c.id, c]));
+
+      return posts.map(post => ({
+        ...post,
+        profile: profileMap.get(post.user_id) || null,
+        catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
+        user_has_liked: userLikes.includes(post.id)
+      })) as FeedPost[];
+    },
+    enabled: !!user?.id,
+  });
+}
+
 export function useFeedComments(postId: string) {
   const queryClient = useQueryClient();
 

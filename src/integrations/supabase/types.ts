@@ -1016,6 +1016,8 @@ export type Database = {
             | null
           fishing_gear: string[] | null
           fishing_styles: string[] | null
+          followers_count: number | null
+          following_count: number | null
           gender: Database["public"]["Enums"]["gender_type"] | null
           height_cm: number | null
           id: string
@@ -1054,6 +1056,7 @@ export type Database = {
           smoking: Database["public"]["Enums"]["smoking_habit"] | null
           state: string | null
           stripe_customer_id: string | null
+          total_likes_received: number | null
           updated_at: string
           verification_notes: string | null
           verification_reminder_sent_at: string | null
@@ -1076,6 +1079,8 @@ export type Database = {
             | null
           fishing_gear?: string[] | null
           fishing_styles?: string[] | null
+          followers_count?: number | null
+          following_count?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id: string
@@ -1114,6 +1119,7 @@ export type Database = {
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
           stripe_customer_id?: string | null
+          total_likes_received?: number | null
           updated_at?: string
           verification_notes?: string | null
           verification_reminder_sent_at?: string | null
@@ -1136,6 +1142,8 @@ export type Database = {
             | null
           fishing_gear?: string[] | null
           fishing_styles?: string[] | null
+          followers_count?: number | null
+          following_count?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string
@@ -1174,6 +1182,7 @@ export type Database = {
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
           stripe_customer_id?: string | null
+          total_likes_received?: number | null
           updated_at?: string
           verification_notes?: string | null
           verification_reminder_sent_at?: string | null
@@ -1547,6 +1556,56 @@ export type Database = {
           },
         ]
       }
+      user_follows: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1675,6 +1734,8 @@ export type Database = {
             | null
           fishing_gear: string[] | null
           fishing_styles: string[] | null
+          followers_count: number | null
+          following_count: number | null
           gender: Database["public"]["Enums"]["gender_type"] | null
           height_cm: number | null
           id: string | null
@@ -1705,6 +1766,7 @@ export type Database = {
           prompt_responses: Json | null
           smoking: Database["public"]["Enums"]["smoking_habit"] | null
           state: string | null
+          total_likes_received: number | null
           zodiac_sign: string | null
         }
         Insert: {
@@ -1722,6 +1784,8 @@ export type Database = {
             | null
           fishing_gear?: string[] | null
           fishing_styles?: string[] | null
+          followers_count?: number | null
+          following_count?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string | null
@@ -1752,6 +1816,7 @@ export type Database = {
           prompt_responses?: Json | null
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
+          total_likes_received?: number | null
           zodiac_sign?: string | null
         }
         Update: {
@@ -1769,6 +1834,8 @@ export type Database = {
             | null
           fishing_gear?: string[] | null
           fishing_styles?: string[] | null
+          followers_count?: number | null
+          following_count?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string | null
@@ -1799,6 +1866,7 @@ export type Database = {
           prompt_responses?: Json | null
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
+          total_likes_received?: number | null
           zodiac_sign?: string | null
         }
         Relationships: []
