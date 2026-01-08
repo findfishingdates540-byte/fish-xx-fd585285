@@ -42,7 +42,19 @@ import {
   Briefcase,
   Star,
   Brain,
-  MessageCircle
+  MessageCircle,
+  Fish,
+  Anchor,
+  Box,
+  Radar,
+  Ship,
+  Footprints,
+  Bug,
+  Snowflake,
+  Target,
+  Wind,
+  Waves,
+  Check
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -102,6 +114,11 @@ export default function ProfileEdit() {
   const [interests, setInterests] = useState<string[]>([]);
   const [promptResponses, setPromptResponses] = useState<ProfilePrompt[]>([]);
   
+  // Fishing profile state
+  const [preferredSpecies, setPreferredSpecies] = useState<string[]>([]);
+  const [fishingGear, setFishingGear] = useState<string[]>([]);
+  const [fishSpeciesList, setFishSpeciesList] = useState<{ id: string; name: string }[]>([]);
+  
   // Crop modal state
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
@@ -110,8 +127,20 @@ export default function ProfileEdit() {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchFishSpecies();
     }
   }, [user]);
+
+  const fetchFishSpecies = async () => {
+    const { data, error } = await supabase
+      .from("fish_species")
+      .select("id, name")
+      .order("name");
+    
+    if (!error && data) {
+      setFishSpeciesList(data);
+    }
+  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -155,6 +184,8 @@ export default function ProfileEdit() {
       setPersonalityType((data as any).personality_type || null);
       setInterests((data as any).interests || []);
       setPromptResponses((data as any).prompt_responses || []);
+      setPreferredSpecies((data as any).preferred_species || []);
+      setFishingGear((data as any).fishing_gear || []);
     }
     setLoading(false);
   };
@@ -473,6 +504,8 @@ export default function ProfileEdit() {
         personality_type: personalityType,
         interests: interests,
         prompt_responses: promptResponses,
+        preferred_species: preferredSpecies,
+        fishing_gear: fishingGear,
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
@@ -943,6 +976,114 @@ export default function ProfileEdit() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Fishing Profile - Only show for fishing or both modes */}
+            {(accountMode === "fishing" || accountMode === "both") && (
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Fish className="h-5 w-5 text-primary" />
+                    Fishing Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Target Species */}
+                  <div>
+                    <Label className="text-sm font-medium mb-1 block">Target Species</Label>
+                    <p className="text-xs text-muted-foreground mb-3">What fish do you like to catch?</p>
+                    <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto p-1">
+                      {fishSpeciesList.map((species) => {
+                        const isSelected = preferredSpecies.includes(species.name);
+                        return (
+                          <button
+                            key={species.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setPreferredSpecies(preferredSpecies.filter(s => s !== species.name));
+                              } else {
+                                setPreferredSpecies([...preferredSpecies, species.name]);
+                              }
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80 text-foreground"
+                            }`}
+                          >
+                            {isSelected && <Check className="h-3 w-3" />}
+                            {species.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {preferredSpecies.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {preferredSpecies.length} species selected
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Fishing Gear */}
+                  <div>
+                    <Label className="text-sm font-medium mb-1 block">Fishing Gear</Label>
+                    <p className="text-xs text-muted-foreground mb-3">What equipment do you have?</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[
+                        { id: 'spinning_rod', label: 'Spinning Rod', icon: Target },
+                        { id: 'baitcasting_rod', label: 'Baitcasting Rod', icon: Target },
+                        { id: 'fly_rod', label: 'Fly Rod', icon: Wind },
+                        { id: 'trolling_setup', label: 'Trolling Setup', icon: Anchor },
+                        { id: 'ice_fishing_gear', label: 'Ice Fishing Gear', icon: Snowflake },
+                        { id: 'tackle_box', label: 'Tackle Box', icon: Box },
+                        { id: 'fish_finder', label: 'Fish Finder', icon: Radar },
+                        { id: 'kayak', label: 'Kayak', icon: Waves },
+                        { id: 'boat', label: 'Boat', icon: Ship },
+                        { id: 'waders', label: 'Waders', icon: Footprints },
+                        { id: 'live_bait', label: 'Live Bait', icon: Bug },
+                        { id: 'lures', label: 'Lures', icon: Sparkles },
+                      ].map((gear) => {
+                        const isSelected = fishingGear.includes(gear.id);
+                        const Icon = gear.icon;
+                        return (
+                          <button
+                            key={gear.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setFishingGear(fishingGear.filter(g => g !== gear.id));
+                              } else {
+                                setFishingGear([...fishingGear, gear.id]);
+                              }
+                            }}
+                            className={`relative p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1.5 text-center ${
+                              isSelected
+                                ? "border-primary bg-primary/10"
+                                : "border-border hover:border-primary/50 hover:bg-accent/50"
+                            }`}
+                          >
+                            {isSelected && (
+                              <div className="absolute top-1.5 right-1.5">
+                                <Check className="h-3 w-3 text-primary" />
+                              </div>
+                            )}
+                            <Icon className={`h-5 w-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className={`text-xs font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
+                              {gear.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {fishingGear.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {fishingGear.length} gear item{fishingGear.length !== 1 ? 's' : ''} selected
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Interests & Hobbies */}
             <Card>
