@@ -310,14 +310,28 @@ export default function UserProfile() {
               </div>
             )}
 
+            {/* Fishing Styles */}
+            {profile.fishing_styles && profile.fishing_styles.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold mb-3">Fishing Styles</h2>
+                <div className="flex flex-wrap gap-2">
+                  {profile.fishing_styles.map((style: string) => (
+                    <Badge key={style} variant="secondary" className="px-3 py-1.5">
+                      {style}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Fishing Gear */}
             {profile.fishing_gear && profile.fishing_gear.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold mb-3">Fishing Gear</h2>
                 <div className="flex flex-wrap gap-2">
                   {profile.fishing_gear.map((gear: string) => (
-                    <Badge key={gear} variant="secondary" className="px-3 py-1.5">
-                      {gear}
+                    <Badge key={gear} variant="outline" className="px-3 py-1.5">
+                      {gear.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                     </Badge>
                   ))}
                 </div>
