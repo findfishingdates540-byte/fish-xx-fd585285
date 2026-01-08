@@ -1674,6 +1674,7 @@ export type Database = {
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear: string[] | null
+          fishing_styles: string[] | null
           gender: Database["public"]["Enums"]["gender_type"] | null
           height_cm: number | null
           id: string | null
@@ -1720,6 +1721,7 @@ export type Database = {
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear?: string[] | null
+          fishing_styles?: string[] | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string | null
@@ -1766,6 +1768,7 @@ export type Database = {
             | Database["public"]["Enums"]["fishing_experience"]
             | null
           fishing_gear?: string[] | null
+          fishing_styles?: string[] | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           height_cm?: number | null
           id?: string | null

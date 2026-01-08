@@ -14,6 +14,7 @@ interface BuddyCardProps {
     photos: string[] | null;
     location_name: string | null;
     fishing_experience: string | null;
+    fishing_styles?: string[] | null;
     preferred_species: string[] | null;
     bio: string | null;
     id_verified?: boolean;
@@ -41,7 +42,15 @@ export function BuddyCard({
   const experienceLabels: Record<string, string> = {
     beginner: 'Beginner',
     intermediate: 'Intermediate',
+    advanced: 'Advanced',
     expert: 'Expert'
+  };
+
+  const experienceColors: Record<string, string> = {
+    beginner: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30',
+    intermediate: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30',
+    advanced: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30',
+    expert: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
   };
 
   const formatSpecies = (species: string) => {
@@ -82,10 +91,10 @@ export function BuddyCard({
         ) : null}
         {profile.fishing_experience && (
           <Badge 
-            variant="secondary" 
-            className="absolute top-2 right-2 bg-background/90 text-foreground hover:bg-primary hover:text-primary-foreground transition-colors group/badge"
+            variant="outline" 
+            className={`absolute top-2 right-2 border ${experienceColors[profile.fishing_experience] || 'bg-background/90'}`}
           >
-            <Award className="w-3 h-3 mr-1 text-foreground group-hover/badge:text-primary-foreground transition-colors" />
+            <Award className="w-3 h-3 mr-1" />
             {experienceLabels[profile.fishing_experience] || profile.fishing_experience}
           </Badge>
         )}
@@ -123,6 +132,23 @@ export function BuddyCard({
           </p>
         )}
 
+        {/* Fishing Styles */}
+        {profile.fishing_styles && profile.fishing_styles.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {profile.fishing_styles.slice(0, 2).map((style) => (
+              <Badge key={style} variant="secondary" className="text-xs">
+                {style}
+              </Badge>
+            ))}
+            {profile.fishing_styles.length > 2 && (
+              <Badge variant="secondary" className="text-xs">
+                +{profile.fishing_styles.length - 2}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Preferred Species */}
         {profile.preferred_species && profile.preferred_species.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {profile.preferred_species.slice(0, 3).map((species) => (
