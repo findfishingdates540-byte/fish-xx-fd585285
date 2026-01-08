@@ -339,8 +339,18 @@ export default function Onboarding() {
 
       if (accountMode === 'fishing' || accountMode === 'both') {
         updateData.fishing_experience = fishingExperience;
-        updateData.preferred_species = selectedStyles;
+        // Filter to only include actual fishing styles, not dating interests
+        const fishingStyleIds = ['fly_fishing', 'deep_sea', 'kayak_fishing', 'catch_and_cook', 'ice_fishing', 'bass_fishing'];
+        const actualFishingStyles = selectedStyles.filter(s => fishingStyleIds.includes(s));
+        updateData.preferred_species = actualFishingStyles;
         updateData.fishing_gear = selectedActivities;
+      }
+
+      // Save dating interests separately
+      if (accountMode === 'dating' || accountMode === 'both') {
+        const datingInterestIds = ['music', 'movies', 'fitness', 'art', 'gaming', 'reading'];
+        const actualDatingInterests = selectedStyles.filter(s => datingInterestIds.includes(s));
+        updateData.interests = actualDatingInterests;
       }
 
       // Debug mode: Log all form values before submission
