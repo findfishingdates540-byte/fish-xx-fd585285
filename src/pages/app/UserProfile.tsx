@@ -298,7 +298,9 @@ export default function UserProfile() {
                           <Fish className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{species}</p>
+                          <p className="font-medium text-sm">
+                            {species.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                          </p>
                           <p className="text-xs text-muted-foreground">Target species</p>
                         </div>
                       </CardContent>
