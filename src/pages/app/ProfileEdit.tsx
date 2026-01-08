@@ -117,6 +117,8 @@ export default function ProfileEdit() {
   // Fishing profile state
   const [preferredSpecies, setPreferredSpecies] = useState<string[]>([]);
   const [fishingGear, setFishingGear] = useState<string[]>([]);
+  const [fishingStyles, setFishingStyles] = useState<string[]>([]);
+  const [fishingExperience, setFishingExperience] = useState<string>("");
   const [fishSpeciesList, setFishSpeciesList] = useState<{ id: string; name: string }[]>([]);
   
   // Crop modal state
@@ -186,6 +188,8 @@ export default function ProfileEdit() {
       setPromptResponses((data as any).prompt_responses || []);
       setPreferredSpecies((data as any).preferred_species || []);
       setFishingGear((data as any).fishing_gear || []);
+      setFishingStyles((data as any).fishing_styles || []);
+      setFishingExperience((data as any).fishing_experience || "");
     }
     setLoading(false);
   };
@@ -506,6 +510,8 @@ export default function ProfileEdit() {
         prompt_responses: promptResponses,
         preferred_species: preferredSpecies,
         fishing_gear: fishingGear,
+        fishing_styles: fishingStyles,
+        fishing_experience: fishingExperience || null,
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
@@ -987,6 +993,90 @@ export default function ProfileEdit() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Experience Level */}
+                  <div>
+                    <Label className="text-sm font-medium mb-1 block">Experience Level</Label>
+                    <p className="text-xs text-muted-foreground mb-3">How experienced are you at fishing?</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { id: 'beginner', label: 'Beginner', description: 'Just starting out' },
+                        { id: 'intermediate', label: 'Intermediate', description: 'Know the basics' },
+                        { id: 'advanced', label: 'Advanced', description: 'Years of experience' },
+                        { id: 'expert', label: 'Expert', description: 'Pro-level skills' },
+                      ].map((level) => (
+                        <button
+                          key={level.id}
+                          type="button"
+                          onClick={() => setFishingExperience(level.id)}
+                          className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${
+                            fishingExperience === level.id
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:border-primary/50 hover:bg-accent/50"
+                          }`}
+                        >
+                          <span className={`text-sm font-medium block ${fishingExperience === level.id ? "text-primary" : "text-foreground"}`}>
+                            {level.label}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{level.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Fishing Styles */}
+                  <div>
+                    <Label className="text-sm font-medium mb-1 block">Fishing Styles</Label>
+                    <p className="text-xs text-muted-foreground mb-3">What types of fishing do you enjoy?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        'Fly Fishing',
+                        'Bass Fishing',
+                        'Deep Sea Fishing',
+                        'Ice Fishing',
+                        'Trolling',
+                        'Jigging',
+                        'Surf Fishing',
+                        'Kayak Fishing',
+                        'Shore Fishing',
+                        'Lake Fishing',
+                        'River Fishing',
+                        'Saltwater Fishing',
+                        'Freshwater Fishing',
+                        'Catch & Release',
+                        'Tournament Fishing',
+                        'Night Fishing',
+                      ].map((style) => {
+                        const isSelected = fishingStyles.includes(style);
+                        return (
+                          <button
+                            key={style}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setFishingStyles(fishingStyles.filter(s => s !== style));
+                              } else {
+                                setFishingStyles([...fishingStyles, style]);
+                              }
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80 text-foreground"
+                            }`}
+                          >
+                            {isSelected && <Check className="h-3 w-3" />}
+                            {style}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {fishingStyles.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {fishingStyles.length} style{fishingStyles.length !== 1 ? 's' : ''} selected
+                      </p>
+                    )}
+                  </div>
+
                   {/* Target Species */}
                   <div>
                     <Label className="text-sm font-medium mb-1 block">Target Species</Label>
