@@ -621,7 +621,7 @@ export default function ComboDashboard() {
   };
 
   const handleAnglerCardClick = (anglerId: string) => {
-    navigate(`/app/profile/${anglerId}`);
+    navigate(`/app/u/${anglerId}`);
   };
 
   const clearMatchedProfile = () => {

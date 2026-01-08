@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   const [mentionedUsers, setMentionedUsers] = useState<MentionedUser[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: comments = [], isLoading } = useFeedComments(post.id);
   const addComment = useAddComment();
   const mentionSuggestions = useMentionSuggestions();
@@ -205,8 +207,13 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
           {/* Right side - Post info & Comments */}
           <div className="grid grid-rows-[auto_1fr_auto_auto] bg-background border-l border-border h-full min-h-0 min-w-0 overflow-hidden">
-            {/* Post header */}
-            <div className="flex-shrink-0 flex items-center gap-3 p-4 border-b border-border">
+            <button 
+              className="flex-shrink-0 flex items-center gap-3 p-4 border-b border-border hover:bg-muted/50 transition-colors w-full text-left"
+              onClick={() => {
+                onClose();
+                navigate(`/app/u/${post.user_id}`);
+              }}
+            >
               <Avatar className="h-10 w-10">
                 <AvatarImage src={avatarUrl} alt={displayName} />
                 <AvatarFallback>
@@ -226,7 +233,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   {post.location_name && post.location_name}
                 </p>
               </div>
-            </div>
+            </button>
 
             {/* Caption and Comments */}
             <div className="min-h-0">

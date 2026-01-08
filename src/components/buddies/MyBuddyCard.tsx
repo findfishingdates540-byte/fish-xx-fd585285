@@ -53,7 +53,7 @@ export function MyBuddyCard({
   };
 
   const handleViewProfile = () => {
-    navigate(`/app/profile/${profile.id}`);
+    navigate(`/app/u/${profile.id}`);
   };
 
   return (
