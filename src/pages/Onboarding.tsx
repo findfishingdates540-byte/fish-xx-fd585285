@@ -14,6 +14,7 @@ import { StepLocation } from "@/components/onboarding/StepLocation";
 import { StepExperienceLevel } from "@/components/onboarding/StepExperienceLevel";
 import { StepInterests } from "@/components/onboarding/StepInterests";
 import { StepTargetSpecies } from "@/components/onboarding/StepTargetSpecies";
+import { StepFishingGear } from "@/components/onboarding/StepFishingGear";
 import { StepDatingPreference } from "@/components/onboarding/StepDatingPreference";
 import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 import { OnboardingDebugOverlay } from "@/components/onboarding/OnboardingDebugOverlay";
@@ -58,8 +59,8 @@ type FishingExperience = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 // Step configurations per account mode
 const stepConfigs: Record<AccountMode, string[]> = {
   dating: ['basic_info', 'photo', 'location', 'interests', 'dating_preference', 'success'],
-  fishing: ['basic_info', 'experience', 'target_species', 'interests', 'photo', 'location', 'success'],
-  both: ['basic_info', 'photo', 'location', 'experience', 'target_species', 'interests', 'dating_preference', 'preference_sync', 'success'],
+  fishing: ['basic_info', 'experience', 'target_species', 'gear', 'interests', 'photo', 'location', 'success'],
+  both: ['basic_info', 'photo', 'location', 'experience', 'target_species', 'gear', 'interests', 'dating_preference', 'preference_sync', 'success'],
 };
 
 // Mode-specific step titles and subtitles
@@ -77,6 +78,7 @@ const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subt
     location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots.' },
     experience: { title: 'How experienced are you?', subtitle: 'This helps us match you with the right fishing buddies.' },
     target_species: { title: 'What fish do you target?', subtitle: 'Select the species you love to catch.' },
+    gear: { title: 'What gear do you use?', subtitle: 'Select the fishing equipment you own or prefer.' },
     interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 fishing styles and activities you enjoy.' },
   },
   both: {
@@ -85,6 +87,7 @@ const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subt
     location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots in your waters.' },
     experience: { title: 'How much experience do you have on the water?', subtitle: 'This helps us match you with the right fishing buddies or dates.' },
     target_species: { title: 'What fish do you target?', subtitle: 'Select the species you love to catch.' },
+    gear: { title: 'What gear do you use?', subtitle: 'Select the fishing equipment you own or prefer.' },
     interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 interests to help us find your perfect catch or spot.' },
     dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
     preference_sync: { title: "Let's Sync Your Worlds", subtitle: "We'll use this to find matches who love the water just as much as you do." },
@@ -101,6 +104,7 @@ const stepLabels: Record<string, string> = {
   location: 'Location Setup',
   experience: 'Experience Level',
   target_species: 'Target Species',
+  gear: 'Fishing Gear',
   interests: 'Interest Selection',
   dating_preference: 'Dating Preference',
   preference_sync: 'Preference Sync',
@@ -135,6 +139,7 @@ export default function Onboarding() {
   // Fishing
   const [fishingExperience, setFishingExperience] = useState<FishingExperience>('beginner');
   const [targetSpecies, setTargetSpecies] = useState<string[]>([]);
+  const [fishingGear, setFishingGear] = useState<string[]>([]);
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   
@@ -197,8 +202,8 @@ export default function Onboarding() {
           if (parts[1]) setState(parts[1]);
         }
         if (data.fishing_experience) setFishingExperience(data.fishing_experience);
-        if (data.preferred_species) setSelectedStyles(data.preferred_species);
-        if (data.fishing_gear) setSelectedActivities(data.fishing_gear);
+        if (data.preferred_species) setTargetSpecies(data.preferred_species);
+        if (data.fishing_gear) setFishingGear(data.fishing_gear);
         if (data.interested_in) {
           const filteredInterests = data.interested_in.filter(
             (g): g is Gender => g === 'male' || g === 'female'
@@ -344,17 +349,12 @@ export default function Onboarding() {
 
       if (accountMode === 'fishing' || accountMode === 'both') {
         updateData.fishing_experience = fishingExperience;
-        // Use the actual fish species selected by the user
         updateData.preferred_species = targetSpecies;
-        updateData.fishing_gear = selectedActivities;
+        updateData.fishing_gear = fishingGear;
       }
 
-      // Save dating interests separately
-      if (accountMode === 'dating' || accountMode === 'both') {
-        const datingInterestIds = ['music', 'movies', 'fitness', 'art', 'gaming', 'reading'];
-        const actualDatingInterests = selectedStyles.filter(s => datingInterestIds.includes(s));
-        updateData.interests = actualDatingInterests;
-      }
+      // Save interests from StepInterests (styles + activities)
+      updateData.interests = [...selectedStyles, ...selectedActivities];
 
       // Debug mode: Log all form values before submission
       console.group('🔍 [ONBOARDING DEBUG] Form Submission Data');
@@ -373,8 +373,9 @@ export default function Onboarding() {
       console.log('Looking For:', lookingFor);
       console.log('Fishing Experience:', fishingExperience);
       console.log('Target Species:', targetSpecies);
-      console.log('Selected Styles:', selectedStyles);
-      console.log('Selected Activities (gear):', selectedActivities);
+      console.log('Fishing Gear:', fishingGear);
+      console.log('Selected Styles (interests):', selectedStyles);
+      console.log('Selected Activities (interests):', selectedActivities);
       console.log('------- Update Payload -------');
       console.log('updateData:', JSON.stringify(updateData, null, 2));
       console.groupEnd();
@@ -460,6 +461,13 @@ export default function Onboarding() {
           <StepTargetSpecies
             selectedSpecies={targetSpecies}
             setSelectedSpecies={setTargetSpecies}
+          />
+        );
+      case 'gear':
+        return (
+          <StepFishingGear
+            selectedGear={fishingGear}
+            setSelectedGear={setFishingGear}
           />
         );
       case 'interests':
