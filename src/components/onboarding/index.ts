@@ -10,5 +10,6 @@ export { StepLocation } from './StepLocation';
 export { StepExperienceLevel } from './StepExperienceLevel';
 export { StepInterests } from './StepInterests';
 export { StepTargetSpecies } from './StepTargetSpecies';
+export { StepFishingGear } from './StepFishingGear';
 export { StepDatingPreference } from './StepDatingPreference';
 export { StepPreferenceSync } from './StepPreferenceSync';
