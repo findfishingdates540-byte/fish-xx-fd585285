@@ -165,8 +165,21 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           </div>
         )}
 
+        {/* Video */}
+        {post.video_url && (
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <video
+              src={post.video_url}
+              className="w-full aspect-[4/3] object-cover"
+              controls
+              playsInline
+              preload="metadata"
+            />
+          </div>
+        )}
+
         {/* Photos */}
-        {allPhotos.length > 0 && (
+        {!post.video_url && allPhotos.length > 0 && (
           <div className="relative">
             {allPhotos.length === 1 ? (
               <img

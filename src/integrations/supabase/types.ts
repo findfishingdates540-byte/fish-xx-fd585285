@@ -526,6 +526,7 @@ export type Database = {
           photos: string[] | null
           updated_at: string | null
           user_id: string
+          video_url: string | null
         }
         Insert: {
           catch_id?: string | null
@@ -538,6 +539,7 @@ export type Database = {
           photos?: string[] | null
           updated_at?: string | null
           user_id: string
+          video_url?: string | null
         }
         Update: {
           catch_id?: string | null
@@ -550,6 +552,7 @@ export type Database = {
           photos?: string[] | null
           updated_at?: string | null
           user_id?: string
+          video_url?: string | null
         }
         Relationships: [
           {
