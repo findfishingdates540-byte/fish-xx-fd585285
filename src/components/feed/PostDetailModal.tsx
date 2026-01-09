@@ -177,7 +177,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
             {post.video_url ? (
               <video
                 src={post.video_url}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 controls
                 playsInline
                 preload="metadata"
@@ -190,7 +190,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
               <img
                 src={allPhotos[0]}
                 alt="Post"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 onDoubleClick={handleLike}
               />
             ) : (
@@ -201,7 +201,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                       <img
                         src={photo}
                         alt={`Post ${index + 1}`}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                         onDoubleClick={handleLike}
                       />
                     </CarouselItem>
