@@ -172,9 +172,17 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px] min-h-0">
         <div className="grid grid-cols-[1fr_380px] h-full min-h-0 min-w-0">
-          {/* Left side - Image(s) */}
+          {/* Left side - Video or Image(s) */}
           <div className="bg-black flex items-center justify-center min-w-0 min-h-0 overflow-hidden">
-            {allPhotos.length === 0 ? (
+            {post.video_url ? (
+              <video
+                src={post.video_url}
+                className="w-full h-full object-contain"
+                controls
+                playsInline
+                preload="metadata"
+              />
+            ) : allPhotos.length === 0 ? (
               <div className="text-muted-foreground p-8 text-center">
                 <p className="text-lg font-medium">{post.content}</p>
               </div>

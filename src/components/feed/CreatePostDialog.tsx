@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ImagePlus, MapPin, X, Loader2, User } from 'lucide-react';
+import { ImagePlus, MapPin, X, Loader2, User, Video } from 'lucide-react';
 import { useCreatePost, useMentionSuggestions } from '@/hooks/use-feed';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,8 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
   const [locationName, setLocationName] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreview, setPhotoPreview] = useState<string[]>([]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   const [showMentions, setShowMentions] = useState(false);
@@ -133,14 +135,36 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
     });
   };
 
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check file size (max 100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('Video must be under 100MB');
+      return;
+    }
+    
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
+  };
+
+  const removeVideo = () => {
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
+    }
+    setVideoFile(null);
+    setVideoPreview(null);
+  };
+
   const removePhoto = (index: number) => {
     setPhotos(prev => prev.filter((_, i) => i !== index));
     setPhotoPreview(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
-    if (!user || (!content.trim() && photos.length === 0)) {
-      toast.error('Please add some content or photos');
+    if (!user || (!content.trim() && photos.length === 0 && !videoFile)) {
+      toast.error('Please add some content, photos, or video');
       return;
     }
 
@@ -167,10 +191,30 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
         uploadedUrls.push(urlData.publicUrl);
       }
 
+      // Upload video if present
+      let videoUrl: string | undefined;
+      if (videoFile) {
+        const fileExt = videoFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('catch-photos')
+          .upload(fileName, videoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('catch-photos')
+          .getPublicUrl(fileName);
+
+        videoUrl = urlData.publicUrl;
+      }
+
       // Create post
       await createPost.mutateAsync({
         content: content.trim() || undefined,
         photos: uploadedUrls.length > 0 ? uploadedUrls : undefined,
+        videoUrl,
         locationName: locationName.trim() || undefined
       });
 
@@ -182,6 +226,7 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
       setLocationName('');
       setPhotos([]);
       setPhotoPreview([]);
+      removeVideo();
     } catch (error) {
       console.error('Failed to create post:', error);
       toast.error('Failed to create post');
@@ -224,7 +269,7 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
               </div>
             )}
 
-            {photos.length < 5 && (
+            {photos.length < 5 && !videoFile && (
               <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-4 cursor-pointer hover:border-foreground/50 transition-colors">
                 <ImagePlus className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Add Photos</span>
@@ -236,6 +281,42 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
                   onChange={handlePhotoSelect}
                 />
               </label>
+            )}
+          </div>
+
+          {/* Video upload */}
+          <div>
+            <Label className="text-sm text-muted-foreground mb-2 block">
+              Video (max 100MB)
+            </Label>
+            
+            {videoPreview ? (
+              <div className="relative">
+                <video
+                  src={videoPreview}
+                  className="w-full h-40 object-cover rounded-lg"
+                  controls
+                />
+                <button
+                  onClick={removeVideo}
+                  className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              photos.length === 0 && (
+                <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-4 cursor-pointer hover:border-foreground/50 transition-colors">
+                  <Video className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Add Video</span>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={handleVideoSelect}
+                  />
+                </label>
+              )
             )}
           </div>
 

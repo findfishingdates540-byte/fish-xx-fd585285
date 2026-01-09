@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, Play } from 'lucide-react';
+import { Heart, MessageCircle, Play, Video } from 'lucide-react';
 import { PostDetailModal } from '@/components/feed/PostDetailModal';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,7 @@ interface Post {
   id: string;
   content?: string | null;
   photos?: string[] | null;
+  video_url?: string | null;
   likes_count?: number | null;
   comments_count?: number | null;
   catches?: {
@@ -105,6 +106,7 @@ export function ProfilePostsGrid({ posts, isLoading, emptyMessage = 'No posts ye
         {posts.map((post) => {
           const thumbnail = post.photos?.[0] || post.catches?.photos?.[0];
           const hasMultiple = (post.photos?.length || 0) > 1 || (post.catches?.photos?.length || 0) > 1;
+          const hasVideo = !!post.video_url;
           
           return (
             <button
@@ -112,7 +114,14 @@ export function ProfilePostsGrid({ posts, isLoading, emptyMessage = 'No posts ye
               onClick={() => setSelectedPostId(post.id)}
               className="relative aspect-square group overflow-hidden bg-muted"
             >
-              {thumbnail ? (
+              {hasVideo ? (
+                <video
+                  src={post.video_url!}
+                  className="w-full h-full object-cover"
+                  muted
+                  preload="metadata"
+                />
+              ) : thumbnail ? (
                 <img
                   src={thumbnail}
                   alt=""
@@ -136,8 +145,17 @@ export function ProfilePostsGrid({ posts, isLoading, emptyMessage = 'No posts ye
                 </div>
               </div>
               
+              {/* Video indicator */}
+              {hasVideo && (
+                <div className="absolute top-2 right-2">
+                  <div className="w-5 h-5 bg-black/50 rounded flex items-center justify-center">
+                    <Video className="h-3 w-3 text-white" />
+                  </div>
+                </div>
+              )}
+              
               {/* Multiple images indicator */}
-              {hasMultiple && (
+              {hasMultiple && !hasVideo && (
                 <div className="absolute top-2 right-2">
                   <div className="w-5 h-5 bg-black/50 rounded flex items-center justify-center">
                     <Play className="h-3 w-3 text-white rotate-90 fill-white" />

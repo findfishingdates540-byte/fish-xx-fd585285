@@ -9,6 +9,7 @@ export interface FeedPost {
   catch_id: string | null;
   content: string | null;
   photos: string[] | null;
+  video_url: string | null;
   location_name: string | null;
   likes_count: number;
   comments_count: number;
@@ -554,11 +555,13 @@ export function useCreatePost() {
     mutationFn: async ({ 
       content, 
       photos, 
+      videoUrl,
       catchId, 
       locationName 
     }: { 
       content?: string; 
       photos?: string[]; 
+      videoUrl?: string;
       catchId?: string; 
       locationName?: string;
     }) => {
@@ -570,6 +573,7 @@ export function useCreatePost() {
           user_id: user.id,
           content,
           photos,
+          video_url: videoUrl,
           catch_id: catchId,
           location_name: locationName
         })
