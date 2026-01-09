@@ -194,14 +194,14 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 onDoubleClick={handleLike}
               />
             ) : (
-              <Carousel className="w-full h-full">
+              <Carousel className="absolute inset-0">
                 <CarouselContent className="h-full ml-0">
                   {allPhotos.map((photo, index) => (
-                    <CarouselItem key={index} className="h-full pl-0">
+                    <CarouselItem key={index} className="h-full pl-0 relative">
                       <img
                         src={photo}
                         alt={`Post ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                         onDoubleClick={handleLike}
                       />
                     </CarouselItem>
