@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Bell, Download, Calendar, Users, Heart, MapPin, DollarSign, UserPlus, ShieldAlert, Flag, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Bell, Download, Calendar, Users, Heart, MapPin, DollarSign, UserPlus, ShieldAlert, Flag, CheckCircle, AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,22 +12,61 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useAuditLogs } from '@/hooks/use-audit-logs';
+import { useAuditLogs, type AuditLog } from '@/hooks/use-audit-logs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const COLORS = ['#06b6d4', '#a855f7', '#22c55e'];
+const LAST_VIEWED_KEY = 'admin_notifications_last_viewed';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState('30');
+  const [lastViewedAt, setLastViewedAt] = useState<string | null>(() => 
+    localStorage.getItem(LAST_VIEWED_KEY)
+  );
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: trends, isLoading: trendsLoading } = useEngagementTrends(parseInt(dateRange));
   const { data: premiumUsers, isLoading: premiumLoading } = useRecentPremiumSubscriptions();
   const { data: popularSpots, isLoading: spotsLoading } = usePopularSpots();
   const { data: recentActivity, isLoading: activityLoading } = useAuditLogs({ limit: 10 });
+
+  // Calculate unread count based on last viewed timestamp
+  const unreadCount = recentActivity?.filter(activity => 
+    !lastViewedAt || new Date(activity.created_at) > new Date(lastViewedAt)
+  ).length || 0;
+
+  // Real-time subscription for audit logs
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-audit-logs')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'audit_logs' },
+        () => {
+          // Invalidate and refetch audit logs when new activity is added
+          queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  // Mark all as read handler
+  const handleClearAll = useCallback(() => {
+    const now = new Date().toISOString();
+    localStorage.setItem(LAST_VIEWED_KEY, now);
+    setLastViewedAt(now);
+    toast.success('All notifications marked as read');
+  }, []);
 
   const getActivityIcon = (action: string) => {
     switch (action) {
@@ -153,22 +192,41 @@ export default function AdminDashboard() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative bg-slate-800 text-white hover:bg-slate-700">
                 <Bell className="w-5 h-5" />
-                {recentActivity && recentActivity.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-cyan-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 bg-slate-800 border-slate-700 z-50">
               <DropdownMenuLabel className="flex items-center justify-between text-white">
                 <span>Recent Activity</span>
-                <Button 
-                  variant="link" 
-                  size="sm" 
-                  className="text-cyan-400 hover:text-cyan-300 h-auto p-0"
-                  onClick={() => navigate('/admin/audit-logs')}
-                >
-                  View All
-                </Button>
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-slate-400 hover:text-white h-auto p-1 text-xs"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleClearAll();
+                      }}
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Clear All
+                    </Button>
+                  )}
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="text-cyan-400 hover:text-cyan-300 h-auto p-0"
+                    onClick={() => navigate('/admin/audit-logs')}
+                  >
+                    View All
+                  </Button>
+                </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-700" />
               <ScrollArea className="h-[300px]">
@@ -179,27 +237,33 @@ export default function AdminDashboard() {
                     ))}
                   </div>
                 ) : recentActivity && recentActivity.length > 0 ? (
-                  recentActivity.map((activity) => (
-                    <DropdownMenuItem 
-                      key={activity.id} 
-                      className="flex items-start gap-3 p-3 cursor-pointer focus:bg-slate-700"
-                    >
-                      <div className="mt-0.5">
-                        {getActivityIcon(activity.action)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">
-                          {getActivityLabel(activity.action)}
-                        </p>
-                        <p className="text-xs text-slate-400 truncate">
-                          by {activity.user?.display_name || activity.user?.email || 'System'}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
-                        </p>
-                      </div>
-                    </DropdownMenuItem>
-                  ))
+                  recentActivity.map((activity) => {
+                    const isUnread = !lastViewedAt || new Date(activity.created_at) > new Date(lastViewedAt);
+                    return (
+                      <DropdownMenuItem 
+                        key={activity.id} 
+                        className={`flex items-start gap-3 p-3 cursor-pointer focus:bg-slate-700 ${isUnread ? 'bg-slate-700/50' : ''}`}
+                      >
+                        <div className="mt-0.5 relative">
+                          {getActivityIcon(activity.action)}
+                          {isUnread && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-500 rounded-full" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">
+                            {getActivityLabel(activity.action)}
+                          </p>
+                          <p className="text-xs text-slate-400 truncate">
+                            by {activity.user?.display_name || activity.user?.email || 'System'}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                    );
+                  })
                 ) : (
                   <div className="p-4 text-center text-slate-400 text-sm">
                     No recent activity
