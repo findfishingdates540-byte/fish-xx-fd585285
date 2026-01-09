@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 const COLORS = ['#06b6d4', '#a855f7', '#22c55e'];
 
@@ -30,6 +31,61 @@ export default function AdminDashboard() {
 
   const totalModeUsers = modeData.reduce((acc, item) => acc + item.value, 0);
 
+  const handleExportReport = () => {
+    if (!stats && !trends) {
+      toast.error("No data available to export");
+      return;
+    }
+
+    const reportDate = format(new Date(), 'yyyy-MM-dd');
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Header
+    csvContent += "Find Fishing Dates - Admin Report\n";
+    csvContent += `Generated: ${format(new Date(), 'PPpp')}\n`;
+    csvContent += `Date Range: Last ${dateRange} Days\n\n`;
+    
+    // Summary Stats
+    csvContent += "SUMMARY STATISTICS\n";
+    csvContent += "Metric,Value\n";
+    csvContent += `Active Users,${stats?.activeUsers || 0}\n`;
+    csvContent += `Total Matches,${stats?.totalMatches || 0}\n`;
+    csvContent += `Total Spots,${stats?.totalSpots || 0}\n`;
+    csvContent += `Dating Mode Users,${stats?.modeDistribution?.dating || 0}\n`;
+    csvContent += `Fishing Mode Users,${stats?.modeDistribution?.fishing || 0}\n`;
+    csvContent += `Combo Mode Users,${stats?.modeDistribution?.both || 0}\n\n`;
+    
+    // Engagement Trends
+    if (trends && trends.length > 0) {
+      csvContent += "ENGAGEMENT TRENDS\n";
+      csvContent += "Date,Active Users,New Signups\n";
+      trends.forEach((day: any) => {
+        csvContent += `${day.date},${day.activeUsers},${day.newSignups}\n`;
+      });
+      csvContent += "\n";
+    }
+    
+    // Popular Spots
+    if (popularSpots && popularSpots.length > 0) {
+      csvContent += "POPULAR FISHING SPOTS\n";
+      csvContent += "Spot Name,Visits,Rating\n";
+      popularSpots.forEach((spot: any) => {
+        csvContent += `"${spot.name}",${spot.visits || 0},${spot.rating || 'N/A'}\n`;
+      });
+    }
+
+    // Create and trigger download
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `admin-report-${reportDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Report exported successfully");
+  };
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -39,7 +95,12 @@ export default function AdminDashboard() {
           <p className="text-slate-400 mt-1">Real-time insights across Dating, Fishing, and Combo modes</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+          <Button 
+            variant="outline" 
+            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+            onClick={handleExportReport}
+            disabled={statsLoading || trendsLoading}
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
