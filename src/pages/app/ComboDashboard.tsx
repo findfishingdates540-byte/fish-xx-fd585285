@@ -92,6 +92,9 @@ interface RecentCatch {
   id: string;
   photos: string[] | null;
   species_name: string | null;
+  weight_lbs: number | null;
+  length_in: number | null;
+  caught_at: string | null;
   created_at: string;
   user_id: string;
   profile?: {
@@ -133,6 +136,7 @@ export default function ComboDashboard() {
   const [nearbyAnglers, setNearbyAnglers] = useState<ProfileData[]>([]);
   const [hotSpots, setHotSpots] = useState<FishingSpot[]>([]);
   const [recentCatches, setRecentCatches] = useState<RecentCatch[]>([]);
+  const [catchRefreshTrigger, setCatchRefreshTrigger] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
   const [featuredSpot, setFeaturedSpot] = useState<FishingSpot | null>(null);
   const previousNotificationCountRef = useRef<number>(0);
@@ -401,6 +405,19 @@ export default function ComboDashboard() {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'catches',
+        },
+        (payload) => {
+          console.log('New catch logged:', payload);
+          // Trigger a refresh of catches data
+          setCatchRefreshTrigger(prev => prev + 1);
+        }
+      )
       .subscribe((status) => {
         console.log('Combo dashboard notification subscription status:', status);
       });
@@ -415,7 +432,7 @@ export default function ComboDashboard() {
     if (user) {
       fetchDashboardData();
     }
-  }, [user]);
+  }, [user, catchRefreshTrigger]);
 
   const fetchDashboardData = async () => {
     if (!user) return;
@@ -495,9 +512,9 @@ export default function ComboDashboard() {
       const { data: catches } = await supabase
         .from("catches")
         .select(`
-          id, photos, species_name, created_at, user_id
+          id, photos, species_name, weight_lbs, length_in, caught_at, created_at, user_id
         `)
-        .order("created_at", { ascending: false })
+        .order("caught_at", { ascending: false })
         .limit(3);
 
       if (catches && catches.length > 0) {
@@ -1044,7 +1061,14 @@ export default function ComboDashboard() {
                             {recentCatches[0].profile?.display_name || "Someone"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Just logged a catch • {formatTimeAgo(recentCatches[0].created_at)}
+                            Caught a <span className="font-medium text-foreground">{recentCatches[0].species_name || "fish"}</span>
+                            {recentCatches[0].weight_lbs && ` • ${recentCatches[0].weight_lbs} lbs`}
+                            {recentCatches[0].length_in && ` • ${recentCatches[0].length_in} in`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {recentCatches[0].caught_at 
+                              ? formatTimeAgo(recentCatches[0].caught_at)
+                              : formatTimeAgo(recentCatches[0].created_at)}
                           </p>
                         </div>
                       </div>
