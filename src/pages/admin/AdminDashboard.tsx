@@ -1,27 +1,71 @@
 import { useState } from 'react';
-import { Bell, Download, Calendar, Users, Heart, MapPin, DollarSign } from 'lucide-react';
+import { Bell, Download, Calendar, Users, Heart, MapPin, DollarSign, UserPlus, ShieldAlert, Flag, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StatsCard } from '@/components/admin';
 import { useAdminStats, useEngagementTrends, useRecentPremiumSubscriptions, usePopularSpots } from '@/hooks/use-admin-stats';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAuditLogs } from '@/hooks/use-audit-logs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNavigate } from 'react-router-dom';
 
 const COLORS = ['#06b6d4', '#a855f7', '#22c55e'];
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState('30');
+  const navigate = useNavigate();
   
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: trends, isLoading: trendsLoading } = useEngagementTrends(parseInt(dateRange));
   const { data: premiumUsers, isLoading: premiumLoading } = useRecentPremiumSubscriptions();
   const { data: popularSpots, isLoading: spotsLoading } = usePopularSpots();
+  const { data: recentActivity, isLoading: activityLoading } = useAuditLogs({ limit: 10 });
+
+  const getActivityIcon = (action: string) => {
+    switch (action) {
+      case 'user_banned':
+      case 'user_unbanned':
+        return <ShieldAlert className="w-4 h-4 text-red-400" />;
+      case 'report_resolved':
+        return <CheckCircle className="w-4 h-4 text-green-400" />;
+      case 'report_created':
+        return <Flag className="w-4 h-4 text-orange-400" />;
+      case 'verification_approved':
+        return <CheckCircle className="w-4 h-4 text-cyan-400" />;
+      case 'verification_rejected':
+        return <AlertTriangle className="w-4 h-4 text-yellow-400" />;
+      case 'role_changed':
+        return <Users className="w-4 h-4 text-purple-400" />;
+      default:
+        return <UserPlus className="w-4 h-4 text-slate-400" />;
+    }
+  };
+
+  const getActivityLabel = (action: string) => {
+    switch (action) {
+      case 'user_banned': return 'User Banned';
+      case 'user_unbanned': return 'User Unbanned';
+      case 'report_resolved': return 'Report Resolved';
+      case 'report_created': return 'New Report';
+      case 'verification_approved': return 'Verification Approved';
+      case 'verification_rejected': return 'Verification Rejected';
+      case 'role_changed': return 'Role Changed';
+      case 'settings_changed': return 'Settings Updated';
+      case 'spot_created': return 'Spot Created';
+      case 'spot_deleted': return 'Spot Deleted';
+      case 'ad_created': return 'Ad Created';
+      case 'ad_deleted': return 'Ad Deleted';
+      default: return action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+  };
 
   const modeData = stats ? [
     { name: 'Dating Mode', value: stats.modeDistribution.dating, color: '#06b6d4' },
@@ -104,10 +148,66 @@ export default function AdminDashboard() {
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
-          <Button variant="ghost" size="icon" className="relative bg-slate-800 text-white hover:bg-slate-700">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full" />
-          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative bg-slate-800 text-white hover:bg-slate-700">
+                <Bell className="w-5 h-5" />
+                {recentActivity && recentActivity.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 bg-slate-800 border-slate-700 z-50">
+              <DropdownMenuLabel className="flex items-center justify-between text-white">
+                <span>Recent Activity</span>
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="text-cyan-400 hover:text-cyan-300 h-auto p-0"
+                  onClick={() => navigate('/admin/audit-logs')}
+                >
+                  View All
+                </Button>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-slate-700" />
+              <ScrollArea className="h-[300px]">
+                {activityLoading ? (
+                  <div className="p-4 space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-12 bg-slate-700" />
+                    ))}
+                  </div>
+                ) : recentActivity && recentActivity.length > 0 ? (
+                  recentActivity.map((activity) => (
+                    <DropdownMenuItem 
+                      key={activity.id} 
+                      className="flex items-start gap-3 p-3 cursor-pointer focus:bg-slate-700"
+                    >
+                      <div className="mt-0.5">
+                        {getActivityIcon(activity.action)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">
+                          {getActivityLabel(activity.action)}
+                        </p>
+                        <p className="text-xs text-slate-400 truncate">
+                          by {activity.user?.display_name || activity.user?.email || 'System'}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-slate-400 text-sm">
+                    No recent activity
+                  </div>
+                )}
+              </ScrollArea>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
