@@ -47,10 +47,10 @@ export function BuddyCard({
   };
 
   const experienceColors: Record<string, string> = {
-    beginner: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30',
-    intermediate: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30',
-    advanced: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30',
-    expert: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
+    beginner: 'bg-white dark:bg-background text-green-700 dark:text-green-400 border-green-500/30',
+    intermediate: 'bg-white dark:bg-background text-blue-700 dark:text-blue-400 border-blue-500/30',
+    advanced: 'bg-white dark:bg-background text-purple-700 dark:text-purple-400 border-purple-500/30',
+    expert: 'bg-white dark:bg-background text-amber-700 dark:text-amber-400 border-amber-500/30'
   };
 
   const formatSpecies = (species: string) => {
