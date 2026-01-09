@@ -88,13 +88,11 @@ interface FishingSpot {
   is_public: boolean | null;
 }
 
-interface RecentCatch {
+interface RecentFeedPost {
   id: string;
   photos: string[] | null;
-  species_name: string | null;
-  weight_lbs: number | null;
-  length_in: number | null;
-  caught_at: string | null;
+  video_url: string | null;
+  content: string | null;
   created_at: string;
   user_id: string;
   profile?: {
@@ -135,8 +133,8 @@ export default function ComboDashboard() {
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [nearbyAnglers, setNearbyAnglers] = useState<ProfileData[]>([]);
   const [hotSpots, setHotSpots] = useState<FishingSpot[]>([]);
-  const [recentCatches, setRecentCatches] = useState<RecentCatch[]>([]);
-  const [catchRefreshTrigger, setCatchRefreshTrigger] = useState(0);
+  const [latestFeedPost, setLatestFeedPost] = useState<RecentFeedPost | null>(null);
+  const [feedRefreshTrigger, setFeedRefreshTrigger] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
   const [featuredSpot, setFeaturedSpot] = useState<FishingSpot | null>(null);
   const previousNotificationCountRef = useRef<number>(0);
@@ -410,12 +408,12 @@ export default function ComboDashboard() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'catches',
+          table: 'feed_posts',
         },
         (payload) => {
-          console.log('New catch logged:', payload);
-          // Trigger a refresh of catches data
-          setCatchRefreshTrigger(prev => prev + 1);
+          console.log('New feed post:', payload);
+          // Trigger a refresh of feed data
+          setFeedRefreshTrigger(prev => prev + 1);
         }
       )
       .subscribe((status) => {
@@ -432,7 +430,7 @@ export default function ComboDashboard() {
     if (user) {
       fetchDashboardData();
     }
-  }, [user, catchRefreshTrigger]);
+  }, [user, feedRefreshTrigger]);
 
   const fetchDashboardData = async () => {
     if (!user) return;
@@ -508,28 +506,27 @@ export default function ComboDashboard() {
         setFeaturedSpot(spots[0]);
       }
 
-      // Fetch recent catches with profile info
-      const { data: catches } = await supabase
-        .from("catches")
+      // Fetch latest feed post with profile info
+      const { data: feedPosts } = await supabase
+        .from("feed_posts")
         .select(`
-          id, photos, species_name, weight_lbs, length_in, caught_at, created_at, user_id
+          id, photos, video_url, content, created_at, user_id
         `)
-        .order("caught_at", { ascending: false })
-        .limit(3);
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-      if (catches && catches.length > 0) {
-        // Fetch profiles for catch owners
-        const userIds = [...new Set(catches.map(c => c.user_id))];
-        const { data: profiles } = await supabase
+      if (feedPosts && feedPosts.length > 0) {
+        const post = feedPosts[0];
+        const { data: postProfile } = await supabase
           .from("profiles")
           .select("id, display_name, photos")
-          .in("id", userIds);
+          .eq("id", post.user_id)
+          .single();
 
-        const catchesWithProfiles = catches.map(c => ({
-          ...c,
-          profile: profiles?.find(p => p.id === c.user_id)
-        }));
-        setRecentCatches(catchesWithProfiles);
+        setLatestFeedPost({
+          ...post,
+          profile: postProfile || undefined
+        });
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -1027,10 +1024,10 @@ export default function ComboDashboard() {
                 </motion.div>
               )}
 
-              {/* Recent Catch Activity - Show in unified and fishing modes */}
-              {(activeMode === "unified" || activeMode === "fishing") && recentCatches.length > 0 && (
+              {/* Latest Feed Post - Show in unified and fishing modes */}
+              {(activeMode === "unified" || activeMode === "fishing") && latestFeedPost && (
                 <motion.div
-                  key="catches"
+                  key="feed"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -1040,42 +1037,45 @@ export default function ComboDashboard() {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold flex items-center gap-2">
                       <Fish className="h-5 w-5 text-primary" />
-                      Recent Catch Activity
+                      Latest Feed
                     </h2>
-                    <Button variant="link" className="text-primary" onClick={() => navigate("/app/catches")}>
+                    <Button variant="link" className="text-primary" onClick={() => navigate("/app/feed")}>
                       View All
                     </Button>
                   </div>
                   
-                  <Card>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/app/feed")}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={recentCatches[0].profile?.photos?.[0]} />
+                          <AvatarImage src={latestFeedPost.profile?.photos?.[0]} />
                           <AvatarFallback>
-                            {recentCatches[0].profile?.display_name?.[0] || "?"}
+                            {latestFeedPost.profile?.display_name?.[0] || "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <p className="text-sm font-medium">
-                            {recentCatches[0].profile?.display_name || "Someone"}
+                            {latestFeedPost.profile?.display_name || "Someone"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Caught a <span className="font-medium text-foreground">{recentCatches[0].species_name || "fish"}</span>
-                            {recentCatches[0].weight_lbs && ` • ${recentCatches[0].weight_lbs} lbs`}
-                            {recentCatches[0].length_in && ` • ${recentCatches[0].length_in} in`}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {recentCatches[0].caught_at 
-                              ? formatTimeAgo(recentCatches[0].caught_at)
-                              : formatTimeAgo(recentCatches[0].created_at)}
+                            {formatTimeAgo(latestFeedPost.created_at)}
                           </p>
                         </div>
                       </div>
-                      {recentCatches[0].photos?.[0] && (
+                      {latestFeedPost.content && (
+                        <p className="text-sm mt-3 line-clamp-2">{latestFeedPost.content}</p>
+                      )}
+                      {latestFeedPost.video_url ? (
+                        <video
+                          src={latestFeedPost.video_url}
+                          className="w-full h-48 object-cover rounded-lg mt-3"
+                          muted
+                          playsInline
+                        />
+                      ) : latestFeedPost.photos?.[0] && (
                         <img
-                          src={recentCatches[0].photos[0]}
-                          alt="Recent catch"
+                          src={latestFeedPost.photos[0]}
+                          alt="Latest feed post"
                           className="w-full h-48 object-cover rounded-lg mt-3"
                         />
                       )}
