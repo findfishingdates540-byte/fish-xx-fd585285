@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -79,13 +79,17 @@ export function VerificationSection({ idVerified, liveVerified }: VerificationSe
       });
       setStream(mediaStream);
       setCameraOpen(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
     } catch (error) {
       toast.error("Unable to access camera. Please grant camera permissions.");
     }
   }, []);
+
+  // Attach stream to video element after it renders
+  useEffect(() => {
+    if (cameraOpen && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [cameraOpen, stream]);
 
   const closeCamera = useCallback(() => {
     if (stream) {
