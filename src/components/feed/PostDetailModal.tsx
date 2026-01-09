@@ -173,35 +173,35 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
       <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px] min-h-0">
         <div className="grid grid-cols-[1fr_380px] h-full min-h-0 min-w-0">
           {/* Left side - Video or Image(s) */}
-          <div className="bg-black flex items-center justify-center min-w-0 min-h-0 overflow-hidden">
+          <div className="bg-black relative min-w-0 min-h-0 overflow-hidden">
             {post.video_url ? (
               <video
                 src={post.video_url}
-                className="w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
                 controls
                 playsInline
                 preload="metadata"
               />
             ) : allPhotos.length === 0 ? (
-              <div className="text-muted-foreground p-8 text-center">
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground p-8 text-center">
                 <p className="text-lg font-medium">{post.content}</p>
               </div>
             ) : allPhotos.length === 1 ? (
               <img
                 src={allPhotos[0]}
                 alt="Post"
-                className="w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
                 onDoubleClick={handleLike}
               />
             ) : (
-              <Carousel className="w-full h-full">
-                <CarouselContent className="h-full">
+              <Carousel className="absolute inset-0 w-full h-full">
+                <CarouselContent className="h-full -ml-0">
                   {allPhotos.map((photo, index) => (
-                    <CarouselItem key={index} className="h-full flex items-center justify-center">
+                    <CarouselItem key={index} className="h-full pl-0 relative">
                       <img
                         src={photo}
                         alt={`Post ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                         onDoubleClick={handleLike}
                       />
                     </CarouselItem>
