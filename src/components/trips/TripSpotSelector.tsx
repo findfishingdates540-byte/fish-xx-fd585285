@@ -243,8 +243,17 @@ export function TripSpotSelector({
         </TabsList>
       </Tabs>
 
-      <div className="aspect-video rounded-lg overflow-hidden border">
+      <div className="aspect-video rounded-lg overflow-hidden border relative">
         <div ref={mapContainer} className="w-full h-full" />
+        {displaySpot?.photos?.[0] && (
+          <div className="absolute bottom-2 left-2 w-20 h-20 rounded-lg overflow-hidden border-2 border-white shadow-lg">
+            <img 
+              src={displaySpot.photos[0]} 
+              alt={displaySpot.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
       </div>
 
       {spots && spots.length > 0 && (
