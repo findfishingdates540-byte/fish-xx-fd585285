@@ -215,7 +215,7 @@ export default function Profile() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white"
+                className="bg-background/90 backdrop-blur-sm border-border"
                 asChild
               >
                 <Link to="/app/settings">
@@ -223,7 +223,7 @@ export default function Profile() {
                   <span className="hidden md:inline">Settings</span>
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm border-white/50 text-foreground hover:bg-white">
+              <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm border-border">
                 <Share2 className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">Share</span>
               </Button>
