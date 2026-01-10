@@ -247,6 +247,7 @@ export default function SocialProfile() {
               posts={posts}
               isLoading={postsLoading}
               emptyMessage="No posts yet"
+              userId={userId}
             />
           </TabsContent>
           

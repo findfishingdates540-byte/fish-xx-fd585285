@@ -30,7 +30,7 @@ import CommunityGuidelines from "./pages/CommunityGuidelines";
 import CookiePolicy from "./pages/CookiePolicy";
 import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile } from "./pages/app";
+import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed } from "./pages/app";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
@@ -108,6 +108,8 @@ const App = () => (
               <Route path="notifications" element={<Notifications />} />
               <Route path="my-tickets" element={<MyTickets />} />
               <Route path="u/:userId" element={<SocialProfile />} />
+              <Route path="u/:userId/posts" element={<UserFeed />} />
+              <Route path="u/:userId/posts/:postId" element={<UserFeed />} />
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
               <Route path="profile/:userId" element={<Navigate to="/app/u/:userId" replace />} />
