@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   MapPin, Share2, Pencil, Heart, Fish, Layers, 
@@ -51,8 +52,12 @@ const experienceLevelMap: Record<string, number> = {
 
 export default function Profile() {
   const { user } = useAuth();
+  const { effectiveMode } = useActiveMode();
   const navigate = useNavigate();
   const [followersModalType, setFollowersModalType] = useState<'followers' | 'following' | null>(null);
+  
+  // Determine if social features should be shown (not in dating-only mode)
+  const showSocialFeatures = effectiveMode !== 'dating';
   
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile-full', user?.id],
@@ -239,73 +244,77 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* View Type Tabs */}
+      {/* View Type Tabs - Only show tabs when social features are available */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
-        <Tabs defaultValue="social" className="w-full">
-          <div className="border-b border-border mb-6">
-            <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 bg-transparent h-12">
-              <TabsTrigger value="social" className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-                <Grid3X3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Social</span>
-              </TabsTrigger>
-              <TabsTrigger value="detailed" className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Detailed</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-          
-          {/* Social View */}
-          <TabsContent value="social" className="mt-0">
-            <div className="max-w-2xl mx-auto">
-              {/* Stats Bar */}
-              <ProfileStatsBar
-                postsCount={postsCount}
-                followersCount={profile?.followers_count || 0}
-                followingCount={profile?.following_count || 0}
-                likesCount={profile?.total_likes_received || 0}
-                onFollowersClick={() => setFollowersModalType('followers')}
-                onFollowingClick={() => setFollowersModalType('following')}
-              />
-              
-              {/* Posts/Mentions Tabs */}
-              <Tabs defaultValue="posts" className="w-full">
-                <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-transparent h-12">
-                  <TabsTrigger 
-                    value="posts" 
-                    className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                    <span className="sr-only sm:not-sr-only">Posts</span>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="mentioned" 
-                    className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
-                  >
-                    <AtSign className="h-4 w-4" />
-                    <span className="sr-only sm:not-sr-only">Mentioned</span>
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="posts" className="mt-0">
-                  <ProfilePostsGrid 
-                    posts={posts} 
-                    isLoading={postsLoading} 
-                    emptyMessage="No posts yet. Share your first catch!" 
-                  />
-                </TabsContent>
-                <TabsContent value="mentioned" className="mt-0">
-                  <ProfilePostsGrid 
-                    posts={mentionedPosts} 
-                    isLoading={mentionsLoading} 
-                    emptyMessage="No mentions yet" 
-                  />
-                </TabsContent>
-              </Tabs>
+        <Tabs defaultValue={showSocialFeatures ? "social" : "detailed"} className="w-full">
+          {showSocialFeatures && (
+            <div className="border-b border-border mb-6">
+              <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 bg-transparent h-12">
+                <TabsTrigger value="social" className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
+                  <Grid3X3 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Social</span>
+                </TabsTrigger>
+                <TabsTrigger value="detailed" className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Detailed</span>
+                </TabsTrigger>
+              </TabsList>
             </div>
-          </TabsContent>
+          )}
+          
+          {/* Social View - Only render when social features are available */}
+          {showSocialFeatures && (
+            <TabsContent value="social" className="mt-0">
+              <div className="max-w-2xl mx-auto">
+                {/* Stats Bar */}
+                <ProfileStatsBar
+                  postsCount={postsCount}
+                  followersCount={profile?.followers_count || 0}
+                  followingCount={profile?.following_count || 0}
+                  likesCount={profile?.total_likes_received || 0}
+                  onFollowersClick={() => setFollowersModalType('followers')}
+                  onFollowingClick={() => setFollowersModalType('following')}
+                />
+                
+                {/* Posts/Mentions Tabs */}
+                <Tabs defaultValue="posts" className="w-full">
+                  <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-transparent h-12">
+                    <TabsTrigger 
+                      value="posts" 
+                      className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                    >
+                      <Grid3X3 className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only">Posts</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="mentioned" 
+                      className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                    >
+                      <AtSign className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only">Mentioned</span>
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="posts" className="mt-0">
+                    <ProfilePostsGrid 
+                      posts={posts} 
+                      isLoading={postsLoading} 
+                      emptyMessage="No posts yet. Share your first catch!" 
+                    />
+                  </TabsContent>
+                  <TabsContent value="mentioned" className="mt-0">
+                    <ProfilePostsGrid 
+                      posts={mentionedPosts} 
+                      isLoading={mentionsLoading} 
+                      emptyMessage="No mentions yet" 
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </TabsContent>
+          )}
           
           {/* Detailed View */}
-          <TabsContent value="detailed" className="mt-0">
+          <TabsContent value="detailed" className={showSocialFeatures ? "mt-0" : "mt-6"}>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column */}
               <div className="lg:col-span-3 space-y-6">
