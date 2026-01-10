@@ -91,6 +91,7 @@ export default function Buddies() {
             pendingRequestedIds.add(buddy.recipient_id);
           }
         }
+        // Dismissed profiles are already in existingBuddyIds, so they'll be filtered out
       });
 
       setRequestedIds(pendingRequestedIds);
@@ -342,6 +343,33 @@ export default function Buddies() {
     navigate('/app/buddy-messages');
   };
 
+  const dismissProfile = async (profileId: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('fishing_buddies')
+      .insert({
+        requester_id: user.id,
+        recipient_id: profileId,
+        status: 'dismissed'
+      });
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to hide profile',
+        variant: 'destructive'
+      });
+    } else {
+      // Optimistically remove from local state
+      setDiscoverProfiles(prev => prev.filter(p => p.id !== profileId));
+      toast({
+        title: 'Profile Hidden',
+        description: "This angler won't appear in your discovery"
+      });
+    }
+  };
+
   // Filter discover profiles
   const filteredProfiles = discoverProfiles.filter(profile => {
     const matchesSearch = !searchQuery || 
@@ -415,6 +443,7 @@ export default function Buddies() {
                   isOnline={isOnline(profile.id)}
                   lastSeen={formatLastSeen(getLastSeen(profile.id))}
                   onSendRequest={sendBuddyRequest}
+                  onHide={dismissProfile}
                 />
               ))}
             </div>
