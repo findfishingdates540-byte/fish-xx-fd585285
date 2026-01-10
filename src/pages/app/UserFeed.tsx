@@ -1,20 +1,24 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { FeedPost } from '@/components/feed/FeedPost';
 import { FeedPost as FeedPostType } from '@/hooks/use-feed';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const POSTS_PER_PAGE = 10;
 
 export default function UserFeed() {
   const { userId, postId } = useParams<{ userId: string; postId?: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const hasScrolledToPost = useRef(false);
   
   // Fetch user profile for header
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -34,13 +38,22 @@ export default function UserFeed() {
     enabled: !!userId,
   });
   
-  // Fetch all user posts with full data for FeedPost component
-  const { data: posts = [], isLoading: postsLoading } = useQuery({
-    queryKey: ['user-feed-posts', userId, user?.id],
-    queryFn: async () => {
-      if (!userId) return [];
+  // Fetch user posts with infinite scroll
+  const {
+    data,
+    isLoading: postsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['user-feed-posts-infinite', userId, user?.id],
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!userId) return { posts: [], nextCursor: null };
       
-      // Get all posts from the user
+      const from = pageParam * POSTS_PER_PAGE;
+      const to = from + POSTS_PER_PAGE - 1;
+      
+      // Get posts with pagination
       const { data: postsData, error: postsError } = await supabase
         .from('feed_posts')
         .select(`
@@ -57,12 +70,13 @@ export default function UserFeed() {
           catch_id
         `)
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
       
       if (postsError) throw postsError;
-      if (!postsData?.length) return [];
+      if (!postsData?.length) return { posts: [], nextCursor: null };
       
-      // Get profile info
+      // Get profile info (cached after first call)
       const { data: profileData } = await supabase
         .from('public_profiles')
         .select('id, display_name, photos, id_verified, live_verified')
@@ -102,7 +116,7 @@ export default function UserFeed() {
       }
       
       // Transform to FeedPost format
-      return postsData.map((post): FeedPostType => ({
+      const posts = postsData.map((post): FeedPostType => ({
         id: post.id,
         content: post.content,
         photos: post.photos,
@@ -118,13 +132,46 @@ export default function UserFeed() {
         catch_data: post.catch_id ? catchesMap[post.catch_id] : null,
         user_has_liked: likedPostIds.has(post.id),
       }));
+      
+      return {
+        posts,
+        nextCursor: postsData.length === POSTS_PER_PAGE ? pageParam + 1 : null,
+      };
     },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: 0,
     enabled: !!userId,
   });
   
+  // Flatten all posts from all pages
+  const posts = data?.pages.flatMap(page => page.posts) ?? [];
+  
+  // Intersection Observer for infinite scroll
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const [entry] = entries;
+    if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(handleObserver, {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0,
+    });
+    
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+    
+    return () => observer.disconnect();
+  }, [handleObserver]);
+  
   // Scroll to specific post when postId is provided
   useEffect(() => {
-    if (postId && posts.length > 0 && postRefs.current[postId]) {
+    if (postId && posts.length > 0 && postRefs.current[postId] && !hasScrolledToPost.current) {
+      hasScrolledToPost.current = true;
       setTimeout(() => {
         postRefs.current[postId]?.scrollIntoView({ 
           behavior: 'smooth', 
@@ -202,6 +249,16 @@ export default function UserFeed() {
             ))}
           </div>
         )}
+        
+        {/* Load more trigger */}
+        <div ref={loadMoreRef} className="py-8 flex justify-center">
+          {isFetchingNextPage && (
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          )}
+          {!hasNextPage && posts.length > 0 && (
+            <p className="text-sm text-muted-foreground">No more posts</p>
+          )}
+        </div>
       </div>
     </div>
   );
