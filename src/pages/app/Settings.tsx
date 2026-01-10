@@ -17,6 +17,7 @@ import { usePushNotificationsUnified } from "@/hooks/use-push-notifications-unif
 import { useStripePortal } from "@/hooks/use-stripe-portal";
 import { ThemeSelector as AppearanceSelector } from "@/components/ui/theme-toggle";
 import { VerificationSection } from "@/components/settings/VerificationSection";
+import { HiddenProfilesSection } from "@/components/settings/HiddenProfilesSection";
 import { useUnreadTicketCount } from "@/hooks/use-unread-ticket-count";
 import { format } from "date-fns";
 import {
@@ -49,6 +50,7 @@ import {
   MessageCircle,
   BadgeCheck,
   Ticket,
+  EyeOff,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -65,6 +67,7 @@ const settingsNav = [
   { id: "discovery", label: "Discovery", icon: Compass },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "privacy", label: "Privacy", icon: Shield },
+  { id: "hidden-profiles", label: "Hidden Profiles", icon: EyeOff },
   { id: "subscription", label: "Subscription", icon: CreditCard },
   { id: "invite", label: "Invite Friends", icon: UserPlus },
 ];
@@ -1188,6 +1191,11 @@ export default function Settings() {
                   </Card>
                 )}
               </div>
+            )}
+
+            {/* Hidden Profiles Tab */}
+            {activeTab === "hidden-profiles" && (
+              <HiddenProfilesSection />
             )}
 
             {/* Invite Tab */}
