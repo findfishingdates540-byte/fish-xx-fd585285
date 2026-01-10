@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MapPin, Fish, Award, UserPlus, MessageCircle, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { isRecentlyActive } from '@/hooks/use-online-presence';
 import { useNavigate } from 'react-router-dom';
 import { VerificationBadge } from '@/components/ui/verification-badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface BuddyCardProps {
   profile: {
@@ -40,6 +51,7 @@ export function BuddyCard({
   onHide
 }: BuddyCardProps) {
   const navigate = useNavigate();
+  const [showHideDialog, setShowHideDialog] = useState(false);
   
   const experienceLabels: Record<string, string> = {
     beginner: 'Beginner',
@@ -66,14 +78,22 @@ export function BuddyCard({
     navigate(`/app/profile/${profile.id}`);
   };
 
+  const handleConfirmHide = () => {
+    if (onHide) {
+      onHide(profile.id);
+    }
+    setShowHideDialog(false);
+  };
+
   return (
-    <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleCardClick}>
-      <div className="aspect-square relative">
-        <img
-          src={profile.photos?.[0] || '/placeholder.svg'}
-          alt={profile.display_name || 'Angler'}
-          className="w-full h-full object-cover"
-        />
+    <>
+      <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={handleCardClick}>
+        <div className="aspect-square relative">
+          <img
+            src={profile.photos?.[0] || '/placeholder.svg'}
+            alt={profile.display_name || 'Angler'}
+            className="w-full h-full object-cover"
+          />
         {/* Status indicator */}
         {isOnline ? (
           <div className="absolute top-2 left-2">
@@ -172,7 +192,7 @@ export function BuddyCard({
               variant="ghost" 
               size="icon"
               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              onClick={() => onHide(profile.id)}
+              onClick={() => setShowHideDialog(true)}
               title="Hide this profile"
             >
               <X className="w-4 h-4" />
@@ -205,5 +225,25 @@ export function BuddyCard({
         </div>
       </CardContent>
     </Card>
+
+    {/* Hide Confirmation Dialog */}
+    <AlertDialog open={showHideDialog} onOpenChange={setShowHideDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Hide this profile?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {profile.display_name || 'This angler'} won't appear in your buddy discovery anymore. 
+            You can unhide them later in Settings → Hidden Profiles.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirmHide}>
+            Hide Profile
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 }
