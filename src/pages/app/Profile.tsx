@@ -7,7 +7,7 @@ import {
   MapPin, Share2, Pencil, Heart, Fish, Layers, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
-  ArrowLeft, Settings, Grid3X3, AtSign, FileText
+  ArrowLeft, Settings, Grid3X3, AtSign, FileText, User
 } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -137,6 +137,7 @@ export default function Profile() {
   
   // Type assertions for new fields
   const heightCm = (profile as any)?.height_cm as number | null;
+  const gender = (profile as any)?.gender as string | null;
   const drinking = (profile as any)?.drinking as string | null;
   const smoking = (profile as any)?.smoking as string | null;
   const education = (profile as any)?.education as string | null;
@@ -353,7 +354,7 @@ export default function Profile() {
                 </Card>
 
                 {/* The Basics */}
-                {(heightCm || education || occupation) && (
+                {(gender || heightCm || education || occupation) && (
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -361,6 +362,12 @@ export default function Profile() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
+                      {gender && (
+                        <div className="flex items-center gap-3">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{gender === 'male' ? 'Man' : gender === 'female' ? 'Woman' : gender}</span>
+                        </div>
+                      )}
                       {heightCm && (
                         <div className="flex items-center gap-3">
                           <Ruler className="h-4 w-4 text-muted-foreground" />
