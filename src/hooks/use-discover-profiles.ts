@@ -225,20 +225,15 @@ export function useDiscoverProfiles() {
         .not('photos', 'is', null);
 
       // Strict opposite gender filtering - male sees female only, female sees male only
-      // Only show profiles that have a gender set
+      // Users must have their gender set to use dating discovery
       if (userPreferences.gender === 'male') {
         query = query.eq('gender', 'female');
       } else if (userPreferences.gender === 'female') {
         query = query.eq('gender', 'male');
       } else {
-        // If user's gender is not set, use interested_in preference
-        // Default to opposite gender based on interested_in, or exclude if nothing is set
-        if (userPreferences.interested_in && userPreferences.interested_in.length > 0) {
-          query = query.in('gender', userPreferences.interested_in as ('male' | 'female')[]);
-        } else {
-          // No gender and no preference set - return empty array
-          return [];
-        }
+        // User's gender is not set - return no profiles until they complete their profile
+        console.log('Dating discovery requires gender to be set');
+        return [];
       }
 
       // Exclude already swiped profiles
