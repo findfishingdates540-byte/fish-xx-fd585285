@@ -57,6 +57,7 @@ import {
   Check
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { cn } from "@/lib/utils";
 
 type AccountMode = Database["public"]["Enums"]["account_mode"];
 type GenderType = Database["public"]["Enums"]["gender_type"];
@@ -95,6 +96,7 @@ export default function ProfileEdit() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [bio, setBio] = useState("");
+  const [gender, setGender] = useState<GenderType | null>(null);
   const [accountMode, setAccountMode] = useState<AccountMode>("both");
   const [interestedIn, setInterestedIn] = useState<GenderType[]>([]);
   const [lookingFor, setLookingFor] = useState<LookingForType[]>([]);
@@ -168,6 +170,7 @@ export default function ProfileEdit() {
       setLocationLng(data.location_lng || null);
       setDateOfBirth(data.date_of_birth || "");
       setBio(data.bio || "");
+      setGender((data as any).gender || null);
       setAccountMode(data.account_mode || "both");
       setInterestedIn((data.interested_in as GenderType[]) || []);
       setLookingFor((data.looking_for as LookingForType[]) || []);
@@ -491,6 +494,7 @@ export default function ProfileEdit() {
         location_lng: finalLng,
         date_of_birth: dateOfBirth || null,
         bio: bio,
+        gender: gender,
         account_mode: accountMode,
         interested_in: interestedIn,
         looking_for: lookingFor,
@@ -853,6 +857,42 @@ export default function ProfileEdit() {
                     {bio.length}/300
                   </p>
                 </div>
+
+                {/* Gender Selection - for dating/combo modes */}
+                {(accountMode === 'dating' || accountMode === 'both') && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      I am a...
+                    </Label>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setGender('male')}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-lg border-2 transition-all font-medium text-sm",
+                          gender === 'male'
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background hover:border-primary/50"
+                        )}
+                      >
+                        ♂ Man
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGender('female')}
+                        className={cn(
+                          "flex-1 py-3 px-4 rounded-lg border-2 transition-all font-medium text-sm",
+                          gender === 'female'
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background hover:border-primary/50"
+                        )}
+                      >
+                        ♀ Woman
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Height, Education, Occupation */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
