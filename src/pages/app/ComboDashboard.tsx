@@ -471,27 +471,29 @@ export default function ComboDashboard() {
       });
 
       // Fetch nearby anglers using public_profiles view for privacy (age is pre-calculated)
-      let anglersQuery = supabase
-        .from("public_profiles")
-        .select("id, display_name, photos, age, fishing_experience, preferred_species, fishing_gear, location_name, gender")
-        .neq("id", user.id)
-        .not("photos", "is", null);
-
-      // Exclude already swiped profiles
-      if (swipedIds.size > 0) {
-        anglersQuery = anglersQuery.not("id", "in", `(${Array.from(swipedIds).join(",")})`);
-      }
-
-      // Apply opposite gender filtering (male sees female, female sees male)
-      if (profile?.gender === 'male') {
-        anglersQuery = anglersQuery.eq('gender', 'female');
-      } else if (profile?.gender === 'female') {
-        anglersQuery = anglersQuery.eq('gender', 'male');
-      }
-
-      const { data: anglers } = await anglersQuery.limit(5);
+      // Only fetch if user has set their gender (required for opposite-gender filtering)
+      let anglersList: typeof nearbyAnglers = [];
       
-      setNearbyAnglers(anglers || []);
+      if (profile?.gender === 'male' || profile?.gender === 'female') {
+        let anglersQuery = supabase
+          .from("public_profiles")
+          .select("id, display_name, photos, age, fishing_experience, preferred_species, fishing_gear, location_name, gender")
+          .neq("id", user.id)
+          .not("photos", "is", null);
+
+        // Exclude already swiped profiles
+        if (swipedIds.size > 0) {
+          anglersQuery = anglersQuery.not("id", "in", `(${Array.from(swipedIds).join(",")})`);
+        }
+
+        // Apply strict opposite gender filtering (male sees female only, female sees male only)
+        anglersQuery = anglersQuery.eq('gender', profile.gender === 'male' ? 'female' : 'male');
+
+        const { data: anglers } = await anglersQuery.limit(5);
+        anglersList = anglers || [];
+      }
+      
+      setNearbyAnglers(anglersList);
 
       // Fetch hot spots
       const { data: spots } = await supabase
