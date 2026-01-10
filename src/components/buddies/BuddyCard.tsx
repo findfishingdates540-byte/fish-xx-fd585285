@@ -61,7 +61,7 @@ export function BuddyCard({
   };
 
   const handleCardClick = () => {
-    navigate(`/app/u/${profile.id}`);
+    navigate(`/app/profile/${profile.id}`);
   };
 
   return (
