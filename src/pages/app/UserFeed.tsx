@@ -209,21 +209,10 @@ export default function UserFeed() {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center gap-3 px-4 py-3 max-w-xl mx-auto">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="-ml-2" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <button 
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            onClick={() => navigate(`/app/u/${userId}`)}
-          >
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={profile?.photos?.[0]} />
-              <AvatarFallback>
-                {profile?.display_name?.charAt(0)?.toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <span className="font-semibold">{profile?.display_name || 'Posts'}</span>
-          </button>
+          <span className="font-semibold">Posts</span>
         </div>
       </div>
       
