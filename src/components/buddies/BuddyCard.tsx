@@ -1,4 +1,4 @@
-import { MapPin, Fish, Award, UserPlus, MessageCircle, Check } from 'lucide-react';
+import { MapPin, Fish, Award, UserPlus, MessageCircle, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,7 @@ interface BuddyCardProps {
   lastSeen?: string | null;
   onSendRequest: (userId: string) => void;
   onMessage?: (userId: string) => void;
+  onHide?: (userId: string) => void;
 }
 
 export function BuddyCard({ 
@@ -35,7 +36,8 @@ export function BuddyCard({
   isOnline = false,
   lastSeen,
   onSendRequest,
-  onMessage 
+  onMessage,
+  onHide
 }: BuddyCardProps) {
   const navigate = useNavigate();
   
@@ -165,6 +167,17 @@ export function BuddyCard({
         )}
 
         <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+          {onHide && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              onClick={() => onHide(profile.id)}
+              title="Hide this profile"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
           {isRequested ? (
             <Button variant="outline" className="flex-1" disabled>
               <Check className="w-4 h-4 mr-2" />
