@@ -20,3 +20,4 @@ export { default as ComboDashboard } from './ComboDashboard';
 export { default as Feed } from './Feed';
 export { default as MyTickets } from './MyTickets';
 export { default as SocialProfile } from './SocialProfile';
+export { default as UserFeed } from './UserFeed';
