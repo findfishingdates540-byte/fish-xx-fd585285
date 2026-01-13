@@ -47,6 +47,7 @@ export default function AdminVerifications() {
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: requests, isLoading } = useQuery({
@@ -426,7 +427,7 @@ export default function AdminVerifications() {
                       {request.id_document_url && (
                         <DropdownMenuItem
                           className="text-slate-300 focus:text-white focus:bg-slate-700"
-                          onClick={() => window.open(request.id_document_url!, '_blank')}
+                          onClick={() => setPreviewImage({ url: request.id_document_url!, title: 'ID Document' })}
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View ID Document
@@ -435,7 +436,7 @@ export default function AdminVerifications() {
                       {request.selfie_url && (
                         <DropdownMenuItem
                           className="text-slate-300 focus:text-white focus:bg-slate-700"
-                          onClick={() => window.open(request.selfie_url!, '_blank')}
+                          onClick={() => setPreviewImage({ url: request.selfie_url!, title: 'Selfie' })}
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View Selfie
@@ -498,6 +499,24 @@ export default function AdminVerifications() {
                 Reject Request
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Preview Modal */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">{previewImage?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center">
+            {previewImage && (
+              <img
+                src={previewImage.url}
+                alt={previewImage.title}
+                className="max-h-[70vh] w-auto rounded-lg object-contain"
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
