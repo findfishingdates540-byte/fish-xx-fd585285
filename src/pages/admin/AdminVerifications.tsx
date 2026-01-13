@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldCheck, CheckCircle, XCircle, Eye, MoreVertical, BadgeCheck, FileText, Camera, ClipboardList, Users } from 'lucide-react';
+import { ShieldCheck, CheckCircle, XCircle, Eye, MoreVertical, BadgeCheck, FileText, Camera, ClipboardList, Users, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -48,7 +48,44 @@ export default function AdminVerifications() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const queryClient = useQueryClient();
+
+  // Helper to get signed URL for private bucket files
+  const getSignedUrl = async (path: string): Promise<string | null> => {
+    // Check if it's already a full URL (legacy data) or just a path
+    if (path.startsWith('http')) {
+      // Extract path from full URL if it's legacy format
+      const match = path.match(/verification-documents\/(.+)$/);
+      if (match) {
+        path = match[1];
+      } else {
+        return path; // Return as-is if can't extract
+      }
+    }
+    
+    const { data, error } = await supabase.storage
+      .from('verification-documents')
+      .createSignedUrl(path, 3600); // 1 hour expiry
+    
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      return null;
+    }
+    return data.signedUrl;
+  };
+
+  const handleViewDocument = async (documentPath: string, title: string) => {
+    setIsLoadingPreview(true);
+    const signedUrl = await getSignedUrl(documentPath);
+    setIsLoadingPreview(false);
+    
+    if (signedUrl) {
+      setPreviewImage({ url: signedUrl, title });
+    } else {
+      toast.error('Failed to load document');
+    }
+  };
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ['admin-verification-requests', statusFilter, typeFilter],
@@ -427,7 +464,8 @@ export default function AdminVerifications() {
                       {request.id_document_url && (
                         <DropdownMenuItem
                           className="text-slate-300 focus:text-white focus:bg-slate-700"
-                          onClick={() => setPreviewImage({ url: request.id_document_url!, title: 'ID Document' })}
+                          onClick={() => handleViewDocument(request.id_document_url!, 'ID Document')}
+                          disabled={isLoadingPreview}
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View ID Document
@@ -436,7 +474,8 @@ export default function AdminVerifications() {
                       {request.selfie_url && (
                         <DropdownMenuItem
                           className="text-slate-300 focus:text-white focus:bg-slate-700"
-                          onClick={() => setPreviewImage({ url: request.selfie_url!, title: 'Selfie' })}
+                          onClick={() => handleViewDocument(request.selfie_url!, 'Selfie')}
+                          disabled={isLoadingPreview}
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View Selfie
@@ -504,19 +543,21 @@ export default function AdminVerifications() {
       </Dialog>
 
       {/* Image Preview Modal */}
-      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+      <Dialog open={!!previewImage || isLoadingPreview} onOpenChange={() => setPreviewImage(null)}>
         <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">{previewImage?.title}</DialogTitle>
+            <DialogTitle className="text-white">{previewImage?.title || 'Loading...'}</DialogTitle>
           </DialogHeader>
-          <div className="flex justify-center">
-            {previewImage && (
+          <div className="flex justify-center min-h-[200px] items-center">
+            {isLoadingPreview ? (
+              <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+            ) : previewImage ? (
               <img
                 src={previewImage.url}
                 alt={previewImage.title}
                 className="max-h-[70vh] w-auto rounded-lg object-contain"
               />
-            )}
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

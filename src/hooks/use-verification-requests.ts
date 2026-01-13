@@ -44,8 +44,8 @@ export function useVerificationRequests() {
 
     if (uploadError) throw uploadError;
 
-    // Return the path for admin to access via signed URL
-    return `${SUPABASE_URL}/storage/v1/object/verification-documents/${fileName}`;
+    // Return just the path - admin will create signed URL when viewing
+    return fileName;
   };
 
   const submitIdVerification = useMutation({
