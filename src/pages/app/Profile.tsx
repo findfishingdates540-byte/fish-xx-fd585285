@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
 import { InviteFriendsCard } from '@/components/feed';
 import { ProfileStatsBar } from '@/components/social/ProfileStatsBar';
+import { PostViewerOverlay } from '@/components/social/PostViewerOverlay';
 import { ProfilePostsGrid } from '@/components/social/ProfilePostsGrid';
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
 import { cn } from '@/lib/utils';
@@ -51,6 +53,7 @@ const experienceLevelMap: Record<string, number> = {
 export default function Profile() {
   const { user } = useAuth();
   const { effectiveMode } = useActiveMode();
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const navigate = useNavigate();
   
   // Determine if social features should be shown (not in dating-only mode)
@@ -295,14 +298,17 @@ export default function Profile() {
                     <ProfilePostsGrid 
                       posts={posts} 
                       isLoading={postsLoading} 
-                      emptyMessage="No posts yet. Share your first catch!" 
+                      emptyMessage="No posts yet. Share your first catch!"
+                      userId={user?.id}
+                      onPostClick={(postId) => setSelectedPostId(postId)}
                     />
                   </TabsContent>
                   <TabsContent value="mentioned" className="mt-0">
                     <ProfilePostsGrid 
                       posts={mentionedPosts} 
                       isLoading={mentionsLoading} 
-                      emptyMessage="No mentions yet" 
+                      emptyMessage="No mentions yet"
+                      onPostClick={(postId) => setSelectedPostId(postId)}
                     />
                   </TabsContent>
                 </Tabs>
@@ -756,6 +762,15 @@ export default function Profile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Post Viewer Overlay */}
+      {selectedPostId && user?.id && (
+        <PostViewerOverlay
+          postId={selectedPostId}
+          userId={user.id}
+          onClose={() => setSelectedPostId(null)}
+        />
+      )}
     </div>
   );
 }
