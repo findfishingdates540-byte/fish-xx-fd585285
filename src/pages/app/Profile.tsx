@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,7 +21,6 @@ import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type Prof
 import { InviteFriendsCard } from '@/components/feed';
 import { ProfileStatsBar } from '@/components/social/ProfileStatsBar';
 import { ProfilePostsGrid } from '@/components/social/ProfilePostsGrid';
-import { FollowersListModal } from '@/components/social/FollowersListModal';
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
 import { cn } from '@/lib/utils';
 
@@ -54,7 +52,6 @@ export default function Profile() {
   const { user } = useAuth();
   const { effectiveMode } = useActiveMode();
   const navigate = useNavigate();
-  const [followersModalType, setFollowersModalType] = useState<'followers' | 'following' | null>(null);
   
   // Determine if social features should be shown (not in dating-only mode)
   const showSocialFeatures = effectiveMode !== 'dating';
@@ -272,8 +269,8 @@ export default function Profile() {
                   followersCount={profile?.followers_count || 0}
                   followingCount={profile?.following_count || 0}
                   likesCount={profile?.total_likes_received || 0}
-                  onFollowersClick={() => setFollowersModalType('followers')}
-                  onFollowingClick={() => setFollowersModalType('following')}
+                  onFollowersClick={() => navigate(`/app/u/${user?.id}/followers?tab=followers`)}
+                  onFollowingClick={() => navigate(`/app/u/${user?.id}/followers?tab=following`)}
                 />
                 
                 {/* Posts/Mentions Tabs */}
@@ -759,16 +756,6 @@ export default function Profile() {
           </TabsContent>
         </Tabs>
       </div>
-      
-      {/* Followers/Following Modal */}
-      {user?.id && followersModalType && (
-        <FollowersListModal
-          userId={user.id}
-          type={followersModalType}
-          isOpen={!!followersModalType}
-          onClose={() => setFollowersModalType(null)}
-        />
-      )}
     </div>
   );
 }

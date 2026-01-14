@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { ExperienceBadge } from '@/components/ui/experience-badge';
-import { FollowButton, ProfileStatsBar, ProfilePostsGrid, FollowersListModal } from '@/components/social';
+import { FollowButton, ProfileStatsBar, ProfilePostsGrid } from '@/components/social';
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
 import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,7 +17,6 @@ export default function SocialProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [followersModalType, setFollowersModalType] = useState<'followers' | 'following' | null>(null);
   
   const isOwnProfile = user?.id === userId;
   
@@ -221,8 +219,8 @@ export default function SocialProfile() {
           followersCount={profile.followers_count || 0}
           followingCount={profile.following_count || 0}
           likesCount={profile.total_likes_received || 0}
-          onFollowersClick={() => setFollowersModalType('followers')}
-          onFollowingClick={() => setFollowersModalType('following')}
+          onFollowersClick={() => navigate(`/app/u/${userId}/followers?tab=followers`)}
+          onFollowingClick={() => navigate(`/app/u/${userId}/followers?tab=following`)}
         />
         
         {/* Content Tabs */}
@@ -260,16 +258,6 @@ export default function SocialProfile() {
           </TabsContent>
         </Tabs>
       </div>
-      
-      {/* Followers/Following Modal */}
-      {followersModalType && userId && (
-        <FollowersListModal
-          userId={userId}
-          type={followersModalType}
-          isOpen={!!followersModalType}
-          onClose={() => setFollowersModalType(null)}
-        />
-      )}
     </div>
   );
 }
