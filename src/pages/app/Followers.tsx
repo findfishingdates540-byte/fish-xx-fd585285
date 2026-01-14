@@ -134,16 +134,16 @@ export default function Followers() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center gap-3 p-4">
+        <div className="flex items-center gap-2 px-3 py-2">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => navigate(-1)}
-            className="shrink-0"
+            className="shrink-0 h-8 w-8"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="font-semibold truncate">{profile?.display_name || 'User'}</h1>
+          <h1 className="text-sm font-medium truncate">{profile?.display_name || 'User'}</h1>
         </div>
         
         <Tabs defaultValue={initialTab} className="w-full">
