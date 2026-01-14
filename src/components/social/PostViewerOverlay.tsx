@@ -121,7 +121,7 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
   } = useInfiniteQuery<PageData, Error>({
     queryKey: ['post-viewer', userId, anchorPost?.created_at],
     queryFn: async ({ pageParam }): Promise<PageData> => {
-      const { direction, cursor } = pageParam as { direction: 'older' | 'newer'; cursor: string | undefined };
+      const { direction, cursor, isInitial } = pageParam as { direction: 'older' | 'newer'; cursor: string | undefined; isInitial?: boolean };
       
       let query = supabase
         .from('feed_posts')
@@ -150,7 +150,12 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
         if (direction === 'newer') {
           query = query.gt('created_at', cursor);
         } else {
-          query = query.lt('created_at', cursor);
+          // Use lte for initial query to include the anchor post, lt for subsequent pages
+          if (isInitial) {
+            query = query.lte('created_at', cursor);
+          } else {
+            query = query.lt('created_at', cursor);
+          }
         }
       }
 
@@ -166,11 +171,11 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
         cursor,
       };
     },
-    initialPageParam: { direction: 'older' as const, cursor: anchorPost?.created_at } as { direction: 'older' | 'newer'; cursor: string | undefined },
+    initialPageParam: { direction: 'older' as const, cursor: anchorPost?.created_at, isInitial: true } as { direction: 'older' | 'newer'; cursor: string | undefined; isInitial?: boolean },
     getNextPageParam: (lastPage: PageData) => {
       if (lastPage.posts.length < POSTS_PER_PAGE) return undefined;
       const oldestPost = lastPage.posts[lastPage.posts.length - 1];
-      return { direction: 'older' as const, cursor: oldestPost?.created_at };
+      return { direction: 'older' as const, cursor: oldestPost?.created_at, isInitial: false };
     },
     getPreviousPageParam: (firstPage: PageData) => {
       if (firstPage.posts.length === 0) return undefined;
