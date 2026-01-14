@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { ExperienceBadge } from '@/components/ui/experience-badge';
-import { FollowButton, ProfileStatsBar, ProfilePostsGrid } from '@/components/social';
+import { FollowButton, ProfileStatsBar, ProfilePostsGrid, PostViewerOverlay } from '@/components/social';
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
 import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,6 +18,7 @@ export default function SocialProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   
   const isOwnProfile = user?.id === userId;
   
@@ -246,6 +248,7 @@ export default function SocialProfile() {
               isLoading={postsLoading}
               emptyMessage="No posts yet"
               userId={userId}
+              onPostClick={(postId) => setSelectedPostId(postId)}
             />
           </TabsContent>
           
@@ -254,10 +257,20 @@ export default function SocialProfile() {
               posts={mentionedPosts as any[]}
               isLoading={mentionsLoading}
               emptyMessage="No mentions yet"
+              onPostClick={(postId) => setSelectedPostId(postId)}
             />
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Post Viewer Overlay */}
+      {selectedPostId && userId && (
+        <PostViewerOverlay
+          postId={selectedPostId}
+          userId={userId}
+          onClose={() => setSelectedPostId(null)}
+        />
+      )}
     </div>
   );
 }

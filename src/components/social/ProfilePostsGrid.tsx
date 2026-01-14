@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Play, Video } from 'lucide-react';
 
 interface Post {
@@ -18,10 +17,10 @@ interface ProfilePostsGridProps {
   isLoading?: boolean;
   emptyMessage?: string;
   userId?: string;
+  onPostClick?: (postId: string) => void;
 }
 
-export function ProfilePostsGrid({ posts, isLoading, emptyMessage = 'No posts yet', userId }: ProfilePostsGridProps) {
-  const navigate = useNavigate();
+export function ProfilePostsGrid({ posts, isLoading, emptyMessage = 'No posts yet', userId, onPostClick }: ProfilePostsGridProps) {
   
   if (isLoading) {
     return (
@@ -41,11 +40,9 @@ export function ProfilePostsGrid({ posts, isLoading, emptyMessage = 'No posts ye
     );
   }
   
-  const handlePostClick = (postId: string, postUserId?: string) => {
-    // Use passed userId or try to infer from post
-    const targetUserId = userId || postUserId;
-    if (targetUserId) {
-      navigate(`/app/u/${targetUserId}/posts/${postId}`);
+  const handlePostClick = (postId: string) => {
+    if (onPostClick) {
+      onPostClick(postId);
     }
   };
   
@@ -58,10 +55,10 @@ export function ProfilePostsGrid({ posts, isLoading, emptyMessage = 'No posts ye
         // For mentioned posts that have profile info
         const postUserId = (post as any).user_id || (post as any).profiles?.id;
         
-        return (
+          return (
           <button
             key={post.id}
-            onClick={() => handlePostClick(post.id, postUserId)}
+            onClick={() => handlePostClick(post.id)}
             className="relative aspect-square group overflow-hidden bg-muted"
           >
             {hasVideo ? (
