@@ -285,11 +285,11 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
       >
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-          <div className="flex items-center gap-4 px-4 py-3 max-w-2xl mx-auto">
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <ArrowLeft className="h-5 w-5" />
+          <div className="flex items-center gap-2 px-3 py-2 max-w-2xl mx-auto">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
+              <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="font-semibold flex-1">Posts</h1>
+            <h1 className="text-sm font-medium flex-1">Posts</h1>
           </div>
         </div>
 
