@@ -38,13 +38,6 @@ interface Post {
     weight_lbs: number | null;
     length_in: number | null;
   } | null;
-  profiles?: {
-    id: string;
-    display_name: string | null;
-    photos: string[] | null;
-    id_verified: boolean | null;
-    live_verified: boolean | null;
-  } | null;
 }
 
 interface PageData {
@@ -66,6 +59,21 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<Record<string, number>>({});
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const likePost = useLikePost();
+
+  // Fetch the profile for this user (since we're viewing one user's posts)
+  const { data: profile } = useQuery({
+    queryKey: ['post-viewer-profile', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, photos, id_verified, live_verified')
+        .eq('id', userId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   // Fetch the anchor post's created_at first
   const { data: anchorPost } = useQuery({
@@ -132,13 +140,6 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
             species_name,
             weight_lbs,
             length_in
-          ),
-          profiles!feed_posts_user_id_fkey (
-            id,
-            display_name,
-            photos,
-            id_verified,
-            live_verified
           )
         `)
         .eq('user_id', userId)
@@ -317,7 +318,6 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
               {allPosts.map((post) => {
                 const photos = getPostPhotos(post);
                 const currentIndex = currentPhotoIndex[post.id] || 0;
-                const profile = post.profiles;
                 const isLiked = likedPosts.has(post.id);
 
                 return (
