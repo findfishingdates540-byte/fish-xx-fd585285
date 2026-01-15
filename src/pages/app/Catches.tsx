@@ -89,8 +89,8 @@ export default function Catches() {
     species_name: "",
     species_id: "",
     fishing_spot_id: "",
-    weight_kg: "",
-    length_cm: "",
+    weight_lbs: "",
+    length_in: "",
     notes: "",
     bait_used: "",
     caught_at: new Date().toISOString().split("T")[0],
@@ -211,8 +211,8 @@ export default function Catches() {
         species_name: speciesName || null,
         species_id: formData.species_id || null,
         fishing_spot_id: formData.fishing_spot_id || null,
-        weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
-        length_cm: formData.length_cm ? parseFloat(formData.length_cm) : null,
+        weight_lbs: formData.weight_lbs ? parseFloat(formData.weight_lbs) : null,
+        length_in: formData.length_in ? parseFloat(formData.length_in) : null,
         notes: formData.notes || null,
         bait_used: formData.bait_used || null,
         caught_at: formData.caught_at ? new Date(formData.caught_at).toISOString() : null,
@@ -262,8 +262,8 @@ export default function Catches() {
       species_name: "",
       species_id: "",
       fishing_spot_id: "",
-      weight_kg: "",
-      length_cm: "",
+      weight_lbs: "",
+      length_in: "",
       notes: "",
       bait_used: "",
       caught_at: new Date().toISOString().split("T")[0],
@@ -417,8 +417,8 @@ export default function Catches() {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    value={formData.weight_kg}
-                    onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
+                    value={formData.weight_lbs}
+                    onChange={(e) => setFormData({ ...formData, weight_lbs: e.target.value })}
                   />
                 </div>
                 <div>
@@ -428,8 +428,8 @@ export default function Catches() {
                     type="number"
                     step="0.1"
                     placeholder="0.0"
-                    value={formData.length_cm}
-                    onChange={(e) => setFormData({ ...formData, length_cm: e.target.value })}
+                    value={formData.length_in}
+                    onChange={(e) => setFormData({ ...formData, length_in: e.target.value })}
                   />
                 </div>
               </div>
