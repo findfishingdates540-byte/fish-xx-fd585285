@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Download, Image } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,6 +24,7 @@ interface ParsedSpot {
   species_available?: string[];
   is_public?: boolean;
   is_verified?: boolean;
+  photos?: string[];
   valid: boolean;
   errors: string[];
 }
@@ -33,6 +34,45 @@ interface ImportResult {
   failed: number;
   errors: string[];
 }
+
+// Convert Google Drive sharing links to direct image URLs
+const convertGoogleDriveUrl = (url: string): string => {
+  if (!url) return '';
+  const trimmedUrl = url.trim();
+  
+  // Match Google Drive file URLs: /file/d/{FILE_ID}/...
+  const fileMatch = trimmedUrl.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
+  if (fileMatch) {
+    return `https://drive.google.com/uc?export=view&id=${fileMatch[1]}`;
+  }
+  
+  // Match Google Drive open URLs: /open?id={FILE_ID}
+  const openMatch = trimmedUrl.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if (openMatch) {
+    return `https://drive.google.com/uc?export=view&id=${openMatch[1]}`;
+  }
+  
+  // Return as-is if not a Google Drive link
+  return trimmedUrl;
+};
+
+// Detect if a header is an image column
+const isImageHeader = (header: string): boolean => {
+  const normalized = header.toLowerCase().trim();
+  const imagePatterns = [
+    'image', 'photo', 'picture', 'img', 'thumbnail',
+    'image_url', 'photo_url', 'image url', 'photo url',
+    'imageurl', 'photourl', 'pic', 'pics'
+  ];
+  
+  // Check for exact matches or patterns with numbers (image_url_1, image 1, etc.)
+  return imagePatterns.some(pattern => 
+    normalized === pattern || 
+    normalized.startsWith(pattern + ' ') ||
+    normalized.startsWith(pattern + '_') ||
+    normalized.includes(pattern)
+  );
+};
 
 export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps) {
   const [file, setFile] = useState<File | null>(null);
@@ -103,6 +143,14 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
     const publicIdx = headers.findIndex(h => h === 'public' || h === 'is_public');
     const verifiedIdx = headers.findIndex(h => h === 'verified' || h === 'is_verified');
 
+    // Find all image columns
+    const imageColumnIndices: number[] = [];
+    headers.forEach((header, idx) => {
+      if (isImageHeader(header)) {
+        imageColumnIndices.push(idx);
+      }
+    });
+
     if (nameIdx === -1) {
       toast.error('CSV must have a "name" column');
       return;
@@ -144,6 +192,18 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         species = row[speciesIdx].split(/[,;|]/).map(s => s.trim()).filter(Boolean);
       }
 
+      // Parse photos from image columns
+      const photos: string[] = [];
+      imageColumnIndices.forEach(imgIdx => {
+        const rawUrl = row[imgIdx]?.trim();
+        if (rawUrl) {
+          const convertedUrl = convertGoogleDriveUrl(rawUrl);
+          if (convertedUrl) {
+            photos.push(convertedUrl);
+          }
+        }
+      });
+
       const parseBoolean = (val?: string): boolean => {
         if (!val) return false;
         return ['true', 'yes', '1', 'y'].includes(val.toLowerCase().trim());
@@ -158,12 +218,19 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         species_available: species,
         is_public: publicIdx !== -1 ? parseBoolean(row[publicIdx]) : true,
         is_verified: verifiedIdx !== -1 ? parseBoolean(row[verifiedIdx]) : false,
+        photos: photos.length > 0 ? photos : undefined,
         valid: errors.length === 0 && !!name,
         errors,
       };
     }).filter(spot => spot.name); // Filter out empty rows
 
     setParsedSpots(spots);
+    
+    // Show info about detected image columns
+    if (imageColumnIndices.length > 0) {
+      const totalPhotos = spots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
+      toast.success(`Detected ${imageColumnIndices.length} image column(s) with ${totalPhotos} total photos`);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,6 +282,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         species_available: spot.species_available || null,
         is_public: spot.is_public ?? true,
         is_verified: spot.is_verified ?? false,
+        photos: spot.photos || null,
       }));
 
       const { data, error } = await supabase
@@ -250,9 +318,9 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   };
 
   const downloadTemplate = () => {
-    const template = `name,description,location,latitude,longitude,species,public,verified
-"Bass Lake","Great bass fishing spot","Lake Road, Florida",28.5383,-81.3792,"Largemouth Bass,Bluegill",true,false
-"Sunset Pier","Ocean fishing pier","Miami Beach, FL",25.7906,-80.1300,"Snapper,Grouper,Mahi-mahi",true,true`;
+    const template = `name,description,location,latitude,longitude,species,public,verified,image_url_1,image_url_2,image_url_3
+"Bass Lake","Great bass fishing spot","Lake Road, Florida",28.5383,-81.3792,"Largemouth Bass,Bluegill",true,false,"https://example.com/bass-lake.jpg","",""
+"Sunset Pier","Ocean fishing pier","Miami Beach, FL",25.7906,-80.1300,"Snapper,Grouper,Mahi-mahi",true,true,"https://drive.google.com/file/d/abc123/view","https://example.com/pier2.jpg",""`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -267,6 +335,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
 
   const validCount = parsedSpots.filter(s => s.valid).length;
   const invalidCount = parsedSpots.filter(s => !s.valid).length;
+  const totalPhotos = parsedSpots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -277,7 +346,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
             Import Fishing Spots
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Upload a CSV file to bulk import fishing spots. Download the template for the correct format.
+            Upload a CSV file to bulk import fishing spots. Supports image URLs including Google Drive links.
           </DialogDescription>
         </DialogHeader>
 
@@ -339,7 +408,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
               </div>
 
               {/* Validation Summary */}
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <Badge className="bg-green-500/20 text-green-400 border-0">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   {validCount} valid
@@ -348,6 +417,12 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
                   <Badge className="bg-red-500/20 text-red-400 border-0">
                     <AlertCircle className="w-3 h-3 mr-1" />
                     {invalidCount} invalid
+                  </Badge>
+                )}
+                {totalPhotos > 0 && (
+                  <Badge className="bg-purple-500/20 text-purple-400 border-0">
+                    <Image className="w-3 h-3 mr-1" />
+                    {totalPhotos} photos
                   </Badge>
                 )}
               </div>
@@ -365,7 +440,15 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-white">{spot.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-white">{spot.name}</span>
+                          {spot.photos && spot.photos.length > 0 && (
+                            <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
+                              <Image className="w-3 h-3 mr-1" />
+                              {spot.photos.length}
+                            </Badge>
+                          )}
+                        </div>
                         {spot.valid ? (
                           <CheckCircle className="w-4 h-4 text-green-400" />
                         ) : (
