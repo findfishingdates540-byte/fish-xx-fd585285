@@ -701,6 +701,9 @@ export type Database = {
           location_lng: number | null
           location_name: string | null
           notes: string | null
+          parent_trip_id: string | null
+          recurrence_end_date: string | null
+          recurrence_type: string | null
           start_time: string | null
           status: string
           target_species: string[] | null
@@ -725,6 +728,9 @@ export type Database = {
           location_lng?: number | null
           location_name?: string | null
           notes?: string | null
+          parent_trip_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
           start_time?: string | null
           status?: string
           target_species?: string[] | null
@@ -749,6 +755,9 @@ export type Database = {
           location_lng?: number | null
           location_name?: string | null
           notes?: string | null
+          parent_trip_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
           start_time?: string | null
           status?: string
           target_species?: string[] | null
@@ -766,6 +775,13 @@ export type Database = {
             columns: ["fishing_spot_id"]
             isOneToOne: false
             referencedRelation: "fishing_spots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fishing_trips_parent_trip_id_fkey"
+            columns: ["parent_trip_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_trips"
             referencedColumns: ["id"]
           },
           {
