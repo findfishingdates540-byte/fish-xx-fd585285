@@ -14,6 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -30,10 +37,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Sunrise, Sunset, Repeat, CloudRain, Thermometer, Wind } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, addWeeks, addMonths } from "date-fns";
 import { TripBuddyInvite, TripSpotSelector } from "@/components/trips";
+import { useWeather, getFishingConditions, getWindDirection } from "@/hooks/use-weather";
 import {
   Save,
   Clock,
@@ -98,6 +106,14 @@ export default function TripPlanner() {
     location_lng: number;
     location_name: string | null;
   } | null>(null);
+  const [recurrenceType, setRecurrenceType] = useState<string | null>(null);
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>(undefined);
+
+  // Fetch weather data for selected spot
+  const { data: weather, isLoading: weatherLoading } = useWeather(
+    selectedSpot?.location_lat,
+    selectedSpot?.location_lng
+  );
 
   // Fetch current user profile for invitation preview
   const { data: userProfile } = useQuery({
@@ -221,7 +237,7 @@ export default function TripPlanner() {
         throw new Error("Missing required fields");
       }
 
-      const tripData = {
+      const baseTripData = {
         user_id: user.id,
         trip_type: tripType,
         title: title.trim(),
@@ -240,6 +256,8 @@ export default function TripPlanner() {
         coordinates_notes: coordinatesNotes.trim() || null,
         departure_reminder: departureReminder,
         weather_alert: weatherAlert,
+        recurrence_type: recurrenceType,
+        recurrence_end_date: recurrenceEndDate ? format(recurrenceEndDate, "yyyy-MM-dd") : null,
       };
 
       let tripId = id;
@@ -247,17 +265,50 @@ export default function TripPlanner() {
       if (isEditing) {
         const { error } = await supabase
           .from("fishing_trips")
-          .update(tripData)
+          .update(baseTripData)
           .eq("id", id);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
           .from("fishing_trips")
-          .insert(tripData)
+          .insert(baseTripData)
           .select("id")
           .single();
         if (error) throw error;
         tripId = data.id;
+
+        // Create recurring trip instances if recurrence is set
+        if (recurrenceType && recurrenceEndDate && tripId) {
+          const recurringTrips = [];
+          let nextDate = new Date(selectedDate);
+          
+          while (true) {
+            if (recurrenceType === "weekly") {
+              nextDate = addWeeks(nextDate, 1);
+            } else if (recurrenceType === "biweekly") {
+              nextDate = addWeeks(nextDate, 2);
+            } else if (recurrenceType === "monthly") {
+              nextDate = addMonths(nextDate, 1);
+            }
+            
+            if (nextDate > recurrenceEndDate) break;
+            
+            recurringTrips.push({
+              ...baseTripData,
+              trip_date: format(nextDate, "yyyy-MM-dd"),
+              parent_trip_id: tripId,
+              recurrence_type: null, // Child trips don't have recurrence
+              recurrence_end_date: null,
+            });
+          }
+          
+          if (recurringTrips.length > 0) {
+            const { error: recurError } = await supabase
+              .from("fishing_trips")
+              .insert(recurringTrips);
+            if (recurError) console.error("Error creating recurring trips:", recurError);
+          }
+        }
       }
 
       // Handle buddy invitations for buddies trips
@@ -467,10 +518,39 @@ export default function TripPlanner() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg text-sm">
-                  <Sun className="h-4 w-4 text-amber-600" />
-                  <span>Sunrise is at <strong>6:15 AM</strong> on this day.</span>
-                </div>
+                {/* Real sunrise/sunset times */}
+                {weather ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg text-sm">
+                      <Sunrise className="h-4 w-4 text-amber-600" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Sunrise</p>
+                        <p className="font-medium">
+                          {new Date(weather.sunrise * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg text-sm">
+                      <Sunset className="h-4 w-4 text-orange-600" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Sunset</p>
+                        <p className="font-medium">
+                          {new Date(weather.sunset * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : selectedSpot ? (
+                  <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm">
+                    <Sun className="h-4 w-4 text-muted-foreground animate-pulse" />
+                    <span className="text-muted-foreground">Loading sun times...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm">
+                    <Sun className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Select a location to see sunrise/sunset times</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -516,6 +596,119 @@ export default function TripPlanner() {
                         View Regulations
                       </a>
                     </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Weather Forecast Preview */}
+            {selectedSpot && weather && (
+              <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/30 dark:to-sky-950/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CloudRain className="h-4 w-4 text-blue-600" />
+                    Weather Forecast
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="text-4xl font-bold">{Math.round(weather.temperature)}°F</div>
+                      <div>
+                        <p className="font-medium">{weather.condition}</p>
+                        <p className="text-sm text-muted-foreground">{weather.description}</p>
+                      </div>
+                    </div>
+                    {(() => {
+                      const conditions = getFishingConditions(weather);
+                      return (
+                        <Badge className={`${conditions.color} bg-opacity-20`}>
+                          {conditions.rating} Fishing
+                        </Badge>
+                      );
+                    })()}
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 pt-2 border-t">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Wind className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Wind</p>
+                        <p className="font-medium">{Math.round(weather.wind.speed)} mph {getWindDirection(weather.wind.direction)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Thermometer className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Humidity</p>
+                        <p className="font-medium">{weather.humidity}%</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Pressure</p>
+                        <p className="font-medium">{weather.pressure} hPa</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recurring Trip Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Repeat className="h-4 w-4 text-primary" />
+                  Recurring Trip
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">REPEAT</Label>
+                  <Select
+                    value={recurrenceType || "none"}
+                    onValueChange={(v) => setRecurrenceType(v === "none" ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Does not repeat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Does not repeat</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {recurrenceType && (
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">REPEAT UNTIL</Label>
+                    <div className="border rounded-md p-3">
+                      <Calendar
+                        mode="single"
+                        selected={recurrenceEndDate}
+                        onSelect={setRecurrenceEndDate}
+                        className="rounded-md w-full pointer-events-auto"
+                        disabled={(date) => date <= (selectedDate || new Date())}
+                      />
+                    </div>
+                    {recurrenceEndDate && selectedDate && (
+                      <p className="text-xs text-muted-foreground">
+                        This will create{" "}
+                        <strong>
+                          {Math.floor(
+                            (recurrenceEndDate.getTime() - selectedDate.getTime()) /
+                              (recurrenceType === "weekly"
+                                ? 7 * 24 * 60 * 60 * 1000
+                                : recurrenceType === "biweekly"
+                                ? 14 * 24 * 60 * 60 * 1000
+                                : 30 * 24 * 60 * 60 * 1000)
+                          )}
+                        </strong>{" "}
+                        additional trips.
+                      </p>
+                    )}
                   </div>
                 )}
               </CardContent>
