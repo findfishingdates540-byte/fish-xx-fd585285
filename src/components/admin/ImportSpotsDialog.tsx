@@ -35,21 +35,35 @@ interface ImportResult {
   errors: string[];
 }
 
-// Convert Google Drive sharing links to direct image URLs
+// Convert Google Drive sharing links to embeddable thumbnail URLs
+// Uses lh3.googleusercontent.com which is more reliable than uc?export=view
 const convertGoogleDriveUrl = (url: string): string => {
   if (!url) return '';
   const trimmedUrl = url.trim();
   
+  let fileId: string | null = null;
+  
   // Match Google Drive file URLs: /file/d/{FILE_ID}/...
   const fileMatch = trimmedUrl.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
   if (fileMatch) {
-    return `https://drive.google.com/uc?export=view&id=${fileMatch[1]}`;
+    fileId = fileMatch[1];
   }
   
   // Match Google Drive open URLs: /open?id={FILE_ID}
   const openMatch = trimmedUrl.match(/drive\.google\.com\/open\?id=([^&]+)/);
   if (openMatch) {
-    return `https://drive.google.com/uc?export=view&id=${openMatch[1]}`;
+    fileId = openMatch[1];
+  }
+  
+  // Match existing uc?export=view URLs
+  const ucMatch = trimmedUrl.match(/drive\.google\.com\/uc\?export=view&id=([^&]+)/);
+  if (ucMatch) {
+    fileId = ucMatch[1];
+  }
+  
+  // Convert to lh3.googleusercontent.com thumbnail URL (more reliable for embedding)
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${fileId}=w1000`;
   }
   
   // Return as-is if not a Google Drive link
