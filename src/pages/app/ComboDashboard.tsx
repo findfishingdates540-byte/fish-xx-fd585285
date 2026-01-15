@@ -846,6 +846,16 @@ export default function ComboDashboard() {
         {/* Two-column layout for remaining content */}
         <div className="flex flex-1 px-4 lg:px-6 pb-6 gap-6">
           <main className="flex-1 min-w-0">
+            {/* Mobile/Tablet Location Prompt */}
+            {!userProfile?.location_lat && !userProfile?.location_lng && (
+              <button
+                onClick={() => navigate("/app/settings")}
+                className="lg:hidden w-full flex items-center justify-between text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2 mb-4 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+              >
+                <span>📍 Set your location for local weather & spots</span>
+                <span className="text-amber-600 dark:text-amber-400 font-medium">Settings →</span>
+              </button>
+            )}
             <AnimatePresence mode="wait">
               {/* New Anglers Near You - Show in unified and dating modes */}
               {(activeMode === "unified" || activeMode === "dating") && (
