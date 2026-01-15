@@ -65,6 +65,8 @@ interface UserProfileData {
   display_name: string | null;
   photos: string[] | null;
   location_name: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
 }
 
 interface ProfileData {
@@ -266,10 +268,10 @@ export default function ComboDashboard() {
     enabled: !!user?.id,
   });
 
-  // Fetch weather data
+  // Fetch weather data using user's actual location
   const { data: weatherData, isLoading: weatherLoading } = useWeather(
-    userProfile?.location_name ? null : null, // We could parse lat/lng from location if available
-    null
+    userProfile?.location_lat,
+    userProfile?.location_lng
   );
 
   // Total message count for sidebar badge (dating + buddy)
@@ -437,10 +439,10 @@ export default function ComboDashboard() {
     setLoading(true);
 
     try {
-      // Fetch user profile
+      // Fetch user profile including location coordinates for weather
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, display_name, photos, location_name, gender")
+        .select("id, display_name, photos, location_name, location_lat, location_lng, gender")
         .eq("id", user.id)
         .single();
       
