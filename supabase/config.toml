@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.send-ticket-email]
 verify_jwt = true
+
+[functions.process-trip-reminders]
+verify_jwt = false
