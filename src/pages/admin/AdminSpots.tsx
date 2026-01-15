@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus, Pencil } from 'lucide-react';
+import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus, Pencil, Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { SpotDetailsModal } from '@/components/admin/SpotDetailsModal';
 import { DeleteSpotDialog } from '@/components/admin/DeleteSpotDialog';
 import { AddSpotDialog } from '@/components/admin/AddSpotDialog';
 import { EditSpotDialog } from '@/components/admin/EditSpotDialog';
+import { ImportSpotsDialog } from '@/components/admin/ImportSpotsDialog';
 
 type SpotType = NonNullable<ReturnType<typeof useAdminSpots>['data']>[number];
 
@@ -24,6 +25,7 @@ export default function AdminSpots() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Mutations
   const { mutate: verifySpot, isPending: verifyPending } = useVerifySpot();
@@ -60,13 +62,23 @@ export default function AdminSpots() {
           <h1 className="text-2xl font-bold text-white">Fishing Spots</h1>
           <p className="text-slate-400 mt-1">Manage all fishing spots on the platform</p>
         </div>
-        <Button 
-          onClick={() => setAddDialogOpen(true)}
-          className="bg-cyan-600 hover:bg-cyan-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Spot
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setImportDialogOpen(true)}
+            className="border-slate-600 text-slate-300 hover:bg-slate-800"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Import CSV
+          </Button>
+          <Button 
+            onClick={() => setAddDialogOpen(true)}
+            className="bg-cyan-600 hover:bg-cyan-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Spot
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -245,6 +257,10 @@ export default function AdminSpots() {
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         spot={selectedSpot}
+      />
+      <ImportSpotsDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
       />
     </div>
   );
