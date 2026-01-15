@@ -802,6 +802,33 @@ export default function ComboDashboard() {
             </div>
           </div>
 
+          {/* Location Setup Prompt */}
+          {!userProfile?.location_lat && !userProfile?.location_lng && (
+            <Card className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+              <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/50">
+                    <MapPin className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-100">Set Your Location</h3>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      Add your location to see local weather, nearby anglers, and fishing spots in your area.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/50"
+                  onClick={() => navigate("/app/settings")}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Go to Settings
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Suggestion of the Day */}
           {featuredSpot && (
             <Card className="mb-6 overflow-hidden">
