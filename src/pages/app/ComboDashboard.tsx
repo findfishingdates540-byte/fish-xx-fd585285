@@ -88,7 +88,27 @@ interface FishingSpot {
   species_available: string[] | null;
   rating_avg: number | null;
   is_public: boolean | null;
+  location_lat: number | null;
+  location_lng: number | null;
 }
+
+// Calculate distance between two coordinates in miles
+const calculateDistanceMiles = (
+  lat1: number | null,
+  lng1: number | null,
+  lat2: number | null,
+  lng2: number | null
+): number | null => {
+  if (!lat1 || !lng1 || !lat2 || !lng2) return null;
+  const R = 3959; // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10; // Round to 1 decimal place
+};
 
 interface RecentFeedPost {
   id: string;
@@ -500,7 +520,7 @@ export default function ComboDashboard() {
       // Fetch hot spots (newest first)
       const { data: spots } = await supabase
         .from("fishing_spots")
-        .select("id, name, photos, species_available, rating_avg, is_public, created_at")
+        .select("id, name, photos, species_available, rating_avg, is_public, location_lat, location_lng, created_at")
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(3);
@@ -821,7 +841,17 @@ export default function ComboDashboard() {
                     <Badge variant="outline" className="text-primary border-primary">
                       {featuredSpot.rating_avg ? `${Math.round(featuredSpot.rating_avg * 10)}% Match` : "Top Rated"}
                     </Badge>
-                    <span className="text-sm text-muted-foreground">• 12 miles away</span>
+                    <span className="text-sm text-muted-foreground">
+                      {(() => {
+                        const distance = calculateDistanceMiles(
+                          userProfile?.location_lat,
+                          userProfile?.location_lng,
+                          featuredSpot.location_lat,
+                          featuredSpot.location_lng
+                        );
+                        return distance !== null ? `• ${distance} miles away` : "";
+                      })()}
+                    </span>
                   </div>
                   <h2 className="text-xl font-bold mb-2">
                     Perfect Catch & Match: {featuredSpot.name}
