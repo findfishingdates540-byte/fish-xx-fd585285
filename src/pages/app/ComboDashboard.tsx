@@ -497,12 +497,12 @@ export default function ComboDashboard() {
       
       setNearbyAnglers(anglersList);
 
-      // Fetch hot spots
+      // Fetch hot spots (newest first)
       const { data: spots } = await supabase
         .from("fishing_spots")
-        .select("id, name, photos, species_available, rating_avg, is_public")
+        .select("id, name, photos, species_available, rating_avg, is_public, created_at")
         .eq("is_public", true)
-        .order("rating_avg", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(3);
       
       setHotSpots(spots || []);
