@@ -64,9 +64,8 @@ export default function AdminSpots() {
         </div>
         <div className="flex gap-2">
           <Button 
-            variant="outline"
             onClick={() => setImportDialogOpen(true)}
-            className="border-slate-600 text-slate-300 hover:bg-slate-800"
+            className="bg-cyan-600 hover:bg-cyan-700"
           >
             <Upload className="w-4 h-4 mr-2" />
             Import CSV
