@@ -18,6 +18,7 @@ export interface ProfileData {
   fishingType?: string;
   idVerified?: boolean;
   liveVerified?: boolean;
+  likedYou?: boolean;
 }
 
 interface ProfileCardProps {
@@ -162,14 +163,21 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
           </>
         )}
 
-        {/* Fishing Type Badge */}
-        {profile.fishingType && (
-          <div className="absolute top-4 left-4">
+        {/* Top Badges */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+          {/* Liked You Badge */}
+          {profile.likedYou && (
+            <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold border-0 shadow-lg animate-pulse">
+              💕 Liked You
+            </Badge>
+          )}
+          {/* Fishing Type Badge */}
+          {profile.fishingType && (
             <Badge variant="secondary" className="bg-background text-foreground font-medium">
               🎣 {profile.fishingType}
             </Badge>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Info Button - Desktop only */}
         {!isMobile && (

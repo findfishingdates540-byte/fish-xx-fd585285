@@ -1,7 +1,8 @@
 import { Undo2, X, Star, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import confetti from 'canvas-confetti';
 
 interface SwipeActionsProps {
   onRewind?: () => void;
@@ -20,9 +21,52 @@ export function SwipeActions({
 }: SwipeActionsProps) {
   const [animatingButton, setAnimatingButton] = useState<string | null>(null);
 
+  const triggerSuperLikeConfetti = useCallback(() => {
+    // Star burst from center
+    const defaults = {
+      spread: 360,
+      ticks: 100,
+      gravity: 0,
+      decay: 0.94,
+      startVelocity: 30,
+      colors: ['#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe', '#ffffff', '#fbbf24'],
+    };
+
+    confetti({
+      ...defaults,
+      particleCount: 40,
+      scalar: 1.2,
+      shapes: ['star'],
+    });
+
+    confetti({
+      ...defaults,
+      particleCount: 25,
+      scalar: 0.75,
+      shapes: ['circle'],
+    });
+
+    // Secondary burst
+    setTimeout(() => {
+      confetti({
+        ...defaults,
+        particleCount: 30,
+        scalar: 1,
+        shapes: ['star'],
+        startVelocity: 20,
+      });
+    }, 150);
+  }, []);
+
   const handleClick = (action: () => void | undefined, buttonName: string) => {
     if (!action) return;
     setAnimatingButton(buttonName);
+    
+    // Trigger confetti for super like
+    if (buttonName === 'superlike') {
+      triggerSuperLikeConfetti();
+    }
+    
     action();
     setTimeout(() => setAnimatingButton(null), 400);
   };
