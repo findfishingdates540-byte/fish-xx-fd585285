@@ -376,7 +376,7 @@ export default function Discover() {
           <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>
-        <Button onClick={startTutorial} variant="ghost" className="gap-2">
+        <Button onClick={startTutorial} variant="ghost" className="gap-2" disabled>
           <HelpCircle className="h-4 w-4" />
           Tutorial
         </Button>
