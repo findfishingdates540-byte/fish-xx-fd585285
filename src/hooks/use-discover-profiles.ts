@@ -192,20 +192,36 @@ export function useDiscoverProfiles() {
     enabled: !!user?.id,
   });
 
-  // Fetch profiles the user has already swiped on
+  // Fetch profiles the user has already swiped on (only where USER initiated the swipe)
   const { data: swipedProfiles } = useQuery({
     queryKey: ['swiped-profiles', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
+      
+      // Get profiles where this user swiped (user is user1 and has liked/passed)
+      const { data: asUser1, error: error1 } = await supabase
         .from('matches')
-        .select('user1_id, user2_id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+        .select('user2_id')
+        .eq('user1_id', user.id)
+        .not('user1_liked', 'is', null);
       
-      if (error) throw error;
+      // Get profiles where this user was user2 and has swiped back
+      const { data: asUser2, error: error2 } = await supabase
+        .from('matches')
+        .select('user1_id')
+        .eq('user2_id', user.id)
+        .not('user2_liked', 'is', null);
       
-      // Return IDs of profiles the user has already interacted with
-      return data.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
+      if (error1) throw error1;
+      if (error2) throw error2;
+      
+      // Combine the swiped profile IDs
+      const swipedIds = [
+        ...(asUser1 || []).map(m => m.user2_id),
+        ...(asUser2 || []).map(m => m.user1_id),
+      ];
+      
+      return swipedIds;
     },
     enabled: !!user?.id,
   });
