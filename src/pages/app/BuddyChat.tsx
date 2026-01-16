@@ -25,6 +25,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   read_at: string | null;
+  delivered_at: string | null;
   image_url: string | null;
   audio_url: string | null;
   reply_to_id: string | null;
@@ -123,6 +124,7 @@ export default function BuddyChat() {
   useEffect(() => {
     if (user && buddyId) {
       fetchChatData();
+      markMessagesAsDelivered();
       markMessagesAsRead();
     }
   }, [user, buddyId]);
@@ -178,6 +180,7 @@ export default function BuddyChat() {
           setMessages(prev => [...prev, newMsg]);
           fetchSharedContent([newMsg]);
           if (newMsg.sender_id !== user.id) {
+            markMessagesAsDelivered();
             markMessagesAsRead();
           }
         }
@@ -325,6 +328,18 @@ export default function BuddyChat() {
       .eq('buddy_id', buddyId)
       .neq('sender_id', user.id)
       .eq('is_read', false);
+  };
+
+  // Mark messages as delivered when the chat is opened
+  const markMessagesAsDelivered = async () => {
+    if (!user || !buddyId) return;
+    const now = new Date().toISOString();
+    await supabase
+      .from('buddy_messages')
+      .update({ delivered_at: now })
+      .eq('buddy_id', buddyId)
+      .neq('sender_id', user.id)
+      .is('delivered_at', null);
   };
 
   const handleDeleteMessage = async (deleteForEveryone: boolean) => {
@@ -889,7 +904,7 @@ export default function BuddyChat() {
                               {formatTime(msg.created_at)}
                               {isMine && (
                                 <MessageStatusIndicator 
-                                  status={msg.is_read ? 'read' : 'sent'} 
+                                  status={msg.is_read ? 'read' : msg.delivered_at ? 'delivered' : 'sent'} 
                                   readAt={msg.read_at}
                                   className={isMine ? 'text-primary-foreground/70' : ''}
                                 />
