@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/ui/verification-badge';
+import { MentionText } from './MentionText';
 
 interface MentionedUser {
   username: string;
@@ -362,19 +363,9 @@ function CommentItem({ comment, postId, onReply, depth }: CommentItemProps) {
     setEditContent(comment.content);
   };
 
-  // Render @mentions as highlighted text
+  // Render @mentions as clickable links
   const renderContent = (content: string) => {
-    const parts = content.split(/(@\w+)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('@')) {
-        return (
-          <span key={index} className="text-primary font-medium">
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
+    return <MentionText content={content} />;
   };
 
   const maxDepth = 2; // Limit nesting depth
