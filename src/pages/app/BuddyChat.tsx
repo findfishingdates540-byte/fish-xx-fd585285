@@ -24,6 +24,7 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_read: boolean;
+  read_at: string | null;
   image_url: string | null;
   audio_url: string | null;
   reply_to_id: string | null;
@@ -317,9 +318,10 @@ export default function BuddyChat() {
 
   const markMessagesAsRead = async () => {
     if (!user || !buddyId) return;
+    const now = new Date().toISOString();
     await supabase
       .from('buddy_messages')
-      .update({ is_read: true })
+      .update({ is_read: true, read_at: now })
       .eq('buddy_id', buddyId)
       .neq('sender_id', user.id)
       .eq('is_read', false);
@@ -888,6 +890,7 @@ export default function BuddyChat() {
                               {isMine && (
                                 <MessageStatusIndicator 
                                   status={msg.is_read ? 'read' : 'sent'} 
+                                  readAt={msg.read_at}
                                   className={isMine ? 'text-primary-foreground/70' : ''}
                                 />
                               )}

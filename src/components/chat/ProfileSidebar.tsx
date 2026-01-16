@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { MapPin, Heart, Briefcase, Fish, Camera, Music, Coffee, Dumbbell, Book, Plane, Gamepad2, Utensils, Palette, TreesIcon as Trees, Flag } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { VerificationBadge } from '@/components/ui/verification-badge';
+import { Lightbox } from '@/components/ui/lightbox';
 
 interface ProfileSidebarProps {
   name: string;
@@ -65,19 +67,33 @@ export function ProfileSidebar({
   idVerified,
   liveVerified,
 }: ProfileSidebarProps) {
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Combine main photo with additional photos for lightbox
+  const allPhotos = photo ? [photo, ...photos.filter(p => p !== photo)] : photos;
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setShowLightbox(true);
+  };
+
   return (
     <aside className={cn("flex flex-col bg-background overflow-y-auto", className)}>
       {/* Hero Photo Section */}
-      <div className="relative h-48 w-full overflow-hidden">
+      <div 
+        className="relative h-48 w-full overflow-hidden cursor-pointer"
+        onClick={() => openLightbox(0)}
+      >
         <img
           src={photo}
           alt={name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent pointer-events-none" />
         
         {/* Name overlay at bottom */}
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-xl font-bold text-foreground flex items-center gap-1">
               {name}
@@ -214,23 +230,27 @@ export function ProfileSidebar({
             </h4>
             <div className="grid grid-cols-2 gap-2">
               {photos.slice(0, 3).map((photoUrl, index) => (
-                <div
+                <button
                   key={index}
-                  className="aspect-square rounded-xl overflow-hidden bg-accent"
+                  onClick={() => openLightbox(allPhotos.indexOf(photoUrl) !== -1 ? allPhotos.indexOf(photoUrl) : index + 1)}
+                  className="aspect-square rounded-xl overflow-hidden bg-accent hover:ring-2 hover:ring-primary transition-all"
                 >
                   <img
                     src={photoUrl}
                     alt={`${name}'s photo ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
-                </div>
+                </button>
               ))}
               {photos.length > 3 && (
-                <div className="aspect-square rounded-xl bg-accent flex items-center justify-center">
+                <button
+                  onClick={() => openLightbox(4)}
+                  className="aspect-square rounded-xl bg-accent flex items-center justify-center hover:bg-accent/80 transition-colors"
+                >
                   <span className="text-sm text-muted-foreground">
                     +{photos.length - 3} more
                   </span>
-                </div>
+                </button>
               )}
             </div>
           </div>
@@ -251,6 +271,14 @@ export function ProfileSidebar({
           </div>
         </div>
       </div>
+
+      {/* Photo Lightbox */}
+      <Lightbox
+        images={allPhotos}
+        initialIndex={lightboxIndex}
+        open={showLightbox}
+        onOpenChange={setShowLightbox}
+      />
     </aside>
   );
 }
