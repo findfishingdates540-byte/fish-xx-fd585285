@@ -23,6 +23,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
+import { MentionText } from './MentionText';
 
 interface MentionedUser {
   username: string;
@@ -259,7 +260,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                       <div className="flex-1 min-w-0">
                         <p className="text-sm">
                           <span className="font-semibold mr-1">{displayName}</span>
-                          {post.content}
+                          <MentionText content={post.content} />
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
@@ -499,17 +500,7 @@ function ModalCommentItem({ comment, postId, onReply, depth }: ModalCommentItemP
   };
 
   const renderContent = (content: string) => {
-    const parts = content.split(/(@\w+)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('@')) {
-        return (
-          <span key={index} className="text-primary font-medium">
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
+    return <MentionText content={content} />;
   };
 
   const maxDepth = 2;

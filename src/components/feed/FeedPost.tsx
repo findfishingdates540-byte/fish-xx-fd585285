@@ -8,6 +8,7 @@ import { Heart, MessageCircle, MoreHorizontal, User, Trash2, Flag } from 'lucide
 import { formatDistanceToNow } from 'date-fns';
 import { FeedPost as FeedPostType, useLikePost, useDeletePost } from '@/hooks/use-feed';
 import { CommentSheet } from './CommentSheet';
+import { MentionText } from './MentionText';
 import { PostDetailModal } from './PostDetailModal';
 import { ReportDialog } from './ReportDialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -161,7 +162,9 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
         {/* Caption - Above image like in the reference */}
         {post.content && (
           <div className="px-4 pb-3">
-            <p className="text-sm leading-relaxed">{post.content}</p>
+            <p className="text-sm leading-relaxed">
+              <MentionText content={post.content} />
+            </p>
           </div>
         )}
 
