@@ -7,19 +7,30 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   ArrowLeft, MapPin, Fish, Award, UserPlus, MessageCircle, Check, 
-  Calendar, Share2, Heart, Anchor, Target, Clock, Star
+  Calendar, Share2, Heart, Anchor, Target, Clock, Star, EyeOff
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { VerificationBadge } from '@/components/ui/verification-badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showHideDialog, setShowHideDialog] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile', userId],
@@ -105,6 +116,27 @@ export default function UserProfile() {
     toast.success('Profile link copied!');
   };
 
+  const handleHideProfile = async () => {
+    if (!user || !userId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('fishing_buddies')
+        .insert({
+          requester_id: user.id,
+          recipient_id: userId,
+          status: 'dismissed'
+        });
+      
+      if (error) throw error;
+      toast.success('Profile hidden');
+      navigate('/app/buddies');
+    } catch (error) {
+      toast.error('Failed to hide profile');
+    }
+    setShowHideDialog(false);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -186,6 +218,18 @@ export default function UserProfile() {
               <Share2 className="w-4 h-4 mr-2" />
               Share
             </Button>
+            {!isBuddy && !isPending && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setShowHideDialog(true)}
+                title="Hide this profile"
+              >
+                <EyeOff className="w-4 h-4 mr-2" />
+                Hide
+              </Button>
+            )}
             {isBuddy ? (
               <Button variant="default" size="sm" className="bg-primary">
                 <Heart className="w-4 h-4 mr-2 fill-current" />
@@ -461,6 +505,25 @@ export default function UserProfile() {
           </div>
         </div>
       </div>
+
+      {/* Hide Confirmation Dialog */}
+      <AlertDialog open={showHideDialog} onOpenChange={setShowHideDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hide this profile?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {profile.display_name || 'This angler'} won't appear in your buddy discovery anymore. 
+              You can unhide them later in Settings → Hidden Profiles.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleHideProfile}>
+              Hide Profile
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

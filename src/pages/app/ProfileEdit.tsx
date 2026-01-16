@@ -899,18 +899,21 @@ export default function ProfileEdit() {
                   <div>
                     <Label htmlFor="height" className="flex items-center gap-2">
                       <Ruler className="h-4 w-4" />
-                      Height (cm)
+                      Height (inches)
                     </Label>
                     <Input
                       id="height"
                       type="number"
-                      value={heightCm || ""}
-                      onChange={(e) => setHeightCm(e.target.value ? parseInt(e.target.value) : null)}
-                      placeholder="175"
+                      value={heightCm ? Math.round(heightCm / 2.54) : ""}
+                      onChange={(e) => setHeightCm(e.target.value ? Math.round(parseInt(e.target.value) * 2.54) : null)}
+                      placeholder="70"
                       className="mt-1.5"
-                      min={100}
-                      max={250}
+                      min={48}
+                      max={96}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {heightCm ? `${Math.floor(heightCm / 30.48)}'${Math.round((heightCm % 30.48) / 2.54)}"` : ''}
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="education" className="flex items-center gap-2">

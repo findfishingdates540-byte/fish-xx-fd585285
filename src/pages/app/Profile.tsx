@@ -132,7 +132,7 @@ export default function Profile() {
     if (!cm) return null;
     const feet = Math.floor(cm / 30.48);
     const inches = Math.round((cm % 30.48) / 2.54);
-    return `${feet}'${inches}" (${cm}cm)`;
+    return `${feet}'${inches}"`;
   };
 
   const age = calculateAge(profile?.date_of_birth || null);
