@@ -30,6 +30,7 @@ interface Message {
   timestamp: string;
   isRead?: boolean;
   readAt?: string | null;
+  deliveredAt?: string | null;
   imageUrl?: string | null;
   audioUrl?: string | null;
   createdAt?: string;
@@ -540,7 +541,7 @@ export function ChatArea({
                             {message.timestamp}
                             {isMine && (
                               <MessageStatusIndicator 
-                                status={message.isRead ? 'read' : 'sent'} 
+                                status={message.isRead ? 'read' : message.deliveredAt ? 'delivered' : 'sent'} 
                                 readAt={message.readAt}
                               />
                             )}

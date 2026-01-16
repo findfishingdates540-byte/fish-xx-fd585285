@@ -10,6 +10,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   read_at: string | null;
+  delivered_at: string | null;
   image_url: string | null;
   reply_to_id: string | null;
   deleted_at: string | null;
@@ -42,6 +43,7 @@ export function useDatingChat(matchId: string | undefined) {
   useEffect(() => {
     if (user && matchId) {
       fetchChatData();
+      markMessagesAsDelivered();
       markMessagesAsRead();
     }
   }, [user, matchId]);
@@ -179,6 +181,18 @@ export function useDatingChat(matchId: string | undefined) {
       .eq('is_read', false);
   };
 
+  // Mark messages as delivered when the chat is opened
+  const markMessagesAsDelivered = async () => {
+    if (!user || !matchId) return;
+    const now = new Date().toISOString();
+    await supabase
+      .from('messages')
+      .update({ delivered_at: now })
+      .eq('match_id', matchId)
+      .neq('sender_id', user.id)
+      .is('delivered_at', null);
+  };
+
   const updateTypingStatus = useCallback(async (typing: boolean) => {
     if (presenceChannelRef.current) {
       await presenceChannelRef.current.track({ isTyping: typing });
@@ -278,6 +292,7 @@ export function useDatingChat(matchId: string | undefined) {
       timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isRead: msg.is_read,
       readAt: msg.read_at,
+      deliveredAt: msg.delivered_at,
       imageUrl: msg.image_url,
       audioUrl: (msg as any).audio_url,
       createdAt: msg.created_at,

@@ -262,6 +262,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           deleted_for_everyone: boolean | null
+          delivered_at: string | null
           id: string
           image_url: string | null
           is_read: boolean | null
@@ -276,6 +277,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           deleted_for_everyone?: boolean | null
+          delivered_at?: string | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
@@ -290,6 +292,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           deleted_for_everyone?: boolean | null
+          delivered_at?: string | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
@@ -927,6 +930,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           deleted_for_everyone: boolean | null
+          delivered_at: string | null
           id: string
           image_url: string | null
           is_read: boolean | null
@@ -941,6 +945,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           deleted_for_everyone?: boolean | null
+          delivered_at?: string | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
@@ -955,6 +960,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           deleted_for_everyone?: boolean | null
+          delivered_at?: string | null
           id?: string
           image_url?: string | null
           is_read?: boolean | null
