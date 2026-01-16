@@ -390,6 +390,8 @@ export function useDiscoverProfiles() {
   // Refetch when we run out - invalidate cache to get fresh data
   const loadMoreProfiles = useCallback(async () => {
     setCurrentIndex(0);
+    // Clear locally tracked swiped IDs to allow seeing profiles again
+    setSwipedIds(new Set());
     // Invalidate swiped profiles cache to get fresh data from server
     await queryClient.invalidateQueries({ queryKey: ['swiped-profiles', user?.id] });
     await queryClient.invalidateQueries({ queryKey: ['discover-profiles', user?.id] });
