@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -32,6 +32,7 @@ export default function Discover() {
   const [showDetailView, setShowDetailView] = useState(false);
   const isMobile = useIsMobile();
   const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {
     currentProfile,
@@ -372,9 +373,18 @@ export default function Discover() {
         You've seen all available profiles in your area. Check back later or adjust your preferences to see more people.
       </p>
       <div className="flex gap-3">
-        <Button onClick={loadMoreProfiles} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Refresh
+        <Button 
+          onClick={async () => {
+            setIsRefreshing(true);
+            await loadMoreProfiles();
+            setTimeout(() => setIsRefreshing(false), 1000);
+          }} 
+          variant="outline" 
+          className="gap-2"
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
         </Button>
         <Button onClick={startTutorial} variant="ghost" className="gap-2" disabled>
           <HelpCircle className="h-4 w-4" />
