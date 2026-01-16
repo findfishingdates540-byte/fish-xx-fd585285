@@ -89,7 +89,8 @@ function kmToMiles(km: number): number {
 function mapToProfileData(
   profile: DiscoverProfile,
   userLat: number | null,
-  userLng: number | null
+  userLng: number | null,
+  likedYouIds: Set<string> = new Set()
 ): ProfileData {
   // Age is pre-calculated by public_profiles view
   const age = profile.age;
@@ -128,6 +129,7 @@ function mapToProfileData(
     tags: tags.length > 0 ? tags : undefined,
     idVerified: profile.id_verified || false,
     liveVerified: profile.live_verified || false,
+    likedYou: likedYouIds.has(profile.id),
   };
 }
 
@@ -135,9 +137,10 @@ function mapToProfileData(
 function mapToProfileDetailData(
   profile: DiscoverProfile,
   userLat: number | null,
-  userLng: number | null
+  userLng: number | null,
+  likedYouIds: Set<string> = new Set()
 ): ProfileDetailData {
-  const basicData = mapToProfileData(profile, userLat, userLng);
+  const basicData = mapToProfileData(profile, userLat, userLng, likedYouIds);
   
   // Parse prompt_responses if it exists
   const promptResponses = profile.prompt_responses 
@@ -222,6 +225,41 @@ export function useDiscoverProfiles() {
       ];
       
       return swipedIds;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch profiles that have liked the current user (for "Liked You" badge)
+  const { data: likedYouProfiles } = useQuery({
+    queryKey: ['liked-you-profiles', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // Get profiles who liked this user (user is user2 and user1_liked is true, but user2_liked is null - not swiped back yet)
+      const { data: asUser2, error: error1 } = await supabase
+        .from('matches')
+        .select('user1_id')
+        .eq('user2_id', user.id)
+        .eq('user1_liked', true)
+        .is('user2_liked', null);
+      
+      // Get profiles who liked this user (user is user1 and user2_liked is true, but user1_liked is null)
+      const { data: asUser1, error: error2 } = await supabase
+        .from('matches')
+        .select('user2_id')
+        .eq('user1_id', user.id)
+        .eq('user2_liked', true)
+        .is('user1_liked', null);
+      
+      if (error1) throw error1;
+      if (error2) throw error2;
+      
+      const likedYouIds = [
+        ...(asUser2 || []).map(m => m.user1_id),
+        ...(asUser1 || []).map(m => m.user2_id),
+      ];
+      
+      return likedYouIds;
     },
     enabled: !!user?.id,
   });
@@ -371,13 +409,14 @@ export function useDiscoverProfiles() {
     },
   });
 
-  // Get current profile
+  // Get current profile with "Liked You" info
+  const likedYouIds = new Set(likedYouProfiles || []);
   const currentProfile = profiles?.[currentIndex];
   const mappedProfile = currentProfile && userPreferences
-    ? mapToProfileData(currentProfile, userPreferences.location_lat, userPreferences.location_lng)
+    ? mapToProfileData(currentProfile, userPreferences.location_lat, userPreferences.location_lng, likedYouIds)
     : null;
   const mappedDetailProfile = currentProfile && userPreferences
-    ? mapToProfileDetailData(currentProfile, userPreferences.location_lat, userPreferences.location_lng)
+    ? mapToProfileDetailData(currentProfile, userPreferences.location_lat, userPreferences.location_lng, likedYouIds)
     : null;
 
   // Swipe handlers
