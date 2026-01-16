@@ -89,6 +89,7 @@ export default function Catches() {
     species_name: "",
     species_id: "",
     fishing_spot_id: "",
+    custom_spot_name: "",
     weight_lbs: "",
     length_in: "",
     notes: "",
@@ -211,6 +212,7 @@ export default function Catches() {
         species_name: speciesName || null,
         species_id: formData.species_id || null,
         fishing_spot_id: formData.fishing_spot_id || null,
+        location_name: formData.custom_spot_name || null,
         weight_lbs: formData.weight_lbs ? parseFloat(formData.weight_lbs) : null,
         length_in: formData.length_in ? parseFloat(formData.length_in) : null,
         notes: formData.notes || null,
@@ -262,6 +264,7 @@ export default function Catches() {
       species_name: "",
       species_id: "",
       fishing_spot_id: "",
+      custom_spot_name: "",
       weight_lbs: "",
       length_in: "",
       notes: "",
@@ -392,7 +395,7 @@ export default function Catches() {
                 <Label htmlFor="spot">Fishing Spot (optional)</Label>
                 <Select
                   value={formData.fishing_spot_id || "none"}
-                  onValueChange={(val) => setFormData({ ...formData, fishing_spot_id: val === "none" ? "" : val })}
+                  onValueChange={(val) => setFormData({ ...formData, fishing_spot_id: val === "none" ? "" : val, custom_spot_name: val === "none" ? formData.custom_spot_name : "" })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a spot" />
@@ -406,6 +409,15 @@ export default function Catches() {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Can't find your spot? Enter it below
+                </p>
+                <Input
+                  placeholder="Custom spot name (e.g., Lake Erie, North Shore)"
+                  value={formData.custom_spot_name}
+                  onChange={(e) => setFormData({ ...formData, custom_spot_name: e.target.value, fishing_spot_id: "" })}
+                  className="mt-2"
+                />
               </div>
 
               {/* Weight & Length */}

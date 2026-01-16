@@ -167,10 +167,10 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
 
         {/* Video */}
         {post.video_url && (
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-black" onClick={(e) => e.stopPropagation()}>
             <video
               src={post.video_url}
-              className="w-full aspect-[4/3] object-cover"
+              className="w-full max-h-[600px] object-contain"
               controls
               playsInline
               preload="metadata"
@@ -178,14 +178,14 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           </div>
         )}
 
-        {/* Photos */}
+        {/* Photos - variable height supporting 1:1, 4:3, 9:16 */}
         {!post.video_url && allPhotos.length > 0 && (
-          <div className="relative">
+          <div className="relative bg-black">
             {allPhotos.length === 1 ? (
               <img
                 src={allPhotos[0]}
                 alt="Post"
-                className="w-full aspect-[4/3] object-cover"
+                className="w-full max-h-[600px] object-contain"
                 onDoubleClick={() => handleLike()}
               />
             ) : (
@@ -196,7 +196,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                       <img
                         src={photo}
                         alt={`Post ${index + 1}`}
-                        className="w-full aspect-[4/3] object-cover"
+                        className="w-full max-h-[600px] object-contain"
                         onDoubleClick={() => handleLike()}
                       />
                     </CarouselItem>

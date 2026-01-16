@@ -336,6 +336,7 @@ export type Database = {
           length_in: number | null
           location_lat: number | null
           location_lng: number | null
+          location_name: string | null
           notes: string | null
           photos: string[] | null
           species_id: string | null
@@ -353,6 +354,7 @@ export type Database = {
           length_in?: number | null
           location_lat?: number | null
           location_lng?: number | null
+          location_name?: string | null
           notes?: string | null
           photos?: string[] | null
           species_id?: string | null
@@ -370,6 +372,7 @@ export type Database = {
           length_in?: number | null
           location_lat?: number | null
           location_lng?: number | null
+          location_name?: string | null
           notes?: string | null
           photos?: string[] | null
           species_id?: string | null
