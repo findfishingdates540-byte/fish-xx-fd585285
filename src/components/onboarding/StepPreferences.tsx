@@ -91,20 +91,20 @@ export function StepPreferences({
         <div className="flex items-center justify-between">
           <Label className="text-foreground font-medium">Maximum Distance</Label>
           <span className="text-sm font-medium text-foreground">
-            {maxDistance} miles
+            {maxDistance >= 500 ? 'Unlimited' : `${maxDistance} miles`}
           </span>
         </div>
         <Slider
           value={[maxDistance]}
           onValueChange={(value) => setMaxDistance(value[0])}
           min={5}
-          max={200}
+          max={500}
           step={5}
           className="w-full"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>5 miles</span>
-          <span>200 miles</span>
+          <span>Unlimited</span>
         </div>
       </div>
     </div>

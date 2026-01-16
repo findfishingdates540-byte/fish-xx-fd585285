@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell, Heart, MessageCircle, Calendar, Users, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
+  const [isOpen, setIsOpen] = useState(false);
 
   const showDating = mode === 'dating' || mode === 'both';
   const showFishing = mode === 'fishing' || mode === 'both';
@@ -448,6 +449,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
     <Link
       key={notification.id}
       to={notification.link}
+      onClick={() => setIsOpen(false)}
       className="flex items-start gap-3 p-3 hover:bg-accent/50 transition-colors"
     >
       <div className="flex-shrink-0 mt-0.5">
@@ -490,7 +492,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
   };
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
@@ -624,6 +626,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
           )}
           <Link 
             to="/app/notifications" 
+            onClick={() => setIsOpen(false)}
             className="block text-center text-xs text-primary hover:text-primary/80 py-2 font-medium"
           >
             View all notifications

@@ -187,17 +187,6 @@ export function BuddyCard({
         )}
 
         <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-          {onHide && (
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              onClick={() => setShowHideDialog(true)}
-              title="Hide this profile"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
           {isRequested ? (
             <Button variant="outline" className="flex-1" disabled>
               <Check className="w-4 h-4 mr-2" />

@@ -250,7 +250,7 @@ export function useDiscoverProfiles() {
       const userLng = userPreferences.location_lng;
       const maxDistanceMiles = userPreferences.max_distance_miles || 50;
 
-      // Filter by age and distance in memory
+      // Filter by age only - no distance restriction for dating
       const filtered = (data as DiscoverProfile[]).filter(profile => {
         // Age filter
         const age = profile.age;
@@ -258,17 +258,7 @@ export function useDiscoverProfiles() {
           return false;
         }
         
-        // Distance filter (500+ miles = unlimited)
-        if (maxDistanceMiles < 500 && userLat && userLng && profile.location_lat && profile.location_lng) {
-          const distanceKm = calculateDistance(userLat, userLng, profile.location_lat, profile.location_lng);
-          if (distanceKm !== null) {
-            const distanceMiles = kmToMiles(distanceKm);
-            if (distanceMiles > maxDistanceMiles) {
-              return false;
-            }
-          }
-        }
-        
+        // No distance filter - all profiles are shown regardless of location
         return true;
       });
 
