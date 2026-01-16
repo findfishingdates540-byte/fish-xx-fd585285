@@ -22,8 +22,8 @@ export function MobileModeSwitcher() {
     ? new Date(premiumExpiresAt).getTime() < Date.now() 
     : false;
 
-  // Hide on chat pages to avoid blocking the send button
-  const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/chat/');
+  // Hide on chat/messages pages to avoid blocking the send button
+  const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/chat/') || location.pathname.includes('/messages');
   
   // Only show for combo users who have active premium, and not on chat pages
   // Non-combo users (dating-only, fishing-only) should NOT see the mode switcher
