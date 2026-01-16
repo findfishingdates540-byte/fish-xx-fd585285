@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { VerificationBadge } from '@/components/ui/verification-badge';
+import { Lightbox } from '@/components/ui/lightbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,8 @@ export default function UserProfile() {
   const { user } = useAuth();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showHideDialog, setShowHideDialog] = useState(false);
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile', userId],
@@ -266,7 +269,15 @@ export default function UserProfile() {
 
             {/* Photo Gallery */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-              <div className="md:col-span-3 relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+              <div 
+                className="md:col-span-3 relative aspect-[4/3] rounded-xl overflow-hidden bg-muted cursor-pointer"
+                onClick={() => {
+                  if (photos.length > 0) {
+                    setLightboxIndex(currentPhotoIndex);
+                    setShowLightbox(true);
+                  }
+                }}
+              >
                 {photos.length > 0 ? (
                   <img
                     src={photos[currentPhotoIndex]}
@@ -283,7 +294,14 @@ export default function UserProfile() {
                   </div>
                 )}
                 {photos.length > 1 && (
-                  <button className="absolute bottom-3 left-3 bg-foreground/80 text-background text-xs px-3 py-1.5 rounded-md font-medium">
+                  <button 
+                    className="absolute bottom-3 left-3 bg-foreground/80 text-background text-xs px-3 py-1.5 rounded-md font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex(0);
+                      setShowLightbox(true);
+                    }}
+                  >
                     View all photos
                   </button>
                 )}
@@ -293,7 +311,10 @@ export default function UserProfile() {
                   {photos.slice(1, 4).map((photo, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setCurrentPhotoIndex(idx + 1)}
+                      onClick={() => {
+                        setLightboxIndex(idx + 1);
+                        setShowLightbox(true);
+                      }}
                       className={cn(
                         "aspect-square rounded-lg overflow-hidden bg-muted",
                         currentPhotoIndex === idx + 1 && "ring-2 ring-primary"
@@ -305,6 +326,14 @@ export default function UserProfile() {
                 </div>
               )}
             </div>
+
+            {/* Photo Lightbox */}
+            <Lightbox
+              images={photos}
+              initialIndex={lightboxIndex}
+              open={showLightbox}
+              onOpenChange={setShowLightbox}
+            />
 
             {/* About Section */}
             {profile.bio && (

@@ -9,6 +9,7 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_read: boolean;
+  read_at: string | null;
   image_url: string | null;
   reply_to_id: string | null;
   deleted_at: string | null;
@@ -169,9 +170,10 @@ export function useDatingChat(matchId: string | undefined) {
 
   const markMessagesAsRead = async () => {
     if (!user || !matchId) return;
+    const now = new Date().toISOString();
     await supabase
       .from('messages')
-      .update({ is_read: true })
+      .update({ is_read: true, read_at: now })
       .eq('match_id', matchId)
       .neq('sender_id', user.id)
       .eq('is_read', false);
@@ -275,6 +277,7 @@ export function useDatingChat(matchId: string | undefined) {
       senderId: msg.sender_id,
       timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isRead: msg.is_read,
+      readAt: msg.read_at,
       imageUrl: msg.image_url,
       audioUrl: (msg as any).audio_url,
       createdAt: msg.created_at,
