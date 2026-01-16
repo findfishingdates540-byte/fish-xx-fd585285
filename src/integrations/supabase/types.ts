@@ -265,6 +265,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_read: boolean | null
+          read_at: string | null
           reply_to_id: string | null
           sender_id: string
         }
@@ -278,6 +279,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_read?: boolean | null
+          read_at?: string | null
           reply_to_id?: string | null
           sender_id: string
         }
@@ -291,6 +293,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_read?: boolean | null
+          read_at?: string | null
           reply_to_id?: string | null
           sender_id?: string
         }
