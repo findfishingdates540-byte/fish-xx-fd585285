@@ -26,7 +26,15 @@ import {
   Mountain,
   Satellite,
   CalendarPlus,
+  X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,10 +64,10 @@ interface FishingSpot {
   created_by: string | null;
 }
 
-const FILTER_OPTIONS = [
-  { id: "all", label: "All Spots" },
+const WATER_TYPE_OPTIONS = [
+  { id: "all", label: "All Types" },
   { id: "freshwater", label: "Freshwater" },
-  { id: "top-rated", label: "Top Rated" },
+  { id: "saltwater", label: "Saltwater" },
 ];
 
 export default function Spots() {
@@ -89,7 +97,7 @@ export default function Spots() {
   const [spots, setSpots] = useState<FishingSpot[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [waterType, setWaterType] = useState("all");
   const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null);
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [showWithPhotosOnly, setShowWithPhotosOnly] = useState(false);
@@ -272,9 +280,22 @@ export default function Spots() {
 
     if (!matchesSearch) return false;
 
-    // Apply chip filter
-    if (activeFilter === "top-rated" && (spot.rating_avg || 0) < 4.0) {
-      return false;
+    // Apply water type filter
+    if (waterType === "freshwater" && spot.species_available) {
+      // Freshwater fish keywords
+      const freshwaterSpecies = ["bass", "trout", "catfish", "crappie", "bluegill", "walleye", "pike", "perch", "carp", "muskie"];
+      const hasFreshwater = spot.species_available.some(s => 
+        freshwaterSpecies.some(fs => s.toLowerCase().includes(fs))
+      );
+      if (!hasFreshwater) return false;
+    }
+    if (waterType === "saltwater" && spot.species_available) {
+      // Saltwater fish keywords
+      const saltwaterSpecies = ["tuna", "marlin", "snapper", "grouper", "mahi", "tarpon", "redfish", "flounder", "shark", "sailfish"];
+      const hasSaltwater = spot.species_available.some(s => 
+        saltwaterSpecies.some(ss => s.toLowerCase().includes(ss))
+      );
+      if (!hasSaltwater) return false;
     }
 
     // Apply dropdown filters
@@ -546,7 +567,7 @@ export default function Spots() {
           <h1 className="text-2xl font-bold mb-4">Explore Nearby</h1>
 
 
-          {/* Search */}
+          {/* Search and Filter Dropdowns */}
           <div className="flex gap-2 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -557,6 +578,22 @@ export default function Spots() {
                 className="pl-9"
               />
             </div>
+
+            {/* Water Type Dropdown */}
+            <Select value={waterType} onValueChange={setWaterType}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Water Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {WATER_TYPE_OPTIONS.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* More Filters Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className={showVerifiedOnly || showWithPhotosOnly || minRating || maxDistance || selectedSpecies ? "border-primary" : ""}>
@@ -651,22 +688,65 @@ export default function Spots() {
             </DropdownMenu>
           </div>
 
-          {/* Filter Chips */}
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {FILTER_OPTIONS.map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => setActiveFilter(filter.id)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  activeFilter === filter.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
+          {/* Active Filter Badges - Only show when filters are applied */}
+          {(waterType !== "all" || showVerifiedOnly || showWithPhotosOnly || minRating || maxDistance || selectedSpecies) && (
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {waterType !== "all" && (
+                <button
+                  onClick={() => setWaterType("all")}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
+                >
+                  {WATER_TYPE_OPTIONS.find(o => o.id === waterType)?.label}
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {showVerifiedOnly && (
+                <button
+                  onClick={() => setShowVerifiedOnly(false)}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
+                >
+                  Verified
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {showWithPhotosOnly && (
+                <button
+                  onClick={() => setShowWithPhotosOnly(false)}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
+                >
+                  With Photos
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {maxDistance && (
+                <button
+                  onClick={() => setMaxDistance(null)}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
+                >
+                  Within {maxDistance} mi
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {minRating && (
+                <button
+                  onClick={() => setMinRating(null)}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
+                >
+                  ★ {minRating}.0+
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {selectedSpecies && (
+                <button
+                  onClick={() => setSelectedSpecies(null)}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
+                >
+                  {selectedSpecies}
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Spots Count */}
           <p className="text-sm text-muted-foreground mb-4">
