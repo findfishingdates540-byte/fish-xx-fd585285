@@ -27,10 +27,11 @@ export function MentionText({ content, className }: MentionTextProps) {
       const map: Record<string, string> = {};
       
       for (const username of uniqueMentions) {
+        // Try exact match first, then with spaces instead of underscores
         const { data } = await supabase
           .from('public_profiles')
           .select('id, display_name')
-          .ilike('display_name', username.replace(/_/g, ' '))
+          .or(`display_name.ilike.${username},display_name.ilike.${username.replace(/_/g, ' ')}`)
           .limit(1)
           .maybeSingle();
         
