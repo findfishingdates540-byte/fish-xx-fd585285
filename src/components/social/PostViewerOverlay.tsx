@@ -15,6 +15,7 @@ import { ArrowLeft, MessageCircle, Share2, MoreHorizontal, MapPin, ChevronLeft, 
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getShareBaseUrl } from '@/lib/config';
 
 interface PostViewerOverlayProps {
   postId: string;
@@ -225,7 +226,7 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
   };
 
   const handleShare = async (post: Post) => {
-    const url = `${window.location.origin}/app/u/${post.user_id}/posts/${post.id}`;
+    const url = `${getShareBaseUrl()}/app/u/${post.user_id}/posts/${post.id}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Link copied!');

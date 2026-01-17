@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Lightbox } from "@/components/ui/lightbox";
 import { toast } from "sonner";
+import { getShareBaseUrl } from "@/lib/config";
 import {
   Star,
   MapPin,
@@ -252,14 +253,15 @@ export default function SpotDetail() {
   }, [mapboxToken, spot, isMobile]);
 
   const handleShare = async () => {
+    const url = `${getShareBaseUrl()}/app/spots/${spot?.id}`;
     if (navigator.share) {
       await navigator.share({
         title: spot?.name,
         text: `Check out this fishing spot: ${spot?.name}`,
-        url: window.location.href,
+        url,
       });
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(url);
     }
   };
 
