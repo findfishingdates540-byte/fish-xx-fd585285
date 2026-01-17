@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getShareBaseUrl } from '@/lib/config';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Lightbox } from '@/components/ui/lightbox';
 import {
@@ -115,7 +116,8 @@ export default function UserProfile() {
   };
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const url = `${getShareBaseUrl()}/app/profile/${userId}`;
+    navigator.clipboard.writeText(url);
     toast.success('Profile link copied!');
   };
 

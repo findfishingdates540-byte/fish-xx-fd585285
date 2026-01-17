@@ -12,6 +12,7 @@ import { FollowButton, ProfileStatsBar, ProfilePostsGrid, PostViewerOverlay } fr
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
 import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getShareBaseUrl } from '@/lib/config';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SocialProfile() {
@@ -66,7 +67,7 @@ export default function SocialProfile() {
   const { data: mentionedPosts = [], isLoading: mentionsLoading } = useMentionedPosts(userId);
   
   const handleShare = async () => {
-    const url = `${window.location.origin}/app/u/${userId}`;
+    const url = `${getShareBaseUrl()}/app/u/${userId}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Profile link copied!');
