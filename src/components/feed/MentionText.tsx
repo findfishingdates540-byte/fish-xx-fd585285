@@ -27,15 +27,32 @@ export function MentionText({ content, className }: MentionTextProps) {
       const map: Record<string, string> = {};
       
       for (const username of uniqueMentions) {
-        // Try exact match first, then with spaces instead of underscores
+        const underscoreToSpace = username.replace(/_/g, ' ');
+        const camelToWildcard = username.replace(/([a-z])([A-Z])/g, '$1%$2');
+
+        // We store mentions without spaces (CreatePostDialog/CommentSheet) so we need
+        // patterns that can match display_name that may include spaces.
+        const patterns = Array.from(
+          new Set([
+            username, // exact
+            `${username}%`, // prefix
+            underscoreToSpace,
+            `${underscoreToSpace}%`,
+            camelToWildcard,
+            `${camelToWildcard}%`,
+          ])
+        );
+
+        const orFilters = patterns.map((p) => `display_name.ilike.${p}`).join(',');
+
         const { data } = await supabase
           .from('public_profiles')
           .select('id, display_name')
-          .or(`display_name.ilike.${username},display_name.ilike.${username.replace(/_/g, ' ')}`)
+          .or(orFilters)
           .limit(1)
           .maybeSingle();
-        
-        if (data) {
+
+        if (data?.id) {
           map[username.toLowerCase()] = data.id;
         }
       }
