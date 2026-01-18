@@ -1,0 +1,2 @@
+
+DELETE FROM matches WHERE id = '2085800d-16d4-495c-99b0-b2059c64288d';
