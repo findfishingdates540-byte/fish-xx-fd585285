@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { X, Fish, MapPin, Users, Calendar, Star, ArrowRight } from 'lucide-react';
+import { X, Fish, MapPin, Users, Calendar, Star, ArrowRight, Heart, Sparkles, MessageCircle, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   featureName?: string;
+  upgradeType?: 'dating' | 'combo' | 'fishing';
 }
 
 const fishingFeatures = [
@@ -16,7 +17,71 @@ const fishingFeatures = [
   { icon: Calendar, label: 'Trip Planning' },
 ];
 
-export function UpgradeModal({ isOpen, onClose, featureName = 'fishing features' }: UpgradeModalProps) {
+const datingFeatures = [
+  { icon: Heart, label: 'Unlimited Swipes' },
+  { icon: Eye, label: 'See Who Likes You' },
+  { icon: Sparkles, label: 'Super Likes' },
+  { icon: MessageCircle, label: 'Priority Messages' },
+];
+
+const comboFeatures = [
+  { icon: Heart, label: 'Dating + Fishing Combined' },
+  { icon: Users, label: 'Find Fishing Dates' },
+  { icon: Star, label: 'VIP Support & Boosts' },
+  { icon: Sparkles, label: 'Exclusive Events' },
+];
+
+export function UpgradeModal({ isOpen, onClose, featureName = 'fishing features', upgradeType = 'fishing' }: UpgradeModalProps) {
+  // Determine which features and messaging to show
+  const isDating = upgradeType === 'dating' || featureName.toLowerCase().includes('dating');
+  const isCombo = upgradeType === 'combo' || featureName.toLowerCase().includes('combo');
+  
+  const features = isCombo ? comboFeatures : isDating ? datingFeatures : fishingFeatures;
+  
+  const getDescription = () => {
+    if (isCombo) {
+      return "Get the complete experience! Combine dating and fishing features for the ultimate angler dating app.";
+    }
+    if (isDating) {
+      return "Your current Fishing account doesn't include dating features. Upgrade to start matching with fellow fishing enthusiasts!";
+    }
+    return "Your current Dating account doesn't include fishing features. Upgrade to unlock everything Find Fishing Dates has to offer!";
+  };
+
+  const getRecommendedPlan = () => {
+    if (isCombo || isDating) {
+      return {
+        name: 'The Trophy',
+        description: 'Fishing + Dating features combined',
+        price: '$19.99',
+        badge: 'BEST VALUE'
+      };
+    }
+    return {
+      name: 'The Trophy',
+      description: 'Fishing + Dating features combined',
+      price: '$19.99',
+      badge: 'BEST VALUE'
+    };
+  };
+
+  const getAlternatePlan = () => {
+    if (isDating && !isCombo) {
+      return {
+        name: 'The Catch',
+        description: 'Dating features only',
+        price: '$14.99'
+      };
+    }
+    return {
+      name: 'The Angler',
+      description: 'Fishing features only',
+      price: '$9.99'
+    };
+  };
+
+  const recommendedPlan = getRecommendedPlan();
+  const alternatePlan = getAlternatePlan();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -62,13 +127,12 @@ export function UpgradeModal({ isOpen, onClose, featureName = 'fishing features'
               {/* Content */}
               <div className="p-6">
                 <p className="text-muted-foreground mb-6">
-                  Your current Dating account doesn't include fishing features. 
-                  Upgrade to unlock everything Find Fishing Dates has to offer!
+                  {getDescription()}
                 </p>
                 
                 {/* Features grid */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
-                  {fishingFeatures.map((feature) => (
+                  {features.map((feature) => (
                     <div
                       key={feature.label}
                       className="flex items-center gap-2 p-3 rounded-lg bg-muted/50"
@@ -84,33 +148,35 @@ export function UpgradeModal({ isOpen, onClose, featureName = 'fishing features'
                   <Link to="/pricing" onClick={onClose} className="block">
                     <div className="p-4 rounded-xl border-2 border-primary bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-foreground">The Trophy</span>
+                        <span className="font-semibold text-foreground">{recommendedPlan.name}</span>
                         <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                          BEST VALUE
+                          {recommendedPlan.badge}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Fishing + Dating features combined
+                        {recommendedPlan.description}
                       </p>
                       <p className="text-lg font-bold text-primary mt-2">
-                        $19.99<span className="text-sm font-normal text-muted-foreground">/month</span>
+                        {recommendedPlan.price}<span className="text-sm font-normal text-muted-foreground">/month</span>
                       </p>
                     </div>
                   </Link>
                   
-                  <Link to="/pricing" onClick={onClose} className="block">
-                    <div className="p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors cursor-pointer">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-foreground">The Angler</span>
+                  {!isCombo && (
+                    <Link to="/pricing" onClick={onClose} className="block">
+                      <div className="p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors cursor-pointer">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-foreground">{alternatePlan.name}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {alternatePlan.description}
+                        </p>
+                        <p className="text-lg font-bold text-foreground mt-2">
+                          {alternatePlan.price}<span className="text-sm font-normal text-muted-foreground">/month</span>
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Fishing features only
-                      </p>
-                      <p className="text-lg font-bold text-foreground mt-2">
-                        $9.99<span className="text-sm font-normal text-muted-foreground">/month</span>
-                      </p>
-                    </div>
-                  </Link>
+                    </Link>
+                  )}
                 </div>
                 
                 {/* CTA Buttons */}

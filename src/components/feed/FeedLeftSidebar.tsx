@@ -16,24 +16,25 @@ export function FeedLeftSidebar() {
   const { baseAccountMode } = useActiveMode();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
+  const [upgradeType, setUpgradeType] = useState<'dating' | 'combo' | 'fishing'>('fishing');
 
   // Determine which mode items to show based on account type
   const getModeItems = () => {
     const items = [];
     
     if (baseAccountMode === 'dating') {
-      items.push({ to: '/app/discover', icon: Heart, label: 'Dating Mode', color: 'text-pink-500', active: true });
-      items.push({ to: '/app/spots', icon: Fish, label: 'Fishing Spots', color: 'text-foreground', locked: true });
-      items.push({ to: '/app/dashboard', icon: Users, label: 'Combo Mode', color: 'text-cyan-500', locked: true });
+      items.push({ to: '/app/discover', icon: Heart, label: 'Dating Mode', color: 'text-pink-500', active: true, upgradeType: undefined as 'dating' | 'combo' | 'fishing' | undefined });
+      items.push({ to: '/app/spots', icon: Fish, label: 'Fishing Spots', color: 'text-foreground', locked: true, upgradeType: 'fishing' as const });
+      items.push({ to: '/app/dashboard', icon: Users, label: 'Combo Mode', color: 'text-cyan-500', locked: true, upgradeType: 'combo' as const });
     } else if (baseAccountMode === 'fishing') {
-      items.push({ to: '/app/discover', icon: Heart, label: 'Dating Mode', color: 'text-pink-500', locked: true });
-      items.push({ to: '/app/spots', icon: Fish, label: 'Fishing Spots', color: 'text-foreground', active: true });
-      items.push({ to: '/app/dashboard', icon: Users, label: 'Combo Mode', color: 'text-cyan-500', locked: true });
+      items.push({ to: '/app/discover', icon: Heart, label: 'Dating Mode', color: 'text-pink-500', locked: true, upgradeType: 'dating' as const });
+      items.push({ to: '/app/spots', icon: Fish, label: 'Fishing Spots', color: 'text-foreground', active: true, upgradeType: undefined as 'dating' | 'combo' | 'fishing' | undefined });
+      items.push({ to: '/app/dashboard', icon: Users, label: 'Combo Mode', color: 'text-cyan-500', locked: true, upgradeType: 'combo' as const });
     } else {
       // Combo/both users
-      items.push({ to: '/app/discover', icon: Heart, label: 'Dating Mode', color: 'text-pink-500' });
-      items.push({ to: '/app/spots', icon: Fish, label: 'Fishing Spots', color: 'text-foreground' });
-      items.push({ to: '/app/dashboard', icon: Users, label: 'Combo Mode', color: 'text-cyan-500', active: true });
+      items.push({ to: '/app/discover', icon: Heart, label: 'Dating Mode', color: 'text-pink-500', upgradeType: undefined as 'dating' | 'combo' | 'fishing' | undefined });
+      items.push({ to: '/app/spots', icon: Fish, label: 'Fishing Spots', color: 'text-foreground', upgradeType: undefined as 'dating' | 'combo' | 'fishing' | undefined });
+      items.push({ to: '/app/dashboard', icon: Users, label: 'Combo Mode', color: 'text-cyan-500', active: true, upgradeType: undefined as 'dating' | 'combo' | 'fishing' | undefined });
     }
     
     return items;
@@ -45,6 +46,7 @@ export function FeedLeftSidebar() {
     if (item.locked) {
       e.preventDefault();
       setUpgradeFeature(item.label);
+      setUpgradeType(item.upgradeType || 'fishing');
       setUpgradeModalOpen(true);
     }
   };
@@ -241,6 +243,7 @@ export function FeedLeftSidebar() {
         isOpen={upgradeModalOpen} 
         onClose={() => setUpgradeModalOpen(false)} 
         featureName={upgradeFeature}
+        upgradeType={upgradeType}
       />
     </>
   );
