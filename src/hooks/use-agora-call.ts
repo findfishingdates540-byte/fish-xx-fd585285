@@ -45,15 +45,27 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
     }
   }, []);
 
-  // Agora App ID (no token authentication - App Certificate disabled)
-  const AGORA_APP_ID = 'e7f6e9aeecf14b2ba10e3f40be9f56e7';
+  // Get Agora token from edge function
+  const getAgoraToken = useCallback(async (
+    channel: string,
+    uid: string
+  ): Promise<{ token: string; appId: string; uid: number } | null> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-agora-token', {
+        body: { channelName: channel, uid },
+      });
 
-  // Convert user ID to numeric UID for Agora
-  const toNumericUid = (uid: string): number => {
-    const digits = uid.replace(/\D/g, '');
-    const n = parseInt(digits.slice(0, 9), 10);
-    return Number.isFinite(n) && n > 0 ? n : Math.floor(Math.random() * 1_000_000_000);
-  };
+      if (error) {
+        console.error('Error getting Agora token:', error);
+        return null;
+      }
+
+      return { token: data.token, appId: data.appId, uid: data.uid };
+    } catch (err) {
+      console.error('Failed to get Agora token:', err);
+      return null;
+    }
+  }, []);
 
   // Start a call
   const startCall = useCallback(async (channel: string, type: CallType, userId: string) => {
@@ -62,7 +74,13 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
       setCallType(type);
       setChannelName(channel);
 
-      const numericUid = toNumericUid(userId);
+      // Get token
+      const tokenData = await getAgoraToken(channel, userId);
+      if (!tokenData) {
+        toast.error('Failed to initialize call');
+        setCallStatus('error');
+        return false;
+      }
 
       // Create Agora client
       const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
@@ -99,7 +117,13 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
       });
 
       // Join channel (IMPORTANT: must use the same UID the token was built for)
-      await client.join(AGORA_APP_ID, channel, null, numericUid);
+      console.log('[Agora] joining channel', {
+        appId: tokenData.appId,
+        channel,
+        uid: tokenData.uid,
+        hasToken: Boolean(tokenData.token),
+      });
+      await client.join(tokenData.appId, channel, tokenData.token, tokenData.uid);
 
       // Create and publish tracks based on call type
       if (type === 'video') {
@@ -128,7 +152,7 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
       await cleanupTracks();
       return false;
     }
-  }, [options, cleanupTracks]);
+  }, [getAgoraToken, options, cleanupTracks]);
 
   // End call
   const endCall = useCallback(async () => {
