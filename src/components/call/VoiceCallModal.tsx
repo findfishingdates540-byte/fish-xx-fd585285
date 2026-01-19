@@ -56,25 +56,25 @@ export function VoiceCallModal({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 bg-[#1f2c34] flex flex-col"
+        className="fixed inset-0 z-50 bg-background flex flex-col px-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 pt-safe">
+        <div className="flex items-center justify-between py-4 pt-safe">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleMinimize}
-            className="h-10 w-10 rounded-full bg-[#3b4a54] hover:bg-[#4a5c66] text-white"
+            className="h-10 w-10 rounded-full bg-muted hover:bg-muted/80 text-foreground"
           >
             <X className="h-5 w-5" />
           </Button>
           
           <div className="text-center">
-            <h2 className="text-white font-medium text-lg">{remoteUserName}</h2>
-            <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+            <h2 className="text-foreground font-medium text-lg">{remoteUserName}</h2>
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
               <Lock className="h-3 w-3" />
               End-to-end encrypted
             </p>
@@ -83,7 +83,7 @@ export function VoiceCallModal({
           <Button
             variant="ghost"
             size="icon"
-            className="h-10 w-10 rounded-full bg-[#3b4a54] hover:bg-[#4a5c66] text-white"
+            className="h-10 w-10 rounded-full bg-muted hover:bg-muted/80 text-foreground"
           >
             <UserPlus className="h-5 w-5" />
           </Button>
@@ -97,13 +97,13 @@ export function VoiceCallModal({
               {callStatus === 'connecting' && (
                 <>
                   <motion.div
-                    className="absolute inset-0 rounded-full bg-white/10"
+                    className="absolute inset-0 rounded-full bg-primary/20"
                     initial={{ scale: 1, opacity: 0.3 }}
                     animate={{ scale: 1.3, opacity: 0 }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   />
                   <motion.div
-                    className="absolute inset-0 rounded-full bg-white/10"
+                    className="absolute inset-0 rounded-full bg-primary/20"
                     initial={{ scale: 1, opacity: 0.3 }}
                     animate={{ scale: 1.3, opacity: 0 }}
                     transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
@@ -114,10 +114,10 @@ export function VoiceCallModal({
 
             <Avatar className={cn(
               'h-48 w-48 ring-[6px] transition-all',
-              callStatus === 'connected' ? 'ring-white/30' : 'ring-white/20'
+              callStatus === 'connected' ? 'ring-primary/40' : 'ring-border'
             )}>
               <AvatarImage src={remoteUserPhoto} alt={remoteUserName} />
-              <AvatarFallback className="text-6xl bg-[#3b4a54] text-white">
+              <AvatarFallback className="text-6xl bg-muted text-foreground">
                 {remoteUserName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -127,7 +127,7 @@ export function VoiceCallModal({
           <div className="text-center">
             {callStatus === 'connected' && (
               <motion.p
-                className="text-2xl text-white font-mono"
+                className="text-2xl text-foreground font-mono"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
@@ -135,13 +135,13 @@ export function VoiceCallModal({
               </motion.p>
             )}
             {callStatus === 'connecting' && (
-              <div className="flex items-center gap-2 justify-center text-gray-300">
+              <div className="flex items-center gap-2 justify-center text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Calling...</span>
               </div>
             )}
             {callStatus === 'ended' && (
-              <p className="text-gray-400">Call ended</p>
+              <p className="text-muted-foreground">Call ended</p>
             )}
           </div>
         </div>
