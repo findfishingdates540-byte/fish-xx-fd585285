@@ -46,10 +46,13 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
   }, []);
 
   // Get Agora token from edge function
-  const getAgoraToken = useCallback(async (channel: string, uid: string): Promise<{ token: string; appId: string } | null> => {
+  const getAgoraToken = useCallback(async (
+    channel: string,
+    uid: string
+  ): Promise<{ token: string; appId: string; uid: number } | null> => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-agora-token', {
-        body: { channelName: channel, uid }
+        body: { channelName: channel, uid },
       });
 
       if (error) {
@@ -57,7 +60,7 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
         return null;
       }
 
-      return { token: data.token, appId: data.appId };
+      return { token: data.token, appId: data.appId, uid: data.uid };
     } catch (err) {
       console.error('Failed to get Agora token:', err);
       return null;
@@ -86,36 +89,35 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
       // Set up event handlers
       client.on('user-published', async (user, mediaType) => {
         await client.subscribe(user, mediaType);
-        
+
         if (mediaType === 'video') {
-          setRemoteUsers(prev => {
-            const exists = prev.find(u => u.uid === user.uid);
+          setRemoteUsers((prev) => {
+            const exists = prev.find((u) => u.uid === user.uid);
             if (exists) return prev;
             return [...prev, user];
           });
         }
-        
+
         if (mediaType === 'audio') {
           user.audioTrack?.play();
         }
-        
+
         options.onRemoteUserJoined?.(user);
       });
 
       client.on('user-unpublished', (user, mediaType) => {
         if (mediaType === 'video') {
-          setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
+          setRemoteUsers((prev) => prev.filter((u) => u.uid !== user.uid));
         }
       });
 
       client.on('user-left', (user) => {
-        setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
+        setRemoteUsers((prev) => prev.filter((u) => u.uid !== user.uid));
         options.onRemoteUserLeft?.(user);
       });
 
-      // Join channel
-      const uid = parseInt(userId.replace(/\D/g, '').slice(0, 9)) || Math.floor(Math.random() * 100000);
-      await client.join(tokenData.appId, channel, tokenData.token, uid);
+      // Join channel (IMPORTANT: must use the same UID the token was built for)
+      await client.join(tokenData.appId, channel, tokenData.token, tokenData.uid);
 
       // Create and publish tracks based on call type
       if (type === 'video') {
