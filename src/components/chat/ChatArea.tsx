@@ -373,10 +373,6 @@ export function ChatArea({
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Video className="h-4 w-4" />
           </Button>
-          {/* Profile button - mobile only */}
-          <Button variant="ghost" size="icon" className="xl:hidden" onClick={onShowProfile}>
-            <User className="h-5 w-5" />
-          </Button>
           <Button variant="ghost" size="icon">
             <MoreVertical className="h-5 w-5" />
           </Button>
