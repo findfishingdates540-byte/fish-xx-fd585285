@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { CallControls } from './CallControls';
 import { useAgoraCall } from '@/hooks/use-agora-call';
-import { Loader2, Phone } from 'lucide-react';
+import { Loader2, X, UserPlus, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,94 +46,118 @@ export function VoiceCallModal({
     onOpenChange(false);
   };
 
+  // Handle minimize (same as close for now)
+  const handleMinimize = () => {
+    onOpenChange(false);
+  };
+
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-gradient-to-b from-background to-muted border-0">
-        <div className="flex flex-col items-center justify-between min-h-[500px] p-8">
-          {/* Call Status */}
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-50 bg-[#1f2c34] flex flex-col"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 pt-safe">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleMinimize}
+            className="h-10 w-10 rounded-full bg-[#3b4a54] hover:bg-[#4a5c66] text-white"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+          
           <div className="text-center">
-            <p className="text-sm text-muted-foreground uppercase tracking-wide">
-              {callStatus === 'connecting' ? 'Calling...' : 
-               callStatus === 'connected' ? 'Voice Call' :
-               callStatus === 'ended' ? 'Call Ended' : 'Connecting...'}
+            <h2 className="text-white font-medium text-lg">{remoteUserName}</h2>
+            <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+              <Lock className="h-3 w-3" />
+              End-to-end encrypted
             </p>
           </div>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full bg-[#3b4a54] hover:bg-[#4a5c66] text-white"
+          >
+            <UserPlus className="h-5 w-5" />
+          </Button>
+        </div>
 
-          {/* User Avatar with Animation */}
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative">
-              {/* Pulse animation when calling */}
-              <AnimatePresence>
-                {callStatus === 'connecting' && (
-                  <>
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-primary/20"
-                      initial={{ scale: 1, opacity: 0.5 }}
-                      animate={{ scale: 1.5, opacity: 0 }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    />
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-primary/20"
-                      initial={{ scale: 1, opacity: 0.5 }}
-                      animate={{ scale: 1.5, opacity: 0 }}
-                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
-                    />
-                  </>
-                )}
-              </AnimatePresence>
-
-              <Avatar className={cn(
-                'h-36 w-36 ring-4 transition-all',
-                callStatus === 'connected' ? 'ring-green-500/50' : 'ring-primary/20'
-              )}>
-                <AvatarImage src={remoteUserPhoto} alt={remoteUserName} />
-                <AvatarFallback className="text-5xl bg-primary/10">
-                  {remoteUserName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-
-              {/* Status indicator */}
-              {callStatus === 'connected' && (
-                <motion.div
-                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-green-500 flex items-center justify-center"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                >
-                  <Phone className="h-4 w-4 text-white" />
-                </motion.div>
-              )}
-            </div>
-
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold">{remoteUserName}</h2>
-              {callStatus === 'connected' && (
-                <motion.p
-                  className="text-lg text-primary font-mono mt-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  {formattedDuration}
-                </motion.p>
-              )}
+        {/* Center Avatar Section */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-6">
+          <div className="relative">
+            {/* Pulse animation when calling */}
+            <AnimatePresence>
               {callStatus === 'connecting' && (
-                <div className="flex items-center gap-2 justify-center mt-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Connecting...</span>
-                </div>
+                <>
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-white/10"
+                    initial={{ scale: 1, opacity: 0.3 }}
+                    animate={{ scale: 1.3, opacity: 0 }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-white/10"
+                    initial={{ scale: 1, opacity: 0.3 }}
+                    animate={{ scale: 1.3, opacity: 0 }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+                  />
+                </>
               )}
-            </div>
+            </AnimatePresence>
+
+            <Avatar className={cn(
+              'h-48 w-48 ring-[6px] transition-all',
+              callStatus === 'connected' ? 'ring-white/30' : 'ring-white/20'
+            )}>
+              <AvatarImage src={remoteUserPhoto} alt={remoteUserName} />
+              <AvatarFallback className="text-6xl bg-[#3b4a54] text-white">
+                {remoteUserName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
           </div>
 
-          {/* Call Controls */}
+          {/* Call Status */}
+          <div className="text-center">
+            {callStatus === 'connected' && (
+              <motion.p
+                className="text-2xl text-white font-mono"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                {formattedDuration}
+              </motion.p>
+            )}
+            {callStatus === 'connecting' && (
+              <div className="flex items-center gap-2 justify-center text-gray-300">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Calling...</span>
+              </div>
+            )}
+            {callStatus === 'ended' && (
+              <p className="text-gray-400">Call ended</p>
+            )}
+          </div>
+        </div>
+
+        {/* Call Controls */}
+        <div className="pb-8 pb-safe">
           <CallControls
             isMuted={isMuted}
             isVideoEnabled={false}
-            showVideoToggle={false}
+            showVideoToggle={true}
             onToggleMute={toggleMute}
             onEndCall={handleClose}
+            variant="whatsapp"
           />
         </div>
-      </DialogContent>
-    </Dialog>
+      </motion.div>
+    </AnimatePresence>
   );
 }
