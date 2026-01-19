@@ -26,12 +26,12 @@ export function CallControls({
   // WhatsApp-style controls
   if (variant === 'whatsapp') {
     return (
-      <div className={cn('flex items-center justify-center gap-6', className)}>
+      <div className={cn('flex items-center justify-center gap-5', className)}>
         {/* More Options */}
         <Button
           variant="ghost"
           size="icon"
-          className="h-14 w-14 rounded-full bg-[#3b4a54] hover:bg-[#4a5c66] text-white"
+          className="h-14 w-14 rounded-full bg-muted hover:bg-muted/80 text-foreground"
         >
           <MoreHorizontal className="h-6 w-6" />
         </Button>
@@ -42,10 +42,10 @@ export function CallControls({
             variant="ghost"
             size="icon"
             className={cn(
-              'h-14 w-14 rounded-full text-white transition-all',
+              'h-14 w-14 rounded-full transition-all',
               !isVideoEnabled 
-                ? 'bg-[#3b4a54] hover:bg-[#4a5c66]' 
-                : 'bg-white/20 hover:bg-white/30'
+                ? 'bg-muted hover:bg-muted/80 text-foreground' 
+                : 'bg-primary/20 hover:bg-primary/30 text-primary'
             )}
             onClick={onToggleVideo}
           >
@@ -61,7 +61,7 @@ export function CallControls({
         <Button
           variant="ghost"
           size="icon"
-          className="h-14 w-14 rounded-full bg-[#3b4a54] hover:bg-[#4a5c66] text-white"
+          className="h-14 w-14 rounded-full bg-muted hover:bg-muted/80 text-foreground"
         >
           <Volume2 className="h-6 w-6" />
         </Button>
@@ -71,10 +71,10 @@ export function CallControls({
           variant="ghost"
           size="icon"
           className={cn(
-            'h-14 w-14 rounded-full text-white transition-all',
+            'h-14 w-14 rounded-full transition-all',
             isMuted 
-              ? 'bg-white text-[#1f2c34] hover:bg-white/90' 
-              : 'bg-[#3b4a54] hover:bg-[#4a5c66]'
+              ? 'bg-foreground text-background hover:bg-foreground/90' 
+              : 'bg-muted hover:bg-muted/80 text-foreground'
           )}
           onClick={onToggleMute}
         >
@@ -89,7 +89,7 @@ export function CallControls({
         <Button
           variant="ghost"
           size="icon"
-          className="h-14 w-14 rounded-full bg-red-500 hover:bg-red-600 text-white"
+          className="h-14 w-14 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
           onClick={onEndCall}
         >
           <PhoneOff className="h-6 w-6" />
