@@ -18,7 +18,7 @@ import { DeleteMessageDialog } from './DeleteMessageDialog';
 import { DeletedMessagePlaceholder } from './DeletedMessagePlaceholder';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { WaveformVisualizer } from './WaveformVisualizer';
-import { VoiceCallModal, VideoCallModal } from '@/components/call';
+import { useCall } from '@/components/call';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
@@ -49,6 +49,7 @@ interface ChatAreaProps {
   matchName: string;
   matchPhoto: string;
   matchId?: string;
+  matchUserId?: string; // The actual user ID of the other person
   isOnline?: boolean;
   messages: Message[];
   currentUserId: string;
@@ -92,6 +93,7 @@ export function ChatArea({
   matchName,
   matchPhoto,
   matchId,
+  matchUserId,
   isOnline,
   messages,
   currentUserId,
@@ -122,17 +124,31 @@ export function ChatArea({
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string>('');
-  // Call state
-  const [voiceCallOpen, setVoiceCallOpen] = useState(false);
-  const [videoCallOpen, setVideoCallOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { isRecording, recordingDuration, audioLevels, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
   
+  // Use the global call provider
+  const { startCall } = useCall();
+  
   // Generate a unique channel name for this chat
   const callChannelName = matchId ? `chat_${matchId}` : `chat_${currentUserId}`;
+  
+  // Handle starting voice call
+  const handleVoiceCall = () => {
+    if (matchUserId) {
+      startCall(matchUserId, matchName, matchPhoto, callChannelName, 'voice');
+    }
+  };
+  
+  // Handle starting video call
+  const handleVideoCall = () => {
+    if (matchUserId) {
+      startCall(matchUserId, matchName, matchPhoto, callChannelName, 'video');
+    }
+  };
 
   const handleDeleteMessage = async (deleteForEveryone: boolean) => {
     if (!messageToDelete) return;
@@ -378,7 +394,8 @@ export function ChatArea({
             variant="ghost" 
             size="icon" 
             className="h-8 w-8"
-            onClick={() => setVoiceCallOpen(true)}
+            onClick={handleVoiceCall}
+            disabled={!matchUserId}
           >
             <Phone className="h-4 w-4" />
           </Button>
@@ -386,7 +403,8 @@ export function ChatArea({
             variant="ghost" 
             size="icon" 
             className="h-8 w-8"
-            onClick={() => setVideoCallOpen(true)}
+            onClick={handleVideoCall}
+            disabled={!matchUserId}
           >
             <Video className="h-4 w-4" />
           </Button>
@@ -747,25 +765,6 @@ export function ChatArea({
         onOpenChange={setLightboxOpen}
       />
 
-      {/* Voice Call Modal */}
-      <VoiceCallModal
-        open={voiceCallOpen}
-        onOpenChange={setVoiceCallOpen}
-        channelName={callChannelName}
-        userId={currentUserId}
-        remoteUserName={matchName}
-        remoteUserPhoto={matchPhoto}
-      />
-
-      {/* Video Call Modal */}
-      <VideoCallModal
-        open={videoCallOpen}
-        onOpenChange={setVideoCallOpen}
-        channelName={callChannelName}
-        userId={currentUserId}
-        remoteUserName={matchName}
-        remoteUserPhoto={matchPhoto}
-      />
     </div>
   );
 }

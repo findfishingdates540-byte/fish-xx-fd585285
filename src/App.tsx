@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CallProvider } from "@/components/call";
 import { AppLayout } from "@/components/layout";
 import { DatingRoute, FishingRoute } from "@/components/layout/RouteGuard";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
@@ -46,6 +47,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange={false}>
       <AuthProvider>
+        <CallProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -144,6 +146,7 @@ const App = () => (
           <CookieConsentBanner />
         </BrowserRouter>
         </TooltipProvider>
+        </CallProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
