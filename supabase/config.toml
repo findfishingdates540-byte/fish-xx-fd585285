@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.process-trip-reminders]
 verify_jwt = false
+
+[functions.generate-agora-token]
+verify_jwt = true
