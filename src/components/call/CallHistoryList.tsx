@@ -3,8 +3,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCallHistory, CallHistoryItem } from '@/hooks/use-call-history';
+import { useCall } from './CallProvider';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import { toast } from 'sonner';
 
 interface CallHistoryListProps {
   filter?: 'all' | 'voice' | 'video';
@@ -32,7 +34,7 @@ function formatCallDate(dateStr: string): string {
   }
 }
 
-function CallHistoryItemRow({ call }: { call: CallHistoryItem }) {
+function CallHistoryItemRow({ call, onCallBack }: { call: CallHistoryItem; onCallBack: (call: CallHistoryItem) => void }) {
   const isMissed = call.status === 'missed' || call.status === 'declined';
   const isCompleted = call.status === 'ended' && call.answered_at;
   const isVideo = call.call_type === 'video';
@@ -56,8 +58,20 @@ function CallHistoryItemRow({ call }: { call: CallHistoryItem }) {
     return call.status;
   };
 
+  const handleClick = () => {
+    if (call.other_user) {
+      onCallBack(call);
+    }
+  };
+
   return (
-    <div className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-lg transition-colors">
+    <div 
+      className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-lg transition-colors cursor-pointer active:scale-[0.98]"
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+    >
       {/* Avatar */}
       <div className="relative">
         <Avatar className="h-12 w-12">
@@ -103,17 +117,54 @@ function CallHistoryItemRow({ call }: { call: CallHistoryItem }) {
           {formatDuration(call.duration_seconds)}
         </Badge>
       )}
+
+      {/* Call back button indicator */}
+      <div className={cn(
+        'h-8 w-8 rounded-full flex items-center justify-center transition-colors',
+        isVideo ? 'bg-blue-500/10 text-blue-500' : 'bg-green-500/10 text-green-500'
+      )}>
+        {isVideo ? <Video className="h-4 w-4" /> : <Phone className="h-4 w-4" />}
+      </div>
     </div>
   );
 }
 
 export function CallHistoryList({ filter = 'all' }: CallHistoryListProps) {
   const { calls, loading } = useCallHistory();
+  const { startCall, isInCall } = useCall();
   
   // Filter calls based on type
   const filteredCalls = filter === 'all' 
     ? calls 
     : calls.filter(call => call.call_type === filter);
+
+  const handleCallBack = async (call: CallHistoryItem) => {
+    if (!call.other_user) {
+      toast.error('Cannot call this user');
+      return;
+    }
+
+    if (isInCall) {
+      toast.error('You are already in a call');
+      return;
+    }
+
+    const channelName = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    try {
+      await startCall(
+        call.other_user.id,
+        call.other_user.display_name || 'Unknown',
+        call.other_user.photos?.[0],
+        channelName,
+        call.call_type
+      );
+      toast.success(`Calling ${call.other_user.display_name || 'user'}...`);
+    } catch (error) {
+      console.error('Failed to start call:', error);
+      toast.error('Failed to start call');
+    }
+  };
 
   if (loading) {
     return (
@@ -183,7 +234,11 @@ export function CallHistoryList({ filter = 'all' }: CallHistoryListProps) {
           </h3>
           <div className="space-y-1 px-2">
             {group.calls.map((call) => (
-              <CallHistoryItemRow key={call.id} call={call} />
+              <CallHistoryItemRow 
+                key={call.id} 
+                call={call} 
+                onCallBack={handleCallBack}
+              />
             ))}
           </div>
         </div>
