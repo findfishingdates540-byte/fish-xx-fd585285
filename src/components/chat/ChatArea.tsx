@@ -366,12 +366,12 @@ export function ChatArea({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1 md:gap-2">
-          <Button variant="ghost" size="icon" className="hidden sm:flex">
-            <Phone className="h-5 w-5" />
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Phone className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="hidden sm:flex">
-            <Video className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Video className="h-4 w-4" />
           </Button>
           {/* Profile button - mobile only */}
           <Button variant="ghost" size="icon" className="xl:hidden" onClick={onShowProfile}>
