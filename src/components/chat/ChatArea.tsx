@@ -18,11 +18,11 @@ import { DeleteMessageDialog } from './DeleteMessageDialog';
 import { DeletedMessagePlaceholder } from './DeletedMessagePlaceholder';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { WaveformVisualizer } from './WaveformVisualizer';
+import { VoiceCallModal, VideoCallModal } from '@/components/call';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
-
 interface Message {
   id: string;
   content: string;
@@ -122,10 +122,17 @@ export function ChatArea({
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string>('');
+  // Call state
+  const [voiceCallOpen, setVoiceCallOpen] = useState(false);
+  const [videoCallOpen, setVideoCallOpen] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { isRecording, recordingDuration, audioLevels, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
+  
+  // Generate a unique channel name for this chat
+  const callChannelName = matchId ? `chat_${matchId}` : `chat_${currentUserId}`;
 
   const handleDeleteMessage = async (deleteForEveryone: boolean) => {
     if (!messageToDelete) return;
@@ -367,10 +374,20 @@ export function ChatArea({
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
+            onClick={() => setVoiceCallOpen(true)}
+          >
             <Phone className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
+            onClick={() => setVideoCallOpen(true)}
+          >
             <Video className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon">
@@ -728,6 +745,26 @@ export function ChatArea({
         images={lightboxImage ? [lightboxImage] : []}
         open={lightboxOpen}
         onOpenChange={setLightboxOpen}
+      />
+
+      {/* Voice Call Modal */}
+      <VoiceCallModal
+        open={voiceCallOpen}
+        onOpenChange={setVoiceCallOpen}
+        channelName={callChannelName}
+        userId={currentUserId}
+        remoteUserName={matchName}
+        remoteUserPhoto={matchPhoto}
+      />
+
+      {/* Video Call Modal */}
+      <VideoCallModal
+        open={videoCallOpen}
+        onOpenChange={setVideoCallOpen}
+        channelName={callChannelName}
+        userId={currentUserId}
+        remoteUserName={matchName}
+        remoteUserPhoto={matchPhoto}
       />
     </div>
   );
