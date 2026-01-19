@@ -331,6 +331,77 @@ export type Database = {
           },
         ]
       }
+      call_sessions: {
+        Row: {
+          answered_at: string | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          channel_name: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          answered_at?: string | null
+          call_type: string
+          callee_id: string
+          caller_id: string
+          channel_name: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          answered_at?: string | null
+          call_type?: string
+          callee_id?: string
+          caller_id?: string
+          channel_name?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_callee_id_fkey"
+            columns: ["callee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_callee_id_fkey"
+            columns: ["callee_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_caller_id_fkey"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_caller_id_fkey"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catches: {
         Row: {
           bait_used: string | null

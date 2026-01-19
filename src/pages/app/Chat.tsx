@@ -168,6 +168,8 @@ export default function Chat() {
           <ChatArea
             matchName={matchProfile.display_name || 'Anonymous'}
             matchPhoto={matchProfile.photos?.[0] || ''}
+            matchId={matchId}
+            matchUserId={matchProfile.id}
             isOnline={isMatchOnline}
             messages={messages}
             currentUserId={user?.id || ''}
