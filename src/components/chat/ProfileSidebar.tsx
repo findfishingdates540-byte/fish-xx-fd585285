@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Heart, Briefcase, Fish, Camera, Music, Coffee, Dumbbell, Book, Plane, Gamepad2, Utensils, Palette, TreesIcon as Trees, Flag } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +9,7 @@ import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Lightbox } from '@/components/ui/lightbox';
 
 interface ProfileSidebarProps {
+  userId?: string;
   name: string;
   age: number;
   photo: string;
@@ -52,6 +54,7 @@ const formatInterest = (interest: string) => {
 };
 
 export function ProfileSidebar({
+  userId,
   name,
   age,
   photo,
@@ -67,6 +70,7 @@ export function ProfileSidebar({
   idVerified,
   liveVerified,
 }: ProfileSidebarProps) {
+  const navigate = useNavigate();
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -258,7 +262,12 @@ export function ProfileSidebar({
 
         {/* Actions */}
         <div className="space-y-2">
-          <Button variant="outline" className="w-full border-border">
+          <Button 
+            variant="outline" 
+            className="w-full border-border"
+            onClick={() => userId && navigate(`/app/u/${userId}`)}
+            disabled={!userId}
+          >
             View Full Profile
           </Button>
           <div className="grid grid-cols-2 gap-2">
