@@ -194,6 +194,7 @@ export default function Chat() {
       {matchProfile && (
         <div className="hidden xl:block w-80 h-full border-l border-border flex-shrink-0">
           <ProfileSidebar
+            userId={matchProfile.id}
             name={matchProfile.display_name || 'Anonymous'}
             age={25}
             photo={matchProfile.photos?.[0] || ''}
@@ -218,6 +219,7 @@ export default function Chat() {
               <SheetTitle>Profile</SheetTitle>
             </SheetHeader>
             <ProfileSidebar
+              userId={matchProfile.id}
               name={matchProfile.display_name || 'Anonymous'}
               age={25}
               photo={matchProfile.photos?.[0] || ''}
