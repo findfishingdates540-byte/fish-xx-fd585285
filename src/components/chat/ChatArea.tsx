@@ -322,10 +322,10 @@ export function ChatArea({
               asChild={!onBack}
             >
               {onBack ? (
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
               ) : (
                 <Link to="/app/messages">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4" />
                 </Link>
               )}
             </Button>
