@@ -9,12 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Lightbox } from '@/components/ui/lightbox';
-import { ArrowLeft, Send, Fish, MapPin, Image as ImageIcon, Plus, Scale, Ruler, Reply, Trash2, Mic, Square, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Fish, MapPin, Image as ImageIcon, Plus, Scale, Ruler, Reply, Trash2, Mic, Square, X, Loader2, Phone, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen, isRecentlyActive } from '@/hooks/use-online-presence';
 import { useBuddyMessageReactions } from '@/hooks/use-buddy-message-reactions';
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
 import { MessageReactions, MessageStatusIndicator, QuotedMessage, ReplyPreview, SwipeableMessage, DeleteMessageDialog, DeletedMessagePlaceholder, VoiceMessagePlayer, WaveformVisualizer } from '@/components/chat';
+import { useCall } from '@/components/call';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 
@@ -111,6 +112,22 @@ export default function BuddyChat() {
 
   // Message reactions hook
   const { getReactionSummary, toggleReaction } = useBuddyMessageReactions(buddyId);
+  
+  // Call functionality
+  const { startCall } = useCall();
+  const callChannelName = buddyId ? `buddy_${buddyId}` : '';
+  
+  const handleVoiceCall = () => {
+    if (buddyProfile) {
+      startCall(buddyProfile.id, buddyProfile.display_name || 'Buddy', buddyProfile.photos?.[0], callChannelName, 'voice');
+    }
+  };
+  
+  const handleVideoCall = () => {
+    if (buddyProfile) {
+      startCall(buddyProfile.id, buddyProfile.display_name || 'Buddy', buddyProfile.photos?.[0], callChannelName, 'video');
+    }
+  };
 
   // Track buddy's online status
   const buddyUserIds = useMemo(() => 
@@ -793,6 +810,28 @@ export default function BuddyChat() {
               <><Fish className="w-3 h-3" />Fishing Buddy</>
             )}
           </p>
+        </div>
+        
+        {/* Call buttons */}
+        <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
+            onClick={handleVoiceCall}
+            disabled={!buddyProfile}
+          >
+            <Phone className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
+            onClick={handleVideoCall}
+            disabled={!buddyProfile}
+          >
+            <Video className="h-4 w-4" />
+          </Button>
         </div>
       </motion.div>
 
