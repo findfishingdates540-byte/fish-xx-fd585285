@@ -31,7 +31,7 @@ import CommunityGuidelines from "./pages/CommunityGuidelines";
 import CookiePolicy from "./pages/CookiePolicy";
 import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed } from "./pages/app";
+import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed, CallHistory } from "./pages/app";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
@@ -110,6 +110,7 @@ const App = () => (
               {/* Shared routes (all account types) */}
               <Route path="notifications" element={<Notifications />} />
               <Route path="my-tickets" element={<MyTickets />} />
+              <Route path="call-history" element={<CallHistory />} />
               <Route path="u/:userId" element={<SocialProfile />} />
               <Route path="u/:userId/followers" element={<Followers />} />
               <Route path="u/:userId/posts" element={<UserFeed />} />
