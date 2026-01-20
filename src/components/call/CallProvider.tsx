@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { useCallSessions, CallSession } from '@/hooks/use-call-sessions';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { IncomingCallOverlay } from './IncomingCallOverlay';
 import { VoiceCallModal } from './VoiceCallModal';
 import { VideoCallModal } from './VideoCallModal';
@@ -124,27 +125,72 @@ export function CallProvider({ children }: CallProviderProps) {
     await declineCall(incomingCall.id);
   }, [incomingCall, declineCall]);
 
+  // Insert call message into chat
+  const insertCallMessage = useCallback(async (
+    matchId: string,
+    callType: 'voice' | 'video',
+    durationSeconds: number
+  ) => {
+    if (!user) return;
+    
+    // Format duration for display
+    const minutes = Math.floor(durationSeconds / 60);
+    const seconds = durationSeconds % 60;
+    const durationText = minutes > 0 
+      ? `${minutes}m ${seconds}s` 
+      : `${seconds}s`;
+    
+    const callTypeText = callType === 'voice' ? '📞 Voice call' : '📹 Video call';
+    const content = durationSeconds > 0 
+      ? `${callTypeText} • ${durationText}`
+      : `${callTypeText} • Missed`;
+    
+    await supabase
+      .from('messages')
+      .insert({
+        match_id: matchId,
+        sender_id: user.id,
+        content,
+      });
+  }, [user]);
+
   // Handle ending outgoing call
-  const handleEndOutgoingCall = useCallback(async (open: boolean) => {
+  const handleEndOutgoingCall = useCallback(async (open: boolean, durationSeconds?: number) => {
     if (!open && activeSession) {
       await endCall(activeSession.id);
+      
+      // Extract matchId from channel name (format: chat_matchId-timestamp)
+      const channelParts = outgoingCallChannel.split('-');
+      const matchId = channelParts[0].replace('chat_', '');
+      
+      if (matchId && durationSeconds !== undefined) {
+        await insertCallMessage(matchId, outgoingCallType, durationSeconds);
+      }
     }
     setOutgoingCallOpen(open);
     if (!open) {
       setActiveSession(null);
     }
-  }, [activeSession, endCall]);
+  }, [activeSession, endCall, outgoingCallChannel, outgoingCallType, insertCallMessage]);
 
   // Handle ending answered call
-  const handleEndAnsweredCall = useCallback(async (open: boolean) => {
+  const handleEndAnsweredCall = useCallback(async (open: boolean, durationSeconds?: number) => {
     if (!open && activeSession) {
       await endCall(activeSession.id);
+      
+      // Extract matchId from channel name
+      const channelParts = answeredCallChannel.split('-');
+      const matchId = channelParts[0].replace('chat_', '');
+      
+      if (matchId && durationSeconds !== undefined) {
+        await insertCallMessage(matchId, answeredCallType, durationSeconds);
+      }
     }
     setAnsweredCallOpen(open);
     if (!open) {
       setActiveSession(null);
     }
-  }, [activeSession, endCall]);
+  }, [activeSession, endCall, answeredCallChannel, answeredCallType, insertCallMessage]);
 
   const isInCall = outgoingCallOpen || answeredCallOpen || !!incomingCall;
 
