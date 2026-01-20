@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import DailyIframe, { DailyCall, DailyParticipant, DailyEventObject } from '@daily-co/daily-js';
+import DailyIframe, { DailyCall, DailyParticipant, DailyEventObjectParticipant, DailyEventObjectParticipantLeft, DailyEventObjectTrack } from '@daily-co/daily-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -22,6 +22,8 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
   const callObjectRef = useRef<DailyCall | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const audioElementsRef = useRef<HTMLAudioElement[]>([]);
 
   // Cleanup call object
   const cleanupCall = useCallback(async () => {
@@ -29,6 +31,13 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       clearInterval(durationIntervalRef.current);
       durationIntervalRef.current = null;
     }
+
+    // Remove any audio elements we created
+    audioElementsRef.current.forEach(el => {
+      el.srcObject = null;
+      el.remove();
+    });
+    audioElementsRef.current = [];
 
     if (callObjectRef.current) {
       try {
@@ -47,8 +56,11 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     type: CallType
   ): Promise<{ roomUrl: string; token: string } | null> => {
     try {
+      // Add timestamp to room name to make it unique per call session
+      const uniqueRoomName = `${roomName}-${Date.now()}`;
+      
       const { data, error } = await supabase.functions.invoke('create-daily-room', {
-        body: { roomName, callType: type },
+        body: { roomName: uniqueRoomName, callType: type },
       });
 
       if (error) {
@@ -65,6 +77,56 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
   }, []);
 
+  // Play remote audio for a participant
+  const playRemoteAudio = useCallback((participant: DailyParticipant) => {
+    if (participant.local) return;
+    
+    const audioTrack = participant.tracks?.audio;
+    if (audioTrack?.persistentTrack && audioTrack.state === 'playable') {
+      // Check if we already have an audio element for this participant
+      const existingEl = document.getElementById(`audio-${participant.session_id}`);
+      if (existingEl) return;
+
+      const audioEl = document.createElement('audio');
+      audioEl.id = `audio-${participant.session_id}`;
+      audioEl.autoplay = true;
+      audioEl.setAttribute('playsinline', 'true');
+      
+      const stream = new MediaStream([audioTrack.persistentTrack]);
+      audioEl.srcObject = stream;
+      document.body.appendChild(audioEl);
+      audioElementsRef.current.push(audioEl);
+      
+      console.log('[Daily] Playing audio for participant:', participant.session_id);
+    }
+  }, []);
+
+  // Update remote video display
+  const updateRemoteVideo = useCallback(() => {
+    if (!callObjectRef.current || !remoteVideoRef.current) return;
+    
+    const participants = callObjectRef.current.participants();
+    const remote = Object.values(participants).find(p => !p.local);
+    
+    if (remote?.tracks?.video?.persistentTrack && remote.tracks.video.state === 'playable') {
+      const stream = new MediaStream([remote.tracks.video.persistentTrack]);
+      remoteVideoRef.current.srcObject = stream;
+      console.log('[Daily] Playing video for remote participant');
+    }
+  }, []);
+
+  // Update local video display  
+  const updateLocalVideo = useCallback(() => {
+    if (!callObjectRef.current || !localVideoRef.current) return;
+    
+    const local = callObjectRef.current.participants().local;
+    if (local?.tracks?.video?.persistentTrack && local.tracks.video.state === 'playable') {
+      const stream = new MediaStream([local.tracks.video.persistentTrack]);
+      localVideoRef.current.srcObject = stream;
+      console.log('[Daily] Playing local video');
+    }
+  }, []);
+
   // Start a call
   const startCall = useCallback(async (channelName: string, type: CallType, _userId: string) => {
     try {
@@ -72,7 +134,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       setCallType(type);
       setIsVideoEnabled(type === 'video');
 
-      // Create room
+      // Create room with unique name
       const roomData = await createRoom(channelName, type);
       if (!roomData) {
         setCallStatus('error');
@@ -96,23 +158,80 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         durationIntervalRef.current = setInterval(() => {
           setCallDuration(prev => prev + 1);
         }, 1000);
+
+        // Update local video if this is a video call
+        if (type === 'video') {
+          setTimeout(updateLocalVideo, 500);
+        }
       });
 
-      callObject.on('participant-joined', (event: DailyEventObject) => {
+      callObject.on('participant-joined', (event?: DailyEventObjectParticipant) => {
         if (event?.participant && !event.participant.local) {
-          console.log('[Daily] Remote participant joined:', event.participant.user_id);
-          setRemoteParticipants(prev => [...prev, event.participant!]);
+          console.log('[Daily] Remote participant joined:', event.participant.session_id);
+          setRemoteParticipants(prev => {
+            const exists = prev.find(p => p.session_id === event.participant.session_id);
+            if (exists) return prev;
+            return [...prev, event.participant];
+          });
           options.onRemoteUserJoined?.(event.participant);
         }
       });
 
-      callObject.on('participant-left', (event: DailyEventObject) => {
+      callObject.on('participant-updated', (event?: DailyEventObjectParticipant) => {
         if (event?.participant && !event.participant.local) {
-          console.log('[Daily] Remote participant left:', event.participant.user_id);
+          // Update our participant list
           setRemoteParticipants(prev => 
-            prev.filter(p => p.session_id !== event.participant!.session_id)
+            prev.map(p => p.session_id === event.participant.session_id ? event.participant : p)
           );
-          options.onRemoteUserLeft?.(event.participant);
+          
+          // Handle audio track becoming available
+          playRemoteAudio(event.participant);
+          
+          // Handle video track becoming available
+          updateRemoteVideo();
+        } else if (event?.participant?.local) {
+          // Local participant updated - update local video
+          updateLocalVideo();
+        }
+      });
+
+      callObject.on('participant-left', (event: DailyEventObjectParticipantLeft) => {
+        const participant = event?.participant;
+        if (participant && !participant.local) {
+          console.log('[Daily] Remote participant left:', participant.session_id);
+          
+          // Remove audio element for this participant
+          const audioEl = document.getElementById(`audio-${participant.session_id}`);
+          if (audioEl) {
+            (audioEl as HTMLAudioElement).srcObject = null;
+            audioEl.remove();
+            audioElementsRef.current = audioElementsRef.current.filter(
+              el => el.id !== `audio-${participant.session_id}`
+            );
+          }
+          
+          setRemoteParticipants(prev => 
+            prev.filter(p => p.session_id !== participant.session_id)
+          );
+          options.onRemoteUserLeft?.(participant);
+        }
+      });
+
+      callObject.on('track-started', (event) => {
+        console.log('[Daily] Track started:', event?.track?.kind, event?.participant?.local ? 'local' : 'remote');
+        
+        if (event?.participant) {
+          if (!event.participant.local) {
+            if (event.track?.kind === 'audio') {
+              playRemoteAudio(event.participant);
+            } else if (event.track?.kind === 'video') {
+              setTimeout(updateRemoteVideo, 100);
+            }
+          } else {
+            if (event.track?.kind === 'video') {
+              setTimeout(updateLocalVideo, 100);
+            }
+          }
         }
       });
 
@@ -128,6 +247,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       });
 
       // Join the room with token
+      console.log('[Daily] Joining room:', roomData.roomUrl);
       await callObject.join({
         url: roomData.roomUrl,
         token: roomData.token,
@@ -143,7 +263,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       await cleanupCall();
       return false;
     }
-  }, [createRoom, options, cleanupCall]);
+  }, [createRoom, options, cleanupCall, playRemoteAudio, updateRemoteVideo, updateLocalVideo]);
 
   // End call
   const endCall = useCallback(async () => {
@@ -181,48 +301,21 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
   }, [isVideoEnabled]);
 
-  // Get local video track for display
+  // Attach local video element ref
   const attachLocalVideo = useCallback((videoElement: HTMLVideoElement | null) => {
     localVideoRef.current = videoElement;
-    if (callObjectRef.current && videoElement) {
-      const localParticipant = callObjectRef.current.participants().local;
-      if (localParticipant?.tracks?.video?.persistentTrack) {
-        const stream = new MediaStream([localParticipant.tracks.video.persistentTrack]);
-        videoElement.srcObject = stream;
-      }
+    if (videoElement && callObjectRef.current) {
+      updateLocalVideo();
     }
-  }, []);
+  }, [updateLocalVideo]);
 
-  // Get remote video track for display
-  const attachRemoteVideo = useCallback((videoElement: HTMLVideoElement | null, participantId?: string) => {
-    if (callObjectRef.current && videoElement) {
-      const participants = callObjectRef.current.participants();
-      const remote = participantId 
-        ? Object.values(participants).find(p => p.session_id === participantId && !p.local)
-        : Object.values(participants).find(p => !p.local);
-      
-      if (remote?.tracks?.video?.persistentTrack) {
-        const stream = new MediaStream([remote.tracks.video.persistentTrack]);
-        videoElement.srcObject = stream;
-      }
+  // Attach remote video element ref
+  const attachRemoteVideo = useCallback((videoElement: HTMLVideoElement | null, _participantId?: string) => {
+    remoteVideoRef.current = videoElement;
+    if (videoElement && callObjectRef.current) {
+      updateRemoteVideo();
     }
-  }, []);
-
-  // Attach remote audio automatically
-  useEffect(() => {
-    if (callObjectRef.current && callStatus === 'connected') {
-      const participants = callObjectRef.current.participants();
-      Object.values(participants).forEach(participant => {
-        if (!participant.local && participant.tracks?.audio?.persistentTrack) {
-          const audioEl = document.createElement('audio');
-          audioEl.autoplay = true;
-          const stream = new MediaStream([participant.tracks.audio.persistentTrack]);
-          audioEl.srcObject = stream;
-          document.body.appendChild(audioEl);
-        }
-      });
-    }
-  }, [callStatus, remoteParticipants]);
+  }, [updateRemoteVideo]);
 
   // Cleanup on unmount
   useEffect(() => {
