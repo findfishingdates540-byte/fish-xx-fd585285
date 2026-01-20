@@ -331,7 +331,7 @@ export function ChatArea({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-background min-w-0">
+    <div className="flex-1 flex flex-col h-full bg-background min-w-0">
       {/* Chat Header */}
       <header className="h-14 md:h-16 px-3 md:px-6 border-b border-border flex items-center justify-between bg-background flex-shrink-0">
         <div className="flex items-center gap-2 md:gap-3">
