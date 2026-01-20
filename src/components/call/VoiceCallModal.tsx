@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { CallControls } from './CallControls';
-import { useAgoraCall } from '@/hooks/use-agora-call';
+import { useDailyCall } from '@/hooks/use-daily-call';
 import { Loader2, X, UserPlus, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,7 +31,7 @@ export function VoiceCallModal({
     startCall,
     endCall,
     toggleMute,
-  } = useAgoraCall();
+  } = useDailyCall();
 
   // Start call when modal opens
   useEffect(() => {

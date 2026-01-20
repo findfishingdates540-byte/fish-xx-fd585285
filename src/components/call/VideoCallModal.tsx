@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CallControls } from './CallControls';
-import { RemoteUser } from './RemoteUser';
-import { useAgoraCall } from '@/hooks/use-agora-call';
+import { useDailyCall } from '@/hooks/use-daily-call';
 import { Loader2, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,20 +24,22 @@ export function VideoCallModal({
   remoteUserName,
   remoteUserPhoto,
 }: VideoCallModalProps) {
-  const localVideoRef = useRef<HTMLDivElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   
   const {
     callStatus,
     isMuted,
     isVideoEnabled,
-    remoteUsers,
+    remoteParticipants,
     formattedDuration,
     startCall,
     endCall,
     toggleMute,
     toggleVideo,
-    getLocalVideoTrack,
-  } = useAgoraCall();
+    attachLocalVideo,
+    attachRemoteVideo,
+  } = useDailyCall();
 
   // Start call when modal opens
   useEffect(() => {
@@ -47,15 +48,19 @@ export function VideoCallModal({
     }
   }, [open, callStatus, channelName, userId, startCall]);
 
-  // Play local video
+  // Attach local video
   useEffect(() => {
     if (callStatus === 'connected' && localVideoRef.current) {
-      const localTrack = getLocalVideoTrack();
-      if (localTrack) {
-        localTrack.play(localVideoRef.current);
-      }
+      attachLocalVideo(localVideoRef.current);
     }
-  }, [callStatus, getLocalVideoTrack]);
+  }, [callStatus, attachLocalVideo]);
+
+  // Attach remote video when participant joins
+  useEffect(() => {
+    if (remoteParticipants.length > 0 && remoteVideoRef.current) {
+      attachRemoteVideo(remoteVideoRef.current);
+    }
+  }, [remoteParticipants, attachRemoteVideo]);
 
   // Handle closing
   const handleClose = async () => {
@@ -63,7 +68,7 @@ export function VideoCallModal({
     onOpenChange(false);
   };
 
-  const remoteUser = remoteUsers[0];
+  const hasRemoteVideo = remoteParticipants.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -72,13 +77,12 @@ export function VideoCallModal({
           {/* Main Video Area */}
           <div className="flex-1 relative bg-muted">
             {/* Remote User Video or Avatar */}
-            {remoteUser ? (
-              <RemoteUser
-                user={remoteUser}
-                userName={remoteUserName}
-                userPhoto={remoteUserPhoto}
-                isVideoCall={true}
-                className="absolute inset-0"
+            {hasRemoteVideo ? (
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
@@ -147,13 +151,20 @@ export function VideoCallModal({
 
             {/* Local Video Preview (Picture-in-Picture) */}
             <div
-              ref={localVideoRef}
               className={cn(
                 'absolute bottom-20 right-4 w-32 h-44 bg-muted rounded-lg overflow-hidden shadow-lg border-2 border-background',
                 !isVideoEnabled && 'flex items-center justify-center'
               )}
             >
-              {!isVideoEnabled && (
+              {isVideoEnabled ? (
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              ) : (
                 <div className="text-center">
                   <Avatar className="h-12 w-12 mx-auto">
                     <AvatarFallback>You</AvatarFallback>
