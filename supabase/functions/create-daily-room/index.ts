@@ -25,40 +25,62 @@ serve(async (req) => {
     // Generate a unique room name if not provided
     const finalRoomName = roomName || `call-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
-    // Create room via Daily.co REST API
-    const response = await fetch("https://api.daily.co/v1/rooms", {
-      method: "POST",
+    let roomData;
+
+    // First, try to get the existing room
+    const getResponse = await fetch(`https://api.daily.co/v1/rooms/${finalRoomName}`, {
+      method: "GET",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${DAILY_API_KEY}`,
       },
-      body: JSON.stringify({
-        name: finalRoomName,
-        privacy: "private",
-        properties: {
-          // Room expires in 1 hour
-          exp: Math.floor(Date.now() / 1000) + 3600,
-          // Enable/disable video based on call type
-          enable_chat: true,
-          enable_screenshare: false,
-          start_video_off: callType === "voice",
-          start_audio_off: false,
-          // Max 2 participants for 1:1 calls
-          max_participants: 2,
-        },
-      }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Daily.co API error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: "Failed to create room", details: errorText }), {
-        status: response.status,
+    if (getResponse.ok) {
+      // Room exists, reuse it
+      roomData = await getResponse.json();
+      console.log("Reusing existing room:", finalRoomName);
+    } else if (getResponse.status === 404) {
+      // Room doesn't exist, create it
+      const createResponse = await fetch("https://api.daily.co/v1/rooms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${DAILY_API_KEY}`,
+        },
+        body: JSON.stringify({
+          name: finalRoomName,
+          privacy: "private",
+          properties: {
+            // Room expires in 1 hour
+            exp: Math.floor(Date.now() / 1000) + 3600,
+            enable_chat: true,
+            enable_screenshare: false,
+            start_video_off: callType === "voice",
+            start_audio_off: false,
+            max_participants: 2,
+          },
+        }),
+      });
+
+      if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        console.error("Daily.co create room error:", createResponse.status, errorText);
+        return new Response(JSON.stringify({ error: "Failed to create room", details: errorText }), {
+          status: createResponse.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      roomData = await createResponse.json();
+      console.log("Created new room:", finalRoomName);
+    } else {
+      const errorText = await getResponse.text();
+      console.error("Daily.co get room error:", getResponse.status, errorText);
+      return new Response(JSON.stringify({ error: "Failed to check room", details: errorText }), {
+        status: getResponse.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const roomData = await response.json();
 
     // Now create a meeting token for the user
     const tokenResponse = await fetch("https://api.daily.co/v1/meeting-tokens", {
