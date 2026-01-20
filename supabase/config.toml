@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.generate-agora-token]
 verify_jwt = true
+
+[functions.create-daily-room]
+verify_jwt = true
