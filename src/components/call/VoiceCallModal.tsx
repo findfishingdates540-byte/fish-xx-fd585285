@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoiceCallModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean, durationSeconds?: number) => void;
   channelName: string;
   userId: string;
   remoteUserName: string;
@@ -27,6 +27,7 @@ export function VoiceCallModal({
   const {
     callStatus,
     isMuted,
+    callDuration,
     formattedDuration,
     startCall,
     endCall,
@@ -42,8 +43,9 @@ export function VoiceCallModal({
 
   // Handle closing
   const handleClose = async () => {
+    const duration = callDuration;
     await endCall();
-    onOpenChange(false);
+    onOpenChange(false, duration);
   };
 
   // Handle minimize (same as close for now)

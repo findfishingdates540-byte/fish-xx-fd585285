@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface VideoCallModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean, durationSeconds?: number) => void;
   channelName: string;
   userId: string;
   remoteUserName: string;
@@ -32,6 +32,7 @@ export function VideoCallModal({
     isMuted,
     isVideoEnabled,
     remoteParticipants,
+    callDuration,
     formattedDuration,
     startCall,
     endCall,
@@ -64,8 +65,9 @@ export function VideoCallModal({
 
   // Handle closing
   const handleClose = async () => {
+    const duration = callDuration;
     await endCall();
-    onOpenChange(false);
+    onOpenChange(false, duration);
   };
 
   const hasRemoteVideo = remoteParticipants.length > 0;
