@@ -56,13 +56,31 @@ export function useAgoraCall(options: UseAgoraCallOptions = {}) {
       });
 
       if (error) {
-        console.error('Error getting Agora token:', error);
+        // Provide actionable error details (most common cause: auth missing or bad Agora credentials)
+        const status = (error as any)?.context?.status;
+        const msg = error.message || 'Unknown error';
+
+        console.error('Error getting Agora token:', { status, msg, error });
+
+        if (status === 401) {
+          toast.error('Call auth failed (401). Please re-login and try again.');
+        } else {
+          toast.error(`Failed to get call token: ${msg}`);
+        }
+
+        return null;
+      }
+
+      if (!data?.token || !data?.appId || !data?.uid) {
+        console.error('Invalid token response from generate-agora-token:', data);
+        toast.error('Call token response was invalid');
         return null;
       }
 
       return { token: data.token, appId: data.appId, uid: data.uid };
     } catch (err) {
       console.error('Failed to get Agora token:', err);
+      toast.error('Failed to reach call token service');
       return null;
     }
   }, []);
