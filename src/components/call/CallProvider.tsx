@@ -27,6 +27,7 @@ interface CallProviderProps {
 
 export function CallProvider({ children }: CallProviderProps) {
   const { user } = useAuth();
+  
   const [outgoingCallOpen, setOutgoingCallOpen] = useState(false);
   const [outgoingCallType, setOutgoingCallType] = useState<'voice' | 'video'>('voice');
   const [outgoingCallChannel, setOutgoingCallChannel] = useState('');
