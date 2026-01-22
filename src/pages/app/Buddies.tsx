@@ -238,8 +238,27 @@ export default function Buddies() {
   const sendBuddyRequest = async (recipientId: string) => {
     if (!user) return;
 
+    // Find the profile from discover list for optimistic update
+    const targetProfile = discoverProfiles.find(p => p.id === recipientId);
+
     // Optimistically update UI immediately
     setRequestedIds(prev => new Set([...prev, recipientId]));
+    
+    // Optimistically add to sent requests so it shows in Requests tab immediately
+    if (targetProfile) {
+      const optimisticRequest = {
+        id: `temp-${Date.now()}`, // Temporary ID
+        requester_id: user.id,
+        recipient_id: recipientId,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        profile: targetProfile
+      };
+      setSentRequests(prev => [optimisticRequest, ...prev]);
+      
+      // Remove from discover profiles
+      setDiscoverProfiles(prev => prev.filter(p => p.id !== recipientId));
+    }
 
     const { error } = await supabase
       .from('fishing_buddies')
@@ -250,12 +269,16 @@ export default function Buddies() {
       });
 
     if (error) {
-      // Revert optimistic update on error
+      // Revert optimistic updates on error
       setRequestedIds(prev => {
         const newSet = new Set(prev);
         newSet.delete(recipientId);
         return newSet;
       });
+      setSentRequests(prev => prev.filter(r => r.recipient_id !== recipientId));
+      if (targetProfile) {
+        setDiscoverProfiles(prev => [targetProfile, ...prev]);
+      }
       toast({
         title: 'Error',
         description: 'Failed to send buddy request',
@@ -266,7 +289,6 @@ export default function Buddies() {
         title: 'Request Sent',
         description: 'Buddy request sent successfully!'
       });
-      // Don't call fetchData() - let real-time subscription handle it if needed
     }
   };
 
