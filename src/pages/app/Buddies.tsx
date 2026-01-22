@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -193,7 +193,20 @@ export default function Buddies() {
     }
   }, [user, fetchData]);
 
-  // Real-time subscription for buddy updates
+  // Debounce ref for real-time updates
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced fetch to prevent scroll position reset
+  const debouncedFetchData = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      fetchData();
+    }, 2000); // Wait 2 seconds before refetching
+  }, [fetchData]);
+
+  // Real-time subscription for buddy updates (only for incoming changes, not our own)
   useEffect(() => {
     if (!user) return;
 
@@ -205,33 +218,28 @@ export default function Buddies() {
           event: '*',
           schema: 'public',
           table: 'fishing_buddies',
-          filter: `requester_id=eq.${user.id}`,
-        },
-        () => {
-          fetchData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'fishing_buddies',
           filter: `recipient_id=eq.${user.id}`,
         },
         () => {
-          fetchData();
+          // Only refetch for incoming requests/changes (when we are the recipient)
+          debouncedFetchData();
         }
       )
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       supabase.removeChannel(channel);
     };
-  }, [user, fetchData]);
+  }, [user, debouncedFetchData]);
 
   const sendBuddyRequest = async (recipientId: string) => {
     if (!user) return;
+
+    // Optimistically update UI immediately
+    setRequestedIds(prev => new Set([...prev, recipientId]));
 
     const { error } = await supabase
       .from('fishing_buddies')
@@ -242,6 +250,12 @@ export default function Buddies() {
       });
 
     if (error) {
+      // Revert optimistic update on error
+      setRequestedIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(recipientId);
+        return newSet;
+      });
       toast({
         title: 'Error',
         description: 'Failed to send buddy request',
@@ -252,8 +266,7 @@ export default function Buddies() {
         title: 'Request Sent',
         description: 'Buddy request sent successfully!'
       });
-      setRequestedIds(prev => new Set([...prev, recipientId]));
-      fetchData();
+      // Don't call fetchData() - let real-time subscription handle it if needed
     }
   };
 
