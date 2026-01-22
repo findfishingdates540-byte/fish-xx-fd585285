@@ -73,34 +73,34 @@ export default function Feed() {
     return items;
   }, [posts, ads]);
 
-  // Real-time subscription for new posts
+  // Debounced real-time subscription for new posts (prevents rapid refetches)
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout | null = null;
+    
+    const debouncedInvalidate = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
+        queryClient.invalidateQueries({ queryKey: ['feed-posts-following'] });
+      }, 2000); // 2 second debounce
+    };
+
     const channel = supabase
       .channel('feed-updates')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'feed_posts' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
-        }
+        { event: 'INSERT', schema: 'public', table: 'feed_posts' },
+        debouncedInvalidate
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'feed_likes' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'feed_comments' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
-        }
+        { event: 'DELETE', schema: 'public', table: 'feed_posts' },
+        debouncedInvalidate
       )
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [queryClient]);

@@ -64,6 +64,7 @@ export function useFeedPosts() {
 
   return useQuery({
     queryKey: ['feed-posts', user?.id],
+    staleTime: 60 * 1000, // Feed data fresh for 1 minute
     queryFn: async () => {
       // Get posts
       const { data: posts, error } = await supabase
@@ -125,6 +126,7 @@ export function useFollowingFeedPosts() {
 
   return useQuery({
     queryKey: ['feed-posts-following', user?.id],
+    staleTime: 60 * 1000, // Following feed data fresh for 1 minute
     queryFn: async () => {
       if (!user?.id) return [];
       

@@ -42,7 +42,17 @@ import DatingProfile from "./pages/app/DatingProfile";
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30 * 1000, // Data stays fresh for 30 seconds
+      gcTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
+      refetchOnWindowFocus: false, // Don't refetch when switching tabs
+      refetchOnReconnect: true, // Refetch when reconnecting to internet
+      retry: 2, // Retry failed requests twice
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
