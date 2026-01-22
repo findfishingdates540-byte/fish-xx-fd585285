@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,7 @@ export interface BuddyConversation {
 export function useBuddyConversations() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch all buddy conversations using optimized RPC
   const { data: conversations, isLoading, refetch } = useQuery({
@@ -45,6 +46,16 @@ export function useBuddyConversations() {
     staleTime: 30000, // Cache for 30 seconds
   });
 
+  // Debounced invalidation to prevent rapid re-fetches
+  const debouncedInvalidate = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['buddy-conversations', user?.id] });
+    }, 1000); // Wait 1 second before refetching
+  };
+
   // Real-time subscription for new messages
   useEffect(() => {
     if (!user?.id) return;
@@ -63,7 +74,7 @@ export function useBuddyConversations() {
           if (payload.new && payload.new.sender_id !== user.id) {
             playNotificationSound();
           }
-          queryClient.invalidateQueries({ queryKey: ['buddy-conversations', user.id] });
+          debouncedInvalidate();
         }
       )
       .on(
@@ -73,13 +84,20 @@ export function useBuddyConversations() {
           schema: 'public',
           table: 'buddy_messages',
         },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['buddy-conversations', user.id] });
+        (payload) => {
+          const updatedMessage = payload.new as { sender_id?: string };
+          // Only refresh for read receipts on our sent messages
+          if (updatedMessage.sender_id === user.id) {
+            debouncedInvalidate();
+          }
         }
       )
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);
