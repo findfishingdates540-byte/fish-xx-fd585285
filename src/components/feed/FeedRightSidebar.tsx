@@ -207,7 +207,7 @@ export function FeedRightSidebar() {
       {/* Contacts - Facebook Style */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-muted-foreground text-[17px]">Contacts</h3>
+          <h3 className="font-semibold text-muted-foreground text-[17px]">Buddies</h3>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
               <Search className="h-4 w-4" />
