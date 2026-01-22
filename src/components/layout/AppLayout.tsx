@@ -39,33 +39,51 @@ function AppLayoutContent() {
   useEffect(() => {
     if (!user?.id) return;
     
-    // Prefetch feed posts (fishing/both modes)
-    if (effectiveMode === 'fishing' || effectiveMode === 'both') {
-      queryClient.prefetchQuery({
-        queryKey: ['feed-posts', user.id],
-        queryFn: async () => {
-          const { data } = await supabase
-            .from('feed_posts')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(20);
-          return data || [];
-        },
-        staleTime: 60 * 1000,
-      });
+    // Prefetch feed posts
+    queryClient.prefetchQuery({
+      queryKey: ['feed-posts', user.id],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from('feed_posts')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20);
+        return data || [];
+      },
+      staleTime: 60 * 1000,
+    });
 
-      // Prefetch buddy data
-      queryClient.prefetchQuery({
-        queryKey: ['buddy-page-data', user.id],
-        queryFn: async () => {
-          const { data } = await supabase.rpc('get_buddy_page_data', {
-            p_user_id: user.id,
-          });
-          return data;
-        },
-        staleTime: 30 * 1000,
-      });
-    }
+    // Prefetch buddy page data
+    queryClient.prefetchQuery({
+      queryKey: ['buddy-page-data', user.id],
+      queryFn: async () => {
+        const { data } = await supabase.rpc('get_buddy_page_data', {
+          p_user_id: user.id,
+        });
+        return data;
+      },
+      staleTime: 30 * 1000,
+    });
+
+    // Prefetch dating conversations
+    queryClient.prefetchQuery({
+      queryKey: ['dating-conversations', user.id],
+      queryFn: async () => {
+        const { data } = await supabase.rpc('get_dating_conversations', { p_user_id: user.id });
+        return data || [];
+      },
+      staleTime: 30 * 1000,
+    });
+
+    // Prefetch buddy conversations
+    queryClient.prefetchQuery({
+      queryKey: ['buddy-conversations', user.id],
+      queryFn: async () => {
+        const { data } = await supabase.rpc('get_buddy_conversations', { p_user_id: user.id });
+        return data || [];
+      },
+      staleTime: 30 * 1000,
+    });
 
     // Prefetch notifications count
     queryClient.prefetchQuery({
@@ -80,7 +98,7 @@ function AppLayoutContent() {
       },
       staleTime: 30 * 1000,
     });
-  }, [user?.id, effectiveMode, queryClient]);
+  }, [user?.id, queryClient]);
   
   // Check if we're on the combo dashboard - it has its own layout
   const isComboDashboard = location.pathname === '/app/dashboard';
