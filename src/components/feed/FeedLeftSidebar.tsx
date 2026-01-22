@@ -118,34 +118,34 @@ export function FeedLeftSidebar() {
         {user && (
           <div className="bg-card rounded-xl border overflow-hidden">
             {/* Cover gradient */}
-            <div className="h-16 bg-gradient-to-r from-primary/20 to-primary/10" />
+            <div className="h-12 bg-gradient-to-r from-primary/20 to-primary/10" />
             
             {/* Profile info */}
-            <div className="px-4 pb-4 -mt-8">
+            <div className="px-3 pb-3 -mt-6">
               <Link to="/app/profile" className="block">
-                <Avatar className="h-16 w-16 border-4 border-card">
+                <Avatar className="h-12 w-12 border-2 border-card">
                   <AvatarImage src={profile?.photos?.[0]} alt={profile?.display_name || ''} />
-                  <AvatarFallback className="text-lg">{profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
+                  <AvatarFallback className="text-sm">{profile?.display_name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
               </Link>
               
-              <Link to="/app/profile" className="mt-2 block hover:underline">
-                <h3 className="font-semibold">{profile?.display_name || 'Angler'}</h3>
+              <Link to="/app/profile" className="mt-1.5 block hover:underline">
+                <h3 className="font-semibold text-sm">{profile?.display_name || 'Angler'}</h3>
               </Link>
               
               {/* Quick stats */}
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg font-semibold">{stats?.catchesLogged || 0}</p>
-                  <p className="text-xs text-muted-foreground">Catches</p>
+              <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
+                <div className="p-1.5 rounded-lg bg-muted/50">
+                  <p className="text-sm font-semibold">{stats?.catchesLogged || 0}</p>
+                  <p className="text-[10px] text-muted-foreground">Catches</p>
                 </div>
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg font-semibold">{stats?.tripsPlanned || 0}</p>
-                  <p className="text-xs text-muted-foreground">Trips</p>
+                <div className="p-1.5 rounded-lg bg-muted/50">
+                  <p className="text-sm font-semibold">{stats?.tripsPlanned || 0}</p>
+                  <p className="text-[10px] text-muted-foreground">Trips</p>
                 </div>
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg font-semibold">{stats?.spotsVisited || 0}</p>
-                  <p className="text-xs text-muted-foreground">Spots</p>
+                <div className="p-1.5 rounded-lg bg-muted/50">
+                  <p className="text-sm font-semibold">{stats?.spotsVisited || 0}</p>
+                  <p className="text-[10px] text-muted-foreground">Spots</p>
                 </div>
               </div>
             </div>
