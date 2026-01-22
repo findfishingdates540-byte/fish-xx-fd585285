@@ -262,14 +262,6 @@ export function ProfileSidebar({
 
         {/* Actions */}
         <div className="space-y-2">
-          <Button 
-            variant="outline" 
-            className="w-full border-border"
-            onClick={() => userId && navigate(`/app/u/${userId}`)}
-            disabled={!userId}
-          >
-            View Full Profile
-          </Button>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
               Block
