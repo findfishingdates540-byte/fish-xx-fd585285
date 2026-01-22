@@ -18,6 +18,7 @@ import { DeleteMessageDialog } from './DeleteMessageDialog';
 import { DeletedMessagePlaceholder } from './DeletedMessagePlaceholder';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { WaveformVisualizer } from './WaveformVisualizer';
+import { CallMessage, parseCallMessage } from './CallMessage';
 import { useCall } from '@/components/call';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -330,6 +331,18 @@ export function ChatArea({
     return content.startsWith('📍 Shared location:') || content.includes('Shared a fishing spot');
   };
 
+  // Check if a message is a call message
+  const isCallMessage = (content: string) => {
+    return parseCallMessage(content).isCallMessage;
+  };
+  
+  // Handle callback from call message
+  const handleCallback = (callType: 'voice' | 'video') => {
+    if (matchUserId) {
+      startCall(matchUserId, matchName, matchPhoto, callChannelName, callType);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-background min-w-0">
       {/* Chat Header */}
@@ -494,6 +507,14 @@ export function ChatArea({
                     
                     {isDeletedForEveryone ? (
                       <DeletedMessagePlaceholder isMine={isMine} timestamp={message.timestamp} />
+                    ) : isCallMessage(message.content) ? (
+                      /* Call Message - WhatsApp style bubble */
+                      <CallMessage
+                        content={message.content}
+                        isMine={isMine}
+                        timestamp={message.timestamp}
+                        onCallback={handleCallback}
+                      />
                     ) : (
                       <div
                         className={cn(
