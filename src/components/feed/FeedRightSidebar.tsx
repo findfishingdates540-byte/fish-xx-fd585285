@@ -178,15 +178,15 @@ export function FeedRightSidebar() {
   return (
     <div className="sticky top-20 space-y-4">
       {/* Buddy Requests - Facebook Style */}
-      {pendingRequests.length > 0 && (
-        <div className="pb-3 border-b border-border">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-muted-foreground text-[17px]">Friend requests</h3>
-            <Link to="/app/buddies" className="text-sm text-primary hover:underline font-medium">
-              See all
-            </Link>
-          </div>
-          
+      <div className="pb-3 border-b border-border">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-muted-foreground text-[17px]">Friend requests</h3>
+          <Link to="/app/buddies" className="text-sm text-primary hover:underline font-medium">
+            See all
+          </Link>
+        </div>
+        
+        {pendingRequests.length > 0 ? (
           <div className="space-y-3">
             {pendingRequests.map((request) => (
               <div key={request.id} className="flex gap-3">
@@ -236,17 +236,19 @@ export function FeedRightSidebar() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-sm text-muted-foreground">No pending requests</p>
+        )}
+      </div>
 
       {/* Birthdays - Facebook Style */}
-      {birthdays.length > 0 && (
-        <div className="pb-3 border-b border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Gift className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-muted-foreground text-[17px]">Birthdays</h3>
-          </div>
-          
+      <div className="pb-3 border-b border-border">
+        <div className="flex items-center gap-2 mb-2">
+          <Gift className="h-5 w-5 text-primary" />
+          <h3 className="font-semibold text-muted-foreground text-[17px]">Birthdays</h3>
+        </div>
+        
+        {birthdays.length > 0 ? (
           <div className="space-y-2">
             {birthdays.map((buddy) => (
               <Link
@@ -267,24 +269,26 @@ export function FeedRightSidebar() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-sm text-muted-foreground">No birthdays today</p>
+        )}
+      </div>
 
       {/* Contacts - Facebook Style */}
-      {contacts.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-muted-foreground text-[17px]">Contacts</h3>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-muted-foreground text-[17px]">Contacts</h3>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
           </div>
-          
+        </div>
+        
+        {contacts.length > 0 ? (
           <div className="space-y-0.5">
             {contacts.map((contact) => (
               <Link
@@ -307,8 +311,10 @@ export function FeedRightSidebar() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-sm text-muted-foreground">No contacts yet</p>
+        )}
+      </div>
 
       {/* Footer Links - Facebook Style */}
       <div className="pt-4 text-[13px] text-muted-foreground/70">
