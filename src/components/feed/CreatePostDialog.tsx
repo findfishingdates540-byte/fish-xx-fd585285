@@ -28,7 +28,17 @@ interface CreatePostDialogProps {
   onClose: () => void;
 }
 
-const EMOJI_LIST = ['😀', '😂', '❤️', '🔥', '👍', '🎣', '🐟', '🐠', '🦈', '🌊', '🚤', '🎉', '💪', '🏆', '📸', '🌅'];
+const EMOJI_CATEGORIES = {
+  'Smileys': ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '😮‍💨', '🤥'],
+  'Gestures': ['👍', '👎', '👏', '🙌', '🤝', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏', '👋', '🤚', '✋', '🖖', '💪', '🦾', '🙏'],
+  'Hearts': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'],
+  'Fishing': ['🎣', '🐟', '🐠', '🐡', '🦈', '🐋', '🐳', '🐬', '🦭', '🦐', '🦞', '🦀', '🦑', '🐙', '🌊', '🚤', '⛵', '🛶', '🏖️', '🌅', '🌄'],
+  'Celebration': ['🎉', '🎊', '🎈', '🎁', '🎀', '🏆', '🥇', '🥈', '🥉', '🏅', '🎯', '🔥', '⭐', '🌟', '✨', '💫', '💥', '💯'],
+  'Nature': ['☀️', '🌤️', '⛅', '🌦️', '🌧️', '⛈️', '🌩️', '🌈', '🌸', '🌺', '🌻', '🌼', '🌷', '🌱', '🌲', '🌳', '🌴', '🍀'],
+  'Objects': ['📸', '📷', '🎥', '📍', '📌', '🗺️', '🧭', '⛺', '🎒', '🧰', '🪝', '🎿', '🛷', '🏕️', '🔦', '🧊', '🍺', '🍻']
+};
+
+const ALL_EMOJIS = Object.values(EMOJI_CATEGORIES).flat();
 
 export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
   const [content, setContent] = useState('');
@@ -529,17 +539,24 @@ export function CreatePostDialog({ isOpen, onClose }: CreatePostDialogProps) {
                   </TooltipTrigger>
                   <TooltipContent>Emoji</TooltipContent>
                 </Tooltip>
-                <PopoverContent className="w-64 p-2" align="end">
-                  <div className="grid grid-cols-8 gap-1">
-                    {EMOJI_LIST.map((emoji) => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => insertEmoji(emoji)}
-                        className="p-1.5 text-lg hover:bg-muted rounded transition-colors"
-                      >
-                        {emoji}
-                      </button>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="max-h-64 overflow-y-auto p-2">
+                    {Object.entries(EMOJI_CATEGORIES).map(([category, emojis]) => (
+                      <div key={category} className="mb-3 last:mb-0">
+                        <p className="text-xs font-medium text-muted-foreground mb-1.5 px-1">{category}</p>
+                        <div className="grid grid-cols-8 gap-0.5">
+                          {emojis.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => insertEmoji(emoji)}
+                              className="p-1.5 text-lg hover:bg-muted rounded transition-colors"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </PopoverContent>
