@@ -211,7 +211,7 @@ export function RightSidebar({
                   {convo.isOnline && (
                     <span className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 border-2 border-background rounded-full" />
                   )}
-                  {convo.unreadCount && convo.unreadCount > 0 && (
+                  {(convo.unreadCount ?? 0) > 0 && (
                     <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full flex items-center justify-center">
                       {convo.unreadCount > 9 ? '9+' : convo.unreadCount}
                     </span>
