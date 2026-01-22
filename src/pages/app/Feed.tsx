@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FeedPost, CreatePostDialog, SponsoredPost } from '@/components/feed';
+import { FeedPost, CreatePostDialog, SponsoredPost, FeedComposerBar, StoriesRow } from '@/components/feed';
 import { FeedLeftSidebar } from '@/components/feed/FeedLeftSidebar';
 import { FeedRightSidebar } from '@/components/feed/FeedRightSidebar';
 import { useFeedPosts, useFollowingFeedPosts, type FeedPost as FeedPostType } from '@/hooks/use-feed';
@@ -12,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import { Fish } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type FeedItem = 
   | { type: 'post'; data: FeedPostType }
@@ -121,6 +121,7 @@ export default function Feed() {
   }, [highlightedPostId, postsLoading, posts]);
 
   const handleRefresh = async () => {
+    queryClient.invalidateQueries({ queryKey: ['stories'] });
     if (feedFilter === 'for-you') {
       await refetchForYou();
     } else {
@@ -142,6 +143,14 @@ export default function Feed() {
             <main className="lg:col-span-6">
               <PullToRefresh onRefresh={handleRefresh}>
                 <div className="space-y-4">
+                  {/* Stories Row */}
+                  {user && <StoriesRow />}
+
+                  {/* Composer Bar */}
+                  {user && (
+                    <FeedComposerBar onOpenCreatePost={() => setShowCreatePost(true)} />
+                  )}
+
                   {/* Feed Tabs */}
                   {user && (
                     <Tabs value={feedFilter} onValueChange={(v) => setFeedFilter(v as FeedFilter)} className="w-full">
@@ -152,21 +161,10 @@ export default function Feed() {
                     </Tabs>
                   )}
 
-                  {/* Create post button */}
-                  {user && (
-                    <Button 
-                      onClick={() => setShowCreatePost(true)}
-                      className="w-full gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create Post
-                    </Button>
-                  )}
-
                   {postsLoading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-background rounded-xl border animate-pulse">
+                        <div key={i} className="bg-card rounded-xl border animate-pulse">
                           <div className="p-4 flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-muted" />
                             <div className="space-y-2">
@@ -183,9 +181,9 @@ export default function Feed() {
                       ))}
                     </div>
                   ) : feedItems.length === 0 ? (
-                    <div className="text-center py-16 bg-background rounded-xl border">
+                    <div className="text-center py-16 bg-card rounded-xl border">
                       <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Plus className="h-8 w-8 text-muted-foreground" />
+                        <Fish className="h-8 w-8 text-muted-foreground" />
                       </div>
                       <h3 className="font-semibold mb-2">No posts yet</h3>
                       <p className="text-sm text-muted-foreground mb-4">
