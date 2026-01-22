@@ -142,13 +142,13 @@ export default function Feed() {
             <main className="lg:col-span-6">
               <PullToRefresh onRefresh={handleRefresh}>
                 <div className="space-y-4">
-                  {/* Stories Row */}
-                  {user && <StoriesRow />}
-
                   {/* Composer Bar */}
                   {user && (
                     <FeedComposerBar onOpenCreatePost={() => setShowCreatePost(true)} />
                   )}
+
+                  {/* Stories Row */}
+                  {user && <StoriesRow />}
 
                   {/* Feed Tabs */}
                   {user && (
