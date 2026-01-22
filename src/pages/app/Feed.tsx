@@ -7,11 +7,14 @@ import { FeedRightSidebar } from '@/components/feed/FeedRightSidebar';
 import { useFeedPosts, useFollowingFeedPosts, type FeedPost as FeedPostType } from '@/hooks/use-feed';
 import { useActiveAds, type Advertisement } from '@/hooks/use-admin-ads';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { Fish } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FishingHeader } from '@/components/layout/FishingHeader';
+import { BothHeader } from '@/components/layout/BothHeader';
 
 type FeedItem = 
   | { type: 'post'; data: FeedPostType }
@@ -27,12 +30,24 @@ export default function Feed() {
   const highlightedCommentId = searchParams.get('comment');
   const postRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { user } = useAuth();
+  const { effectiveMode } = useActiveMode();
   const { data: forYouPosts = [], isLoading: forYouLoading, refetch: refetchForYou } = useFeedPosts();
   const { data: followingPosts = [], isLoading: followingLoading, refetch: refetchFollowing } = useFollowingFeedPosts();
   const queryClient = useQueryClient();
   
   const posts = feedFilter === 'for-you' ? forYouPosts : followingPosts;
   const postsLoading = feedFilter === 'for-you' ? forYouLoading : followingLoading;
+
+  // Determine which header to show
+  const renderHeader = () => {
+    if (effectiveMode === 'fishing') {
+      return <FishingHeader />;
+    }
+    if (effectiveMode === 'both') {
+      return <BothHeader />;
+    }
+    return null;
+  };
 
   // Fetch user profile for ad targeting
   const { data: userProfile } = useQuery({
@@ -131,6 +146,11 @@ export default function Feed() {
 
   return (
     <>
+      {/* Desktop Header */}
+      <div className="hidden lg:block">
+        {renderHeader()}
+      </div>
+
       <div className="min-h-screen bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
