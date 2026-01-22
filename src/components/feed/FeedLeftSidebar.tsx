@@ -113,7 +113,7 @@ export function FeedLeftSidebar() {
 
   return (
     <>
-      <div className="sticky top-20 space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin">
+      <div className="sticky top-20 space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
         {/* User Profile Card */}
         {user && (
           <div className="bg-card rounded-xl border overflow-hidden">
