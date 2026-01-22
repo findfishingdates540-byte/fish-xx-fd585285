@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, X, ShieldCheck, Ticket } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, ShieldCheck, Ticket, ChevronDown } from 'lucide-react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,8 +8,17 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-const navItems = [{
+interface NavItem {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  end?: boolean;
+  children?: NavItem[];
+}
+
+const navItems: NavItem[] = [{
   to: '/admin',
   icon: LayoutDashboard,
   label: 'Dashboard',
@@ -25,7 +34,17 @@ const navItems = [{
 }, {
   to: '/admin/spots',
   icon: MapPin,
-  label: 'Fishing Spots'
+  label: 'Fishing Spots',
+  children: [{
+    to: '/admin/spots',
+    icon: MapPin,
+    label: 'All Spots',
+    end: true
+  }, {
+    to: '/admin/fish-species',
+    icon: Fish,
+    label: 'Fish Species'
+  }]
 }, {
   to: '/admin/catches',
   icon: Fish,
@@ -77,6 +96,7 @@ const bottomItems = [{
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { data: profile } = useQuery({
     queryKey: ['admin-profile', user?.id],
@@ -125,21 +145,60 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map(item => (
-          <NavLink 
-            key={item.to} 
-            to={item.to} 
-            end={item.end} 
-            onClick={handleNavItemClick}
-            className={({ isActive }) => cn(
-              'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
-              isActive ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            )}
-          >
-            <item.icon className="w-5 h-5" />
-            {item.label}
-          </NavLink>
-        ))}
+        {navItems.map(item => {
+          // Check if this item has children (dropdown)
+          if (item.children && item.children.length > 0) {
+            const isChildActive = item.children.some(child => location.pathname === child.to);
+            return (
+              <Collapsible key={item.to} defaultOpen={isChildActive}>
+                <CollapsibleTrigger className={cn(
+                  'flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                  isChildActive ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                )}>
+                  <span className="flex items-center gap-3">
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </span>
+                  <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 mt-1 space-y-1">
+                  {item.children.map(child => (
+                    <NavLink
+                      key={child.to}
+                      to={child.to}
+                      end={child.end}
+                      onClick={handleNavItemClick}
+                      className={({ isActive }) => cn(
+                        'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                        isActive ? 'bg-slate-800/70 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                      )}
+                    >
+                      <child.icon className="w-4 h-4" />
+                      {child.label}
+                    </NavLink>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          }
+          
+          // Regular nav item without children
+          return (
+            <NavLink 
+              key={item.to} 
+              to={item.to} 
+              end={item.end} 
+              onClick={handleNavItemClick}
+              className={({ isActive }) => cn(
+                'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                isActive ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              )}
+            >
+              <item.icon className="w-5 h-5" />
+              {item.label}
+            </NavLink>
+          );
+        })}
 
         <div className="pt-4 border-t border-slate-800 mt-4">
           {bottomItems.map(item => (

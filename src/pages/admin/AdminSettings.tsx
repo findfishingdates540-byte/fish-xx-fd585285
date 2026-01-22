@@ -1,10 +1,9 @@
-import { Settings, Fish, Bell, Shield, Database, Loader2 } from 'lucide-react';
+import { Settings, Bell, Shield, Database, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FishSpeciesManagement } from '@/components/admin/FishSpeciesManagement';
 import { useAppSettings, useToggleSetting } from '@/hooks/use-app-settings';
 
 export default function AdminSettings() {
@@ -80,19 +79,6 @@ export default function AdminSettings() {
           )}
         </div>
 
-        {/* Fish Species Management */}
-        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-emerald-500/20">
-              <Fish className="w-5 h-5 text-emerald-400" />
-            </div>
-            <h2 className="text-lg font-semibold text-white">Fish Species</h2>
-          </div>
-
-          <p className="text-slate-400 mb-4">Manage the list of fish species available on the platform.</p>
-          
-          <FishSpeciesManagement />
-        </div>
 
         {/* Notifications */}
         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
