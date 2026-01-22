@@ -435,7 +435,7 @@ export function ChatArea({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 no-scrollbar">
         {messagesWithDividers.map((item, index) => {
           if (item.type === 'divider') {
             return (
