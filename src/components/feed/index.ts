@@ -1,4 +1,8 @@
 export { FeedPost } from './FeedPost';
+export { FeedComposerBar } from './FeedComposerBar';
+export { StoriesRow } from './StoriesRow';
+export { CreateStoryDialog } from './CreateStoryDialog';
+export { StoryViewer } from './StoryViewer';
 export { LikeButton } from './LikeButton';
 export { CommentSheet } from './CommentSheet';
 export { PostDetailModal } from './PostDetailModal';
