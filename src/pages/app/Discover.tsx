@@ -518,8 +518,8 @@ export default function Discover() {
           conversations={conversations || []}
           isPremium={profile?.is_premium || false}
           accountMode={accountMode}
-          onMatchClick={(matchId) => navigate(`/app/chat/${matchId}`)}
-          onConversationClick={(matchId) => navigate(`/app/chat/${matchId}`)}
+          onMatchClick={(matchId) => navigate(`/app/messages/${matchId}`)}
+          onConversationClick={(matchId) => navigate(`/app/messages/${matchId}`)}
         />
       </div>
 
