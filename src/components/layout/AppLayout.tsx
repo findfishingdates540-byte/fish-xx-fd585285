@@ -38,8 +38,10 @@ function AppLayoutContent() {
   // Routes that have their own sidebars (dating pages) or special layouts
   const datingRoutes = ['/app/discover', '/app/matches', '/app/likes', '/app/messages'];
   const sharedRoutes = ['/app/settings', '/app/profile'];
+  const fishingRoutes = ['/app/feed', '/app/spots', '/app/catches', '/app/trips', '/app/buddies', '/app/buddy-messages'];
   const isDatingRoute = datingRoutes.some(route => location.pathname.startsWith(route));
   const isSharedRoute = sharedRoutes.some(route => location.pathname.startsWith(route));
+  const isFishingRoute = fishingRoutes.some(route => location.pathname.startsWith(route));
 
   // Discover should be a fixed, non-scroll viewport between header and bottom nav on mobile
   const isDiscoverNoScroll = location.pathname.startsWith('/app/discover');
@@ -54,22 +56,22 @@ function AppLayoutContent() {
       return null;
     }
     
-    // Fishing mode
+    // Fishing mode - always show FishingHeader
     if (effectiveMode === 'fishing') {
       return <FishingHeader />;
     }
     
     // Combo mode (unified view)
     if (effectiveMode === 'both') {
-      // On shared routes, show ComboSharedHeader
-      if (isSharedRoute) {
-        return <ComboSharedHeader />;
-      }
       // On dating routes, pages have their own sidebar (DiscoverSidebar)
       if (isDatingRoute) {
         return null;
       }
-      // Default to BothHeader for combo dashboard and fishing routes
+      // On shared routes, show ComboSharedHeader
+      if (isSharedRoute) {
+        return <ComboSharedHeader />;
+      }
+      // On fishing routes (including feed) and combo dashboard, show BothHeader
       return <BothHeader />;
     }
     
