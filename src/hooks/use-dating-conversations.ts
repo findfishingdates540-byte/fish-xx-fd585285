@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,7 @@ function formatTimeAgo(dateStr: string | null): string {
 export function useDatingConversations() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch all matches with their profiles and latest messages using optimized RPC
   const { data: conversations, isLoading, refetch } = useQuery({
@@ -61,6 +62,16 @@ export function useDatingConversations() {
     staleTime: 30000, // Cache for 30 seconds
   });
 
+  // Debounced invalidation to prevent rapid re-fetches
+  const debouncedInvalidate = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['dating-conversations', user?.id] });
+    }, 1000); // Wait 1 second before refetching
+  };
+
   // Subscribe to new messages for real-time updates
   useEffect(() => {
     if (!user?.id) return;
@@ -74,9 +85,12 @@ export function useDatingConversations() {
           schema: 'public',
           table: 'messages',
         },
-        () => {
-          // Refetch conversations when a new message arrives
-          queryClient.invalidateQueries({ queryKey: ['dating-conversations', user.id] });
+        (payload) => {
+          const newMessage = payload.new as { sender_id?: string };
+          // Only refresh if the message is from someone else (incoming message)
+          if (newMessage.sender_id !== user.id) {
+            debouncedInvalidate();
+          }
         }
       )
       .on(
@@ -86,14 +100,20 @@ export function useDatingConversations() {
           schema: 'public',
           table: 'messages',
         },
-        () => {
-          // Refetch when messages are marked as read
-          queryClient.invalidateQueries({ queryKey: ['dating-conversations', user.id] });
+        (payload) => {
+          const updatedMessage = payload.new as { sender_id?: string };
+          // Only refresh for read receipts on our sent messages
+          if (updatedMessage.sender_id === user.id) {
+            debouncedInvalidate();
+          }
         }
       )
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);
