@@ -2082,6 +2082,7 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_buddy_page_data: { Args: { p_user_id: string }; Returns: Json }
       get_dating_conversations: {
         Args: { p_user_id: string }
         Returns: {

@@ -1,7 +1,7 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActiveModeProvider, useActiveMode } from '@/contexts/ActiveModeContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
@@ -15,10 +15,13 @@ import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
 import { useMessageNotifications } from '@/hooks/use-message-notifications';
 import { useMentionNotifications } from '@/hooks/use-mention-notifications';
+import { useEffect } from 'react';
 
 function AppLayoutContent() {
   const location = useLocation();
   const { effectiveMode, isComboUser } = useActiveMode();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   // Track online presence for the current user
   useOnlinePresence();
@@ -31,6 +34,53 @@ function AppLayoutContent() {
 
   // Listen for mention notifications (play sound + toast)
   useMentionNotifications();
+
+  // Prefetch commonly accessed data for faster page loads
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Prefetch feed posts (fishing/both modes)
+    if (effectiveMode === 'fishing' || effectiveMode === 'both') {
+      queryClient.prefetchQuery({
+        queryKey: ['feed-posts', user.id],
+        queryFn: async () => {
+          const { data } = await supabase
+            .from('feed_posts')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(20);
+          return data || [];
+        },
+        staleTime: 60 * 1000,
+      });
+
+      // Prefetch buddy data
+      queryClient.prefetchQuery({
+        queryKey: ['buddy-page-data', user.id],
+        queryFn: async () => {
+          const { data } = await supabase.rpc('get_buddy_page_data', {
+            p_user_id: user.id,
+          });
+          return data;
+        },
+        staleTime: 30 * 1000,
+      });
+    }
+
+    // Prefetch notifications count
+    queryClient.prefetchQuery({
+      queryKey: ['unread-notifications-count', user.id],
+      queryFn: async () => {
+        const { count } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+        return count || 0;
+      },
+      staleTime: 30 * 1000,
+    });
+  }, [user?.id, effectiveMode, queryClient]);
   
   // Check if we're on the combo dashboard - it has its own layout
   const isComboDashboard = location.pathname === '/app/dashboard';
