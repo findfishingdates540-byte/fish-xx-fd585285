@@ -479,7 +479,15 @@ export function ChatArea({
                 <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
                   
                   <div className="flex items-end gap-2 max-w-[70%]">
-                    {!isMine && (
+                    {!isMine && matchUserId && (
+                      <Link to={`/app/u/${matchUserId}`}>
+                        <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                          <AvatarImage src={matchPhoto} alt={matchName} />
+                          <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      </Link>
+                    )}
+                    {!isMine && !matchUserId && (
                       <Avatar className="h-8 w-8 flex-shrink-0">
                         <AvatarImage src={matchPhoto} alt={matchName} />
                         <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
