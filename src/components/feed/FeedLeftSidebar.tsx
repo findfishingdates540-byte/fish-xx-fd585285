@@ -1,22 +1,20 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  Heart, Fish, Users, Eye, Target, ChevronRight, UserPlus, Lock,
-  Bookmark, Calendar, Clock, MapPin, User
+  Fish, Users, Target, ChevronRight,
+  Calendar, MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UpgradeModal } from '@/components/upgrade/UpgradeModal';
-import { Separator } from '@/components/ui/separator';
+import { format } from 'date-fns';
 
 export function FeedLeftSidebar() {
   const location = useLocation();
   const { user } = useAuth();
-  const { baseAccountMode } = useActiveMode();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [upgradeType, setUpgradeType] = useState<'dating' | 'combo' | 'fishing'>('fishing');
@@ -66,36 +64,29 @@ export function FeedLeftSidebar() {
     enabled: !!user?.id,
   });
 
-  // Fetch accepted fishing buddies
-  const { data: buddies } = useQuery({
-    queryKey: ['sidebar-buddies', user?.id],
+  // Fetch upcoming trip
+  const { data: upcomingTrip } = useQuery({
+    queryKey: ['upcoming-trip-sidebar', user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) return null;
 
-      const { data: relationships } = await supabase
-        .from('fishing_buddies')
-        .select('requester_id, recipient_id')
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`)
-        .eq('status', 'accepted')
-        .limit(6);
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('fishing_trips')
+        .select('id, title, trip_date, location_name, start_time')
+        .eq('user_id', user.id)
+        .gte('trip_date', today)
+        .eq('status', 'planned')
+        .order('trip_date', { ascending: true })
+        .limit(1)
+        .single();
 
-      if (!relationships || relationships.length === 0) return [];
-
-      const buddyIds = relationships.map(r => 
-        r.requester_id === user.id ? r.recipient_id : r.requester_id
-      );
-
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, photos, last_active_at')
-        .in('id', buddyIds);
-
-      return profiles || [];
+      return data;
     },
     enabled: !!user?.id,
   });
 
-  // Fetch pending buddy requests count
+  // Fetch pending buddy requests count for nav badge
   const { data: pendingCount } = useQuery({
     queryKey: ['pending-buddy-requests', user?.id],
     queryFn: async () => {
@@ -111,12 +102,6 @@ export function FeedLeftSidebar() {
     },
     enabled: !!user?.id,
   });
-
-  const isOnline = (lastActive: string | null) => {
-    if (!lastActive) return false;
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    return new Date(lastActive) > fiveMinutesAgo;
-  };
 
   // Navigation items
   const navItems = [
@@ -193,12 +178,12 @@ export function FeedLeftSidebar() {
           ))}
         </div>
 
-        {/* Your Buddies */}
+        {/* Upcoming Trip */}
         <div className="bg-card rounded-xl border p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm">Your Buddies</h3>
+            <h3 className="font-semibold text-sm">Upcoming Trip</h3>
             <Link 
-              to="/app/buddies" 
+              to="/app/trips" 
               className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5"
             >
               See All
@@ -206,40 +191,32 @@ export function FeedLeftSidebar() {
             </Link>
           </div>
 
-          {buddies && buddies.length > 0 ? (
-            <div className="space-y-2">
-              {buddies.slice(0, 5).map((buddy) => (
-                <Link
-                  key={buddy.id}
-                  to={`/app/u/${buddy.id}`}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <div className="relative">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={buddy.photos?.[0]} alt={buddy.display_name || ''} />
-                      <AvatarFallback className="text-xs">
-                        {buddy.display_name?.charAt(0) || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    {isOnline(buddy.last_active_at) && (
-                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-card" />
-                    )}
-                  </div>
-                  <span className="text-sm font-medium truncate flex-1">
-                    {buddy.display_name || 'Buddy'}
-                  </span>
-                </Link>
-              ))}
-            </div>
+          {upcomingTrip ? (
+            <Link
+              to={`/app/trips/${upcomingTrip.id}`}
+              className="block p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+            >
+              <p className="font-medium text-sm truncate">{upcomingTrip.title}</p>
+              <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>{format(new Date(upcomingTrip.trip_date), 'MMM d, yyyy')}</span>
+              </div>
+              {upcomingTrip.location_name && (
+                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span className="truncate">{upcomingTrip.location_name}</span>
+                </div>
+              )}
+            </Link>
           ) : (
             <div className="text-center py-3">
-              <p className="text-xs text-muted-foreground mb-2">No buddies yet</p>
+              <p className="text-xs text-muted-foreground mb-2">No upcoming trips</p>
               <Link 
-                to="/app/buddies" 
+                to="/app/trips/new" 
                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
               >
-                <UserPlus className="h-3 w-3" />
-                Find Buddies
+                <Calendar className="h-3 w-3" />
+                Plan a Trip
               </Link>
             </div>
           )}
