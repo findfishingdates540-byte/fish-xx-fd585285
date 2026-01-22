@@ -263,112 +263,101 @@ export default function DatingProfile() {
         </div>
 
         {/* About Section */}
-        {profile.bio && (
-          <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-            <h2 className="font-semibold mb-3 flex items-center gap-2">
-              <span className="text-lg">👋</span> About {profile.display_name}
-            </h2>
-            <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
-          </div>
-        )}
+        <div className="bg-card border border-border rounded-2xl p-6 mb-6">
+          <h2 className="font-semibold mb-3 flex items-center gap-2">
+            <span className="text-lg">👋</span> About {profile.display_name}
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            {profile.bio || 'No bio yet'}
+          </p>
+        </div>
 
         {/* The Basics & Lifestyle */}
-        {(hasBasicsInfo || hasLifestyleInfo) && (
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* The Basics */}
-            {hasBasicsInfo && (
-              <div className="bg-card border border-border rounded-2xl p-6">
-                <h2 className="font-semibold mb-4">The Basics</h2>
-                <div className="space-y-3">
-                  {profile.height_cm && (
-                    <div className="flex items-center gap-3">
-                      <Ruler className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{formatHeight(profile.height_cm)}</span>
-                    </div>
-                  )}
-                  {profile.education && (
-                    <div className="flex items-center gap-3">
-                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{profile.education}</span>
-                    </div>
-                  )}
-                  {profile.occupation && (
-                    <div className="flex items-center gap-3">
-                      <Briefcase className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{profile.occupation}</span>
-                    </div>
-                  )}
-                </div>
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {/* The Basics */}
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="font-semibold mb-4">The Basics</h2>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Ruler className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{formatHeight(profile.height_cm) || 'Not specified'}</span>
               </div>
-            )}
-
-            {/* Lifestyle */}
-            {hasLifestyleInfo && (
-              <div className="bg-card border border-border rounded-2xl p-6">
-                <h2 className="font-semibold mb-4">Lifestyle</h2>
-                <div className="space-y-3">
-                  {profile.drinking && (
-                    <div className="flex items-center gap-3">
-                      <Wine className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm capitalize">
-                        {profile.drinking === 'never' ? 'Non-drinker' : `Drinks ${profile.drinking}`}
-                      </span>
-                    </div>
-                  )}
-                  {profile.smoking && (
-                    <div className="flex items-center gap-3">
-                      <Cigarette className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm capitalize">
-                        {profile.smoking === 'never' ? 'Non-smoker' : `Smokes ${profile.smoking}`}
-                      </span>
-                    </div>
-                  )}
-                  {profile.zodiac_sign && (
-                    <div className="flex items-center gap-3">
-                      <Star className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{profile.zodiac_sign}</span>
-                    </div>
-                  )}
-                  {profile.personality_type && (
-                    <div className="flex items-center gap-3">
-                      <Brain className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm capitalize">{profile.personality_type}</span>
-                    </div>
-                  )}
-                </div>
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{profile.education || 'Not specified'}</span>
               </div>
-            )}
+              <div className="flex items-center gap-3">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{profile.occupation || 'Not specified'}</span>
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* Lifestyle */}
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="font-semibold mb-4">Lifestyle</h2>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Wine className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm capitalize">
+                  {profile.drinking 
+                    ? (profile.drinking === 'never' ? 'Non-drinker' : `Drinks ${profile.drinking}`)
+                    : 'Not specified'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Cigarette className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm capitalize">
+                  {profile.smoking 
+                    ? (profile.smoking === 'never' ? 'Non-smoker' : `Smokes ${profile.smoking}`)
+                    : 'Not specified'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Star className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{profile.zodiac_sign || 'Not specified'}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Brain className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm capitalize">{profile.personality_type || 'Not specified'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Profile Prompts */}
-        {promptResponses.length > 0 && (
-          <div className="mb-6 space-y-4">
-            {promptResponses.filter((p: any) => p.answer).map((prompt: any, index: number) => (
-              <Card key={index}>
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-start gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="h-4 w-4 text-primary" />
+        <div className="mb-6">
+          <h2 className="font-semibold mb-4">Profile Prompts</h2>
+          {promptResponses.length > 0 ? (
+            <div className="space-y-4">
+              {promptResponses.filter((p: any) => p.answer).map((prompt: any, index: number) => (
+                <Card key={index}>
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-start gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <MessageCircle className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm text-primary">{prompt.question}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{prompt.answer}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-sm text-primary">{prompt.question}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{prompt.answer}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">No prompts answered yet</p>
+          )}
+        </div>
 
         {/* Fishing Stats */}
-        {profile.preferred_species && profile.preferred_species.length > 0 && (
-          <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-            <h2 className="font-semibold mb-4 flex items-center gap-2">
-              <Fish className="h-5 w-5 text-primary" />
-              Target Species
-            </h2>
+        <div className="bg-card border border-border rounded-2xl p-6 mb-6">
+          <h2 className="font-semibold mb-4 flex items-center gap-2">
+            <Fish className="h-5 w-5 text-primary" />
+            Target Species
+          </h2>
+          {profile.preferred_species && profile.preferred_species.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {profile.preferred_species.map((species: string) => (
                 <Badge key={species} variant="secondary" className="px-3 py-1.5">
@@ -376,13 +365,15 @@ export default function DatingProfile() {
                 </Badge>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-muted-foreground text-sm">No species specified</p>
+          )}
+        </div>
 
         {/* Interests */}
-        {profile.interests && profile.interests.length > 0 && (
-          <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-            <h2 className="font-semibold mb-4">Interests & Hobbies</h2>
+        <div className="bg-card border border-border rounded-2xl p-6 mb-6">
+          <h2 className="font-semibold mb-4">Interests & Hobbies</h2>
+          {profile.interests && profile.interests.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {profile.interests.map((interest: string, idx: number) => (
                 <Badge key={idx} variant="secondary" className="px-4 py-2 font-medium">
@@ -390,8 +381,10 @@ export default function DatingProfile() {
                 </Badge>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-muted-foreground text-sm">No interests specified</p>
+          )}
+        </div>
 
         {/* More Photos Grid */}
         {photos.length > 1 && (
