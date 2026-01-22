@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BuddyCard, BuddyFilters, BuddyRequestCard, MyBuddyCard } from '@/components/buddies';
 import { useToast } from '@/hooks/use-toast';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
+import { useBuddyData } from '@/hooks/use-buddy-data';
+import { useQueryClient } from '@tanstack/react-query';
 import { Users, UserPlus, Inbox, MessageCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -37,17 +39,34 @@ export default function Buddies() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('discover');
   const [searchQuery, setSearchQuery] = useState('');
   const [experienceFilter, setExperienceFilter] = useState('all');
   
-  const [discoverProfiles, setDiscoverProfiles] = useState<Profile[]>([]);
-  const [receivedRequests, setReceivedRequests] = useState<(BuddyRequest & { profile: Profile })[]>([]);
-  const [sentRequests, setSentRequests] = useState<(BuddyRequest & { profile: Profile })[]>([]);
-  const [myBuddies, setMyBuddies] = useState<MyBuddy[]>([]);
-  const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
-  const [catchCounts, setCatchCounts] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
+  // Use the optimized RPC-based hook
+  const { data: buddyData, isLoading: loading, refetch: fetchData } = useBuddyData();
+  
+  // Local state for optimistic updates
+  const [localDiscoverProfiles, setLocalDiscoverProfiles] = useState<Profile[]>([]);
+  const [localSentRequests, setLocalSentRequests] = useState<(BuddyRequest & { profile: Profile })[]>([]);
+  const [localRequestedIds, setLocalRequestedIds] = useState<Set<string>>(new Set());
+  
+  // Sync local state with fetched data
+  useEffect(() => {
+    if (buddyData) {
+      setLocalDiscoverProfiles(buddyData.discover_profiles);
+      setLocalSentRequests(buddyData.sent_requests);
+      setLocalRequestedIds(new Set(buddyData.requested_ids));
+    }
+  }, [buddyData]);
+  
+  const discoverProfiles = localDiscoverProfiles;
+  const receivedRequests = buddyData?.received_requests || [];
+  const sentRequests = localSentRequests;
+  const myBuddies = buddyData?.my_buddies || [];
+  const catchCounts = buddyData?.catch_counts || {};
+  const requestedIds = localRequestedIds;
 
   // Get all user IDs to track online status
   const allUserIds = useMemo(() => {
@@ -59,151 +78,17 @@ export default function Buddies() {
 
   const { isOnline, getLastSeen } = useOnlineStatus(allUserIds);
 
-  // Wrap fetchData in useCallback for use in dependency arrays
-  const fetchData = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    
-    try {
-      // Fetch all buddy relationships for current user
-      const { data: buddyData } = await supabase
-        .from('fishing_buddies')
-        .select('*')
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
-
-      const existingBuddyIds = new Set<string>();
-      const pendingRequestedIds = new Set<string>();
-      const acceptedBuddies: { id: string; otherId: string }[] = [];
-      const receivedPending: BuddyRequest[] = [];
-      const sentPending: BuddyRequest[] = [];
-
-      buddyData?.forEach((buddy) => {
-        const otherId = buddy.requester_id === user.id ? buddy.recipient_id : buddy.requester_id;
-        existingBuddyIds.add(otherId);
-        
-        if (buddy.status === 'accepted') {
-          acceptedBuddies.push({ id: buddy.id, otherId });
-        } else if (buddy.status === 'pending') {
-          if (buddy.recipient_id === user.id) {
-            receivedPending.push(buddy);
-          } else {
-            sentPending.push(buddy);
-            pendingRequestedIds.add(buddy.recipient_id);
-          }
-        }
-        // Dismissed profiles are already in existingBuddyIds, so they'll be filtered out
-      });
-
-      setRequestedIds(pendingRequestedIds);
-
-      // Fetch profiles for discover using public_profiles view for privacy
-      const { data: profiles } = await supabase
-        .from('public_profiles')
-        .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio, id_verified, live_verified, account_mode, onboarding_completed')
-        .in('account_mode', ['fishing', 'both'])
-        .neq('id', user.id)
-        .eq('onboarding_completed', true);
-
-      // Filter out existing buddy relationships
-      const availableProfiles = profiles?.filter(p => !existingBuddyIds.has(p.id)) || [];
-      setDiscoverProfiles(availableProfiles);
-
-      // Fetch profiles for received requests
-      if (receivedPending.length > 0) {
-        const { data: receivedProfiles } = await supabase
-          .from('public_profiles')
-          .select('id, display_name, photos, location_name, fishing_experience, id_verified, live_verified')
-          .in('id', receivedPending.map(r => r.requester_id));
-
-        const profileMap = new Map(receivedProfiles?.map(p => [p.id, p]));
-        setReceivedRequests(receivedPending.map(r => ({
-          ...r,
-          profile: profileMap.get(r.requester_id) as Profile
-        })).filter(r => r.profile));
-      } else {
-        setReceivedRequests([]);
-      }
-
-      // Fetch profiles for sent requests
-      if (sentPending.length > 0) {
-        const { data: sentProfiles } = await supabase
-          .from('public_profiles')
-          .select('id, display_name, photos, location_name, fishing_experience, id_verified, live_verified')
-          .in('id', sentPending.map(r => r.recipient_id));
-
-        const profileMap = new Map(sentProfiles?.map(p => [p.id, p]));
-        setSentRequests(sentPending.map(r => ({
-          ...r,
-          profile: profileMap.get(r.recipient_id) as Profile
-        })).filter(r => r.profile));
-      } else {
-        setSentRequests([]);
-      }
-
-      // Fetch my buddies profiles using public_profiles view for privacy
-      if (acceptedBuddies.length > 0) {
-        const { data: buddyProfiles } = await supabase
-          .from('public_profiles')
-          .select('id, display_name, photos, location_name, fishing_experience, preferred_species, bio, id_verified, live_verified')
-          .in('id', acceptedBuddies.map(b => b.otherId));
-        
-        const profileMap = new Map(buddyProfiles?.map(p => [p.id, p]));
-        const buddiesWithIds: MyBuddy[] = acceptedBuddies
-          .map(b => {
-            const profile = profileMap.get(b.otherId);
-            if (!profile) return null;
-            return { ...profile, buddyId: b.id };
-          })
-          .filter(Boolean) as MyBuddy[];
-        
-        setMyBuddies(buddiesWithIds);
-      } else {
-        setMyBuddies([]);
-      }
-
-      // Fetch catch counts for all relevant profiles
-      const allProfileIds = [
-        ...availableProfiles.map(p => p.id),
-        ...acceptedBuddies.map(b => b.otherId)
-      ];
-      
-      if (allProfileIds.length > 0) {
-        const { data: catches } = await supabase
-          .from('catches')
-          .select('user_id')
-          .in('user_id', allProfileIds);
-
-        const counts: Record<string, number> = {};
-        catches?.forEach(c => {
-          counts[c.user_id] = (counts[c.user_id] || 0) + 1;
-        });
-        setCatchCounts(counts);
-      }
-
-    } catch (error) {
-      console.error('Error fetching buddy data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user, fetchData]);
-
   // Debounce ref for real-time updates
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Debounced fetch to prevent scroll position reset
-  const debouncedFetchData = useCallback(() => {
+  // Debounced refetch to prevent scroll position reset
+  const debouncedRefetch = useCallback(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
     debounceTimerRef.current = setTimeout(() => {
       fetchData();
-    }, 2000); // Wait 2 seconds before refetching
+    }, 2000);
   }, [fetchData]);
 
   // Real-time subscription for buddy updates (only for incoming changes, not our own)
@@ -222,7 +107,7 @@ export default function Buddies() {
         },
         () => {
           // Only refetch for incoming requests/changes (when we are the recipient)
-          debouncedFetchData();
+          debouncedRefetch();
         }
       )
       .subscribe();
@@ -233,7 +118,7 @@ export default function Buddies() {
       }
       supabase.removeChannel(channel);
     };
-  }, [user, debouncedFetchData]);
+  }, [user, debouncedRefetch]);
 
   const sendBuddyRequest = async (recipientId: string) => {
     if (!user) return;
@@ -242,7 +127,7 @@ export default function Buddies() {
     const targetProfile = discoverProfiles.find(p => p.id === recipientId);
 
     // Optimistically update UI immediately
-    setRequestedIds(prev => new Set([...prev, recipientId]));
+    setLocalRequestedIds(prev => new Set([...prev, recipientId]));
     
     // Optimistically add to sent requests so it shows in Requests tab immediately
     if (targetProfile) {
@@ -254,10 +139,10 @@ export default function Buddies() {
         created_at: new Date().toISOString(),
         profile: targetProfile
       };
-      setSentRequests(prev => [optimisticRequest, ...prev]);
+      setLocalSentRequests(prev => [optimisticRequest, ...prev]);
       
       // Remove from discover profiles
-      setDiscoverProfiles(prev => prev.filter(p => p.id !== recipientId));
+      setLocalDiscoverProfiles(prev => prev.filter(p => p.id !== recipientId));
     }
 
     const { error } = await supabase
@@ -270,14 +155,14 @@ export default function Buddies() {
 
     if (error) {
       // Revert optimistic updates on error
-      setRequestedIds(prev => {
+      setLocalRequestedIds(prev => {
         const newSet = new Set(prev);
         newSet.delete(recipientId);
         return newSet;
       });
-      setSentRequests(prev => prev.filter(r => r.recipient_id !== recipientId));
+      setLocalSentRequests(prev => prev.filter(r => r.recipient_id !== recipientId));
       if (targetProfile) {
-        setDiscoverProfiles(prev => [targetProfile, ...prev]);
+        setLocalDiscoverProfiles(prev => [targetProfile, ...prev]);
       }
       toast({
         title: 'Error',
@@ -397,7 +282,7 @@ export default function Buddies() {
       });
     } else {
       // Optimistically remove from local state
-      setDiscoverProfiles(prev => prev.filter(p => p.id !== profileId));
+      setLocalDiscoverProfiles(prev => prev.filter(p => p.id !== profileId));
       toast({
         title: 'Profile Hidden',
         description: "This angler won't appear in your discovery"
