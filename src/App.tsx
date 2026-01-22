@@ -37,6 +37,7 @@ import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
+import DatingProfile from "./pages/app/DatingProfile";
 
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
@@ -119,6 +120,7 @@ const App = () => (
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
               <Route path="profile/:userId" element={<UserProfile />} />
+              <Route path="dating-profile/:userId" element={<DatingProfile />} />
               <Route path="user/:userId" element={<Navigate to="/app/u/:userId" replace />} />
               <Route path="settings" element={<Settings />} />
             </Route>
