@@ -477,25 +477,6 @@ export function ChatArea({
                 layout
               >
                 <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
-                  {/* Action buttons - desktop only */}
-                  {!isDeletedForEveryone && (
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {onSetReplyingTo && (
-                        <button
-                          onClick={() => onSetReplyingTo(message)}
-                          className="p-1.5 rounded-full hover:bg-muted hidden md:block"
-                        >
-                          <Reply className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setMessageToDelete(message)}
-                        className="p-1.5 rounded-full hover:bg-muted hidden md:block"
-                      >
-                        <Trash2 className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    </div>
-                  )}
                   
                   <div className="flex items-end gap-2 max-w-[70%]">
                     {!isMine && (
