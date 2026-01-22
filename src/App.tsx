@@ -41,6 +41,7 @@ import DatingProfile from "./pages/app/DatingProfile";
 
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
+import AdminFishSpecies from "./pages/admin/AdminFishSpecies";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -141,6 +142,7 @@ const App = () => (
               <Route path="users" element={<AdminUsers />} />
               <Route path="verifications" element={<AdminVerifications />} />
               <Route path="spots" element={<AdminSpots />} />
+              <Route path="fish-species" element={<AdminFishSpecies />} />
               <Route path="catches" element={<AdminCatches />} />
               <Route path="posts" element={<AdminPosts />} />
               <Route path="comments" element={<AdminComments />} />
