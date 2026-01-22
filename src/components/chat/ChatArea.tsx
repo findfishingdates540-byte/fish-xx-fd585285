@@ -480,7 +480,7 @@ export function ChatArea({
                   
                   <div className="flex items-end gap-2 max-w-[70%]">
                     {!isMine && matchUserId && (
-                      <Link to={`/app/u/${matchUserId}`}>
+                      <Link to={`/app/profile/${matchUserId}`}>
                         <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
                           <AvatarImage src={matchPhoto} alt={matchName} />
                           <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
