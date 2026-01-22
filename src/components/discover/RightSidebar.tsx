@@ -86,9 +86,11 @@ export function RightSidebar({
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
             )}
           </h3>
-          <Badge className="bg-primary text-primary-foreground text-xs px-2">
-            {pendingLikes.length}
-          </Badge>
+          {pendingLikes.length > 0 && (
+            <Badge className="bg-primary text-primary-foreground text-xs px-2">
+              {pendingLikes.length}
+            </Badge>
+          )}
         </div>
 
         {pendingLikes.length === 0 ? (
