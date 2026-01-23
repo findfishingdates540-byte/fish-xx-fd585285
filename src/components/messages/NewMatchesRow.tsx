@@ -53,7 +53,7 @@ export function NewMatchesRow({ matches, likesCount = 0, onSelect }: NewMatchesR
                 )}
               </div>
               <span className="text-xs text-muted-foreground truncate max-w-[64px]">
-                {match.name.split(' ')[0]}
+                {(match.name ?? '').split(' ')[0] || 'Unknown'}
               </span>
             </button>
           ))}
