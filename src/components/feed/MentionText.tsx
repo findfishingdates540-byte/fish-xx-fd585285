@@ -12,9 +12,12 @@ interface MentionTextProps {
  * Looks up usernames against display_name in public_profiles.
  */
 export function MentionText({ content, className }: MentionTextProps) {
+  // Handle undefined/null content
+  const safeContent = content ?? '';
+  
   // Extract all mentions from content
   const mentionRegex = /@(\w+)/g;
-  const mentions = [...content.matchAll(mentionRegex)].map(m => m[1]);
+  const mentions = [...safeContent.matchAll(mentionRegex)].map(m => m[1]);
   const uniqueMentions = [...new Set(mentions)];
 
   // Fetch user IDs for all mentioned usernames
@@ -64,7 +67,7 @@ export function MentionText({ content, className }: MentionTextProps) {
   });
 
   // Split content by mentions and render
-  const parts = content.split(/(@\w+)/g);
+  const parts = safeContent.split(/(@\w+)/g);
   
   return (
     <span className={className}>
