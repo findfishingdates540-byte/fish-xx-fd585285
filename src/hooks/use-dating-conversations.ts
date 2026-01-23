@@ -101,9 +101,10 @@ export function useDatingConversations() {
           table: 'messages',
         },
         (payload) => {
-          const updatedMessage = payload.new as { sender_id?: string };
-          // Only refresh for read receipts on our sent messages
-          if (updatedMessage.sender_id === user.id) {
+          const oldMessage = payload.old as { is_read?: boolean };
+          const newMessage = payload.new as { is_read?: boolean };
+          // Refresh on any read status change (handles both incoming read receipts and our own reads)
+          if (oldMessage.is_read !== newMessage.is_read) {
             debouncedInvalidate();
           }
         }
