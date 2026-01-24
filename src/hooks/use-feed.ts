@@ -80,13 +80,14 @@ export function useFeedPosts() {
       const userIds = [...new Set(posts.map(p => p.user_id))];
       const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
 
-      // Fetch profiles using public_profiles view for privacy
+      // Fetch profiles - use profiles table directly to ensure proper id matching
       const { data: profiles, error: profilesError } = await supabase
-        .from('public_profiles')
+        .from('profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
       
       if (profilesError) console.error('Error fetching profiles:', profilesError);
+      console.log('Feed profiles fetched:', profiles?.length, 'for userIds:', userIds);
 
       // Fetch catches if any
       let catches: { id: string; species_name: string | null; weight_lbs: number | null; length_in: number | null; photos: string[] | null }[] = [];
@@ -157,12 +158,13 @@ export function useFollowingFeedPosts() {
       const userIds = [...new Set(posts.map(p => p.user_id))];
       const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
 
+      // Fetch profiles - use profiles table directly to ensure proper id matching
       const { data: profiles, error: profilesError } = await supabase
-        .from('public_profiles')
+        .from('profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
       
-      if (profilesError) console.error('Error fetching profiles:', profilesError);
+      if (profilesError) console.error('Error fetching following profiles:', profilesError);
 
       let catches: any[] = [];
       if (catchIds.length > 0) {
@@ -253,9 +255,9 @@ export function useFeedComments(postId: string) {
       const userIds = [...new Set(comments.map(c => c.user_id))];
       const commentIds = comments.map(c => c.id);
 
-      // Fetch profiles using public_profiles view for privacy
+      // Fetch profiles - use profiles table directly to ensure proper id matching
       const { data: profiles, error: profilesError } = await supabase
-        .from('public_profiles')
+        .from('profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
       
