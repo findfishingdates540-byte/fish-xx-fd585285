@@ -81,10 +81,12 @@ export function useFeedPosts() {
       const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
 
       // Fetch profiles using public_profiles view for privacy
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('public_profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
+      
+      if (profilesError) console.error('Error fetching profiles:', profilesError);
 
       // Fetch catches if any
       let catches: { id: string; species_name: string | null; weight_lbs: number | null; length_in: number | null; photos: string[] | null }[] = [];
@@ -107,8 +109,10 @@ export function useFeedPosts() {
         userLikes = likes?.map(l => l.post_id) || [];
       }
 
-      // Map profiles and catches to posts
-      const profileMap = new Map(profiles?.map(p => [p.id, p]));
+      // Map profiles and catches to posts - filter out null ids from view
+      const profileMap = new Map(
+        profiles?.filter(p => p.id !== null).map(p => [p.id, p]) || []
+      );
       const catchMap = new Map(catches.map(c => [c.id, c]));
 
       return posts.map(post => ({
@@ -153,10 +157,12 @@ export function useFollowingFeedPosts() {
       const userIds = [...new Set(posts.map(p => p.user_id))];
       const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
 
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('public_profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
+      
+      if (profilesError) console.error('Error fetching profiles:', profilesError);
 
       let catches: any[] = [];
       if (catchIds.length > 0) {
@@ -174,7 +180,9 @@ export function useFollowingFeedPosts() {
       
       const userLikes = likes?.map(l => l.post_id) || [];
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p]));
+      const profileMap = new Map(
+        profiles?.filter(p => p.id !== null).map(p => [p.id, p]) || []
+      );
       const catchMap = new Map(catches.map(c => [c.id, c]));
 
       return posts.map(post => ({
@@ -246,10 +254,12 @@ export function useFeedComments(postId: string) {
       const commentIds = comments.map(c => c.id);
 
       // Fetch profiles using public_profiles view for privacy
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('public_profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
+      
+      if (profilesError) console.error('Error fetching comment profiles:', profilesError);
 
       // Fetch reactions for all comments
       const { data: reactions } = await supabase
@@ -257,7 +267,9 @@ export function useFeedComments(postId: string) {
         .select('*')
         .in('comment_id', commentIds);
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p]));
+      const profileMap = new Map(
+        profiles?.filter(p => p.id !== null).map(p => [p.id, p]) || []
+      );
       const reactionsMap = new Map<string, CommentReaction[]>();
       
       reactions?.forEach(r => {
