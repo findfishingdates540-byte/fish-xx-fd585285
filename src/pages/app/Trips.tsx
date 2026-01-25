@@ -89,7 +89,7 @@ export default function Trips() {
 
             {/* Planned Adventures Section */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <h2 className="text-lg font-semibold">Planned Adventures</h2>
                 <div className="flex gap-2">
                   <Button 
