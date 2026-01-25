@@ -8,7 +8,7 @@ import {
   MapPin, Share2, Pencil, Heart, Fish, Layers, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
-  ArrowLeft, Settings, Grid3X3, AtSign, FileText, User
+  ArrowLeft, Settings, Grid3X3, AtSign, FileText, User, Bookmark
 } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +24,7 @@ import { ProfileStatsBar } from '@/components/social/ProfileStatsBar';
 import { PostViewerOverlay } from '@/components/social/PostViewerOverlay';
 import { ProfilePostsGrid } from '@/components/social/ProfilePostsGrid';
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
+import { useBookmarkedPosts } from '@/hooks/use-bookmarks';
 import { cn } from '@/lib/utils';
 
 const accountModes = [{
@@ -78,6 +79,7 @@ export default function Profile() {
   const { data: posts = [], isLoading: postsLoading } = useUserPosts(user?.id);
   const { data: postsCount = 0 } = useUserPostsCount(user?.id);
   const { data: mentionedPosts = [], isLoading: mentionsLoading } = useMentionedPosts(user?.id);
+  const { data: bookmarkedPosts = [], isLoading: bookmarksLoading } = useBookmarkedPosts(user?.id);
 
   // Fetch dating stats
   const { data: datingStats } = useQuery({
@@ -276,9 +278,9 @@ export default function Profile() {
                   onFollowingClick={() => navigate(`/app/u/${user?.id}/followers?tab=following`)}
                 />
                 
-                {/* Posts/Mentions Tabs */}
+                {/* Posts/Mentions/Bookmarks Tabs */}
                 <Tabs defaultValue="posts" className="w-full">
-                  <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-transparent h-12">
+                  <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-transparent h-12">
                     <TabsTrigger 
                       value="posts" 
                       className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
@@ -292,6 +294,13 @@ export default function Profile() {
                     >
                       <AtSign className="h-4 w-4" />
                       <span className="sr-only sm:not-sr-only">Mentioned</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="bookmarks" 
+                      className="gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                    >
+                      <Bookmark className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only">Saved</span>
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="posts" className="mt-0">
@@ -308,6 +317,14 @@ export default function Profile() {
                       posts={mentionedPosts} 
                       isLoading={mentionsLoading} 
                       emptyMessage="No mentions yet"
+                      onPostClick={(postId) => setSelectedPostId(postId)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="bookmarks" className="mt-0">
+                    <ProfilePostsGrid 
+                      posts={bookmarkedPosts} 
+                      isLoading={bookmarksLoading} 
+                      emptyMessage="No saved posts yet"
                       onPostClick={(postId) => setSelectedPostId(postId)}
                     />
                   </TabsContent>
