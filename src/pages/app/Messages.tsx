@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MessagesHeader } from '@/components/messages/MessagesHeader';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { useDatingConversations } from '@/hooks/use-dating-conversations';
+import { useMatches } from '@/hooks/use-matches';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -85,6 +86,9 @@ export default function Messages() {
 
   // Fetch real conversations
   const { conversations, isLoading, totalUnread } = useDatingConversations();
+  
+  // Fetch all matches with proper profile data for the NewMatchesRow
+  const { matches: allMatches } = useMatches();
 
   // Get all conversation user IDs for online status tracking
   const conversationUserIds = useMemo(() => conversations.map(c => c.matchedUserId), [conversations]);
@@ -105,13 +109,19 @@ export default function Messages() {
       type: 'date' as const,
     })), [conversations, isOnline, getLastSeen]);
 
-  // New matches - recent matches without messages (for horizontal row)
+  // Get conversation match IDs that have messages
+  const conversationMatchIds = useMemo(() => 
+    new Set(conversationsWithStatus.filter(c => c.lastMessage).map(c => c.id)),
+    [conversationsWithStatus]
+  );
+
+  // New matches - matches from useMatches that don't have messages yet
   const newMatches = useMemo(() => 
-    conversationsWithStatus
-      .filter(c => !c.lastMessage)
+    allMatches
+      .filter(m => !conversationMatchIds.has(m.matchId))
       .slice(0, 6)
-      .map(c => ({ id: c.id, name: c.name, photo: c.photo, isNew: true })),
-    [conversationsWithStatus]);
+      .map(m => ({ id: m.matchId, name: m.name, photo: m.photo, isNew: m.isNew })),
+    [allMatches, conversationMatchIds]);
 
   // Conversations with messages (for list below), filtered by search
   const activeConversations = useMemo(() => 
