@@ -120,7 +120,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black"
+      className="fixed inset-0 z-[9999] bg-black"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Close button */}
@@ -158,15 +158,15 @@ export const StoryViewer: FC<StoryViewerProps> = ({
 
       {/* Story container - full screen on mobile, centered card on desktop */}
       <div 
-        className="absolute inset-0 flex items-center justify-center"
+        className="fixed inset-0 flex items-center justify-center"
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        <div className="relative w-full h-full max-h-screen md:max-w-[400px] md:max-h-[90vh] md:rounded-xl overflow-hidden bg-black">
+        <div className="relative w-full h-screen md:max-w-[400px] md:h-[90vh] md:rounded-xl overflow-hidden bg-black">
         {/* Progress bars */}
-        <div className="absolute top-4 left-4 right-4 z-30 flex gap-1">
+        <div className="absolute top-4 left-4 right-4 z-40 flex gap-1">
           {stories.stories.map((_, idx) => (
             <div key={idx} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
               <div
@@ -180,7 +180,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
         </div>
 
         {/* User info */}
-        <div className="absolute top-10 left-4 right-4 z-30 flex items-center justify-between">
+        <div className="absolute top-10 left-4 right-4 z-40 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 border-2 border-white">
               <AvatarImage src={stories.photo || undefined} />
@@ -208,7 +208,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           )}
         </div>
 
-        {/* Story content - fills the container */}
+        {/* Story content - base layer */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStory.id}
@@ -216,19 +216,19 @@ export const StoryViewer: FC<StoryViewerProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0"
+            className="absolute inset-0 z-0"
           >
             {currentStory.media_url && currentStory.media_url.trim() ? (
               <>
                 <img
                   src={currentStory.media_url}
                   alt="Story"
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                   onLoad={() => console.log('[StoryViewer] Image loaded:', currentStory.media_url)}
                   onError={(e) => console.error('[StoryViewer] Image error:', currentStory.media_url, e)}
                 />
                 {currentStory.text_overlay && (
-                  <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3 z-10">
+                  <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3 z-30">
                     <p className="text-white text-center">{currentStory.text_overlay}</p>
                   </div>
                 )}
@@ -247,7 +247,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
         </AnimatePresence>
 
         {/* Tap zones for navigation - z-10 so content shows through but captures taps */}
-        <div className="absolute inset-0 z-10 flex pointer-events-auto">
+        <div className="absolute inset-0 z-20 flex">
           <div className="w-1/3 h-full cursor-pointer" onClick={handlePrev} />
           <div className="w-1/3 h-full" />
           <div className="w-1/3 h-full cursor-pointer" onClick={handleNext} />
