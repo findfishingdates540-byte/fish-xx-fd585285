@@ -158,13 +158,13 @@ export const StoryViewer: FC<StoryViewerProps> = ({
 
       {/* Story container - full screen on mobile, centered card on desktop */}
       <div 
-        className="absolute inset-0 flex items-center justify-center md:p-4"
+        className="absolute inset-0 flex items-center justify-center"
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        <div className="relative w-full h-full md:max-w-[400px] md:max-h-[90vh] md:rounded-xl overflow-hidden bg-black">
+        <div className="relative w-full h-full max-h-screen md:max-w-[400px] md:max-h-[90vh] md:rounded-xl overflow-hidden bg-black">
         {/* Progress bars */}
         <div className="absolute top-4 left-4 right-4 z-30 flex gap-1">
           {stories.stories.map((_, idx) => (
