@@ -1,11 +1,10 @@
 import { FC, useEffect, useState, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Trash2, Eye } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useMarkStoryViewed, useDeleteStory, type GroupedStories } from '@/hooks/use-stories';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface StoryViewerProps {
@@ -121,7 +120,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Close button */}
@@ -157,9 +156,9 @@ export const StoryViewer: FC<StoryViewerProps> = ({
         </Button>
       )}
 
-      {/* Story container */}
+      {/* Story container - full screen on mobile, centered card on desktop */}
       <div 
-        className="relative w-full max-w-[400px] h-full max-h-[90vh] mx-auto"
+        className="absolute inset-0 md:inset-4 md:left-1/2 md:-translate-x-1/2 md:max-w-[400px] md:rounded-xl overflow-hidden"
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
@@ -208,7 +207,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           )}
         </div>
 
-        {/* Story content */}
+        {/* Story content - fills the container */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStory.id}
@@ -216,7 +215,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 rounded-xl overflow-hidden"
+            className="w-full h-full"
           >
             {currentStory.media_url && currentStory.media_url.trim() ? (
               <>
@@ -224,14 +223,9 @@ export const StoryViewer: FC<StoryViewerProps> = ({
                   src={currentStory.media_url}
                   alt="Story"
                   className="w-full h-full object-cover"
-                  onLoad={() => console.log('Story image loaded:', currentStory.media_url)}
-                  onError={(e) => {
-                    console.error('Story image failed to load:', currentStory.media_url);
-                    e.currentTarget.style.display = 'none';
-                  }}
                 />
                 {currentStory.text_overlay && (
-                  <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3">
+                  <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3 z-10">
                     <p className="text-white text-center">{currentStory.text_overlay}</p>
                   </div>
                 )}
