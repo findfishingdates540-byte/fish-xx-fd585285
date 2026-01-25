@@ -154,12 +154,9 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             {/* Follow button - only show for other users' posts */}
             {!isOwnPost && user && (
               <Button
-                variant="ghost"
+                variant={isFollowing ? "outline" : "default"}
                 size="sm"
-                className={cn(
-                  "h-8 text-xs font-semibold",
-                  isFollowing ? "text-muted-foreground" : "text-primary"
-                )}
+                className="h-7 text-xs font-semibold px-3"
                 onClick={handleFollowClick}
                 disabled={followUser.isPending || unfollowUser.isPending}
               >
