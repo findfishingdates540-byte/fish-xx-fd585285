@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -134,11 +133,8 @@ export default function Chat() {
   );
 
   return (
-    <motion.div 
+    <div 
       className={`flex ${isInline ? 'h-full flex-1' : 'h-[100dvh]'} bg-background overflow-hidden`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
     >
       {/* Left Sidebar - Only show when not inline */}
       {!isInline && (
@@ -159,12 +155,7 @@ export default function Chat() {
       ) : !matchProfile ? (
         renderEmptyChat()
       ) : (
-        <motion.div
-          className="flex-1 flex flex-col"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
+        <div className="flex-1 flex flex-col">
           <ChatArea
             matchName={matchProfile.display_name || 'Anonymous'}
             matchPhoto={matchProfile.photos?.[0] || ''}
@@ -189,7 +180,7 @@ export default function Chat() {
             matchIdVerified={matchProfile.id_verified}
             matchLiveVerified={matchProfile.live_verified}
           />
-        </motion.div>
+        </div>
       )}
 
       {/* Right Profile Sidebar - Desktop */}
@@ -238,6 +229,6 @@ export default function Chat() {
           </SheetContent>
         </Sheet>
       )}
-    </motion.div>
+    </div>
   );
 }

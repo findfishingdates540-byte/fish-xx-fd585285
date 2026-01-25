@@ -44,14 +44,9 @@ export function useDatingChat(matchId: string | undefined) {
   useEffect(() => {
     if (user && matchId) {
       const isInitialLoad = previousMatchIdRef.current === undefined;
-      const isSwitchingConvo = previousMatchIdRef.current !== matchId;
       
       if (isInitialLoad) {
         setLoading(true);
-      } else if (isSwitchingConvo) {
-        // Clear messages immediately for smoother transition, but don't show loading skeleton
-        setMessages([]);
-        setMatchProfile(null);
       }
       
       previousMatchIdRef.current = matchId;
