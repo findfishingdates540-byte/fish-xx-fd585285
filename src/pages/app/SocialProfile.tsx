@@ -10,10 +10,12 @@ import { VerificationBadge } from '@/components/ui/verification-badge';
 import { ExperienceBadge } from '@/components/ui/experience-badge';
 import { FollowButton, ProfileStatsBar, ProfilePostsGrid, PostViewerOverlay } from '@/components/social';
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
-import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle } from 'lucide-react';
+import { useBookmarkedPosts } from '@/hooks/use-bookmarks';
+import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
 import { getShareBaseUrl } from '@/lib/config';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export default function SocialProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -66,6 +68,8 @@ export default function SocialProfile() {
   // Fetch mentioned posts
   const { data: mentionedPosts = [], isLoading: mentionsLoading } = useMentionedPosts(userId);
   
+  // Fetch bookmarked posts (only for own profile)
+  const { data: bookmarkedPosts = [], isLoading: bookmarksLoading } = useBookmarkedPosts(isOwnProfile ? userId : undefined);
   const handleShare = async () => {
     const url = `${getShareBaseUrl()}/app/u/${userId}`;
     try {
@@ -228,7 +232,10 @@ export default function SocialProfile() {
         
         {/* Content Tabs */}
         <Tabs defaultValue="posts" className="w-full">
-          <TabsList className="w-full grid grid-cols-2 rounded-none h-12 bg-transparent border-b border-border">
+          <TabsList className={cn(
+            "w-full grid rounded-none h-12 bg-transparent border-b border-border",
+            isOwnProfile ? "grid-cols-3" : "grid-cols-2"
+          )}>
             <TabsTrigger 
               value="posts" 
               className="data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none"
@@ -241,6 +248,14 @@ export default function SocialProfile() {
             >
               <AtSign className="h-5 w-5" />
             </TabsTrigger>
+            {isOwnProfile && (
+              <TabsTrigger 
+                value="bookmarks" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none"
+              >
+                <Bookmark className="h-5 w-5" />
+              </TabsTrigger>
+            )}
           </TabsList>
           
           <TabsContent value="posts" className="mt-0">
@@ -261,6 +276,17 @@ export default function SocialProfile() {
               onPostClick={(postId) => setSelectedPostId(postId)}
             />
           </TabsContent>
+          
+          {isOwnProfile && (
+            <TabsContent value="bookmarks" className="mt-0">
+              <ProfilePostsGrid 
+                posts={bookmarkedPosts as any[]}
+                isLoading={bookmarksLoading}
+                emptyMessage="No saved posts yet"
+                onPostClick={(postId) => setSelectedPostId(postId)}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 

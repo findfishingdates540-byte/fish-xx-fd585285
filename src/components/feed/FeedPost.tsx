@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useFollowStatus, useFollowUser, useUnfollowUser } from '@/hooks/use-follow';
+import { useBookmarkStatus, useToggleBookmark } from '@/hooks/use-bookmarks';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,6 +58,11 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
   const isFollowing = followData?.isFollowing ?? false;
+
+  // Bookmark functionality
+  const { data: bookmarkData } = useBookmarkStatus(post.id);
+  const toggleBookmark = useToggleBookmark();
+  const isBookmarked = bookmarkData?.isBookmarked ?? false;
 
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -108,6 +114,15 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
     if (!isMobile) {
       setShowPostModal(true);
     }
+  };
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please sign in to save posts');
+      return;
+    }
+    toggleBookmark.mutate({ postId: post.id, isBookmarked });
   };
 
   const formatCount = (count: number) => {
@@ -300,10 +315,14 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           
           {/* Bookmark on far right */}
           <button
-            onClick={(e) => e.stopPropagation()}
+            onClick={handleBookmarkClick}
+            disabled={toggleBookmark.isPending}
             className="text-foreground hover:text-muted-foreground transition-colors"
           >
-            <Bookmark className="h-6 w-6" />
+            <Bookmark className={cn(
+              "h-6 w-6 transition-colors",
+              isBookmarked && "fill-foreground"
+            )} />
           </button>
         </div>
 
