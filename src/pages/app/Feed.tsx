@@ -131,8 +131,8 @@ export default function Feed() {
   return (
     <>
       <div className="min-h-screen bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="max-w-7xl mx-auto px-0 md:px-4 py-4 md:py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 md:gap-6">
             {/* Left Sidebar */}
             <aside className="hidden lg:block lg:col-span-3">
               <FeedLeftSidebar />
