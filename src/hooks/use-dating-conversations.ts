@@ -46,7 +46,12 @@ export function useDatingConversations() {
       const { data, error } = await supabase
         .rpc('get_dating_conversations', { p_user_id: user.id });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[DatingConversations] RPC error:', error);
+        throw error;
+      }
+
+      console.log('[DatingConversations] Raw RPC data:', data);
 
       return (data || []).map(row => ({
         id: row.match_id,
