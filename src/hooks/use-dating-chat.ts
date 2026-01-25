@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -12,6 +13,7 @@ interface Message {
   read_at: string | null;
   delivered_at: string | null;
   image_url: string | null;
+  audio_url?: string | null;
   reply_to_id: string | null;
   deleted_at: string | null;
   deleted_for_everyone: boolean;
@@ -30,31 +32,55 @@ interface MatchProfile {
 
 export function useDatingChat(matchId: string | undefined) {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [matchProfile, setMatchProfile] = useState<MatchProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const previousMatchIdRef = useRef<string | undefined>(undefined);
 
-  // Fetch chat data - only show loading skeleton on initial load, not when switching convos
+  // Single optimized query for all chat data with caching
+  const { data: chatData, isLoading: loading } = useQuery({
+    queryKey: ['dating-chat', matchId],
+    queryFn: async () => {
+      if (!user?.id || !matchId) return null;
+
+      const { data, error } = await supabase
+        .rpc('get_chat_data', { p_user_id: user.id, p_match_id: matchId });
+
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
+
+      const row = data[0];
+      return {
+        matchProfile: {
+          id: row.other_user_id,
+          display_name: row.display_name,
+          photos: row.photos,
+          bio: row.bio,
+          location_name: row.location_name,
+          preferred_species: row.preferred_species,
+          id_verified: row.id_verified,
+          live_verified: row.live_verified,
+        } as MatchProfile,
+        messages: (Array.isArray(row.messages) ? row.messages : []) as unknown as Message[],
+      };
+    },
+    enabled: !!user?.id && !!matchId,
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+  });
+
+  const messages = chatData?.messages || [];
+  const matchProfile = chatData?.matchProfile || null;
+
+  // Mark messages as read/delivered when chat opens
   useEffect(() => {
     if (user && matchId) {
-      const isInitialLoad = previousMatchIdRef.current === undefined;
-      
-      if (isInitialLoad) {
-        setLoading(true);
-      }
-      
-      previousMatchIdRef.current = matchId;
-      fetchChatData(!isInitialLoad);
       markMessagesAsDelivered();
       markMessagesAsRead();
     }
-  }, [user, matchId]);
+  }, [user?.id, matchId]);
 
   // Setup presence channel for typing indicators
   useEffect(() => {
@@ -88,7 +114,7 @@ export function useDatingChat(matchId: string | undefined) {
     };
   }, [matchId, user?.id, matchProfile?.id]);
 
-  // Subscribe to messages
+  // Subscribe to real-time message updates
   useEffect(() => {
     if (!matchId || !user) return;
 
@@ -104,7 +130,14 @@ export function useDatingChat(matchId: string | undefined) {
         },
         (payload) => {
           const newMsg = payload.new as Message;
-          setMessages(prev => [...prev, newMsg]);
+          // Optimistically update cache
+          queryClient.setQueryData(['dating-chat', matchId], (old: any) => {
+            if (!old) return old;
+            return {
+              ...old,
+              messages: [...old.messages, newMsg],
+            };
+          });
           if (newMsg.sender_id !== user.id) {
             markMessagesAsRead();
           }
@@ -120,9 +153,15 @@ export function useDatingChat(matchId: string | undefined) {
         },
         (payload) => {
           const updatedMsg = payload.new as Message;
-          setMessages(prev => prev.map(msg => 
-            msg.id === updatedMsg.id ? updatedMsg : msg
-          ));
+          queryClient.setQueryData(['dating-chat', matchId], (old: any) => {
+            if (!old) return old;
+            return {
+              ...old,
+              messages: old.messages.map((msg: Message) =>
+                msg.id === updatedMsg.id ? updatedMsg : msg
+              ),
+            };
+          });
         }
       )
       .subscribe();
@@ -130,53 +169,7 @@ export function useDatingChat(matchId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [matchId, user?.id]);
-
-  const fetchChatData = async (skipLoadingState = false) => {
-    if (!user || !matchId) return;
-    if (!skipLoadingState) setLoading(true);
-
-    try {
-      // Get match record to find the other user
-      const { data: match, error: matchError } = await supabase
-        .from('matches')
-        .select('user1_id, user2_id')
-        .eq('id', matchId)
-        .maybeSingle();
-
-      if (matchError) throw matchError;
-      if (!match) {
-        setLoading(false);
-        return;
-      }
-
-      const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
-
-      // Get the other user's profile using public_profiles view for privacy
-      const { data: profile, error: profileError } = await supabase
-        .from('public_profiles')
-        .select('id, display_name, photos, bio, location_name, preferred_species, id_verified, live_verified')
-        .eq('id', otherUserId)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-      setMatchProfile(profile as MatchProfile);
-
-      // Get messages
-      const { data: msgs, error: msgsError } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('match_id', matchId)
-        .order('created_at', { ascending: true });
-
-      if (msgsError) throw msgsError;
-      setMessages(msgs || []);
-    } catch (error) {
-      console.error('Error fetching chat data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [matchId, user?.id, queryClient]);
 
   const markMessagesAsRead = async () => {
     if (!user || !matchId) return;
@@ -189,7 +182,6 @@ export function useDatingChat(matchId: string | undefined) {
       .eq('is_read', false);
   };
 
-  // Mark messages as delivered when the chat is opened
   const markMessagesAsDelivered = async () => {
     if (!user || !matchId) return;
     const now = new Date().toISOString();
@@ -240,7 +232,6 @@ export function useDatingChat(matchId: string | undefined) {
       toast.error('Failed to send message');
       setReplyingTo(currentReplyTo);
     } else {
-      // Send push notification (fire and forget)
       sendPushNotification(matchProfile.id, content);
     }
     setSending(false);
@@ -275,7 +266,6 @@ export function useDatingChat(matchId: string | undefined) {
     }
   };
 
-  // Delete message for everyone
   const deleteMessage = async (messageId: string, deleteForEveryone: boolean) => {
     if (!user || !deleteForEveryone) return;
     
@@ -291,7 +281,7 @@ export function useDatingChat(matchId: string | undefined) {
     if (error) throw error;
   };
 
-  // Format message for display
+  // Format messages for display
   const formattedMessages = useMemo(() => {
     return messages.map(msg => ({
       id: msg.id,
@@ -302,7 +292,7 @@ export function useDatingChat(matchId: string | undefined) {
       readAt: msg.read_at,
       deliveredAt: msg.delivered_at,
       imageUrl: msg.image_url,
-      audioUrl: (msg as any).audio_url,
+      audioUrl: msg.audio_url,
       createdAt: msg.created_at,
       replyToId: msg.reply_to_id,
       deletedAt: msg.deleted_at,
@@ -310,7 +300,6 @@ export function useDatingChat(matchId: string | undefined) {
     }));
   }, [messages]);
 
-  // Get the replied message content for display
   const getReplyMessage = useCallback((replyToId: string | null) => {
     if (!replyToId) return null;
     return messages.find(m => m.id === replyToId) || null;
@@ -329,6 +318,6 @@ export function useDatingChat(matchId: string | undefined) {
     sendMessage,
     deleteMessage,
     handleInputChange,
-    refetch: fetchChatData,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['dating-chat', matchId] }),
   };
 }
