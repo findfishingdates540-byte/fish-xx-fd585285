@@ -7,6 +7,8 @@ import { useMarkStoryViewed, useDeleteStory, type GroupedStories } from '@/hooks
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { StoryReactionBar } from './StoryReactionBar';
+import { toast } from 'sonner';
 
 interface StoryViewerProps {
   stories: GroupedStories;
@@ -258,11 +260,29 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           </AnimatePresence>
 
           {/* Tap zones for navigation */}
-          <div className="absolute inset-0 z-30 flex">
-            <div className="w-1/3 h-full" onClick={handlePrev} />
+          <div className="absolute inset-0 z-30 flex pointer-events-none">
+            <div className="w-1/3 h-full pointer-events-auto" onClick={handlePrev} />
             <div className="w-1/3 h-full" />
-            <div className="w-1/3 h-full" onClick={handleNext} />
+            <div className="w-1/3 h-full pointer-events-auto" onClick={handleNext} />
           </div>
+
+          {/* Reaction bar - only show for other people's stories */}
+          {!isOwnStory && (
+            <StoryReactionBar
+              isOwnStory={isOwnStory}
+              onSendMessage={(message) => {
+                toast.success(`Message sent to ${stories.display_name}`);
+                // TODO: Implement actual message sending
+              }}
+              onReaction={(reaction) => {
+                toast.success(`Reacted with ${reaction}`);
+                // TODO: Implement actual reaction
+              }}
+              onPlusClick={() => {
+                // TODO: Add more options
+              }}
+            />
+          )}
         </div>
       </div>
     </motion.div>
