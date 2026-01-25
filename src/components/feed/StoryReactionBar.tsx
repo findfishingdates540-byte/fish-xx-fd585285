@@ -62,10 +62,8 @@ export const StoryReactionBar: FC<StoryReactionBarProps> = ({
     animate(dragX, 0);
   };
 
-  // Don't show reaction bar for own stories
-  if (isOwnStory) {
-    return null;
-  }
+  // Show different UI for own stories vs others' stories
+  const showMessageInput = !isOwnStory;
 
   return (
     <div className="absolute bottom-4 left-4 right-4 z-50">
@@ -80,27 +78,32 @@ export const StoryReactionBar: FC<StoryReactionBarProps> = ({
           <Plus className="h-5 w-5" />
         </Button>
 
-        {/* Message input */}
-        <div className="flex-1 relative">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Send message..."
-            className="bg-white/10 backdrop-blur-sm border-0 text-white placeholder:text-white/60 rounded-full pr-10 h-10"
-            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-            onClick={(e) => e.stopPropagation()}
-          />
-          {message.trim() && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSendMessage}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-white hover:bg-white/20"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        {/* Message input - only for others' stories */}
+        {showMessageInput && (
+          <div className="flex-1 relative">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Send message..."
+              className="bg-white/10 backdrop-blur-sm border-0 text-white placeholder:text-white/60 rounded-full pr-10 h-10"
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              onClick={(e) => e.stopPropagation()}
+            />
+            {message.trim() && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSendMessage}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-white hover:bg-white/20"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Spacer for own stories */}
+        {!showMessageInput && <div className="flex-1" />}
 
         {/* Reactions container */}
         <div 
