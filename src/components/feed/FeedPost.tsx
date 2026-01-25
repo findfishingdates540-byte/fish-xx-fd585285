@@ -255,7 +255,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             <button
               onClick={(e) => handleLike(e)}
               disabled={likePost.isPending}
-              className="flex flex-col items-center gap-0.5 transition-transform active:scale-90"
+              className="flex items-center gap-1.5 transition-transform active:scale-90"
             >
               <Heart 
                 className={cn(
@@ -266,25 +266,25 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                 )} 
               />
               {post.likes_count > 0 && (
-                <span className="text-xs text-muted-foreground">{formatCount(post.likes_count)}</span>
+                <span className="text-sm text-foreground">{formatCount(post.likes_count)}</span>
               )}
             </button>
             
             {/* Comment with count */}
             <button
               onClick={handleCommentClick}
-              className="flex flex-col items-center gap-0.5 text-foreground hover:text-muted-foreground transition-colors"
+              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
             >
               <MessageCircle className="h-6 w-6" />
               {post.comments_count > 0 && (
-                <span className="text-xs text-muted-foreground">{formatCount(post.comments_count)}</span>
+                <span className="text-sm">{formatCount(post.comments_count)}</span>
               )}
             </button>
             
             {/* Share/Repost */}
             <button
               onClick={(e) => e.stopPropagation()}
-              className="flex flex-col items-center gap-0.5 text-foreground hover:text-muted-foreground transition-colors"
+              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
             >
               <Repeat2 className="h-6 w-6" />
             </button>
@@ -292,7 +292,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             {/* Send */}
             <button
               onClick={(e) => e.stopPropagation()}
-              className="flex flex-col items-center gap-0.5 text-foreground hover:text-muted-foreground transition-colors"
+              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
             >
               <Send className="h-6 w-6" />
             </button>
