@@ -2083,6 +2083,21 @@ export type Database = {
         }[]
       }
       get_buddy_page_data: { Args: { p_user_id: string }; Returns: Json }
+      get_chat_data: {
+        Args: { p_match_id: string; p_user_id: string }
+        Returns: {
+          bio: string
+          display_name: string
+          id_verified: boolean
+          live_verified: boolean
+          location_name: string
+          match_id: string
+          messages: Json
+          other_user_id: string
+          photos: string[]
+          preferred_species: string[]
+        }[]
+      }
       get_dating_conversations: {
         Args: { p_user_id: string }
         Returns: {
