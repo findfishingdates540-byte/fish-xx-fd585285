@@ -826,11 +826,11 @@ export default function ComboDashboard() {
           {featuredSpot && (
             <Card className="mb-6 overflow-hidden">
               <div className="flex flex-col md:flex-row">
-                <div className="md:w-1/2 aspect-video md:aspect-auto relative">
+                <div className="md:w-1/2 h-48 md:h-56 relative">
                   <img
                     src={featuredSpot.photos?.[0] || "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800"}
                     alt={featuredSpot.name}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                   <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">
                     Suggestion of the Day
