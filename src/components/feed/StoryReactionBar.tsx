@@ -9,6 +9,8 @@ interface StoryReactionBarProps {
   onSendMessage?: (message: string) => void;
   onReaction?: (reaction: string) => void;
   onPlusClick?: () => void;
+  onPauseStory?: () => void;
+  onResumeStory?: () => void;
   isOwnStory?: boolean;
 }
 
@@ -27,6 +29,8 @@ export const StoryReactionBar: FC<StoryReactionBarProps> = ({
   onSendMessage,
   onReaction,
   onPlusClick,
+  onPauseStory,
+  onResumeStory,
   isOwnStory = false,
 }) => {
   const [message, setMessage] = useState('');
@@ -70,6 +74,8 @@ export const StoryReactionBar: FC<StoryReactionBarProps> = ({
             className="bg-white/10 backdrop-blur-sm border-0 text-white placeholder:text-white/60 rounded-full pr-10 h-10"
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             onClick={(e) => e.stopPropagation()}
+            onFocus={() => onPauseStory?.()}
+            onBlur={() => onResumeStory?.()}
           />
           {message.trim() && (
             <Button
@@ -88,6 +94,10 @@ export const StoryReactionBar: FC<StoryReactionBarProps> = ({
           ref={scrollContainerRef}
           className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-shrink-0"
           style={{ maxWidth: '140px' }}
+          onTouchStart={() => onPauseStory?.()}
+          onTouchEnd={() => onResumeStory?.()}
+          onMouseDown={() => onPauseStory?.()}
+          onMouseUp={() => onResumeStory?.()}
         >
           {ALL_REACTIONS.map((reaction) => (
             <motion.button

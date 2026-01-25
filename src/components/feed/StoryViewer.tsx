@@ -269,8 +269,11 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           {/* Reaction bar */}
           <StoryReactionBar
             isOwnStory={isOwnStory}
+            onPauseStory={() => setIsPaused(true)}
+            onResumeStory={() => setIsPaused(false)}
             onSendMessage={(message) => {
               toast.success(`Message sent to ${stories.display_name}`);
+              setIsPaused(false);
               // TODO: Implement actual message sending
             }}
             onReaction={(reaction) => {
