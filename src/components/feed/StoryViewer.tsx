@@ -46,23 +46,6 @@ export const StoryViewer: FC<StoryViewerProps> = ({
     }
   }, [currentStory?.id]);
 
-  // Progress timer
-  useEffect(() => {
-    if (isPaused) return;
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          handleNext();
-          return 0;
-        }
-        return prev + (100 / (STORY_DURATION / 100));
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isPaused, currentIndex, stories.user_id]);
-
   const handleNext = useCallback(() => {
     if (currentIndex < stories.stories.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -82,6 +65,30 @@ export const StoryViewer: FC<StoryViewerProps> = ({
       onPrevUser();
     }
   }, [currentIndex, isFirstUser, onPrevUser]);
+
+  // Progress timer
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          return 100;
+        }
+        return prev + (100 / (STORY_DURATION / 100));
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isPaused, currentIndex, stories.user_id]);
+
+  // Handle story completion separately to avoid setState during render
+  useEffect(() => {
+    if (progress >= 100) {
+      handleNext();
+      setProgress(0);
+    }
+  }, [progress, handleNext]);
 
   const handleDelete = async () => {
     if (!currentStory) return;
@@ -222,11 +229,9 @@ export const StoryViewer: FC<StoryViewerProps> = ({
                 className="w-full h-full flex items-center justify-center p-8"
                 style={{ backgroundColor: currentStory.background_color || '#1877F2' }}
               >
-                {currentStory.text_overlay && (
-                  <p className="text-white text-2xl font-medium text-center">
-                    {currentStory.text_overlay}
-                  </p>
-                )}
+                <p className="text-white text-2xl font-medium text-center">
+                  {currentStory.text_overlay || ''}
+                </p>
               </div>
             )}
 
