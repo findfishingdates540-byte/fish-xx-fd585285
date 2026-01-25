@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, MoreHorizontal, User, Trash2, Flag } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, User, Trash2, Flag, Repeat2, Send, Bookmark } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { FeedPost as FeedPostType, useLikePost, useDeletePost } from '@/hooks/use-feed';
 import { CommentSheet } from './CommentSheet';
@@ -108,6 +108,12 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
     if (!isMobile) {
       setShowPostModal(true);
     }
+  };
+
+  const formatCount = (count: number) => {
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toString();
   };
 
   return (
@@ -241,37 +247,65 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           </div>
         )}
 
-        {/* Actions - Heart and MessageCircle icons */}
-        <div className="px-3 pt-3 flex items-center gap-4">
-          <button
-            onClick={(e) => handleLike(e)}
-            disabled={likePost.isPending}
-            className="flex items-center gap-1.5 transition-transform active:scale-90"
-          >
-            <Heart 
-              className={cn(
-                "h-6 w-6 transition-colors",
-                post.user_has_liked 
-                  ? "fill-red-500 text-red-500" 
-                  : "text-foreground hover:text-muted-foreground"
-              )} 
-            />
-          </button>
+        {/* Actions - Instagram style with inline counts */}
+        <div className="px-3 pt-3 flex items-center justify-between">
+          {/* Left actions group */}
+          <div className="flex items-center gap-5">
+            {/* Heart with count */}
+            <button
+              onClick={(e) => handleLike(e)}
+              disabled={likePost.isPending}
+              className="flex flex-col items-center gap-0.5 transition-transform active:scale-90"
+            >
+              <Heart 
+                className={cn(
+                  "h-6 w-6 transition-colors",
+                  post.user_has_liked 
+                    ? "fill-red-500 text-red-500" 
+                    : "text-foreground hover:text-muted-foreground"
+                )} 
+              />
+              {post.likes_count > 0 && (
+                <span className="text-xs text-muted-foreground">{formatCount(post.likes_count)}</span>
+              )}
+            </button>
+            
+            {/* Comment with count */}
+            <button
+              onClick={handleCommentClick}
+              className="flex flex-col items-center gap-0.5 text-foreground hover:text-muted-foreground transition-colors"
+            >
+              <MessageCircle className="h-6 w-6" />
+              {post.comments_count > 0 && (
+                <span className="text-xs text-muted-foreground">{formatCount(post.comments_count)}</span>
+              )}
+            </button>
+            
+            {/* Share/Repost */}
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="flex flex-col items-center gap-0.5 text-foreground hover:text-muted-foreground transition-colors"
+            >
+              <Repeat2 className="h-6 w-6" />
+            </button>
+            
+            {/* Send */}
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="flex flex-col items-center gap-0.5 text-foreground hover:text-muted-foreground transition-colors"
+            >
+              <Send className="h-6 w-6" />
+            </button>
+          </div>
           
+          {/* Bookmark on far right */}
           <button
-            onClick={handleCommentClick}
-            className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
+            onClick={(e) => e.stopPropagation()}
+            className="text-foreground hover:text-muted-foreground transition-colors"
           >
-            <MessageCircle className="h-6 w-6" />
+            <Bookmark className="h-6 w-6" />
           </button>
         </div>
-
-        {/* Likes count */}
-        {post.likes_count > 0 && (
-          <div className="px-3 pt-1">
-            <span className="text-sm font-semibold">{post.likes_count} likes</span>
-          </div>
-        )}
 
         {/* Caption - Instagram style: username + caption inline */}
         {post.content && (
