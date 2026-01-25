@@ -101,26 +101,6 @@ export default function Chat() {
     sendMessage(content, imageUrl, audioUrl, replyToId);
   };
 
-  // Loading state for chat area
-  const renderChatLoading = () => (
-    <div className="flex-1 flex flex-col h-full bg-background">
-      <header className="h-16 px-6 border-b border-border flex items-center gap-3">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <div>
-          <Skeleton className="h-4 w-24 mb-1" />
-          <Skeleton className="h-3 w-16" />
-        </div>
-      </header>
-      <div className="flex-1 p-6 space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-            <Skeleton className={`h-12 ${i % 2 === 0 ? 'w-48' : 'w-56'} rounded-2xl`} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   // Empty state when no match selected or match not found
   const renderEmptyChat = () => (
     <div className="flex-1 flex flex-col items-center justify-center bg-background">
@@ -150,8 +130,6 @@ export default function Chat() {
       {/* Chat Area */}
       {!matchId ? (
         renderEmptyChat()
-      ) : loading ? (
-        renderChatLoading()
       ) : !matchProfile ? (
         renderEmptyChat()
       ) : (

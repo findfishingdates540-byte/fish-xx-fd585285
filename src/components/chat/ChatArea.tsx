@@ -173,7 +173,7 @@ export function ChatArea({
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [messages, isTyping]);
 
   // Group messages by date for day dividers
@@ -473,7 +473,7 @@ export function ChatArea({
                   <div className="flex items-end gap-2 max-w-[70%]">
                     {!isMine && matchUserId && (
                       <Link to={`/app/dating-profile/${matchUserId}`}>
-                        <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                        <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80">
                           <AvatarImage src={matchPhoto} alt={matchName} />
                           <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
                         </Avatar>
