@@ -28,6 +28,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  CarouselDots,
 } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
 
@@ -91,16 +92,16 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
 
   return (
     <>
-      <Card 
+      <div 
         className={cn(
-          "overflow-hidden bg-background transition-all duration-500",
+          "bg-card border-b transition-all duration-500",
           isHighlighted && "ring-2 ring-cyan-500 ring-offset-2 ring-offset-background",
           !isMobile && "cursor-pointer hover:bg-muted/30"
         )}
         onClick={handleCardClick}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-4 pb-3">
+        <div className="flex items-start justify-between p-3">
           <button 
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             onClick={(e) => {
@@ -108,10 +109,10 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
               navigate(`/app/u/${post.user_id}`);
             }}
           >
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-9 w-9">
               <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback>
-                <User className="h-5 w-5" />
+                <User className="h-4 w-4" />
               </AvatarFallback>
             </Avatar>
             <div className="text-left">
@@ -124,8 +125,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                 />
               </p>
               <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                {post.location_name && ` • ${post.location_name}`}
+                {post.location_name || formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
               </p>
             </div>
           </button>
@@ -159,15 +159,6 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           </DropdownMenu>
         </div>
 
-        {/* Caption - Above image like in the reference */}
-        {post.content && (
-          <div className="px-4 pb-3">
-            <p className="text-sm leading-relaxed">
-              <MentionText content={post.content} />
-            </p>
-          </div>
-        )}
-
         {/* Video */}
         {post.video_url && (
           <div className="relative bg-black" onClick={(e) => e.stopPropagation()}>
@@ -181,7 +172,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           </div>
         )}
 
-        {/* Photos - variable height supporting 1:1, 4:3, 9:16 */}
+        {/* Photos - edge-to-edge with carousel dots */}
         {!post.video_url && allPhotos.length > 0 && (
           <div className="relative bg-black">
             {allPhotos.length === 1 ? (
@@ -205,31 +196,18 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
+                {/* Arrow buttons - hidden on mobile/tablet, visible on desktop */}
+                <CarouselPrevious className="left-2 hidden md:flex" />
+                <CarouselNext className="right-2 hidden md:flex" />
+                {/* Dot indicators - centered below image */}
+                <CarouselDots className="absolute bottom-2 left-0 right-0" />
               </Carousel>
             )}
           </div>
         )}
 
-        {/* Catch details as tags */}
-        {post.catch_data && (
-          <div className="px-4 pt-3 flex flex-wrap gap-2">
-            {post.catch_data.species_name && (
-              <Badge variant="outline" className="text-xs">
-                {post.catch_data.species_name}
-              </Badge>
-            )}
-            {post.catch_data.weight_lbs && (
-              <Badge variant="outline" className="text-xs">
-                {post.catch_data.weight_lbs} lbs
-              </Badge>
-            )}
-          </div>
-        )}
-
         {/* Actions - Heart and MessageCircle icons */}
-        <div className="p-4 pt-3 flex items-center gap-4">
+        <div className="px-3 pt-3 flex items-center gap-4">
           <button
             onClick={(e) => handleLike(e)}
             disabled={likePost.isPending}
@@ -243,9 +221,6 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                   : "text-foreground hover:text-muted-foreground"
               )} 
             />
-            {post.likes_count > 0 && (
-              <span className="text-sm text-muted-foreground">{post.likes_count}</span>
-            )}
           </button>
           
           <button
@@ -253,12 +228,67 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
           >
             <MessageCircle className="h-6 w-6" />
-            {post.comments_count > 0 && (
-              <span className="text-sm text-muted-foreground">{post.comments_count}</span>
-            )}
           </button>
         </div>
-      </Card>
+
+        {/* Likes count */}
+        {post.likes_count > 0 && (
+          <div className="px-3 pt-1">
+            <span className="text-sm font-semibold">{post.likes_count} likes</span>
+          </div>
+        )}
+
+        {/* Caption - Instagram style: username + caption inline */}
+        {post.content && (
+          <div className="px-3 pt-1 pb-1">
+            <p className="text-sm">
+              <button 
+                className="font-semibold mr-1 hover:opacity-70"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/app/u/${post.user_id}`);
+                }}
+              >
+                {displayName}
+              </button>
+              <MentionText content={post.content} />
+            </p>
+          </div>
+        )}
+
+        {/* Comments count link */}
+        {post.comments_count > 0 && (
+          <button 
+            className="px-3 pb-1 text-sm text-muted-foreground hover:opacity-70"
+            onClick={handleCommentClick}
+          >
+            View all {post.comments_count} comments
+          </button>
+        )}
+
+        {/* Catch details as tags */}
+        {post.catch_data && (
+          <div className="px-3 pt-1 pb-2 flex flex-wrap gap-2">
+            {post.catch_data.species_name && (
+              <Badge variant="outline" className="text-xs">
+                {post.catch_data.species_name}
+              </Badge>
+            )}
+            {post.catch_data.weight_lbs && (
+              <Badge variant="outline" className="text-xs">
+                {post.catch_data.weight_lbs} lbs
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Timestamp */}
+        <div className="px-3 pb-3">
+          <p className="text-[10px] text-muted-foreground uppercase">
+            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+          </p>
+        </div>
+      </div>
 
       {/* Mobile: Bottom sheet for comments */}
       <CommentSheet
