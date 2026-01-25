@@ -38,11 +38,24 @@ export function useDatingChat(matchId: string | undefined) {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const previousMatchIdRef = useRef<string | undefined>(undefined);
 
-  // Fetch chat data
+  // Fetch chat data - only show loading skeleton on initial load, not when switching convos
   useEffect(() => {
     if (user && matchId) {
-      fetchChatData();
+      const isInitialLoad = previousMatchIdRef.current === undefined;
+      const isSwitchingConvo = previousMatchIdRef.current !== matchId;
+      
+      if (isInitialLoad) {
+        setLoading(true);
+      } else if (isSwitchingConvo) {
+        // Clear messages immediately for smoother transition, but don't show loading skeleton
+        setMessages([]);
+        setMatchProfile(null);
+      }
+      
+      previousMatchIdRef.current = matchId;
+      fetchChatData(!isInitialLoad);
       markMessagesAsDelivered();
       markMessagesAsRead();
     }
@@ -124,9 +137,9 @@ export function useDatingChat(matchId: string | undefined) {
     };
   }, [matchId, user?.id]);
 
-  const fetchChatData = async () => {
+  const fetchChatData = async (skipLoadingState = false) => {
     if (!user || !matchId) return;
-    setLoading(true);
+    if (!skipLoadingState) setLoading(true);
 
     try {
       // Get match record to find the other user
