@@ -266,23 +266,21 @@ export const StoryViewer: FC<StoryViewerProps> = ({
             <div className="w-1/3 h-full pointer-events-auto" onClick={handleNext} />
           </div>
 
-          {/* Reaction bar - only show for other people's stories */}
-          {!isOwnStory && (
-            <StoryReactionBar
-              isOwnStory={isOwnStory}
-              onSendMessage={(message) => {
-                toast.success(`Message sent to ${stories.display_name}`);
-                // TODO: Implement actual message sending
-              }}
-              onReaction={(reaction) => {
-                toast.success(`Reacted with ${reaction}`);
-                // TODO: Implement actual reaction
-              }}
-              onPlusClick={() => {
-                // TODO: Add more options
-              }}
-            />
-          )}
+          {/* Reaction bar */}
+          <StoryReactionBar
+            isOwnStory={isOwnStory}
+            onSendMessage={(message) => {
+              toast.success(`Message sent to ${stories.display_name}`);
+              // TODO: Implement actual message sending
+            }}
+            onReaction={(reaction) => {
+              toast.success(`Reacted with ${reaction}`);
+              // TODO: Implement actual reaction
+            }}
+            onPlusClick={() => {
+              // TODO: Add more options
+            }}
+          />
         </div>
       </div>
     </motion.div>
