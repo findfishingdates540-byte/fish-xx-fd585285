@@ -1,4 +1,5 @@
 import { FC, useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -121,12 +122,13 @@ export const StoryViewer: FC<StoryViewerProps> = ({
     backgroundColor: currentStory.background_color
   });
 
-  return (
+  const content = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] bg-black"
+      className="fixed inset-0 z-[99999] bg-black overflow-hidden"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
       {/* Close button */}
       <Button
@@ -163,14 +165,14 @@ export const StoryViewer: FC<StoryViewerProps> = ({
 
       {/* Story content wrapper */}
       <div
-        className="fixed inset-0 flex items-center justify-center bg-black"
+        className="w-screen h-screen flex items-center justify-center bg-black"
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
         {/* Inner container - mobile full screen, desktop centered */}
-        <div className="relative w-full h-full md:w-[400px] md:h-[90vh] md:rounded-xl overflow-hidden">
+        <div className="relative w-screen h-screen md:w-[400px] md:h-[90vh] md:rounded-xl overflow-hidden bg-black">
           {/* Progress bars */}
           <div className="absolute top-4 left-4 right-4 z-50 flex gap-1">
             {stories.stories.map((_, idx) => (
@@ -229,7 +231,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
                   <img
                     src={currentStory.media_url}
                     alt="Story"
-                    className="max-w-full max-h-full object-contain"
+                    className="w-full h-full object-contain"
                     onLoad={() => console.log('[StoryViewer] Image loaded successfully')}
                     onError={(e) => {
                       console.error('[StoryViewer] Image failed to load');
@@ -265,4 +267,6 @@ export const StoryViewer: FC<StoryViewerProps> = ({
       </div>
     </motion.div>
   );
+
+  return createPortal(content, document.body);
 };
