@@ -224,6 +224,8 @@ export const StoryViewer: FC<StoryViewerProps> = ({
                   src={currentStory.media_url}
                   alt="Story"
                   className="absolute inset-0 w-full h-full object-cover"
+                  onLoad={() => console.log('[StoryViewer] Image loaded:', currentStory.media_url)}
+                  onError={(e) => console.error('[StoryViewer] Image error:', currentStory.media_url, e)}
                 />
                 {currentStory.text_overlay && (
                   <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3 z-10">
@@ -244,11 +246,11 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           </motion.div>
         </AnimatePresence>
 
-        {/* Tap zones for navigation */}
-        <div className="absolute inset-0 z-20 flex">
-          <div className="w-1/3 h-full" onClick={handlePrev} />
+        {/* Tap zones for navigation - z-10 so content shows through but captures taps */}
+        <div className="absolute inset-0 z-10 flex pointer-events-auto">
+          <div className="w-1/3 h-full cursor-pointer" onClick={handlePrev} />
           <div className="w-1/3 h-full" />
-          <div className="w-1/3 h-full" onClick={handleNext} />
+          <div className="w-1/3 h-full cursor-pointer" onClick={handleNext} />
         </div>
         </div>
       </div>
