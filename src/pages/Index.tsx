@@ -66,7 +66,7 @@ const Index = () => {
     if (accountMode === 'dating') {
       return <Navigate to="/app/discover" replace />;
     } else if (accountMode === 'fishing') {
-      return <Navigate to="/app/spots" replace />;
+      return <Navigate to="/app/feed" replace />;
     } else {
       return <Navigate to="/app/dashboard" replace />;
     }

@@ -11,7 +11,7 @@ export default function AppIndex() {
 
   // Redirect to appropriate default page based on account mode
   if (accountMode === 'fishing') {
-    return <Navigate to="/app/spots" replace />;
+    return <Navigate to="/app/feed" replace />;
   }
 
   if (accountMode === 'both') {
