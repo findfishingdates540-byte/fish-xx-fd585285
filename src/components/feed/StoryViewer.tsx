@@ -35,6 +35,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isInteractingWithBar, setIsInteractingWithBar] = useState(false);
   const markViewed = useMarkStoryViewed();
   const deleteStory = useDeleteStory();
 
@@ -169,9 +170,9 @@ export const StoryViewer: FC<StoryViewerProps> = ({
       <div
         className="w-screen h-screen flex items-center justify-center bg-black"
         onMouseDown={() => setIsPaused(true)}
-        onMouseUp={() => setIsPaused(false)}
+        onMouseUp={() => !isInteractingWithBar && setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
+        onTouchEnd={() => !isInteractingWithBar && setIsPaused(false)}
       >
         {/* Inner container - mobile full screen, desktop centered */}
         <div className="relative w-screen h-screen md:w-[400px] md:h-[90vh] md:rounded-xl overflow-hidden bg-black">
@@ -269,11 +270,18 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           {/* Reaction bar */}
           <StoryReactionBar
             isOwnStory={isOwnStory}
-            onPauseStory={() => setIsPaused(true)}
-            onResumeStory={() => setIsPaused(false)}
+            onPauseStory={() => {
+              setIsPaused(true);
+              setIsInteractingWithBar(true);
+            }}
+            onResumeStory={() => {
+              setIsPaused(false);
+              setIsInteractingWithBar(false);
+            }}
             onSendMessage={(message) => {
               toast.success(`Message sent to ${stories.display_name}`);
               setIsPaused(false);
+              setIsInteractingWithBar(false);
               // TODO: Implement actual message sending
             }}
             onReaction={(reaction) => {
