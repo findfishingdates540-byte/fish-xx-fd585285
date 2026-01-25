@@ -107,7 +107,7 @@ export function MobileModeSwitcher() {
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all",
+            "w-11 h-11 rounded-full shadow-lg flex items-center justify-center transition-all",
             isOpen
               ? "bg-muted text-foreground rotate-0"
               : `${currentMode.color} text-white`
