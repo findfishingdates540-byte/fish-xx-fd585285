@@ -39,16 +39,59 @@ function AppLayoutContent() {
   useEffect(() => {
     if (!user?.id) return;
     
-    // Prefetch feed posts
+    // Prefetch feed posts with profile data
     queryClient.prefetchQuery({
       queryKey: ['feed-posts', user.id],
       queryFn: async () => {
-        const { data } = await supabase
+        // Get posts
+        const { data: posts } = await supabase
           .from('feed_posts')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(20);
-        return data || [];
+
+        if (!posts || posts.length === 0) return [];
+
+        // Get unique user IDs and catch IDs
+        const userIds = [...new Set(posts.map(p => p.user_id))];
+        const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
+
+        // Fetch profiles
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, photos, id_verified, live_verified')
+          .in('id', userIds);
+
+        // Fetch catches if any
+        let catches: any[] = [];
+        if (catchIds.length > 0) {
+          const { data: catchData } = await supabase
+            .from('catches')
+            .select('id, species_name, weight_lbs, length_in, photos')
+            .in('id', catchIds);
+          catches = catchData || [];
+        }
+
+        // Get user's likes
+        const { data: likes } = await supabase
+          .from('feed_likes')
+          .select('post_id')
+          .eq('user_id', user.id);
+        
+        const userLikes = likes?.map(l => l.post_id) || [];
+
+        // Map profiles and catches to posts
+        const profileMap = new Map(
+          profiles?.filter(p => p.id !== null).map(p => [p.id, p]) || []
+        );
+        const catchMap = new Map(catches.map(c => [c.id, c]));
+
+        return posts.map(post => ({
+          ...post,
+          profile: profileMap.get(post.user_id) || null,
+          catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
+          user_has_liked: userLikes.includes(post.id)
+        }));
       },
       staleTime: 60 * 1000,
     });
