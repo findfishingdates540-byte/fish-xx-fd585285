@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Smile, Image as ImageIcon, MoreVertical, Phone, Video, ArrowLeft, User, X, Loader2, Mic, Square, MapPin, Reply, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -466,15 +465,8 @@ export function ChatArea({
               onReply={() => !isDeletedForEveryone && onSetReplyingTo?.(message)}
               isMine={isMine}
             >
-              <motion.div
+              <div
                 className={cn('flex flex-col group w-full', isMine ? 'items-end' : 'items-start')}
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ 
-                  duration: 0.2, 
-                  ease: [0.25, 0.1, 0.25, 1]
-                }}
-                layout
               >
                 <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
                   
@@ -604,7 +596,7 @@ export function ChatArea({
                     />
                   </div>
                 )}
-              </motion.div>
+              </div>
             </SwipeableMessage>
           );
         })}
