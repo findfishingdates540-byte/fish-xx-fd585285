@@ -45,7 +45,7 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
         navigate('/app/discover');
         break;
       case 'fishing':
-        navigate('/app/spots');
+        navigate('/app/feed');
         break;
       case 'unified':
       default:

@@ -16,7 +16,7 @@ const modeLabels: Record<AccountMode, string> = {
 const modeRedirects: Record<AccountMode, string> = {
   both: '/app/dashboard',
   dating: '/app/discover',
-  fishing: '/app/spots',
+  fishing: '/app/feed',
 };
 
 interface UseAccountModeSwitcherOptions {
