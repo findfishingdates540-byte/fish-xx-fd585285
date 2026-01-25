@@ -132,7 +132,7 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
                 key={mode.value}
                 onClick={() => handleModeSwitch(mode.value)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
+                  "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium",
                   activeMode === mode.value
                     ? "bg-background text-primary shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -168,7 +168,7 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-between px-4 py-3 rounded-xl transition-colors font-medium',
+                'flex items-center justify-between px-4 py-3 rounded-xl font-medium',
                 isActive
                   ? 'bg-accent text-primary'
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -199,7 +199,7 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
               key={convo.id}
               onClick={() => onSelect(convo.id)}
               className={cn(
-                'w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors',
+                'w-full flex items-center gap-3 p-3 rounded-xl text-left',
                 selectedId === convo.id
                   ? 'bg-accent'
                   : 'hover:bg-accent/50'
