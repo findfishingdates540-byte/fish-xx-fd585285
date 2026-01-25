@@ -216,14 +216,14 @@ export const StoryViewer: FC<StoryViewerProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.2 }}
-            className="w-full h-full"
+            className="absolute inset-0"
           >
             {currentStory.media_url && currentStory.media_url.trim() ? (
               <>
                 <img
                   src={currentStory.media_url}
                   alt="Story"
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
                 {currentStory.text_overlay && (
                   <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3 z-10">
