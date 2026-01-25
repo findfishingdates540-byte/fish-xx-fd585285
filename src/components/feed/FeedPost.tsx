@@ -278,7 +278,8 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                   post.user_has_liked 
                     ? "fill-red-500 text-red-500" 
                     : "text-foreground hover:text-muted-foreground"
-                )} 
+                )}
+                strokeWidth={1.5}
               />
               {post.likes_count > 0 && (
                 <span className="text-sm text-foreground">{formatCount(post.likes_count)}</span>
@@ -290,7 +291,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
               onClick={handleCommentClick}
               className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
             >
-              <MessageCircle className="h-6 w-6" />
+              <MessageCircle className="h-6 w-6" strokeWidth={1.5} />
               {post.comments_count > 0 && (
                 <span className="text-sm">{formatCount(post.comments_count)}</span>
               )}
@@ -301,7 +302,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
               onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
             >
-              <Repeat2 className="h-6 w-6" />
+              <Repeat2 className="h-6 w-6" strokeWidth={1.5} />
             </button>
             
             {/* Send */}
@@ -309,7 +310,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
               onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
             >
-              <Send className="h-6 w-6" />
+              <Send className="h-6 w-6" strokeWidth={1.5} />
             </button>
           </div>
           
@@ -319,10 +320,13 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             disabled={toggleBookmark.isPending}
             className="text-foreground hover:text-muted-foreground transition-colors"
           >
-            <Bookmark className={cn(
-              "h-6 w-6 transition-colors",
-              isBookmarked && "fill-foreground"
-            )} />
+            <Bookmark 
+              className={cn(
+                "h-6 w-6 transition-colors",
+                isBookmarked && "fill-foreground"
+              )}
+              strokeWidth={1.5}
+            />
           </button>
         </div>
 
