@@ -826,7 +826,7 @@ export default function ComboDashboard() {
           {featuredSpot && (
             <Card className="mb-6 overflow-hidden">
               <div className="flex flex-col md:flex-row">
-                <div className="md:w-1/2 h-56 md:h-64 relative">
+                <div className="md:w-1/2 h-64 md:h-80 relative">
                   <img
                     src={featuredSpot.photos?.[0] || "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800"}
                     alt={featuredSpot.name}
