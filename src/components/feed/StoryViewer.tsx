@@ -218,19 +218,23 @@ export const StoryViewer: FC<StoryViewerProps> = ({
             transition={{ duration: 0.2 }}
             className="absolute inset-0 rounded-xl overflow-hidden"
           >
-            {currentStory.media_url ? (
+            {currentStory.media_url && currentStory.media_url.trim() ? (
               <img
                 src={currentStory.media_url}
                 alt=""
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  // If image fails to load, hide it and show background
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             ) : (
               <div 
                 className="w-full h-full flex items-center justify-center p-8"
                 style={{ backgroundColor: currentStory.background_color || '#1877F2' }}
               >
-                <p className="text-white text-2xl font-medium text-center">
-                  {currentStory.text_overlay || ''}
+                <p className="text-white text-2xl font-medium text-center break-words">
+                  {currentStory.text_overlay || 'No content'}
                 </p>
               </div>
             )}
