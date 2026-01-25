@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useFollowStatus, useFollowUser, useUnfollowUser } from '@/hooks/use-follow';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +51,25 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const avatarUrl = post.profile?.photos?.[0];
   const displayName = post.profile?.display_name || 'Anonymous';
   const isOwnPost = user?.id === post.user_id;
+  
+  // Follow functionality
+  const { data: followData } = useFollowStatus(post.user_id);
+  const followUser = useFollowUser();
+  const unfollowUser = useUnfollowUser();
+  const isFollowing = followData?.isFollowing ?? false;
+
+  const handleFollowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please sign in to follow users');
+      return;
+    }
+    if (isFollowing) {
+      unfollowUser.mutate(post.user_id);
+    } else {
+      followUser.mutate(post.user_id);
+    }
+  };
 
   // Combine photos from post and catch
   const allPhotos = [
@@ -130,33 +150,51 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             </div>
           </button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            {/* Follow button - only show for other users' posts */}
+            {!isOwnPost && user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 text-xs font-semibold",
+                  isFollowing ? "text-muted-foreground" : "text-primary"
+                )}
+                onClick={handleFollowClick}
+                disabled={followUser.isPending || unfollowUser.isPending}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-background">
-              {isOwnPost && (
-                <>
-                  <DropdownMenuItem 
-                    onClick={handleDelete}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete post
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background">
+                {isOwnPost && (
+                  <>
+                    <DropdownMenuItem 
+                      onClick={handleDelete}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete post
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {!isOwnPost && user && (
+                  <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                    <Flag className="h-4 w-4 mr-2" />
+                    Report post
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              {!isOwnPost && user && (
-                <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
-                  <Flag className="h-4 w-4 mr-2" />
-                  Report post
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Video */}
