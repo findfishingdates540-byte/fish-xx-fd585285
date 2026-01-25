@@ -115,20 +115,25 @@ export const StoryViewer: FC<StoryViewerProps> = ({
 
   if (!currentStory) return null;
 
+  console.log('[StoryViewer] Rendering story:', {
+    mediaUrl: currentStory.media_url,
+    textOverlay: currentStory.text_overlay,
+    backgroundColor: currentStory.background_color
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[9999] bg-black"
-      onClick={(e) => e.stopPropagation()}
     >
       {/* Close button */}
       <Button
         variant="ghost"
         size="icon"
         onClick={onClose}
-        className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
+        className="fixed top-4 right-4 z-[10000] text-white hover:bg-white/20"
       >
         <X className="h-6 w-6" />
       </Button>
@@ -139,7 +144,7 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           variant="ghost"
           size="icon"
           onClick={handlePrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-50 text-white hover:bg-white/20"
+          className="fixed left-4 top-1/2 -translate-y-1/2 z-[10000] text-white hover:bg-white/20"
         >
           <ChevronLeft className="h-8 w-8" />
         </Button>
@@ -150,108 +155,112 @@ export const StoryViewer: FC<StoryViewerProps> = ({
           variant="ghost"
           size="icon"
           onClick={handleNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-50 text-white hover:bg-white/20"
+          className="fixed right-4 top-1/2 -translate-y-1/2 z-[10000] text-white hover:bg-white/20"
         >
           <ChevronRight className="h-8 w-8" />
         </Button>
       )}
 
-      {/* Story container - full screen on mobile, centered card on desktop */}
-      <div 
-        className="fixed inset-0 flex items-center justify-center"
+      {/* Story content wrapper */}
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black"
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        <div className="relative w-full h-screen md:max-w-[400px] md:h-[90vh] md:rounded-xl overflow-hidden bg-black">
-        {/* Progress bars */}
-        <div className="absolute top-4 left-4 right-4 z-40 flex gap-1">
-          {stories.stories.map((_, idx) => (
-            <div key={idx} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-white transition-all duration-100"
-                style={{
-                  width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%'
-                }}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* User info */}
-        <div className="absolute top-10 left-4 right-4 z-40 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border-2 border-white">
-              <AvatarImage src={stories.photo || undefined} />
-              <AvatarFallback>{stories.display_name?.charAt(0) || '?'}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-white font-medium text-sm">
-                {isOwnStory ? 'Your Story' : stories.display_name}
-              </p>
-              <p className="text-white/70 text-xs">
-                {formatDistanceToNow(new Date(currentStory.created_at), { addSuffix: true })}
-              </p>
-            </div>
+        {/* Inner container - mobile full screen, desktop centered */}
+        <div className="relative w-full h-full md:w-[400px] md:h-[90vh] md:rounded-xl overflow-hidden">
+          {/* Progress bars */}
+          <div className="absolute top-4 left-4 right-4 z-50 flex gap-1">
+            {stories.stories.map((_, idx) => (
+              <div key={idx} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white transition-all duration-100"
+                  style={{
+                    width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%'
+                  }}
+                />
+              </div>
+            ))}
           </div>
 
-          {isOwnStory && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleDelete}
-              className="text-white hover:bg-white/20"
-            >
-              <Trash2 className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
-
-        {/* Story content - base layer */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStory.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 0.2 }}
-            className="absolute inset-0 z-0"
-          >
-            {currentStory.media_url && currentStory.media_url.trim() ? (
-              <>
-                <img
-                  src={currentStory.media_url}
-                  alt="Story"
-                  className="w-full h-full object-contain"
-                  onLoad={() => console.log('[StoryViewer] Image loaded:', currentStory.media_url)}
-                  onError={(e) => console.error('[StoryViewer] Image error:', currentStory.media_url, e)}
-                />
-                {currentStory.text_overlay && (
-                  <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3 z-30">
-                    <p className="text-white text-center">{currentStory.text_overlay}</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div 
-                className="w-full h-full flex items-center justify-center p-8"
-                style={{ backgroundColor: currentStory.background_color || '#1877F2' }}
-              >
-                <p className="text-white text-2xl font-medium text-center break-words">
-                  {currentStory.text_overlay || 'No content'}
+          {/* User info */}
+          <div className="absolute top-10 left-4 right-4 z-50 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border-2 border-white">
+                <AvatarImage src={stories.photo || undefined} />
+                <AvatarFallback>{stories.display_name?.charAt(0) || '?'}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-white font-medium text-sm">
+                  {isOwnStory ? 'Your Story' : stories.display_name}
+                </p>
+                <p className="text-white/70 text-xs">
+                  {formatDistanceToNow(new Date(currentStory.created_at), { addSuffix: true })}
                 </p>
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+            </div>
 
-        {/* Tap zones for navigation - z-10 so content shows through but captures taps */}
-        <div className="absolute inset-0 z-20 flex">
-          <div className="w-1/3 h-full cursor-pointer" onClick={handlePrev} />
-          <div className="w-1/3 h-full" />
-          <div className="w-1/3 h-full cursor-pointer" onClick={handleNext} />
-        </div>
+            {isOwnStory && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDelete}
+                className="text-white hover:bg-white/20"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+
+          {/* Story content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStory.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              {currentStory.media_url && currentStory.media_url.trim() ? (
+                <>
+                  <img
+                    src={currentStory.media_url}
+                    alt="Story"
+                    className="max-w-full max-h-full object-contain"
+                    onLoad={() => console.log('[StoryViewer] Image loaded successfully')}
+                    onError={(e) => {
+                      console.error('[StoryViewer] Image failed to load');
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  {currentStory.text_overlay && (
+                    <div className="absolute bottom-20 left-4 right-4 bg-black/70 rounded-lg p-4 z-40">
+                      <p className="text-white text-center">{currentStory.text_overlay}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div 
+                  className="w-full h-full flex items-center justify-center p-8"
+                  style={{ backgroundColor: currentStory.background_color || '#1877F2' }}
+                >
+                  <p className="text-white text-2xl font-medium text-center break-words max-w-md">
+                    {currentStory.text_overlay || 'No content'}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Tap zones for navigation */}
+          <div className="absolute inset-0 z-30 flex">
+            <div className="w-1/3 h-full" onClick={handlePrev} />
+            <div className="w-1/3 h-full" />
+            <div className="w-1/3 h-full" onClick={handleNext} />
+          </div>
         </div>
       </div>
     </motion.div>
