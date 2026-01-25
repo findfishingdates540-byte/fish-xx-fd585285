@@ -118,12 +118,21 @@ function AppLayoutContent() {
       staleTime: 30 * 1000,
     });
 
-    // Prefetch buddy conversations
+    // Prefetch buddy conversations with same transform as useBuddyConversations
     queryClient.prefetchQuery({
       queryKey: ['buddy-conversations', user.id],
       queryFn: async () => {
         const { data } = await supabase.rpc('get_buddy_conversations', { p_user_id: user.id });
-        return data || [];
+        return (data || []).map((row: any) => ({
+          buddyId: row.buddy_id,
+          buddyUserId: row.buddy_user_id,
+          displayName: row.display_name || 'Anonymous',
+          photo: row.photo || '',
+          lastMessage: row.last_message || null,
+          lastMessageTime: row.last_message_time || null,
+          lastMessageSenderId: row.last_message_sender_id || null,
+          unreadCount: Number(row.unread_count) || 0,
+        }));
       },
       staleTime: 30 * 1000,
     });
