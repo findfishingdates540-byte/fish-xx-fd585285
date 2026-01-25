@@ -219,15 +219,23 @@ export const StoryViewer: FC<StoryViewerProps> = ({
             className="absolute inset-0 rounded-xl overflow-hidden"
           >
             {currentStory.media_url && currentStory.media_url.trim() ? (
-              <img
-                src={currentStory.media_url}
-                alt=""
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // If image fails to load, hide it and show background
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              <>
+                <img
+                  src={currentStory.media_url}
+                  alt="Story"
+                  className="w-full h-full object-cover"
+                  onLoad={() => console.log('Story image loaded:', currentStory.media_url)}
+                  onError={(e) => {
+                    console.error('Story image failed to load:', currentStory.media_url);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                {currentStory.text_overlay && (
+                  <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3">
+                    <p className="text-white text-center">{currentStory.text_overlay}</p>
+                  </div>
+                )}
+              </>
             ) : (
               <div 
                 className="w-full h-full flex items-center justify-center p-8"
@@ -236,13 +244,6 @@ export const StoryViewer: FC<StoryViewerProps> = ({
                 <p className="text-white text-2xl font-medium text-center break-words">
                   {currentStory.text_overlay || 'No content'}
                 </p>
-              </div>
-            )}
-
-            {/* Text overlay on image */}
-            {currentStory.media_url && currentStory.text_overlay && (
-              <div className="absolute bottom-20 left-4 right-4 bg-black/50 rounded-lg p-3">
-                <p className="text-white text-center">{currentStory.text_overlay}</p>
               </div>
             )}
           </motion.div>
