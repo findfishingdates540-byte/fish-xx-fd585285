@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,20 +10,25 @@ import {
   DiscoverSidebar,
   ProfileCard,
   SwipeActions,
+  RightSidebar,
   ProfileDetailView,
   MatchCelebrationModal,
   DatingTutorial,
-  ReportProfileSheet,
-  QuickFiltersSheet,
 } from '@/components/discover';
-import { RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { RefreshCw, Heart, X, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatDistanceToNow } from 'date-fns';
+
+type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
 export default function Discover() {
   const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>(
+    accountMode === 'both' ? 'combo' : accountMode
+  );
   const [showDetailView, setShowDetailView] = useState(false);
   const isMobile = useIsMobile();
   const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
@@ -156,6 +161,75 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
+  // Fetch recent conversations with last message and unread count
+  const { data: conversations } = useQuery({
+    queryKey: ['recent-conversations-sidebar', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // First get all matches
+      const { data: matchesData } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          user1_id,
+          user2_id,
+          user1:profiles!matches_user1_id_fkey(display_name, photos, last_active_at),
+          user2:profiles!matches_user2_id_fkey(display_name, photos, last_active_at)
+        `)
+        .eq('is_match', true)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      
+      if (!matchesData || matchesData.length === 0) return [];
+
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+      // Get latest message and unread count for each match
+      const conversationsWithMessages = await Promise.all(
+        matchesData.map(async (match: any) => {
+          // Get latest message
+          const { data: messages } = await supabase
+            .from('messages')
+            .select('content, created_at, sender_id')
+            .eq('match_id', match.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          // Get unread count
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('match_id', match.id)
+            .eq('is_read', false)
+            .neq('sender_id', user.id);
+          
+          const lastMessage = messages?.[0];
+          if (!lastMessage) return null;
+
+          const otherUser = match.user1_id === user.id ? match.user2 : match.user1;
+          const lastActive = otherUser?.last_active_at ? new Date(otherUser.last_active_at) : null;
+          const isOnline = lastActive ? lastActive > fiveMinutesAgo : false;
+          
+          return {
+            id: match.id,
+            name: otherUser?.display_name || 'Someone',
+            photo: otherUser?.photos?.[0] || '',
+            lastMessage: lastMessage.content.slice(0, 30) + (lastMessage.content.length > 30 ? '...' : ''),
+            time: formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: false }),
+            unreadCount: unreadCount || 0,
+            isOnline,
+            lastActiveAt: otherUser?.last_active_at || null,
+          };
+        })
+      );
+
+      return conversationsWithMessages
+        .filter(Boolean)
+        .slice(0, 5);
+    },
+    enabled: !!user?.id,
+  });
+
   // Real-time subscriptions for sidebar updates
   useEffect(() => {
     if (!user?.id) return;
@@ -193,8 +267,31 @@ export default function Discover() {
 
             if (match.is_match) {
               queryClient.invalidateQueries({ queryKey: ['recent-matches-sidebar', user.id] });
+              queryClient.invalidateQueries({ queryKey: ['recent-conversations-sidebar', user.id] });
             }
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['recent-conversations-sidebar', user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['recent-conversations-sidebar', user.id] });
         }
       )
       .subscribe();
@@ -227,9 +324,15 @@ export default function Discover() {
 
   // Keyboard navigation for desktop
   useEffect(() => {
-    if (isMobile || isLoading || noMoreProfiles || !currentProfile) return;
+    console.log('Keyboard nav effect:', { isMobile, isLoading, noMoreProfiles, hasProfile: !!currentProfile });
+    
+    if (isMobile || isLoading || noMoreProfiles || !currentProfile) {
+      console.log('Keyboard nav skipped');
+      return;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('Key pressed:', e.key);
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         onPass();
@@ -262,23 +365,14 @@ export default function Discover() {
   // Empty state when no more profiles
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center text-center p-8">
-      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 relative">
-        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" style={{ animationDuration: '2s' }} />
-        <span className="text-5xl">🎣</span>
+      <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
+        <Heart className="h-12 w-12 text-muted-foreground" />
       </div>
-      <h2 className="text-2xl font-bold mb-2">That's everyone for now!</h2>
-      <p className="text-muted-foreground mb-6 max-w-xs">
-        You've seen all the anglers nearby. Widen your filters or check back soon for new catches.
+      <h2 className="text-2xl font-semibold mb-2">No more profiles</h2>
+      <p className="text-muted-foreground mb-6 max-w-sm">
+        You've seen all available profiles in your area. Check back later or adjust your preferences to see more people.
       </p>
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
-        <QuickFiltersSheet 
-          trigger={
-            <Button variant="default" className="flex-1 gap-2">
-              <SlidersHorizontal className="h-4 w-4" />
-              Adjust Filters
-            </Button>
-          }
-        />
+      <div className="flex gap-3">
         <Button 
           onClick={async () => {
             setIsRefreshing(true);
@@ -286,11 +380,15 @@ export default function Discover() {
             setTimeout(() => setIsRefreshing(false), 1000);
           }} 
           variant="outline" 
-          className="flex-1 gap-2"
+          className="gap-2"
           disabled={isRefreshing}
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Refreshing...' : 'Refresh'}
+        </Button>
+        <Button onClick={startTutorial} variant="ghost" className="gap-2" disabled>
+          <HelpCircle className="h-4 w-4" />
+          Tutorial
         </Button>
       </div>
     </div>
@@ -308,95 +406,121 @@ export default function Discover() {
   return (
     <>
       <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] lg:h-screen overflow-hidden overscroll-none">
-        {/* Left Sidebar - Bumble style with conversations */}
+        {/* Left Sidebar - Desktop Only */}
         <DiscoverSidebar
+          accountMode={accountMode}
+          discoveryMode={discoveryMode}
+          onDiscoveryModeChange={setDiscoveryMode}
           userName={profile?.display_name || 'User'}
           userPhoto={profile?.photos?.[0]}
           isPremium={profile?.is_premium || false}
-          pendingLikes={pendingLikes || []}
-          newMatches={recentMatches || []}
-          onMatchClick={(matchId) => navigate(`/app/messages/${matchId}`)}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col items-center justify-center overflow-hidden lg:ml-80">
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col items-center justify-center p-0 lg:p-8 overflow-hidden lg:ml-60">
           {isMobile ? (
-            /* Mobile: Single column card */
-            <div className="flex-1 flex flex-col items-center justify-center p-0 overflow-hidden w-full">
-              <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-2 pt-2">
-                {isLoading ? (
-                  renderLoading()
-                ) : noMoreProfiles || !currentProfile ? (
-                  renderEmptyState()
-                ) : (
-                  <>
-                    <div className="w-full flex-1 flex items-center justify-center min-h-0">
-                      <ProfileCard
-                        profile={currentProfile}
-                        onInfoClick={handleProfileClick}
-                        onSwipeLeft={onPass}
-                        onSwipeRight={onLike}
-                        className="w-full"
-                      />
-                    </div>
-
-                    {/* Swipe Actions */}
-                    <div className="w-full pt-2 pb-1">
-                      <div className="mx-auto w-fit flex flex-col items-center gap-2">
-                        <SwipeActions
-                          onRewind={() => {}}
-                          onPass={onPass}
-                          onSuperLike={onSuperLike}
-                          onLike={onLike}
-                          canRewind={false}
-                        />
-                        <ReportProfileSheet
-                          profileId={currentProfile.id}
-                          profileName={currentProfile.name}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Desktop: Unified Card with integrated Info Panel */
-            <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8">
+            <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-2 pt-2">
               {isLoading ? (
                 renderLoading()
               ) : noMoreProfiles || !currentProfile ? (
                 renderEmptyState()
               ) : (
                 <>
-                  {/* Unified Profile Card with info panel */}
-                  <ProfileCard 
-                    profile={currentProfile} 
-                    onInfoClick={handleProfileClick}
-                    onSwipeLeft={onPass}
-                    onSwipeRight={onLike}
-                    showInfoPanel={true}
-                  />
+                  <div className="w-full flex-1 flex items-center justify-center min-h-0">
+                    <ProfileCard
+                      profile={currentProfile}
+                      onInfoClick={handleProfileClick}
+                      onSwipeLeft={onPass}
+                      onSwipeRight={onLike}
+                      className="w-full"
+                    />
+                  </div>
 
                   {/* Swipe Actions */}
-                  <div className="mt-6 flex flex-col items-center gap-3">
+                  <div className="w-full pt-2 pb-1">
+                    <div className="mx-auto w-fit">
+                      <SwipeActions
+                        onRewind={() => {}} // Rewind requires storing history - future enhancement
+                        onPass={onPass}
+                        onSuperLike={onSuperLike}
+                        onLike={onLike}
+                        canRewind={false}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="w-full max-w-sm">
+              {isLoading ? (
+                renderLoading()
+              ) : noMoreProfiles || !currentProfile ? (
+                renderEmptyState()
+              ) : (
+                <>
+                  {/* Profile Card with Side Action Buttons */}
+                  <div className="relative">
+                    {/* Left Pass Button - Absolutely positioned */}
+                    <button
+                      onClick={onPass}
+                      className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%+1rem)] shrink-0 items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive hover:scale-110 transition-all duration-200 shadow-lg"
+                      aria-label="Pass"
+                    >
+                      <X className="h-7 w-7" />
+                    </button>
+
+                    <ProfileCard 
+                      profile={currentProfile} 
+                      onInfoClick={handleProfileClick}
+                      onSwipeLeft={onPass}
+                      onSwipeRight={onLike}
+                    />
+
+                    {/* Right Like Button - Absolutely positioned */}
+                    <button
+                      onClick={onLike}
+                      className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(100%+1rem)] shrink-0 items-center justify-center w-14 h-14 rounded-full bg-background border-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-110 transition-all duration-200 shadow-lg"
+                      aria-label="Like"
+                    >
+                      <Heart className="h-7 w-7" />
+                    </button>
+                  </div>
+
+                  {/* Swipe Actions */}
+                  <div className="mt-6">
                     <SwipeActions
-                      onRewind={() => {}}
+                      onRewind={() => {}} // Rewind requires storing history - future enhancement
                       onPass={onPass}
                       onSuperLike={onSuperLike}
                       onLike={onLike}
                       canRewind={false}
                     />
-                    <ReportProfileSheet
-                      profileId={currentProfile.id}
-                      profileName={currentProfile.name}
-                    />
                   </div>
+
+                  {/* Keyboard hint - Desktop */}
+                  <p className="hidden lg:block text-center text-sm text-muted-foreground mt-4">
+                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> Pass{' · '}
+                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">↑</kbd> Super Like{' · '}
+                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> Like
+                  </p>
                 </>
               )}
             </div>
           )}
         </main>
+
+        {/* Right Sidebar - Desktop Only */}
+        <RightSidebar
+          newMatches={recentMatches || []}
+          newMatchCount={recentMatches?.length || 0}
+          pendingLikes={pendingLikes || []}
+          conversations={conversations || []}
+          isPremium={profile?.is_premium || false}
+          accountMode={accountMode}
+          onMatchClick={(matchId) => navigate(`/app/messages/${matchId}`)}
+          onConversationClick={(matchId) => navigate(`/app/messages/${matchId}`)}
+        />
       </div>
 
       {/* Match Celebration Modal */}

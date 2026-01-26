@@ -50,6 +50,3 @@ verify_jwt = true
 
 [functions.create-daily-room]
 verify_jwt = true
-
-[functions.process-match-expirations]
-verify_jwt = false

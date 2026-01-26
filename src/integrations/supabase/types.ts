@@ -883,7 +883,6 @@ export type Database = {
       matches: {
         Row: {
           created_at: string
-          expires_at: string | null
           id: string
           is_match: boolean | null
           matched_at: string | null
@@ -896,7 +895,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          expires_at?: string | null
           id?: string
           is_match?: boolean | null
           matched_at?: string | null
@@ -909,7 +907,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          expires_at?: string | null
           id?: string
           is_match?: boolean | null
           matched_at?: string | null
@@ -2165,7 +2162,6 @@ export type Database = {
           display_name: string
           last_message: string
           last_message_time: string
-          last_sender_id: string
           match_id: string
           matched_at: string
           matched_user_id: string

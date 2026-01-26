@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Info, Check, Briefcase } from 'lucide-react';
+import { MapPin, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
@@ -19,7 +19,6 @@ export interface ProfileData {
   idVerified?: boolean;
   liveVerified?: boolean;
   likedYou?: boolean;
-  occupation?: string;
 }
 
 interface ProfileCardProps {
@@ -28,10 +27,9 @@ interface ProfileCardProps {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   className?: string;
-  showInfoPanel?: boolean;
 }
 
-export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, className, showInfoPanel = false }: ProfileCardProps) {
+export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, className }: ProfileCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
@@ -94,34 +92,33 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
       whileTap={{ cursor: 'grabbing' }}
       data-tutorial="profile-card"
       className={cn(
-        "bg-background rounded-2xl shadow-medium overflow-hidden cursor-grab relative",
-        isMobile ? "touch-none h-full w-full flex flex-col" : "touch-pan-y flex",
-        showInfoPanel && !isMobile ? "max-w-3xl" : "max-w-md",
+        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-[calc(100vw-1.5rem)] sm:max-w-sm w-full mx-auto cursor-grab relative flex flex-col",
+        isMobile ? "touch-none h-full" : "touch-pan-y",
         className
       )}
     >
-      {/* Swipe Indicators - Corner positioned stamps */}
+      {/* Swipe Indicators */}
       <motion.div 
         style={{ opacity: likeOpacity }} 
-        className="absolute top-8 right-6 z-20 pointer-events-none"
+        className="absolute inset-0 bg-green-500/20 rounded-3xl pointer-events-none z-10 flex items-center justify-center"
       >
-        <div className="bg-green-500/90 text-white px-4 py-2 rounded-lg font-bold text-lg rotate-[12deg] border-[3px] border-white shadow-lg uppercase tracking-wider">
-          Like
+        <div className="bg-green-500 text-white px-6 py-3 rounded-full font-bold text-xl rotate-[-15deg] border-4 border-green-500">
+          LIKE
         </div>
       </motion.div>
       <motion.div 
         style={{ opacity: passOpacity }} 
-        className="absolute top-8 left-6 z-20 pointer-events-none"
+        className="absolute inset-0 bg-red-500/20 rounded-3xl pointer-events-none z-10 flex items-center justify-center"
       >
-        <div className="bg-red-500/90 text-white px-4 py-2 rounded-lg font-bold text-lg rotate-[-12deg] border-[3px] border-white shadow-lg uppercase tracking-wider">
-          Nope
+        <div className="bg-red-500 text-white px-6 py-3 rounded-full font-bold text-xl rotate-[15deg] border-4 border-red-500">
+          NOPE
         </div>
       </motion.div>
 
       {/* Photo Section */}
       <div className={cn(
         "relative bg-muted overflow-hidden",
-        isMobile ? "flex-1 min-h-0" : showInfoPanel ? "flex-[3] aspect-[3/4]" : "aspect-[3/4] w-full"
+        isMobile ? "flex-1 min-h-0" : "aspect-[3/4]"
       )}>
         <img
           src={profile.photos[currentPhotoIndex]}
@@ -129,43 +126,45 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
           className="w-full h-full object-cover absolute inset-0"
         />
 
-        {/* Photo Navigation Segment Bars - Stories style */}
+        {/* Photo Navigation Dots */}
         {profile.photos.length > 1 && (
-          <div className="absolute top-3 left-3 right-3 flex gap-1 z-10">
+          <div className="absolute top-3 left-0 right-0 flex justify-center gap-1">
             {profile.photos.map((_, idx) => (
               <div
                 key={idx}
                 className={cn(
-                  'h-1 flex-1 rounded-full transition-all duration-300',
+                  'h-1 rounded-full transition-all',
                   idx === currentPhotoIndex
-                    ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]'
-                    : 'bg-white/40'
+                    ? 'w-6 bg-background'
+                    : 'w-1 bg-background/50'
                 )}
               />
             ))}
           </div>
         )}
 
-        {/* Photo Navigation Touch Areas */}
+        {/* Photo Navigation Arrows */}
         {profile.photos.length > 1 && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
-              className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
+              className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors"
               disabled={currentPhotoIndex === 0}
-              aria-label="Previous photo"
-            />
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
             <button
               onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
-              className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors"
               disabled={currentPhotoIndex === profile.photos.length - 1}
-              aria-label="Next photo"
-            />
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </>
         )}
 
         {/* Top Badges */}
-        <div className="absolute top-10 left-4 flex flex-col gap-2 z-10">
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
           {/* Liked You Badge */}
           {profile.likedYou && (
             <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold border-0 shadow-lg animate-pulse">
@@ -174,143 +173,65 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
           )}
           {/* Fishing Type Badge */}
           {profile.fishingType && (
-            <Badge variant="secondary" className="bg-white/90 text-foreground font-medium backdrop-blur-sm">
+            <Badge variant="secondary" className="bg-background text-foreground font-medium">
               🎣 {profile.fishingType}
             </Badge>
           )}
         </div>
 
-        {/* Info Button - Desktop only, when info panel is NOT shown */}
-        {!isMobile && !showInfoPanel && (
+        {/* Info Button - Desktop only */}
+        {!isMobile && (
           <button
             onClick={(e) => { e.stopPropagation(); onInfoClick?.(); }}
-            className="absolute top-10 right-4 h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 transition-colors z-10"
+            className="absolute top-4 right-4 h-8 w-8 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors"
             aria-label="View profile details"
           >
-            <Info className="h-5 w-5" />
+            <Info className="h-4 w-4" />
           </button>
         )}
 
-        {/* Name & Location Overlay - Only shown when info panel is hidden */}
-        {!showInfoPanel && (
-          <div
-            className={cn(
-              "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent",
-              isMobile ? "p-4 pt-16" : "p-5 pt-20"
-            )}
-          >
-            <h2 className={cn("font-bold text-white flex items-center gap-2", isMobile ? "text-xl" : "text-2xl")}>
-              {profile.name}, {profile.age}
-              <VerificationBadge 
-                idVerified={profile.idVerified} 
-                liveVerified={profile.liveVerified} 
-                size="md" 
-              />
-            </h2>
-            {profile.occupation && (
-              <p className="text-white/90 text-sm mt-0.5 font-medium">
-                {profile.occupation}
-              </p>
-            )}
-            <div className="flex items-center gap-1 text-white/80 text-sm mt-1">
-              <MapPin className="h-4 w-4" />
-              <span>{profile.location}</span>
-              <span className="mx-1">•</span>
-              <span>{profile.distance}</span>
-            </div>
+        {/* Name & Location Overlay */}
+        <div
+          className={cn(
+            "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent",
+            isMobile ? "p-3 pt-12" : "p-4 pt-16"
+          )}
+        >
+          <h2 className={cn("font-bold text-background flex items-center gap-1", isMobile ? "text-lg" : "text-xl")}>
+            {profile.name}, {profile.age}
+            <VerificationBadge 
+              idVerified={profile.idVerified} 
+              liveVerified={profile.liveVerified} 
+              size="sm" 
+            />
+          </h2>
+          <div className="flex items-center gap-1 text-background/90 text-sm mt-1">
+            <MapPin className="h-4 w-4" />
+            <span>{profile.location}</span>
+            <span className="mx-1">•</span>
+            <span>{profile.distance}</span>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Integrated Info Panel - Desktop only when showInfoPanel is true */}
-      {showInfoPanel && !isMobile && (
-        <div className="flex-[2] bg-amber-50/80 dark:bg-amber-950/20 border-l border-amber-200/50 dark:border-amber-800/30 flex flex-col min-w-[260px] max-w-[320px]">
-          <div className="flex-1 p-6 flex flex-col">
-            {/* Name & Age */}
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                {profile.name}, {profile.age}
-                <VerificationBadge
-                  idVerified={profile.idVerified}
-                  liveVerified={profile.liveVerified}
-                  size="lg"
-                />
-              </h2>
-            </div>
+      {/* Bio & Tags Section - Desktop only */}
+      {!isMobile && (
+        <div className="p-5 shrink-0">
+          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+            {profile.bio}
+          </p>
 
-            {/* Photo Verified Badge */}
-            {(profile.idVerified || profile.liveVerified) && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {profile.tags.map((tag, idx) => (
               <Badge
+                key={idx}
                 variant="outline"
-                className="w-fit mb-4 bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/30 gap-1.5"
+                className="px-3 py-1.5 font-medium text-sm rounded-full"
               >
-                <Check className="h-3.5 w-3.5" />
-                Photo verified
+                {tag.icon && <span className="mr-1">{tag.icon}</span>}
+                {tag.label}
               </Badge>
-            )}
-
-            {/* Occupation */}
-            {profile.occupation && (
-              <div className="flex items-start gap-3 mb-4">
-                <Briefcase className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-foreground">{profile.occupation}</p>
-              </div>
-            )}
-
-            {/* Location */}
-            <div className="flex items-start gap-3 mb-6">
-              <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-foreground">
-                {profile.location}
-                {profile.distance && (
-                  <span className="text-muted-foreground"> • {profile.distance}</span>
-                )}
-              </p>
-            </div>
-
-            {/* Bio */}
-            {profile.bio && (
-              <div className="mb-6">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {profile.bio}
-                </p>
-              </div>
-            )}
-
-            {/* Tags/Interests */}
-            {profile.tags && profile.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {profile.tags.map((tag, idx) => (
-                  <Badge
-                    key={idx}
-                    variant="secondary"
-                    className="bg-background/80 text-foreground"
-                  >
-                    {tag.icon && <span className="mr-1">{tag.icon}</span>}
-                    {tag.label}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* Fishing Type */}
-            {profile.fishingType && (
-              <div className="mt-4">
-                <Badge
-                  variant="secondary"
-                  className="bg-primary/10 text-primary"
-                >
-                  🎣 {profile.fishingType}
-                </Badge>
-              </div>
-            )}
-          </div>
-
-          {/* Bottom dots indicator (decorative) */}
-          <div className="p-6 pt-0 flex justify-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-foreground/20" />
-            <span className="h-2 w-2 rounded-full bg-foreground/20" />
-            <span className="h-2 w-2 rounded-full bg-foreground/20" />
+            ))}
           </div>
         </div>
       )}
