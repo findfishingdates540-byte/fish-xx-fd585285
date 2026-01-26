@@ -79,8 +79,8 @@ export function SwipeActions({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex items-center justify-center gap-2">
-        {/* Pass - Bumble gray style */}
+      <div className="flex items-center justify-center gap-4">
+        {/* Pass - Large white circle with X */}
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.button
@@ -88,9 +88,10 @@ export function SwipeActions({
               data-tutorial="pass-button"
               animate={animatingButton === 'pass' ? { scale: [1, 0.85, 1.1, 1], rotate: [0, -8, 8, 0] } : {}}
               transition={{ duration: 0.35 }}
-              className="h-14 w-14 rounded-full border-2 border-muted-foreground/30 text-muted-foreground flex items-center justify-center transition-all hover:bg-muted hover:text-foreground hover:scale-105"
+              className="h-16 w-16 rounded-full bg-background text-muted-foreground flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+              style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}
             >
-              <X className="h-7 w-7" />
+              <X className="h-8 w-8 stroke-[2.5]" />
             </motion.button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="hidden lg:block">
@@ -98,7 +99,7 @@ export function SwipeActions({
           </TooltipContent>
         </Tooltip>
 
-        {/* Super Like - Bumble amber/yellow style */}
+        {/* Super Like - Yellow/Amber circle with star */}
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.button
@@ -106,9 +107,10 @@ export function SwipeActions({
               data-tutorial="superlike-button"
               animate={animatingButton === 'superlike' ? { scale: [1, 0.8, 1.25, 1] } : {}}
               transition={{ duration: 0.4 }}
-              className="h-12 w-12 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-md shadow-amber-400/30 transition-all hover:bg-amber-500 hover:scale-105"
+              className="h-14 w-14 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-lg transition-all hover:bg-amber-500 hover:scale-110 active:scale-95"
+              style={{ boxShadow: '0 4px 20px rgba(251,191,36,0.4)' }}
             >
-              <Star className={cn("h-6 w-6", animatingButton === 'superlike' && "fill-current")} />
+              <Star className={cn("h-7 w-7 stroke-[2.5]", animatingButton === 'superlike' && "fill-current")} />
             </motion.button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="hidden lg:block">
@@ -116,7 +118,7 @@ export function SwipeActions({
           </TooltipContent>
         </Tooltip>
 
-        {/* Like - Bumble style checkmark */}
+        {/* Like - Large white circle with checkmark */}
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.button
@@ -124,9 +126,10 @@ export function SwipeActions({
               data-tutorial="like-button"
               animate={animatingButton === 'like' ? { scale: [1, 0.85, 1.2, 1] } : {}}
               transition={{ duration: 0.4 }}
-              className="h-14 w-14 rounded-full border-2 border-muted-foreground/30 text-muted-foreground flex items-center justify-center transition-all hover:bg-foreground hover:text-background hover:border-foreground hover:scale-105"
+              className="h-16 w-16 rounded-full bg-background text-muted-foreground flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+              style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}
             >
-              <Check className="h-7 w-7" />
+              <Check className="h-8 w-8 stroke-[2.5]" />
             </motion.button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="hidden lg:block">
