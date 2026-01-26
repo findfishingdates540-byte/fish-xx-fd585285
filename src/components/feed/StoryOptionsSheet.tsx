@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { createPortal } from 'react-dom';
 import { Share2, Camera, Trash2, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,7 +24,7 @@ export const StoryOptionsSheet: FC<StoryOptionsSheetProps> = ({
   isOwnStory = false,
   ownerName,
 }) => {
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -32,7 +33,12 @@ export const StoryOptionsSheet: FC<StoryOptionsSheetProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             className="fixed inset-0 bg-black/40 z-[100000]"
           />
           
@@ -42,6 +48,9 @@ export const StoryOptionsSheet: FC<StoryOptionsSheetProps> = ({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             className="fixed bottom-0 left-0 right-0 z-[100001] bg-card rounded-t-2xl overflow-hidden"
           >
             {/* Handle */}
@@ -136,6 +145,7 @@ export const StoryOptionsSheet: FC<StoryOptionsSheetProps> = ({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
