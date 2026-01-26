@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Link2, Share2, Plus, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -137,7 +138,7 @@ export const ShareSheet: FC<ShareSheetProps> = ({
     return name?.charAt(0)?.toUpperCase() || '?';
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -146,7 +147,12 @@ export const ShareSheet: FC<ShareSheetProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             className="fixed inset-0 bg-black/60 z-[100000]"
           />
           
@@ -156,6 +162,9 @@ export const ShareSheet: FC<ShareSheetProps> = ({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             className="fixed bottom-0 left-0 right-0 z-[100001] bg-card rounded-t-2xl overflow-hidden"
             style={{ maxHeight: '70vh' }}
           >
@@ -293,6 +302,7 @@ export const ShareSheet: FC<ShareSheetProps> = ({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
