@@ -1,233 +1,227 @@
 
-
-# Dating App Optimization Plan (Bumble-Inspired Features)
+# Design Optimization Plan: Bumble-Inspired UI Polish
 
 ## Overview
-
-This plan outlines enhancements to bring your dating app closer to Bumble's polished UX, focusing on engagement, urgency, and conversation flow mechanics.
+This plan focuses on visual refinements to bring the Discover page closer to Bumble's polished, modern aesthetic while maintaining your existing functionality.
 
 ---
 
-## 1. "Your Move" Conversation Status Badges
+## 1. Profile Card Redesign
 
-**Problem:** Users don't know whose turn it is to reply, leading to stalled conversations.
+### Current Issues
+- Card has rounded corners with visible padding around it
+- Bio section visible on desktop adds visual clutter
+- Photo navigation dots are basic
+- Name overlay gradient could be more refined
 
-**Solution:** Add visual badges showing conversation responsibility.
+### Proposed Changes
 
-### Implementation Details
+**Card Container:**
+- Increase card size on desktop (from max-w-sm to max-w-md)
+- Reduce border-radius slightly (from rounded-3xl to rounded-2xl)
+- Remove bio section from card entirely (move to expandable detail view)
+- Edge-to-edge photo on mobile with no card wrapper
 
-- Add a `last_sender_id` field tracking to conversations
-- Display "Your move" badge (amber/yellow) when the other person sent the last message
-- Display no badge (or subtle "Waiting" indicator) when you sent the last message
-- Badge styling: Rounded pill with amber background, dark text
+**Photo Navigation:**
+- Replace dots with sleek segment bars at top (like Instagram Stories/Bumble)
+- Active segment = full opacity, inactive = 50% opacity
+- Smooth width transition on segment change
+
+**Name Overlay:**
+- Larger, bolder name text
+- More subtle gradient (less dark, more transparent)
+- Add job/occupation line below name (if available)
+- Verification badge inline with name (larger, more prominent blue)
 
 ### Files to Modify
-- `src/hooks/use-dating-conversations.ts` - Add `last_sender_id` to RPC return data
-- `src/pages/app/Messages.tsx` - Render badges in conversation list
-- `src/components/chat/ChatSidebar.tsx` - Add badge component to conversation items
-
-### UI Placement
-Position the badge to the right of the user's name in the conversation list, exactly like Bumble's layout.
+- `src/components/discover/ProfileCard.tsx`
 
 ---
 
-## 2. Match/Conversation Expiration System
+## 2. Swipe Indicator Refinement
 
-**Problem:** Matches can sit indefinitely, reducing engagement urgency.
+### Current State
+- LIKE/NOPE appear as colored overlays with bordered text
+- Covers most of the card
 
-**Solution:** Implement 24-48 hour expiration timers for matches without messages.
-
-### Implementation Details
-
-**Database Changes:**
-- Add `expires_at` column to `matches` table (nullable, set when match occurs)
-- Create `match_expiration_settings` in app_settings for configurable timeouts
-
-**Backend Logic:**
-- Edge Function: `process-match-expirations` - Runs hourly to mark expired matches
-- Set `expires_at = matched_at + 24 hours` when a match is created
-- Extend or remove expiration when first message is sent
-
-**Frontend Display:**
-- Show countdown timer: "Expires in 4 hours" below conversation preview
-- Visual urgency: Amber text when <6h remaining, Red when <1h
-- Animate expiration indicator subtly
-
-### Files to Create
-- `supabase/functions/process-match-expirations/index.ts`
-- `src/hooks/use-match-expiration.ts`
+### Proposed Changes
+- Make stamps smaller and positioned in the corner (not centered)
+- Add subtle rotation (tilted stamp effect)
+- Use a more "stamped" visual style with border + fill
+- LIKE = green stamp top-right, NOPE = red stamp top-left
 
 ### Files to Modify
-- `src/components/messages/NewMatchesRow.tsx` - Add countdown display
-- `src/pages/app/Messages.tsx` - Show expiration in conversation list
-- Database migration for `expires_at` column
+- `src/components/discover/ProfileCard.tsx`
 
 ---
 
-## 3. Enhanced Match Queue UI
+## 3. Action Buttons Polish
 
-**Problem:** Match queue is basic compared to Bumble's prominent, count-displaying design.
+### Current State
+- 4 buttons (Rewind, Pass, Super Like, Like) with varying sizes
+- Keyboard hints shown below
 
-**Solution:** Make the match queue more visually prominent with counts and improved layout.
-
-### Implementation Details
-
-- Add total match count badge (like Bumble's "50" badge on first card)
-- Show "X New" indicator more prominently
-- Add subtle animations for new matches appearing
-- Improve card sizing and spacing in the horizontal scroll
+### Proposed Changes
+- Tighten spacing between buttons
+- Make Like button larger and more prominent (gradient background like Bumble's heart)
+- Add subtle shadow/glow to primary action button
+- Hide Rewind button if not functional (or show as locked/premium feature)
+- Move keyboard hints to tooltip on hover (less visual clutter)
 
 ### Files to Modify
-- `src/components/messages/NewMatchesRow.tsx`
-- `src/components/messages/LikesCard.tsx`
-
-### Design Specifications
-- First card: Large count badge (gradient background)
-- Match cards: 16×20 aspect ratio with name below
-- Online status: Green dot bottom-right of avatar
+- `src/components/discover/SwipeActions.tsx`
 
 ---
 
-## 4. Quick Filters Above Profile Card
+## 4. Photo Segment Bars (Stories-Style)
 
-**Problem:** Users must navigate to settings to change discovery preferences.
+### Design Specification
+```text
+┌────────────────────────────────────────┐
+│  ▬▬▬▬▬▬  ▬▬▬▬▬▬  ▬▬▬▬▬▬  ▬▬▬▬▬▬  │  <- Top segment bars
+│                                        │
+│                                        │
+│            [ PHOTO ]                   │
+│                                        │
+│  ┌─────────────────────────────────┐  │
+│  │  Sarah, 28  ✓                   │  │  <- Name overlay
+│  │  📍 Miami • 5 miles away        │  │
+│  └─────────────────────────────────┘  │
+└────────────────────────────────────────┘
+```
 
-**Solution:** Add a "Filters" button above the profile card for quick access.
+### Technical Implementation
+- Replace photo dots with horizontal bars
+- Each bar = `flex-1` width within a flex container
+- Active bar = `bg-white` with subtle glow
+- Inactive bars = `bg-white/40`
+- Transition: width stays same, opacity animates
 
-### Implementation Details
+---
 
-- "Filters" button with icon at top of Discover page
-- Opens a bottom sheet (mobile) or dropdown (desktop) with:
-  - Age range slider
-  - Distance range slider  
-  - Looking for toggle (Date/Buddies)
-- Persist filter changes immediately
+## 5. Right Sidebar Refinement (Desktop)
 
-### Files to Create
+### Current Issues
+- Three separate sections competing for attention
+- Heavy borders and cards
+
+### Proposed Changes
+- Simplify to two main sections: "Who Likes You" and "Matches"
+- Remove conversation preview (users can click to Messages page)
+- Cleaner card styling with less borders
+- Larger, more tappable avatars
+- Add hover states with scale animation
+
+### Files to Modify
+- `src/components/discover/RightSidebar.tsx`
+
+---
+
+## 6. Quick Filters Button Redesign
+
+### Current State
+- Filter icon button that opens a sheet
+
+### Proposed Changes
+- Add a pill-shaped button with icon + "Filters" text
+- Show active filter count as badge
+- Position above card, left-aligned (Bumble style)
+- Add subtle background when filters are active
+
+### Files to Modify
 - `src/components/discover/QuickFiltersSheet.tsx`
-
-### Files to Modify
-- `src/pages/app/Discover.tsx` - Add filters button and sheet trigger
-- `src/hooks/use-discover-profiles.ts` - Accept filter parameters
+- `src/pages/app/Discover.tsx`
 
 ---
 
-## 5. Block and Report Quick Access
+## 7. Empty State Polish
 
-**Problem:** No easy way to report/block from the main profile card view.
+### Current State
+- Basic centered content with muted icon
 
-**Solution:** Add "Block and report" link below profile cards.
+### Proposed Changes
+- Add illustration or animated fishing hook
+- More engaging copy
+- Prominent "Adjust Filters" CTA
+- "Invite Friends" secondary action
 
-### Implementation Details
+### Files to Modify
+- `src/pages/app/Discover.tsx`
 
-- Subtle link/button below the swipe action buttons
-- Opens a report modal with reason selection:
-  - Inappropriate photos
-  - Fake profile/scam
-  - Underage
-  - Offensive behavior
-  - Other
+---
+
+## Technical Summary
 
 ### Files to Create
-- `src/components/discover/ReportProfileSheet.tsx`
+- None (all refinements to existing components)
 
 ### Files to Modify
-- `src/pages/app/Discover.tsx` - Add report link below SwipeActions
+
+| File | Changes |
+|------|---------|
+| `src/components/discover/ProfileCard.tsx` | Segment bars, stamp styling, name overlay, remove bio |
+| `src/components/discover/SwipeActions.tsx` | Tighter spacing, button sizing, hide non-functional rewind |
+| `src/components/discover/RightSidebar.tsx` | Simplify sections, cleaner styling |
+| `src/components/discover/QuickFiltersSheet.tsx` | Pill button design with filter count |
+| `src/pages/app/Discover.tsx` | Updated layout, empty state |
 
 ---
 
-## 6. Profile Detail Panel (Right Side)
+## Visual Reference
 
-**Problem:** Right sidebar exists but could better mirror Bumble's info-rich layout.
-
-**Solution:** Enhance the right panel with more profile details.
-
-### Bumble-Inspired Additions
-- Larger name + age with verification badge
-- Job/company title (like "Owner at Sundevil...")
-- "Photo verified" badge styling
-- Additional profile prompts/answers
-- Shared interests/compatibility indicators
-
-### Files to Modify
-- `src/components/discover/RightSidebar.tsx` - If used for profile details
-- `src/components/discover/ProfileDetailView.tsx` - Enhance content sections
-
----
-
-## 7. Keyboard Navigation Improvements
-
-**Current:** Arrow keys work for like/pass.
-
-**Enhancement:** Add visible keyboard shortcut hints on desktop.
-
-### Implementation Details
-- Show small hint icons near action buttons: "←" "→" "↑"
-- Add tooltip on hover explaining shortcuts
-
-### Files to Modify
-- `src/components/discover/SwipeActions.tsx` - Add keyboard hint labels
-
----
-
-## Technical Architecture Summary
+### Before/After: Profile Card
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        Frontend Changes                          │
-├─────────────────────────────────────────────────────────────────┤
-│  Messages Page                                                   │
-│  ├── "Your move" badges in conversation list                    │
-│  ├── Expiration countdown timers                                │
-│  └── Enhanced match queue with counts                           │
-│                                                                  │
-│  Discover Page                                                   │
-│  ├── Quick Filters button + sheet                               │
-│  ├── Block/Report link below actions                            │
-│  └── Keyboard shortcut hints                                    │
-│                                                                  │
-│  Components                                                      │
-│  ├── YourMoveBadge.tsx (new)                                    │
-│  ├── ExpirationTimer.tsx (new)                                  │
-│  ├── QuickFiltersSheet.tsx (new)                                │
-│  └── ReportProfileSheet.tsx (new)                               │
-└─────────────────────────────────────────────────────────────────┘
+BEFORE:                              AFTER:
+┌─────────────────────┐              ┌───────────────────────────┐
+│  ● ● ● ●            │              │  ▬▬▬▬ ▬▬▬▬ ▬▬▬▬ ▬▬▬▬     │
+│                     │              │                           │
+│      [Photo]        │              │        [Photo]            │
+│                     │              │                           │
+│  ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  │              │  ┌───────────────────┐    │
+│  Name, Age          │              │  │ Name, 28 ✓        │    │
+│  📍 Location        │              │  │ 📍 Miami • 5mi    │    │
+├─────────────────────┤              │  └───────────────────┘    │
+│  Bio text here...   │              └───────────────────────────┘
+│                     │              
+│  [Tag] [Tag] [Tag]  │              (No bio section - cleaner!)
+└─────────────────────┘              
+```
 
-┌─────────────────────────────────────────────────────────────────┐
-│                        Backend Changes                           │
-├─────────────────────────────────────────────────────────────────┤
-│  Database                                                        │
-│  ├── matches.expires_at column                                  │
-│  └── Index on expires_at for cleanup queries                    │
-│                                                                  │
-│  Edge Functions                                                  │
-│  └── process-match-expirations (scheduled)                      │
-│                                                                  │
-│  RPC Updates                                                     │
-│  └── get_dating_conversations → include last_sender_id          │
-└─────────────────────────────────────────────────────────────────┘
+### Before/After: Swipe Indicators
+
+```text
+BEFORE:                    AFTER:
+┌─────────────────┐        ┌─────────────────┐
+│                 │        │      ┌─────┐    │
+│   ┌────────┐    │        │      │LIKE │    │
+│   │  LIKE  │    │        │      └─────┘    │
+│   └────────┘    │        │                 │
+│                 │        │    [Photo]      │
+│   (Centered)    │        │                 │
+└─────────────────┘        └─────────────────┘
+                           (Corner positioned, tilted)
 ```
 
 ---
 
 ## Implementation Priority
 
-| Priority | Feature | Impact | Effort |
-|----------|---------|--------|--------|
-| 1 | "Your move" badges | High | Low |
-| 2 | Quick Filters | High | Medium |
-| 3 | Match expiration timers | High | Medium |
-| 4 | Block/Report access | Medium | Low |
-| 5 | Enhanced match queue | Medium | Low |
-| 6 | Keyboard hints | Low | Low |
+| Priority | Change | Impact | Effort |
+|----------|--------|--------|--------|
+| 1 | Photo segment bars | High | Low |
+| 2 | Remove bio from card | High | Low |
+| 3 | Swipe stamp repositioning | Medium | Low |
+| 4 | Action button tightening | Medium | Low |
+| 5 | Right sidebar simplification | Medium | Medium |
+| 6 | Quick filters pill button | Low | Low |
+| 7 | Empty state enhancement | Low | Low |
 
 ---
 
-## Estimated Timeline
+## Estimated Implementation Time
+- Phase 1 (Card polish): 30-45 minutes
+- Phase 2 (Sidebar & buttons): 30 minutes
+- Phase 3 (Fine-tuning): 20 minutes
 
-- **Phase 1** (Quick wins): "Your move" badges, Block/Report, Keyboard hints - 1-2 hours
-- **Phase 2** (Core features): Quick Filters, Enhanced match queue - 2-3 hours  
-- **Phase 3** (Advanced): Match expiration system with backend - 3-4 hours
-
-Total estimated implementation: 6-9 hours
-
+Total: ~1.5-2 hours for all design optimizations
