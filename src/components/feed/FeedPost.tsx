@@ -11,6 +11,7 @@ import { CommentSheet } from './CommentSheet';
 import { MentionText } from './MentionText';
 import { PostDetailModal } from './PostDetailModal';
 import { ReportDialog } from './ReportDialog';
+import { ShareSheet } from './ShareSheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/ui/verification-badge';
@@ -44,6 +45,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const [showComments, setShowComments] = useState(autoOpenComments);
   const [showPostModal, setShowPostModal] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const { user } = useAuth();
   const likePost = useLikePost();
   const deletePost = useDeletePost();
@@ -132,53 +134,16 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
     );
   };
 
-  const handleShare = async (e: React.MouseEvent) => {
+  const handleOpenShareSheet = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}/app/feed/${post.user_id}/${post.id}`;
-    const shareText = post.content 
-      ? `${displayName}: ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`
-      : `Check out this post by ${displayName}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Post by ${displayName}`,
-          text: shareText,
-          url: shareUrl,
-        });
-      } catch (error) {
-        // User cancelled or share failed
-        if ((error as Error).name !== 'AbortError') {
-          // Fallback to clipboard
-          await navigator.clipboard.writeText(shareUrl);
-          toast.success('Link copied to clipboard');
-        }
-      }
-    } else {
-      // Fallback for browsers without Web Share API
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link copied to clipboard');
-    }
+    setShowShareSheet(true);
   };
 
-  const handleRepost = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // For now, use native share with repost context
-    const shareUrl = `${window.location.origin}/app/feed/${post.user_id}/${post.id}`;
-    if (navigator.share) {
-      navigator.share({
-        title: `Repost from ${displayName}`,
-        text: post.content || `Check out this catch!`,
-        url: shareUrl,
-      }).catch(() => {
-        navigator.clipboard.writeText(shareUrl);
-        toast.success('Link copied to clipboard');
-      });
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      toast.success('Link copied to clipboard');
-    }
-  };
+  const getShareUrl = () => `${window.location.origin}/app/feed/${post.user_id}/${post.id}`;
+  
+  const getShareText = () => post.content 
+    ? `${displayName}: ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`
+    : `Check out this post by ${displayName}`;
 
   const formatCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -354,7 +319,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             
             {/* Share/Repost */}
             <button
-              onClick={handleRepost}
+              onClick={handleOpenShareSheet}
               className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors active:scale-90"
             >
               <Repeat2 className="h-6 w-6" strokeWidth={1.5} />
@@ -362,7 +327,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             
             {/* Send */}
             <button
-              onClick={handleShare}
+              onClick={handleOpenShareSheet}
               className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors active:scale-90"
             >
               <Send className="h-6 w-6" strokeWidth={1.5} />
@@ -458,6 +423,14 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
         contentType="post"
         contentId={post.id}
         contentOwnerId={post.user_id}
+      />
+
+      <ShareSheet
+        isOpen={showShareSheet}
+        onClose={() => setShowShareSheet(false)}
+        shareUrl={getShareUrl()}
+        shareTitle={`Post by ${displayName}`}
+        shareText={getShareText()}
       />
     </>
   );
