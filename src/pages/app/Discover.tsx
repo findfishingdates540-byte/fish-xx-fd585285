@@ -14,6 +14,8 @@ import {
   ProfileDetailView,
   MatchCelebrationModal,
   DatingTutorial,
+  ReportProfileSheet,
+  QuickFiltersSheet,
 } from '@/components/discover';
 import { RefreshCw, Heart, X, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -420,6 +422,13 @@ export default function Discover() {
         <main className="flex-1 flex flex-col items-center justify-center p-0 lg:p-8 overflow-hidden lg:ml-60">
           {isMobile ? (
             <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-2 pt-2">
+              {/* Quick Filters - Mobile */}
+              {currentProfile && !isLoading && (
+                <div className="w-full flex justify-end mb-2">
+                  <QuickFiltersSheet />
+                </div>
+              )}
+              
               {isLoading ? (
                 renderLoading()
               ) : noMoreProfiles || !currentProfile ? (
@@ -438,7 +447,7 @@ export default function Discover() {
 
                   {/* Swipe Actions */}
                   <div className="w-full pt-2 pb-1">
-                    <div className="mx-auto w-fit">
+                    <div className="mx-auto w-fit flex flex-col items-center gap-2">
                       <SwipeActions
                         onRewind={() => {}} // Rewind requires storing history - future enhancement
                         onPass={onPass}
@@ -446,18 +455,30 @@ export default function Discover() {
                         onLike={onLike}
                         canRewind={false}
                       />
+                      {/* Report Link */}
+                      <ReportProfileSheet
+                        profileId={currentProfile.id}
+                        profileName={currentProfile.name}
+                      />
                     </div>
                   </div>
                 </>
               )}
             </div>
           ) : (
-            <div className="w-full max-w-sm">
-              {isLoading ? (
-                renderLoading()
-              ) : noMoreProfiles || !currentProfile ? (
-                renderEmptyState()
-              ) : (
+          <div className="w-full max-w-sm">
+            {/* Quick Filters - Desktop */}
+            {currentProfile && !isLoading && (
+              <div className="flex justify-end mb-4">
+                <QuickFiltersSheet />
+              </div>
+            )}
+            
+            {isLoading ? (
+              renderLoading()
+            ) : noMoreProfiles || !currentProfile ? (
+              renderEmptyState()
+            ) : (
                 <>
                   {/* Profile Card with Side Action Buttons */}
                   <div className="relative">
@@ -488,13 +509,18 @@ export default function Discover() {
                   </div>
 
                   {/* Swipe Actions */}
-                  <div className="mt-6">
+                  <div className="mt-6 flex flex-col items-center gap-3">
                     <SwipeActions
                       onRewind={() => {}} // Rewind requires storing history - future enhancement
                       onPass={onPass}
                       onSuperLike={onSuperLike}
                       onLike={onLike}
                       canRewind={false}
+                    />
+                    {/* Report Link */}
+                    <ReportProfileSheet
+                      profileId={currentProfile.id}
+                      profileName={currentProfile.name}
                     />
                   </div>
 

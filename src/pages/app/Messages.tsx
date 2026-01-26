@@ -9,6 +9,7 @@ import { MessagesHeader } from '@/components/messages/MessagesHeader';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { useDatingConversations } from '@/hooks/use-dating-conversations';
 import { useMatches } from '@/hooks/use-matches';
+import { useMatchExpiration } from '@/hooks/use-match-expiration';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { NewMatchesRow } from '@/components/messages/NewMatchesRow';
 import { EmptyMessagesState } from '@/components/messages/EmptyMessagesState';
+import { YourMoveBadge } from '@/components/messages/YourMoveBadge';
 
 export default function Messages() {
   const { user } = useAuth();
@@ -107,7 +109,9 @@ export default function Messages() {
       isOnline: isOnline(convo.matchedUserId),
       lastSeen: !isOnline(convo.matchedUserId) ? formatLastSeen(getLastSeen(convo.matchedUserId)) : undefined,
       type: 'date' as const,
-    })), [conversations, isOnline, getLastSeen]);
+      // "Your move" if they sent the last message (and there is a last message)
+      isYourMove: convo.lastSenderId && convo.lastSenderId !== user?.id,
+    })), [conversations, isOnline, getLastSeen, user?.id]);
 
   // Get conversation match IDs that have messages
   const conversationMatchIds = useMemo(() => 
@@ -116,12 +120,33 @@ export default function Messages() {
   );
 
   // New matches - matches from useMatches that don't have messages yet
-  const newMatches = useMemo(() => 
+  const newMatchesRaw = useMemo(() => 
     allMatches
       .filter(m => !conversationMatchIds.has(m.matchId))
-      .slice(0, 6)
-      .map(m => ({ id: m.matchId, name: m.name, photo: m.photo, isNew: m.isNew })),
+      .slice(0, 6),
     [allMatches, conversationMatchIds]);
+  
+  // Get match IDs for expiration tracking
+  const newMatchIds = useMemo(() => newMatchesRaw.map(m => m.matchId), [newMatchesRaw]);
+  const { getExpiration } = useMatchExpiration(newMatchIds);
+  
+  // Add expiration data to new matches
+  const newMatches = useMemo(() => 
+    newMatchesRaw.map(m => {
+      const expiration = getExpiration(m.matchId);
+      return {
+        id: m.matchId,
+        name: m.name,
+        photo: m.photo,
+        isNew: m.isNew,
+        expiration: expiration ? {
+          formattedTime: expiration.formattedTime,
+          isExpiringSoon: expiration.isExpiringSoon,
+          isUrgent: expiration.isUrgent,
+        } : undefined,
+      };
+    }),
+    [newMatchesRaw, getExpiration]);
 
   // Conversations with messages (for list below), filtered by search
   const activeConversations = useMemo(() => 
@@ -197,9 +222,12 @@ export default function Messages() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold">{convo.name}</span>
-                <span className="text-xs text-muted-foreground">{convo.time}</span>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-semibold truncate">{convo.name}</span>
+                  {convo.isYourMove && <YourMoveBadge />}
+                </div>
+                <span className="text-xs text-muted-foreground flex-shrink-0">{convo.time}</span>
               </div>
               <div className="flex items-center justify-between">
                 <p className={cn(
