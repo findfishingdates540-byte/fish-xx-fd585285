@@ -13,6 +13,7 @@ export interface DatingConversation {
   lastMessageTime: string | null;
   unreadCount: number;
   isOnline?: boolean;
+  lastSenderId: string | null;
 }
 
 function formatTimeAgo(dateStr: string | null): string {
@@ -56,6 +57,7 @@ export function useDatingConversations() {
         lastMessage: row.last_message || null,
         lastMessageTime: row.last_message_time || row.matched_at,
         unreadCount: Number(row.unread_count) || 0,
+        lastSenderId: row.last_sender_id || null,
       })) as DatingConversation[];
     },
     enabled: !!user?.id,

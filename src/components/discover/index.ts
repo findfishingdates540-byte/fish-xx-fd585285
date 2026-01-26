@@ -5,3 +5,5 @@ export { RightSidebar } from './RightSidebar';
 export { ProfileDetailView, type ProfileDetailData } from './ProfileDetailView';
 export { MatchCelebrationModal } from './MatchCelebrationModal';
 export { DatingTutorial } from './DatingTutorial';
+export { ReportProfileSheet } from './ReportProfileSheet';
+export { QuickFiltersSheet } from './QuickFiltersSheet';
