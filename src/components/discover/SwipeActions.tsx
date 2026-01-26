@@ -1,4 +1,4 @@
-import { Undo2, X, Star, Heart } from 'lucide-react';
+import { X, Star, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useState, useCallback } from 'react';
@@ -80,7 +80,7 @@ export function SwipeActions({
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex items-center justify-center gap-2">
-        {/* Pass */}
+        {/* Pass - Bumble gray style */}
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.button
@@ -88,7 +88,7 @@ export function SwipeActions({
               data-tutorial="pass-button"
               animate={animatingButton === 'pass' ? { scale: [1, 0.85, 1.1, 1], rotate: [0, -8, 8, 0] } : {}}
               transition={{ duration: 0.35 }}
-              className="h-14 w-14 rounded-full border-2 border-destructive text-destructive flex items-center justify-center transition-all hover:bg-destructive hover:text-destructive-foreground hover:scale-105"
+              className="h-14 w-14 rounded-full border-2 border-muted-foreground/30 text-muted-foreground flex items-center justify-center transition-all hover:bg-muted hover:text-foreground hover:scale-105"
             >
               <X className="h-7 w-7" />
             </motion.button>
@@ -98,7 +98,7 @@ export function SwipeActions({
           </TooltipContent>
         </Tooltip>
 
-        {/* Super Like */}
+        {/* Super Like - Bumble amber/yellow style */}
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.button
@@ -106,9 +106,9 @@ export function SwipeActions({
               data-tutorial="superlike-button"
               animate={animatingButton === 'superlike' ? { scale: [1, 0.8, 1.25, 1] } : {}}
               transition={{ duration: 0.4 }}
-              className="h-11 w-11 rounded-full border-2 border-blue-500 text-blue-500 flex items-center justify-center transition-all hover:bg-blue-500 hover:text-white hover:scale-105"
+              className="h-12 w-12 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-md shadow-amber-400/30 transition-all hover:bg-amber-500 hover:scale-105"
             >
-              <Star className={cn("h-5 w-5", animatingButton === 'superlike' && "fill-current")} />
+              <Star className={cn("h-6 w-6", animatingButton === 'superlike' && "fill-current")} />
             </motion.button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="hidden lg:block">
@@ -116,7 +116,7 @@ export function SwipeActions({
           </TooltipContent>
         </Tooltip>
 
-        {/* Like - Primary action with gradient */}
+        {/* Like - Bumble style checkmark */}
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.button
@@ -124,9 +124,9 @@ export function SwipeActions({
               data-tutorial="like-button"
               animate={animatingButton === 'like' ? { scale: [1, 0.85, 1.2, 1] } : {}}
               transition={{ duration: 0.4 }}
-              className="h-16 w-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center shadow-lg shadow-green-500/30 transition-all hover:scale-105 hover:shadow-xl hover:shadow-green-500/40"
+              className="h-14 w-14 rounded-full border-2 border-muted-foreground/30 text-muted-foreground flex items-center justify-center transition-all hover:bg-foreground hover:text-background hover:border-foreground hover:scale-105"
             >
-              <Heart className="h-8 w-8 fill-current" />
+              <Check className="h-7 w-7" />
             </motion.button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="hidden lg:block">

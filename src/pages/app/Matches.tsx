@@ -138,16 +138,13 @@ export default function Matches() {
     <div className="flex min-h-screen w-full bg-accent/30 overflow-hidden">
       {!isMobile && (
         <DiscoverSidebar
-          accountMode={accountMode}
-          discoveryMode={accountMode === 'both' ? 'combo' : 'dating'}
-          onDiscoveryModeChange={() => {}}
           userName={profile?.display_name || 'User'}
           userPhoto={profile?.photos?.[0]}
           isPremium={profile?.is_premium ?? false}
         />
       )}
 
-      <main className={`flex-1 p-4 md:p-6 lg:p-8 overflow-auto ${!isMobile ? 'lg:ml-60' : 'pb-24'}`}>
+      <main className={`flex-1 p-4 md:p-6 lg:p-8 overflow-auto ${!isMobile ? 'lg:ml-80' : 'pb-24'}`}>
         {/* Header */}
         <div className="flex items-start justify-between mb-4 md:mb-6">
           <div>
