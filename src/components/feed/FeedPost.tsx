@@ -18,6 +18,7 @@ import { VerificationBadge } from '@/components/ui/verification-badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useFollowStatus, useFollowUser, useUnfollowUser } from '@/hooks/use-follow';
 import { useBookmarkStatus, useToggleBookmark } from '@/hooks/use-bookmarks';
+import { useRepostStatus, useToggleRepost } from '@/hooks/use-reposts';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,6 +66,12 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const { data: bookmarkData } = useBookmarkStatus(post.id);
   const toggleBookmark = useToggleBookmark();
   const isBookmarked = bookmarkData?.isBookmarked ?? false;
+
+  // Repost functionality
+  const { data: repostData } = useRepostStatus(post.id);
+  const toggleRepost = useToggleRepost();
+  const isReposted = repostData?.isReposted ?? false;
+  const [isRepostAnimating, setIsRepostAnimating] = useState(false);
 
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -137,6 +144,31 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const handleOpenShareSheet = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowShareSheet(true);
+  };
+
+  const handleRepost = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please sign in to repost');
+      return;
+    }
+    if (isOwnPost) {
+      toast.error("You can't repost your own post");
+      return;
+    }
+    
+    // Trigger spin animation
+    setIsRepostAnimating(true);
+    setTimeout(() => setIsRepostAnimating(false), 500);
+    
+    toggleRepost.mutate(
+      { postId: post.id, isReposted },
+      {
+        onSuccess: (result) => {
+          toast.success(result.action === 'added' ? 'Reposted!' : 'Removed repost');
+        },
+      }
+    );
   };
 
   const getShareUrl = () => `${window.location.origin}/app/feed/${post.user_id}/${post.id}`;
@@ -317,12 +349,22 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
               )}
             </button>
             
-            {/* Share/Repost */}
+            {/* Repost */}
             <button
-              onClick={handleOpenShareSheet}
-              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors active:scale-90"
+              onClick={handleRepost}
+              disabled={toggleRepost.isPending}
+              className="flex items-center gap-1.5 transition-colors active:scale-90"
             >
-              <Repeat2 className="h-6 w-6" strokeWidth={1.5} />
+              <Repeat2 
+                className={cn(
+                  "h-6 w-6 transition-all duration-500",
+                  isReposted 
+                    ? "text-green-500" 
+                    : "text-foreground hover:text-muted-foreground",
+                  isRepostAnimating && "animate-spin"
+                )}
+                strokeWidth={1.5} 
+              />
             </button>
             
             {/* Send */}

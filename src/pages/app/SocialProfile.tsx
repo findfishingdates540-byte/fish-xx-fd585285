@@ -11,7 +11,8 @@ import { ExperienceBadge } from '@/components/ui/experience-badge';
 import { FollowButton, ProfileStatsBar, ProfilePostsGrid, PostViewerOverlay } from '@/components/social';
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
 import { useBookmarkedPosts } from '@/hooks/use-bookmarks';
-import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle, Bookmark } from 'lucide-react';
+import { useRepostedPosts } from '@/hooks/use-reposts';
+import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle, Bookmark, Repeat2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getShareBaseUrl } from '@/lib/config';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -70,6 +71,7 @@ export default function SocialProfile() {
   
   // Fetch bookmarked posts (only for own profile)
   const { data: bookmarkedPosts = [], isLoading: bookmarksLoading } = useBookmarkedPosts(isOwnProfile ? userId : undefined);
+  const { data: repostedPosts = [], isLoading: repostsLoading } = useRepostedPosts(userId);
   const handleShare = async () => {
     const url = `${getShareBaseUrl()}/app/u/${userId}`;
     try {
@@ -234,7 +236,7 @@ export default function SocialProfile() {
         <Tabs defaultValue="posts" className="w-full">
           <TabsList className={cn(
             "w-full grid rounded-none h-12 bg-transparent border-b border-border",
-            isOwnProfile ? "grid-cols-3" : "grid-cols-2"
+            isOwnProfile ? "grid-cols-4" : "grid-cols-3"
           )}>
             <TabsTrigger 
               value="posts" 
@@ -247,6 +249,12 @@ export default function SocialProfile() {
               className="data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none"
             >
               <AtSign className="h-5 w-5" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="reposts" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none"
+            >
+              <Repeat2 className="h-5 w-5" />
             </TabsTrigger>
             {isOwnProfile && (
               <TabsTrigger 
@@ -273,6 +281,15 @@ export default function SocialProfile() {
               posts={mentionedPosts as any[]}
               isLoading={mentionsLoading}
               emptyMessage="No mentions yet"
+              onPostClick={(postId) => setSelectedPostId(postId)}
+            />
+          </TabsContent>
+          
+          <TabsContent value="reposts" className="mt-0">
+            <ProfilePostsGrid 
+              posts={repostedPosts as any[]}
+              isLoading={repostsLoading}
+              emptyMessage="No reposts yet"
               onPostClick={(postId) => setSelectedPostId(postId)}
             />
           </TabsContent>
