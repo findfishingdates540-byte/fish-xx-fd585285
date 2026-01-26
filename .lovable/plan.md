@@ -1,207 +1,251 @@
 
-# Design Optimization Plan: Bumble-Inspired UI Polish
+
+# Bumble 2-Column Layout Redesign
 
 ## Overview
-This plan focuses on visual refinements to bring the Discover page closer to Bumble's polished, modern aesthetic while maintaining your existing functionality.
+
+Redesign from the current 3-column layout to Bumble's 2-column layout with a conversation-focused left sidebar and a wide main area with integrated profile info.
 
 ---
 
-## 1. Profile Card Redesign
+## Layout Comparison
 
-### Current Issues
-- Card has rounded corners with visible padding around it
-- Bio section visible on desktop adds visual clutter
-- Photo navigation dots are basic
-- Name overlay gradient could be more refined
-
-### Proposed Changes
-
-**Card Container:**
-- Increase card size on desktop (from max-w-sm to max-w-md)
-- Reduce border-radius slightly (from rounded-3xl to rounded-2xl)
-- Remove bio section from card entirely (move to expandable detail view)
-- Edge-to-edge photo on mobile with no card wrapper
-
-**Photo Navigation:**
-- Replace dots with sleek segment bars at top (like Instagram Stories/Bumble)
-- Active segment = full opacity, inactive = 50% opacity
-- Smooth width transition on segment change
-
-**Name Overlay:**
-- Larger, bolder name text
-- More subtle gradient (less dark, more transparent)
-- Add job/occupation line below name (if available)
-- Verification badge inline with name (larger, more prominent blue)
-
-### Files to Modify
-- `src/components/discover/ProfileCard.tsx`
-
----
-
-## 2. Swipe Indicator Refinement
-
-### Current State
-- LIKE/NOPE appear as colored overlays with bordered text
-- Covers most of the card
-
-### Proposed Changes
-- Make stamps smaller and positioned in the corner (not centered)
-- Add subtle rotation (tilted stamp effect)
-- Use a more "stamped" visual style with border + fill
-- LIKE = green stamp top-right, NOPE = red stamp top-left
-
-### Files to Modify
-- `src/components/discover/ProfileCard.tsx`
-
----
-
-## 3. Action Buttons Polish
-
-### Current State
-- 4 buttons (Rewind, Pass, Super Like, Like) with varying sizes
-- Keyboard hints shown below
-
-### Proposed Changes
-- Tighten spacing between buttons
-- Make Like button larger and more prominent (gradient background like Bumble's heart)
-- Add subtle shadow/glow to primary action button
-- Hide Rewind button if not functional (or show as locked/premium feature)
-- Move keyboard hints to tooltip on hover (less visual clutter)
-
-### Files to Modify
-- `src/components/discover/SwipeActions.tsx`
-
----
-
-## 4. Photo Segment Bars (Stories-Style)
-
-### Design Specification
+### Current (3-Column):
 ```text
-┌────────────────────────────────────────┐
-│  ▬▬▬▬▬▬  ▬▬▬▬▬▬  ▬▬▬▬▬▬  ▬▬▬▬▬▬  │  <- Top segment bars
-│                                        │
-│                                        │
-│            [ PHOTO ]                   │
-│                                        │
-│  ┌─────────────────────────────────┐  │
-│  │  Sarah, 28  ✓                   │  │  <- Name overlay
-│  │  📍 Miami • 5 miles away        │  │
-│  └─────────────────────────────────┘  │
-└────────────────────────────────────────┘
+┌──────────────┬───────────────────┬──────────────┐
+│  Navigation  │   Profile Card    │  Who Likes   │
+│  Sidebar     │   (centered)      │  + Matches   │
+│  (260px)     │                   │  (288px)     │
+└──────────────┴───────────────────┴──────────────┘
 ```
 
-### Technical Implementation
-- Replace photo dots with horizontal bars
-- Each bar = `flex-1` width within a flex container
-- Active bar = `bg-white` with subtle glow
-- Inactive bars = `bg-white/40`
-- Transition: width stays same, opacity animates
+### Target (2-Column like Bumble):
+```text
+┌────────────────────┬───────────────────────────────────────────┐
+│  Match Queue       │                                           │
+│  [50][●][●][●]     │        Profile Card + Info Panel          │
+│  ────────────────  │   ┌────────────────┬─────────────────┐    │
+│  Conversations     │   │                │                 │    │
+│  [●] Name [move]   │   │    [Photo]     │  Chris, 55 ✓    │    │
+│  [●] Name [move]   │   │                │  Photo verified │    │
+│  [●] Name [move]   │   │   [X] [★] [✓]  │  Owner at...    │    │
+│  ...               │   └────────────────┴─────────────────┘    │
+└────────────────────┴───────────────────────────────────────────┘
+     (~320px)                     (Remaining width)
+```
 
 ---
 
-## 5. Right Sidebar Refinement (Desktop)
+## 1. Left Sidebar Transformation
 
-### Current Issues
-- Three separate sections competing for attention
-- Heavy borders and cards
+Replace navigation-focused sidebar with conversation-focused sidebar like Bumble.
 
-### Proposed Changes
-- Simplify to two main sections: "Who Likes You" and "Matches"
-- Remove conversation preview (users can click to Messages page)
-- Cleaner card styling with less borders
-- Larger, more tappable avatars
-- Add hover states with scale animation
+### New Structure:
+```text
+┌─────────────────────────┐
+│  [Logo] bumble          │  <- Brand header (compact)
+├─────────────────────────┤
+│  Match Queue (7)    >   │  <- Section with count
+│  [50] [●] [●] [●] [●]   │  <- Horizontal avatars, first has count
+├─────────────────────────┤
+│  ▼ Conversations        │  <- Collapsible section
+├─────────────────────────┤
+│  [●] Enrique  [Your move]   │
+│      Hello... How was...    │
+│      ⏱ 4h left              │  <- Expiration timer
+├─────────────────────────┤
+│  [●] Jason    [Your move]   │
+│      Hiiii. When are...     │
+│  ...                        │
+├─────────────────────────┤
+│  [●] Profile  [⚙] [👤+]    │  <- Bottom: profile, settings, invite
+└─────────────────────────┘
+```
 
-### Files to Modify
-- `src/components/discover/RightSidebar.tsx`
+### Implementation Details:
+- Increase sidebar width from 240px to ~320px to fit conversation previews
+- Remove navigation links (Discover, Likes, Matches, Messages)
+- Add horizontal Match Queue row with blurred likes count
+- Add scrollable Conversations list with "Your move" badges
+- Integrate existing `useDatingConversations` data
+- Keep compact user profile + settings at bottom
+
+### Files to Modify:
+- `src/components/discover/DiscoverSidebar.tsx` - Complete redesign
 
 ---
 
-## 6. Quick Filters Button Redesign
+## 2. Remove Right Sidebar
 
-### Current State
-- Filter icon button that opens a sheet
+Remove the separate right sidebar column entirely. Its content will be integrated into the main area.
 
-### Proposed Changes
-- Add a pill-shaped button with icon + "Filters" text
-- Show active filter count as badge
-- Position above card, left-aligned (Bumble style)
-- Add subtle background when filters are active
+### Implementation Details:
+- Remove `RightSidebar` from the Discover page layout
+- Move "Who Likes You" data into left sidebar Match Queue
+- Matches already displayed in left sidebar conversations
 
-### Files to Modify
-- `src/components/discover/QuickFiltersSheet.tsx`
-- `src/pages/app/Discover.tsx`
+### Files to Modify:
+- `src/pages/app/Discover.tsx` - Remove RightSidebar, adjust layout
 
 ---
 
-## 7. Empty State Polish
+## 3. Main Area with Integrated Profile Info Panel
 
-### Current State
-- Basic centered content with muted icon
+Create a horizontal split in the main area: profile card on left, info panel on right.
 
-### Proposed Changes
-- Add illustration or animated fishing hook
-- More engaging copy
-- Prominent "Adjust Filters" CTA
-- "Invite Friends" secondary action
+### Design:
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                          [Filters]                          │  <- Top toolbar
+├─────────────────────────────┬───────────────────────────────┤
+│                             │                               │
+│                             │   Chris, 55 ✓                 │
+│                             │   Photo verified              │
+│       [Profile Photo]       │                               │
+│                             │   Owner at Sundevil Garage    │
+│                             │   Door Sales & Repair         │
+│                             │                               │
+│                             │   [Interest] [Interest]       │
+│   [X]    [★]    [✓]         │                               │
+│                             │                               │
+│   Block and report          │                               │
+└─────────────────────────────┴───────────────────────────────┘
+         (~60%)                        (~40%)
+```
 
-### Files to Modify
-- `src/pages/app/Discover.tsx`
+### Implementation Details:
+- Main content area uses `flex` with card taking ~60% and info panel ~40%
+- Profile info panel has warm cream/yellow background (`bg-amber-50/80`)
+- Panel shows: Name + age + verification, "Photo verified" badge, occupation, interests
+- On tablet/smaller screens, info panel hides and full card is shown
+
+### New Component:
+- `src/components/discover/ProfileInfoPanel.tsx` - Right-side info panel
+
+### Files to Modify:
+- `src/pages/app/Discover.tsx` - New layout structure with info panel
+
+---
+
+## 4. Action Buttons Update
+
+Match Bumble's button style exactly.
+
+### Current vs Target:
+```text
+Current:  [X]  [★]  [♥]      →     Target:  [X]  [★]  [✓]
+          red  blue green                    gray amber gray
+```
+
+### Implementation:
+- Pass button: White/gray background, gray X icon
+- Super Like button: Amber/yellow background, white star icon
+- Like button: White/gray background, gray checkmark icon (NOT heart)
+
+### Files to Modify:
+- `src/components/discover/SwipeActions.tsx` - Update icons and colors
+
+---
+
+## 5. Match Queue Component
+
+Horizontal row of match avatars with likes count on first card.
+
+### Design:
+```text
+[50]  [●]  [●]  [●]  [●]  [●]  →
+ ↑     ↑
+ Blurred likes count   Match avatars with online dots
+```
+
+### Implementation:
+- First "card" shows likes count (blurred for non-premium)
+- Circular avatars with green online dots
+- Horizontal scroll
+- Click navigates to chat or likes page
+
+### Files to Modify:
+- Integrated into `DiscoverSidebar.tsx` redesign
+
+---
+
+## 6. Conversation List in Sidebar
+
+Embed conversation list directly in the left sidebar.
+
+### Features:
+- Avatar with online dot
+- Name + "Your move" badge (amber)
+- Message preview (truncated)
+- Expiration timer ("4h left")
+- Click to open chat
+
+### Data Source:
+- Reuse `useDatingConversations` hook (already exists)
+- Already includes `last_sender_id` for "Your move" logic
 
 ---
 
 ## Technical Summary
 
-### Files to Create
-- None (all refinements to existing components)
-
-### Files to Modify
+### Files to Modify:
 
 | File | Changes |
 |------|---------|
-| `src/components/discover/ProfileCard.tsx` | Segment bars, stamp styling, name overlay, remove bio |
-| `src/components/discover/SwipeActions.tsx` | Tighter spacing, button sizing, hide non-functional rewind |
-| `src/components/discover/RightSidebar.tsx` | Simplify sections, cleaner styling |
-| `src/components/discover/QuickFiltersSheet.tsx` | Pill button design with filter count |
-| `src/pages/app/Discover.tsx` | Updated layout, empty state |
+| `src/components/discover/DiscoverSidebar.tsx` | Complete redesign - Match Queue + Conversations |
+| `src/components/discover/SwipeActions.tsx` | Checkmark icon, amber star, gray styling |
+| `src/pages/app/Discover.tsx` | 2-column layout, integrated info panel, remove RightSidebar |
+
+### Files to Create:
+
+| File | Purpose |
+|------|---------|
+| `src/components/discover/ProfileInfoPanel.tsx` | Warm cream panel with profile details |
+| `src/components/discover/SidebarConversationItem.tsx` | Reusable conversation row for sidebar |
+| `src/components/discover/SidebarMatchQueue.tsx` | Horizontal match queue with likes count |
+
+### Components to Reuse:
+- `YourMoveBadge` - Already created
+- `ExpirationTimer` - Already created
+- `useDatingConversations` - Already has last_sender_id
+- `useMatchExpiration` - Already tracks expiration
 
 ---
 
-## Visual Reference
+## Visual Transformation
 
-### Before/After: Profile Card
-
+### Before:
 ```text
-BEFORE:                              AFTER:
-┌─────────────────────┐              ┌───────────────────────────┐
-│  ● ● ● ●            │              │  ▬▬▬▬ ▬▬▬▬ ▬▬▬▬ ▬▬▬▬     │
-│                     │              │                           │
-│      [Photo]        │              │        [Photo]            │
-│                     │              │                           │
-│  ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  │              │  ┌───────────────────┐    │
-│  Name, Age          │              │  │ Name, 28 ✓        │    │
-│  📍 Location        │              │  │ 📍 Miami • 5mi    │    │
-├─────────────────────┤              │  └───────────────────┘    │
-│  Bio text here...   │              └───────────────────────────┘
-│                     │              
-│  [Tag] [Tag] [Tag]  │              (No bio section - cleaner!)
-└─────────────────────┘              
+┌──────────┬──────────────────┬──────────┐
+│ Nav      │    Card          │ Matches  │
+│ Sidebar  │    [Photo]       │ Sidebar  │
+│          │    [X][★][♥]     │          │
+│          │                  │          │
+└──────────┴──────────────────┴──────────┘
+  260px        flexible          288px
 ```
 
-### Before/After: Swipe Indicators
-
+### After (Bumble-style):
 ```text
-BEFORE:                    AFTER:
-┌─────────────────┐        ┌─────────────────┐
-│                 │        │      ┌─────┐    │
-│   ┌────────┐    │        │      │LIKE │    │
-│   │  LIKE  │    │        │      └─────┘    │
-│   └────────┘    │        │                 │
-│                 │        │    [Photo]      │
-│   (Centered)    │        │                 │
-└─────────────────┘        └─────────────────┘
-                           (Corner positioned, tilted)
+┌─────────────────────┬───────────────────────────────────┐
+│ Match Queue         │        [Filters]                  │
+│ [50][●][●][●]       │  ┌──────────────┬───────────────┐ │
+│ ─────────────────   │  │   [Photo]    │  Chris, 55 ✓  │ │
+│ Conversations       │  │              │  Verified ✓   │ │
+│ [●] Name  [move]    │  │              │  Owner at...  │ │
+│ [●] Name  [move]    │  │  [X][★][✓]   │               │ │
+│ [●] Name  [move]    │  └──────────────┴───────────────┘ │
+│ ─────────────────   │                                   │
+│ [Profile] [⚙]       │        Block and report           │
+└─────────────────────┴───────────────────────────────────┘
+      320px                      remaining
 ```
+
+---
+
+## Mobile Behavior
+
+On mobile, the layout remains single-column (card only), since Bumble's 2-column is desktop-only. The left sidebar and info panel are hidden.
 
 ---
 
@@ -209,19 +253,19 @@ BEFORE:                    AFTER:
 
 | Priority | Change | Impact | Effort |
 |----------|--------|--------|--------|
-| 1 | Photo segment bars | High | Low |
-| 2 | Remove bio from card | High | Low |
-| 3 | Swipe stamp repositioning | Medium | Low |
-| 4 | Action button tightening | Medium | Low |
-| 5 | Right sidebar simplification | Medium | Medium |
-| 6 | Quick filters pill button | Low | Low |
-| 7 | Empty state enhancement | Low | Low |
+| 1 | Left sidebar redesign (Match Queue + Conversations) | High | High |
+| 2 | Remove right sidebar, update main layout | High | Medium |
+| 3 | Create ProfileInfoPanel component | High | Medium |
+| 4 | Update action buttons (X, Star, Check) | Medium | Low |
+| 5 | Polish & fine-tuning | Low | Low |
 
 ---
 
 ## Estimated Implementation Time
-- Phase 1 (Card polish): 30-45 minutes
-- Phase 2 (Sidebar & buttons): 30 minutes
-- Phase 3 (Fine-tuning): 20 minutes
 
-Total: ~1.5-2 hours for all design optimizations
+- **Phase 1**: Left sidebar with Match Queue + Conversations (~45-60 min)
+- **Phase 2**: Main area with ProfileInfoPanel (~30-45 min)
+- **Phase 3**: Layout integration + action buttons (~20-30 min)
+
+**Total: ~2-2.5 hours**
+
