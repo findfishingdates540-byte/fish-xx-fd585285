@@ -10,7 +10,7 @@ interface ProfileInfoPanelProps {
 export function ProfileInfoPanel({ profile }: ProfileInfoPanelProps) {
   if (!profile) {
     return (
-      <div className="hidden xl:flex flex-col w-80 h-full bg-amber-50/80 dark:bg-amber-950/20 p-6 justify-center items-center">
+      <div className="hidden lg:flex flex-col flex-[2] min-w-[280px] max-w-[360px] h-full bg-amber-50/80 dark:bg-amber-950/20 p-6 justify-center items-center">
         <div className="text-center text-muted-foreground">
           <p className="text-sm">Swipe to see profile details</p>
         </div>
@@ -19,7 +19,7 @@ export function ProfileInfoPanel({ profile }: ProfileInfoPanelProps) {
   }
 
   return (
-    <div className="hidden xl:flex flex-col w-80 h-full bg-amber-50/80 dark:bg-amber-950/20 border-l border-amber-200/50 dark:border-amber-800/30">
+    <div className="hidden lg:flex flex-col flex-[2] min-w-[280px] max-w-[360px] h-full bg-amber-50/80 dark:bg-amber-950/20 border-l border-amber-200/50 dark:border-amber-800/30">
       <div className="flex-1 p-6 flex flex-col">
         {/* Name & Age */}
         <div className="mb-4">

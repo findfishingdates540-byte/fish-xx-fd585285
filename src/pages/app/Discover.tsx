@@ -320,11 +320,11 @@ export default function Discover() {
           onMatchClick={(matchId) => navigate(`/app/messages/${matchId}`)}
         />
 
-        {/* Main Content Area - 2 column on XL screens */}
+        {/* Main Content Area */}
         <main className="flex-1 flex overflow-hidden lg:ml-80">
-          {/* Card Section */}
-          <div className="flex-1 flex flex-col items-center justify-center p-0 lg:p-8 overflow-hidden">
-            {isMobile ? (
+          {isMobile ? (
+            /* Mobile: Single column card */
+            <div className="flex-1 flex flex-col items-center justify-center p-0 overflow-hidden">
               <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-2 pt-2">
                 {/* Quick Filters - Mobile */}
                 {currentProfile && !isLoading && (
@@ -368,50 +368,58 @@ export default function Discover() {
                   </>
                 )}
               </div>
-            ) : (
-              <div className="w-full max-w-md">
-                {/* Quick Filters - Desktop */}
-                {currentProfile && !isLoading && (
-                  <div className="flex justify-end mb-4">
-                    <QuickFiltersSheet />
-                  </div>
-                )}
-                
-                {isLoading ? (
-                  renderLoading()
-                ) : noMoreProfiles || !currentProfile ? (
-                  renderEmptyState()
-                ) : (
-                  <>
-                    <ProfileCard 
-                      profile={currentProfile} 
-                      onInfoClick={handleProfileClick}
-                      onSwipeLeft={onPass}
-                      onSwipeRight={onLike}
-                    />
-
-                    {/* Swipe Actions */}
-                    <div className="mt-6 flex flex-col items-center gap-3">
-                      <SwipeActions
-                        onRewind={() => {}}
-                        onPass={onPass}
-                        onSuperLike={onSuperLike}
-                        onLike={onLike}
-                        canRewind={false}
-                      />
-                      <ReportProfileSheet
-                        profileId={currentProfile.id}
-                        profileName={currentProfile.name}
-                      />
+            </div>
+          ) : (
+            /* Desktop: Side-by-side Card + Info Panel */
+            <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
+              <div className="flex gap-0 max-w-4xl w-full h-full">
+                {/* Card Section - 60% */}
+                <div className="flex-[3] flex flex-col items-center justify-center">
+                  {/* Quick Filters - Desktop */}
+                  {currentProfile && !isLoading && (
+                    <div className="w-full max-w-md flex justify-end mb-4">
+                      <QuickFiltersSheet />
                     </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+                  )}
+                  
+                  {isLoading ? (
+                    renderLoading()
+                  ) : noMoreProfiles || !currentProfile ? (
+                    renderEmptyState()
+                  ) : (
+                    <>
+                      <div className="w-full max-w-md">
+                        <ProfileCard 
+                          profile={currentProfile} 
+                          onInfoClick={handleProfileClick}
+                          onSwipeLeft={onPass}
+                          onSwipeRight={onLike}
+                        />
+                      </div>
 
-          {/* Right Profile Info Panel - Bumble style */}
-          <ProfileInfoPanel profile={currentProfile} />
+                      {/* Swipe Actions */}
+                      <div className="mt-6 flex flex-col items-center gap-3">
+                        <SwipeActions
+                          onRewind={() => {}}
+                          onPass={onPass}
+                          onSuperLike={onSuperLike}
+                          onLike={onLike}
+                          canRewind={false}
+                        />
+                        <ReportProfileSheet
+                          profileId={currentProfile.id}
+                          profileName={currentProfile.name}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Info Panel - 40% (visible on lg+) */}
+                <ProfileInfoPanel profile={currentProfile} />
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
