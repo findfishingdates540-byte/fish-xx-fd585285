@@ -15,11 +15,9 @@ import {
   DatingTutorial,
   ReportProfileSheet,
   QuickFiltersSheet,
-  ProfileInfoPanel,
 } from '@/components/discover';
 import { RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
 
 export default function Discover() {
   const { accountMode } = useOutletContext<{ accountMode: 'dating' | 'fishing' | 'both' }>();
@@ -321,18 +319,11 @@ export default function Discover() {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 flex overflow-hidden lg:ml-80">
+        <main className="flex-1 flex flex-col items-center justify-center overflow-hidden lg:ml-80">
           {isMobile ? (
             /* Mobile: Single column card */
-            <div className="flex-1 flex flex-col items-center justify-center p-0 overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center p-0 overflow-hidden w-full">
               <div className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm h-full flex flex-col items-center justify-center overscroll-none px-2 pt-2">
-                {/* Quick Filters - Mobile */}
-                {currentProfile && !isLoading && (
-                  <div className="w-full flex justify-end mb-2">
-                    <QuickFiltersSheet />
-                  </div>
-                )}
-                
                 {isLoading ? (
                   renderLoading()
                 ) : noMoreProfiles || !currentProfile ? (
@@ -370,54 +361,39 @@ export default function Discover() {
               </div>
             </div>
           ) : (
-            /* Desktop: Side-by-side Card + Info Panel */
-            <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
-              <div className="flex gap-0 max-w-4xl w-full h-full">
-                {/* Card Section - 60% */}
-                <div className="flex-[3] flex flex-col items-center justify-center">
-                  {/* Quick Filters - Desktop */}
-                  {currentProfile && !isLoading && (
-                    <div className="w-full max-w-md flex justify-end mb-4">
-                      <QuickFiltersSheet />
-                    </div>
-                  )}
-                  
-                  {isLoading ? (
-                    renderLoading()
-                  ) : noMoreProfiles || !currentProfile ? (
-                    renderEmptyState()
-                  ) : (
-                    <>
-                      <div className="w-full max-w-md">
-                        <ProfileCard 
-                          profile={currentProfile} 
-                          onInfoClick={handleProfileClick}
-                          onSwipeLeft={onPass}
-                          onSwipeRight={onLike}
-                        />
-                      </div>
+            /* Desktop: Unified Card with integrated Info Panel */
+            <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8">
+              {isLoading ? (
+                renderLoading()
+              ) : noMoreProfiles || !currentProfile ? (
+                renderEmptyState()
+              ) : (
+                <>
+                  {/* Unified Profile Card with info panel */}
+                  <ProfileCard 
+                    profile={currentProfile} 
+                    onInfoClick={handleProfileClick}
+                    onSwipeLeft={onPass}
+                    onSwipeRight={onLike}
+                    showInfoPanel={true}
+                  />
 
-                      {/* Swipe Actions */}
-                      <div className="mt-6 flex flex-col items-center gap-3">
-                        <SwipeActions
-                          onRewind={() => {}}
-                          onPass={onPass}
-                          onSuperLike={onSuperLike}
-                          onLike={onLike}
-                          canRewind={false}
-                        />
-                        <ReportProfileSheet
-                          profileId={currentProfile.id}
-                          profileName={currentProfile.name}
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Info Panel - 40% (visible on lg+) */}
-                <ProfileInfoPanel profile={currentProfile} />
-              </div>
+                  {/* Swipe Actions */}
+                  <div className="mt-6 flex flex-col items-center gap-3">
+                    <SwipeActions
+                      onRewind={() => {}}
+                      onPass={onPass}
+                      onSuperLike={onSuperLike}
+                      onLike={onLike}
+                      canRewind={false}
+                    />
+                    <ReportProfileSheet
+                      profileId={currentProfile.id}
+                      profileName={currentProfile.name}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
         </main>
