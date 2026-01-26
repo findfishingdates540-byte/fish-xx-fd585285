@@ -119,13 +119,6 @@ export function DiscoverSidebar({
 
   return (
     <aside className="hidden lg:flex flex-col w-80 h-screen border-r border-border bg-background fixed top-0 left-0 z-40">
-      {/* Brand Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
-          <span className="font-bold text-lg">Find Fishing Dates</span>
-        </div>
-      </div>
 
       {/* Match Queue */}
       <SidebarMatchQueue
