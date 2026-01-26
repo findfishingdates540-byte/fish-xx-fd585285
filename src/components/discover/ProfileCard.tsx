@@ -19,6 +19,7 @@ export interface ProfileData {
   idVerified?: boolean;
   liveVerified?: boolean;
   likedYou?: boolean;
+  occupation?: string;
 }
 
 interface ProfileCardProps {
@@ -92,26 +93,26 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
       whileTap={{ cursor: 'grabbing' }}
       data-tutorial="profile-card"
       className={cn(
-        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-[calc(100vw-1.5rem)] sm:max-w-sm w-full mx-auto cursor-grab relative flex flex-col",
+        "bg-background rounded-2xl shadow-medium overflow-hidden max-w-[calc(100vw-1.5rem)] sm:max-w-md w-full mx-auto cursor-grab relative flex flex-col",
         isMobile ? "touch-none h-full" : "touch-pan-y",
         className
       )}
     >
-      {/* Swipe Indicators */}
+      {/* Swipe Indicators - Corner positioned stamps */}
       <motion.div 
         style={{ opacity: likeOpacity }} 
-        className="absolute inset-0 bg-green-500/20 rounded-3xl pointer-events-none z-10 flex items-center justify-center"
+        className="absolute top-8 right-6 z-20 pointer-events-none"
       >
-        <div className="bg-green-500 text-white px-6 py-3 rounded-full font-bold text-xl rotate-[-15deg] border-4 border-green-500">
-          LIKE
+        <div className="bg-green-500/90 text-white px-4 py-2 rounded-lg font-bold text-lg rotate-[12deg] border-[3px] border-white shadow-lg uppercase tracking-wider">
+          Like
         </div>
       </motion.div>
       <motion.div 
         style={{ opacity: passOpacity }} 
-        className="absolute inset-0 bg-red-500/20 rounded-3xl pointer-events-none z-10 flex items-center justify-center"
+        className="absolute top-8 left-6 z-20 pointer-events-none"
       >
-        <div className="bg-red-500 text-white px-6 py-3 rounded-full font-bold text-xl rotate-[15deg] border-4 border-red-500">
-          NOPE
+        <div className="bg-red-500/90 text-white px-4 py-2 rounded-lg font-bold text-lg rotate-[-12deg] border-[3px] border-white shadow-lg uppercase tracking-wider">
+          Nope
         </div>
       </motion.div>
 
@@ -126,45 +127,43 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
           className="w-full h-full object-cover absolute inset-0"
         />
 
-        {/* Photo Navigation Dots */}
+        {/* Photo Navigation Segment Bars - Stories style */}
         {profile.photos.length > 1 && (
-          <div className="absolute top-3 left-0 right-0 flex justify-center gap-1">
+          <div className="absolute top-3 left-3 right-3 flex gap-1 z-10">
             {profile.photos.map((_, idx) => (
               <div
                 key={idx}
                 className={cn(
-                  'h-1 rounded-full transition-all',
+                  'h-1 flex-1 rounded-full transition-all duration-300',
                   idx === currentPhotoIndex
-                    ? 'w-6 bg-background'
-                    : 'w-1 bg-background/50'
+                    ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+                    : 'bg-white/40'
                 )}
               />
             ))}
           </div>
         )}
 
-        {/* Photo Navigation Arrows */}
+        {/* Photo Navigation Touch Areas */}
         {profile.photos.length > 1 && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors"
+              className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
               disabled={currentPhotoIndex === 0}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
+              aria-label="Previous photo"
+            />
             <button
               onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors"
+              className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
               disabled={currentPhotoIndex === profile.photos.length - 1}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+              aria-label="Next photo"
+            />
           </>
         )}
 
         {/* Top Badges */}
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
+        <div className="absolute top-10 left-4 flex flex-col gap-2 z-10">
           {/* Liked You Badge */}
           {profile.likedYou && (
             <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold border-0 shadow-lg animate-pulse">
@@ -173,7 +172,7 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
           )}
           {/* Fishing Type Badge */}
           {profile.fishingType && (
-            <Badge variant="secondary" className="bg-background text-foreground font-medium">
+            <Badge variant="secondary" className="bg-white/90 text-foreground font-medium backdrop-blur-sm">
               🎣 {profile.fishingType}
             </Badge>
           )}
@@ -183,29 +182,34 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
         {!isMobile && (
           <button
             onClick={(e) => { e.stopPropagation(); onInfoClick?.(); }}
-            className="absolute top-4 right-4 h-8 w-8 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors"
+            className="absolute top-10 right-4 h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 transition-colors z-10"
             aria-label="View profile details"
           >
-            <Info className="h-4 w-4" />
+            <Info className="h-5 w-5" />
           </button>
         )}
 
-        {/* Name & Location Overlay */}
+        {/* Name & Location Overlay - Refined gradient */}
         <div
           className={cn(
-            "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent",
-            isMobile ? "p-3 pt-12" : "p-4 pt-16"
+            "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent",
+            isMobile ? "p-4 pt-16" : "p-5 pt-20"
           )}
         >
-          <h2 className={cn("font-bold text-background flex items-center gap-1", isMobile ? "text-lg" : "text-xl")}>
+          <h2 className={cn("font-bold text-white flex items-center gap-2", isMobile ? "text-xl" : "text-2xl")}>
             {profile.name}, {profile.age}
             <VerificationBadge 
               idVerified={profile.idVerified} 
               liveVerified={profile.liveVerified} 
-              size="sm" 
+              size="md" 
             />
           </h2>
-          <div className="flex items-center gap-1 text-background/90 text-sm mt-1">
+          {profile.occupation && (
+            <p className="text-white/90 text-sm mt-0.5 font-medium">
+              {profile.occupation}
+            </p>
+          )}
+          <div className="flex items-center gap-1 text-white/80 text-sm mt-1">
             <MapPin className="h-4 w-4" />
             <span>{profile.location}</span>
             <span className="mx-1">•</span>
@@ -213,28 +217,6 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
           </div>
         </div>
       </div>
-
-      {/* Bio & Tags Section - Desktop only */}
-      {!isMobile && (
-        <div className="p-5 shrink-0">
-          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
-            {profile.bio}
-          </p>
-
-          <div className="flex flex-wrap gap-2 mt-4">
-            {profile.tags.map((tag, idx) => (
-              <Badge
-                key={idx}
-                variant="outline"
-                className="px-3 py-1.5 font-medium text-sm rounded-full"
-              >
-                {tag.icon && <span className="mr-1">{tag.icon}</span>}
-                {tag.label}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 }
