@@ -1,90 +1,79 @@
 
-# Fix: Bumble 2-Column Layout Implementation
 
-## Problem Identified
+# Fix: Exact Bumble Design Implementation
 
-The current implementation has layout issues when compared to the Bumble reference:
+## Problem Analysis
 
-1. **ProfileInfoPanel only shows on `xl:` (1280px+)** - Should show on `lg:` screens (1024px+)
-2. **Card section is isolated** - Card takes full width with `max-w-md` centering, but should be in a flex row with the info panel
-3. **Missing side-by-side layout** - The profile card and info panel need to be in the same flex container
+After reviewing the Bumble screenshot carefully, I identified these critical issues:
 
-## Visual Comparison
+### Issue 1: Logo Placement (Wrong)
+**Current:** Logo is inside the left sidebar header with brand name
+**Bumble:** Logo is in a minimal top bar above the entire layout, just the "bumble" text/logo
 
-**Current (Wrong):**
+### Issue 2: Filter Button (Wrong)
+**Current:** Visible "Filters" pill button above the card
+**Bumble:** No visible filter button - cleaner interface
+
+### Issue 3: Profile Card is NOT Unified (Critical)
+**Current:** `ProfileCard` (photo) and `ProfileInfoPanel` are separate components with visual gap
+**Bumble:** Photo and info panel are ONE connected card - they share the same container with no gap, creating a seamless visual unit
+
 ```text
-┌────────────────────┬─────────────────────────────────────────┐
-│  Sidebar (320px)   │     [Card centered at max-w-md]         │
-│  - Match Queue     │                                         │
-│  - Conversations   │     ProfileInfoPanel hidden until xl    │
-└────────────────────┴─────────────────────────────────────────┘
-```
+CURRENT (Wrong):
+┌──────────────┐    ┌──────────────┐
+│              │    │              │
+│   [Photo]    │    │  Info Panel  │
+│              │    │              │
+└──────────────┘    └──────────────┘
+   Gap between them - TWO cards
 
-**Target (Correct):**
-```text
-┌────────────────────┬────────────────────────────────────────────────┐
-│  Sidebar (320px)   │   [Profile Card]      │   [Info Panel]        │
-│  - Match Queue     │      (~55%)           │      (~45%)           │
-│  - Conversations   │   [X] [★] [✓]         │   Chris, 55 ✓         │
-│                    │   Block & report      │   Photo verified      │
-└────────────────────┴────────────────────────────────────────────────┘
+BUMBLE (Correct):
+┌──────────────────────────────────┐
+│              │                   │
+│   [Photo]    │   Info Panel      │
+│              │                   │
+└──────────────────────────────────┘
+   ONE unified card - no gap
 ```
 
 ---
 
-## Technical Changes Required
+## Technical Solution
 
-### 1. Update `src/pages/app/Discover.tsx`
+### 1. Create Unified Profile Card Component
 
-**Problem:** Lines 371-410 wrap the card in a `max-w-md` container, and ProfileInfoPanel is a sibling outside this container.
+Merge the photo section and info panel into a single `ProfileCard` component that renders both as one connected card.
 
-**Fix:** Create a horizontal flex container that holds both the card section AND the info panel side-by-side on `lg:` screens.
-
+**New Structure:**
 ```tsx
-// Current structure (wrong):
-<main className="flex-1 flex overflow-hidden lg:ml-80">
-  <div className="flex-1 ... max-w-md">  {/* Card isolated */}
-    <ProfileCard />
-    <SwipeActions />
+<div className="rounded-2xl overflow-hidden shadow-lg flex">
+  {/* Left: Photo Section */}
+  <div className="flex-[3] relative">
+    <img src={photo} className="w-full h-full object-cover" />
+    {/* Photo navigation, badges, etc. */}
   </div>
-  <ProfileInfoPanel />  {/* Separate, hidden until xl */}
-</main>
-
-// Fixed structure:
-<main className="flex-1 flex overflow-hidden lg:ml-80">
-  <div className="flex-1 flex items-center justify-center p-8">
-    <div className="flex gap-0 max-w-4xl w-full h-full">
-      {/* Card Section - 60% */}
-      <div className="flex-[3] flex flex-col items-center justify-center">
-        <ProfileCard />
-        <SwipeActions />
-      </div>
-      {/* Info Panel - 40% */}
-      <ProfileInfoPanel profile={currentProfile} />
-    </div>
+  
+  {/* Right: Info Panel (desktop only) */}
+  <div className="hidden lg:flex flex-[2] bg-amber-50/80 p-6 flex-col">
+    <h2>Name, Age ✓</h2>
+    <Badge>Photo verified</Badge>
+    <p>Occupation</p>
+    {/* ... */}
   </div>
-</main>
+</div>
 ```
 
-### 2. Update `src/components/discover/ProfileInfoPanel.tsx`
+### 2. Remove Separate ProfileInfoPanel
 
-**Problem:** Uses `hidden xl:flex` - only shows on 1280px+
+Since the info panel is now integrated into ProfileCard, remove the separate `ProfileInfoPanel` component from the layout.
 
-**Fix:** Change to `hidden lg:flex` to show on 1024px+ (when sidebar is visible)
+### 3. Fix Sidebar Logo
 
-Also adjust width from fixed `w-80` to a flexible width within the parent flex container.
+Move the logo to a minimal top bar or remove it from the sidebar header entirely, matching Bumble's clean sidebar that focuses on conversations.
 
-```tsx
-// Current (line 22):
-className="hidden xl:flex flex-col w-80 h-full ..."
+### 4. Remove/Hide Filters Button
 
-// Fixed:
-className="hidden lg:flex flex-col flex-[2] min-w-[280px] max-w-[360px] h-full ..."
-```
-
-### 3. Ensure Card Takes Proper Width
-
-The ProfileCard should expand to fill its section of the flex container while maintaining aspect ratio and max width constraints appropriate for the photo display.
+Remove the prominent QuickFiltersSheet button - can be accessed via settings or a subtle icon instead.
 
 ---
 
@@ -92,43 +81,98 @@ The ProfileCard should expand to fill its section of the flex container while ma
 
 | File | Changes |
 |------|---------|
-| `src/pages/app/Discover.tsx` | Restructure main content area to have card + info panel in same flex row |
-| `src/components/discover/ProfileInfoPanel.tsx` | Change breakpoint from `xl:` to `lg:`, adjust width to be flexible |
+| `src/components/discover/ProfileCard.tsx` | Integrate info panel directly into card as a connected section |
+| `src/pages/app/Discover.tsx` | Remove `ProfileInfoPanel` component, simplify layout, remove filters button |
+| `src/components/discover/DiscoverSidebar.tsx` | Remove or minimize logo header |
+| `src/components/discover/ProfileInfoPanel.tsx` | Delete or deprecate this component |
 
 ---
 
-## Layout Breakpoints
+## New ProfileCard Structure (Desktop)
 
-| Screen Width | Layout |
-|--------------|--------|
-| < 1024px (mobile/tablet) | Single column - card only, no sidebar, no info panel |
-| ≥ 1024px (lg) | 2-column - sidebar (320px fixed left) + main area with card and info panel side-by-side |
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  ▬▬▬▬ ▬▬▬▬ ▬▬▬▬                                            │
+│ ┌─────────────────────────────┬───────────────────────────┐ │
+│ │                             │                           │ │
+│ │                             │   Chris, 55 ✓             │ │
+│ │                             │   Photo verified          │ │
+│ │        [Photo]              │                           │ │
+│ │                             │   Owner at Sundevil       │ │
+│ │                             │   Garage Door Sales       │ │
+│ │                             │                           │ │
+│ │    [LIKE stamp]             │   [●●●]                   │ │
+│ └─────────────────────────────┴───────────────────────────┘ │
+│                                                             │
+│              [X]      [★]      [✓]                          │
+│                                                             │
+│              Block and report                               │
+└─────────────────────────────────────────────────────────────┘
+        Photo + Info = ONE card (flex row inside)
+```
+
+---
+
+## Mobile Behavior
+
+On mobile, the info panel remains hidden - only the photo section of the card is shown (full-screen card). This maintains the swipe-focused mobile experience.
+
+---
+
+## Updated Discover.tsx Layout
+
+```tsx
+// Simplified structure
+<div className="flex h-screen">
+  {/* Left Sidebar - Conversations (no logo header) */}
+  <DiscoverSidebar />
+  
+  {/* Main Content */}
+  <main className="flex-1 flex flex-col items-center justify-center lg:ml-80">
+    {/* Unified Profile Card with integrated info panel */}
+    <ProfileCard 
+      profile={currentProfile} 
+      showInfoPanel={!isMobile}  // Show info section on desktop only
+    />
+    
+    {/* Action Buttons */}
+    <SwipeActions />
+    
+    {/* Block and report link */}
+    <ReportProfileSheet />
+  </main>
+</div>
+```
 
 ---
 
 ## Implementation Steps
 
-1. **Update Discover.tsx main area structure:**
-   - Remove the `max-w-md` wrapper around the card section
-   - Create a new flex container with `flex gap-0` that holds both card area and info panel
-   - Card section gets `flex-[3]` (60%), info panel gets `flex-[2]` (40%)
+1. **Update ProfileCard.tsx:**
+   - Add `showInfoPanel` prop
+   - Restructure as a flex row with photo section (left) and info section (right)
+   - Info section uses warm amber background
+   - Both sections share the same rounded card container
 
-2. **Update ProfileInfoPanel.tsx:**
-   - Change visibility from `xl:flex` to `lg:flex`
-   - Change width from fixed `w-80` to flexible `flex-[2]`
-   - Add min/max width constraints for consistency
+2. **Update DiscoverSidebar.tsx:**
+   - Remove or minimize the logo/brand header section
+   - Keep focus on Match Queue and Conversations
 
-3. **Test on various screen widths:**
-   - Mobile: Card only, full screen
-   - Tablet: Card only, full screen  
-   - Desktop (1024px+): Sidebar + Card + Info Panel
+3. **Update Discover.tsx:**
+   - Remove `ProfileInfoPanel` import and usage
+   - Remove `QuickFiltersSheet` from the visible UI (or make it icon-only in header)
+   - Simplify the main content layout
+
+4. **Delete ProfileInfoPanel.tsx:**
+   - No longer needed as a separate component
 
 ---
 
 ## Expected Result
 
-After these changes, the Discover page on desktop will match the Bumble screenshot:
-- Left sidebar with Match Queue and Conversations (~320px fixed)
-- Main area split horizontally: Profile Card (~55-60%) and warm Info Panel (~40-45%)
-- Action buttons (X, Star, Checkmark) below the card
-- "Block and report" link below action buttons
+After implementation:
+- Clean sidebar with Match Queue + Conversations (minimal/no header)
+- Unified profile card where photo and info panel are visually connected
+- Action buttons below the unified card
+- Matches Bumble's exact layout aesthetic
+
