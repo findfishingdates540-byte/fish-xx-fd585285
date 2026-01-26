@@ -1,271 +1,134 @@
 
+# Fix: Bumble 2-Column Layout Implementation
 
-# Bumble 2-Column Layout Redesign
+## Problem Identified
 
-## Overview
+The current implementation has layout issues when compared to the Bumble reference:
 
-Redesign from the current 3-column layout to Bumble's 2-column layout with a conversation-focused left sidebar and a wide main area with integrated profile info.
+1. **ProfileInfoPanel only shows on `xl:` (1280px+)** - Should show on `lg:` screens (1024px+)
+2. **Card section is isolated** - Card takes full width with `max-w-md` centering, but should be in a flex row with the info panel
+3. **Missing side-by-side layout** - The profile card and info panel need to be in the same flex container
 
----
+## Visual Comparison
 
-## Layout Comparison
-
-### Current (3-Column):
+**Current (Wrong):**
 ```text
-┌──────────────┬───────────────────┬──────────────┐
-│  Navigation  │   Profile Card    │  Who Likes   │
-│  Sidebar     │   (centered)      │  + Matches   │
-│  (260px)     │                   │  (288px)     │
-└──────────────┴───────────────────┴──────────────┘
+┌────────────────────┬─────────────────────────────────────────┐
+│  Sidebar (320px)   │     [Card centered at max-w-md]         │
+│  - Match Queue     │                                         │
+│  - Conversations   │     ProfileInfoPanel hidden until xl    │
+└────────────────────┴─────────────────────────────────────────┘
 ```
 
-### Target (2-Column like Bumble):
+**Target (Correct):**
 ```text
-┌────────────────────┬───────────────────────────────────────────┐
-│  Match Queue       │                                           │
-│  [50][●][●][●]     │        Profile Card + Info Panel          │
-│  ────────────────  │   ┌────────────────┬─────────────────┐    │
-│  Conversations     │   │                │                 │    │
-│  [●] Name [move]   │   │    [Photo]     │  Chris, 55 ✓    │    │
-│  [●] Name [move]   │   │                │  Photo verified │    │
-│  [●] Name [move]   │   │   [X] [★] [✓]  │  Owner at...    │    │
-│  ...               │   └────────────────┴─────────────────┘    │
-└────────────────────┴───────────────────────────────────────────┘
-     (~320px)                     (Remaining width)
+┌────────────────────┬────────────────────────────────────────────────┐
+│  Sidebar (320px)   │   [Profile Card]      │   [Info Panel]        │
+│  - Match Queue     │      (~55%)           │      (~45%)           │
+│  - Conversations   │   [X] [★] [✓]         │   Chris, 55 ✓         │
+│                    │   Block & report      │   Photo verified      │
+└────────────────────┴────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 1. Left Sidebar Transformation
+## Technical Changes Required
 
-Replace navigation-focused sidebar with conversation-focused sidebar like Bumble.
+### 1. Update `src/pages/app/Discover.tsx`
 
-### New Structure:
-```text
-┌─────────────────────────┐
-│  [Logo] bumble          │  <- Brand header (compact)
-├─────────────────────────┤
-│  Match Queue (7)    >   │  <- Section with count
-│  [50] [●] [●] [●] [●]   │  <- Horizontal avatars, first has count
-├─────────────────────────┤
-│  ▼ Conversations        │  <- Collapsible section
-├─────────────────────────┤
-│  [●] Enrique  [Your move]   │
-│      Hello... How was...    │
-│      ⏱ 4h left              │  <- Expiration timer
-├─────────────────────────┤
-│  [●] Jason    [Your move]   │
-│      Hiiii. When are...     │
-│  ...                        │
-├─────────────────────────┤
-│  [●] Profile  [⚙] [👤+]    │  <- Bottom: profile, settings, invite
-└─────────────────────────┘
+**Problem:** Lines 371-410 wrap the card in a `max-w-md` container, and ProfileInfoPanel is a sibling outside this container.
+
+**Fix:** Create a horizontal flex container that holds both the card section AND the info panel side-by-side on `lg:` screens.
+
+```tsx
+// Current structure (wrong):
+<main className="flex-1 flex overflow-hidden lg:ml-80">
+  <div className="flex-1 ... max-w-md">  {/* Card isolated */}
+    <ProfileCard />
+    <SwipeActions />
+  </div>
+  <ProfileInfoPanel />  {/* Separate, hidden until xl */}
+</main>
+
+// Fixed structure:
+<main className="flex-1 flex overflow-hidden lg:ml-80">
+  <div className="flex-1 flex items-center justify-center p-8">
+    <div className="flex gap-0 max-w-4xl w-full h-full">
+      {/* Card Section - 60% */}
+      <div className="flex-[3] flex flex-col items-center justify-center">
+        <ProfileCard />
+        <SwipeActions />
+      </div>
+      {/* Info Panel - 40% */}
+      <ProfileInfoPanel profile={currentProfile} />
+    </div>
+  </div>
+</main>
 ```
 
-### Implementation Details:
-- Increase sidebar width from 240px to ~320px to fit conversation previews
-- Remove navigation links (Discover, Likes, Matches, Messages)
-- Add horizontal Match Queue row with blurred likes count
-- Add scrollable Conversations list with "Your move" badges
-- Integrate existing `useDatingConversations` data
-- Keep compact user profile + settings at bottom
+### 2. Update `src/components/discover/ProfileInfoPanel.tsx`
 
-### Files to Modify:
-- `src/components/discover/DiscoverSidebar.tsx` - Complete redesign
+**Problem:** Uses `hidden xl:flex` - only shows on 1280px+
 
----
+**Fix:** Change to `hidden lg:flex` to show on 1024px+ (when sidebar is visible)
 
-## 2. Remove Right Sidebar
+Also adjust width from fixed `w-80` to a flexible width within the parent flex container.
 
-Remove the separate right sidebar column entirely. Its content will be integrated into the main area.
+```tsx
+// Current (line 22):
+className="hidden xl:flex flex-col w-80 h-full ..."
 
-### Implementation Details:
-- Remove `RightSidebar` from the Discover page layout
-- Move "Who Likes You" data into left sidebar Match Queue
-- Matches already displayed in left sidebar conversations
-
-### Files to Modify:
-- `src/pages/app/Discover.tsx` - Remove RightSidebar, adjust layout
-
----
-
-## 3. Main Area with Integrated Profile Info Panel
-
-Create a horizontal split in the main area: profile card on left, info panel on right.
-
-### Design:
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                          [Filters]                          │  <- Top toolbar
-├─────────────────────────────┬───────────────────────────────┤
-│                             │                               │
-│                             │   Chris, 55 ✓                 │
-│                             │   Photo verified              │
-│       [Profile Photo]       │                               │
-│                             │   Owner at Sundevil Garage    │
-│                             │   Door Sales & Repair         │
-│                             │                               │
-│                             │   [Interest] [Interest]       │
-│   [X]    [★]    [✓]         │                               │
-│                             │                               │
-│   Block and report          │                               │
-└─────────────────────────────┴───────────────────────────────┘
-         (~60%)                        (~40%)
+// Fixed:
+className="hidden lg:flex flex-col flex-[2] min-w-[280px] max-w-[360px] h-full ..."
 ```
 
-### Implementation Details:
-- Main content area uses `flex` with card taking ~60% and info panel ~40%
-- Profile info panel has warm cream/yellow background (`bg-amber-50/80`)
-- Panel shows: Name + age + verification, "Photo verified" badge, occupation, interests
-- On tablet/smaller screens, info panel hides and full card is shown
+### 3. Ensure Card Takes Proper Width
 
-### New Component:
-- `src/components/discover/ProfileInfoPanel.tsx` - Right-side info panel
-
-### Files to Modify:
-- `src/pages/app/Discover.tsx` - New layout structure with info panel
+The ProfileCard should expand to fill its section of the flex container while maintaining aspect ratio and max width constraints appropriate for the photo display.
 
 ---
 
-## 4. Action Buttons Update
-
-Match Bumble's button style exactly.
-
-### Current vs Target:
-```text
-Current:  [X]  [★]  [♥]      →     Target:  [X]  [★]  [✓]
-          red  blue green                    gray amber gray
-```
-
-### Implementation:
-- Pass button: White/gray background, gray X icon
-- Super Like button: Amber/yellow background, white star icon
-- Like button: White/gray background, gray checkmark icon (NOT heart)
-
-### Files to Modify:
-- `src/components/discover/SwipeActions.tsx` - Update icons and colors
-
----
-
-## 5. Match Queue Component
-
-Horizontal row of match avatars with likes count on first card.
-
-### Design:
-```text
-[50]  [●]  [●]  [●]  [●]  [●]  →
- ↑     ↑
- Blurred likes count   Match avatars with online dots
-```
-
-### Implementation:
-- First "card" shows likes count (blurred for non-premium)
-- Circular avatars with green online dots
-- Horizontal scroll
-- Click navigates to chat or likes page
-
-### Files to Modify:
-- Integrated into `DiscoverSidebar.tsx` redesign
-
----
-
-## 6. Conversation List in Sidebar
-
-Embed conversation list directly in the left sidebar.
-
-### Features:
-- Avatar with online dot
-- Name + "Your move" badge (amber)
-- Message preview (truncated)
-- Expiration timer ("4h left")
-- Click to open chat
-
-### Data Source:
-- Reuse `useDatingConversations` hook (already exists)
-- Already includes `last_sender_id` for "Your move" logic
-
----
-
-## Technical Summary
-
-### Files to Modify:
+## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/discover/DiscoverSidebar.tsx` | Complete redesign - Match Queue + Conversations |
-| `src/components/discover/SwipeActions.tsx` | Checkmark icon, amber star, gray styling |
-| `src/pages/app/Discover.tsx` | 2-column layout, integrated info panel, remove RightSidebar |
-
-### Files to Create:
-
-| File | Purpose |
-|------|---------|
-| `src/components/discover/ProfileInfoPanel.tsx` | Warm cream panel with profile details |
-| `src/components/discover/SidebarConversationItem.tsx` | Reusable conversation row for sidebar |
-| `src/components/discover/SidebarMatchQueue.tsx` | Horizontal match queue with likes count |
-
-### Components to Reuse:
-- `YourMoveBadge` - Already created
-- `ExpirationTimer` - Already created
-- `useDatingConversations` - Already has last_sender_id
-- `useMatchExpiration` - Already tracks expiration
+| `src/pages/app/Discover.tsx` | Restructure main content area to have card + info panel in same flex row |
+| `src/components/discover/ProfileInfoPanel.tsx` | Change breakpoint from `xl:` to `lg:`, adjust width to be flexible |
 
 ---
 
-## Visual Transformation
+## Layout Breakpoints
 
-### Before:
-```text
-┌──────────┬──────────────────┬──────────┐
-│ Nav      │    Card          │ Matches  │
-│ Sidebar  │    [Photo]       │ Sidebar  │
-│          │    [X][★][♥]     │          │
-│          │                  │          │
-└──────────┴──────────────────┴──────────┘
-  260px        flexible          288px
-```
-
-### After (Bumble-style):
-```text
-┌─────────────────────┬───────────────────────────────────┐
-│ Match Queue         │        [Filters]                  │
-│ [50][●][●][●]       │  ┌──────────────┬───────────────┐ │
-│ ─────────────────   │  │   [Photo]    │  Chris, 55 ✓  │ │
-│ Conversations       │  │              │  Verified ✓   │ │
-│ [●] Name  [move]    │  │              │  Owner at...  │ │
-│ [●] Name  [move]    │  │  [X][★][✓]   │               │ │
-│ [●] Name  [move]    │  └──────────────┴───────────────┘ │
-│ ─────────────────   │                                   │
-│ [Profile] [⚙]       │        Block and report           │
-└─────────────────────┴───────────────────────────────────┘
-      320px                      remaining
-```
+| Screen Width | Layout |
+|--------------|--------|
+| < 1024px (mobile/tablet) | Single column - card only, no sidebar, no info panel |
+| ≥ 1024px (lg) | 2-column - sidebar (320px fixed left) + main area with card and info panel side-by-side |
 
 ---
 
-## Mobile Behavior
+## Implementation Steps
 
-On mobile, the layout remains single-column (card only), since Bumble's 2-column is desktop-only. The left sidebar and info panel are hidden.
+1. **Update Discover.tsx main area structure:**
+   - Remove the `max-w-md` wrapper around the card section
+   - Create a new flex container with `flex gap-0` that holds both card area and info panel
+   - Card section gets `flex-[3]` (60%), info panel gets `flex-[2]` (40%)
+
+2. **Update ProfileInfoPanel.tsx:**
+   - Change visibility from `xl:flex` to `lg:flex`
+   - Change width from fixed `w-80` to flexible `flex-[2]`
+   - Add min/max width constraints for consistency
+
+3. **Test on various screen widths:**
+   - Mobile: Card only, full screen
+   - Tablet: Card only, full screen  
+   - Desktop (1024px+): Sidebar + Card + Info Panel
 
 ---
 
-## Implementation Priority
+## Expected Result
 
-| Priority | Change | Impact | Effort |
-|----------|--------|--------|--------|
-| 1 | Left sidebar redesign (Match Queue + Conversations) | High | High |
-| 2 | Remove right sidebar, update main layout | High | Medium |
-| 3 | Create ProfileInfoPanel component | High | Medium |
-| 4 | Update action buttons (X, Star, Check) | Medium | Low |
-| 5 | Polish & fine-tuning | Low | Low |
-
----
-
-## Estimated Implementation Time
-
-- **Phase 1**: Left sidebar with Match Queue + Conversations (~45-60 min)
-- **Phase 2**: Main area with ProfileInfoPanel (~30-45 min)
-- **Phase 3**: Layout integration + action buttons (~20-30 min)
-
-**Total: ~2-2.5 hours**
-
+After these changes, the Discover page on desktop will match the Bumble screenshot:
+- Left sidebar with Match Queue and Conversations (~320px fixed)
+- Main area split horizontally: Profile Card (~55-60%) and warm Info Panel (~40-45%)
+- Action buttons (X, Star, Checkmark) below the card
+- "Block and report" link below action buttons
