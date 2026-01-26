@@ -122,7 +122,62 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
       toast.error('Please sign in to save posts');
       return;
     }
-    toggleBookmark.mutate({ postId: post.id, isBookmarked });
+    toggleBookmark.mutate(
+      { postId: post.id, isBookmarked },
+      {
+        onSuccess: () => {
+          toast.success(isBookmarked ? 'Removed from saved' : 'Saved');
+        },
+      }
+    );
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/app/feed/${post.user_id}/${post.id}`;
+    const shareText = post.content 
+      ? `${displayName}: ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`
+      : `Check out this post by ${displayName}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by ${displayName}`,
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (error) {
+        // User cancelled or share failed
+        if ((error as Error).name !== 'AbortError') {
+          // Fallback to clipboard
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success('Link copied to clipboard');
+        }
+      }
+    } else {
+      // Fallback for browsers without Web Share API
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Link copied to clipboard');
+    }
+  };
+
+  const handleRepost = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // For now, use native share with repost context
+    const shareUrl = `${window.location.origin}/app/feed/${post.user_id}/${post.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `Repost from ${displayName}`,
+        text: post.content || `Check out this catch!`,
+        url: shareUrl,
+      }).catch(() => {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Link copied to clipboard');
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success('Link copied to clipboard');
+    }
   };
 
   const formatCount = (count: number) => {
@@ -299,16 +354,16 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
             
             {/* Share/Repost */}
             <button
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
+              onClick={handleRepost}
+              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors active:scale-90"
             >
               <Repeat2 className="h-6 w-6" strokeWidth={1.5} />
             </button>
             
             {/* Send */}
             <button
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors"
+              onClick={handleShare}
+              className="flex items-center gap-1.5 text-foreground hover:text-muted-foreground transition-colors active:scale-90"
             >
               <Send className="h-6 w-6" strokeWidth={1.5} />
             </button>
