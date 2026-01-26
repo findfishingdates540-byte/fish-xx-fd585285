@@ -1,158 +1,49 @@
 import { useEffect, useState } from 'react';
-import { Home, Heart, MapPin, MessageSquare, Settings, Compass, Sparkles, ArrowLeft, LayoutDashboard, Anchor, Loader2, UserPlus, Copy, Check } from 'lucide-react';
+import { Settings, ChevronDown, ChevronUp, UserPlus, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
-import { useAccountModeSwitcher } from '@/hooks/use-account-mode-switcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDatingConversations } from '@/hooks/use-dating-conversations';
+import { SidebarMatchQueue } from './SidebarMatchQueue';
+import { SidebarConversationItem } from './SidebarConversationItem';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import logoImage from '@/assets/logo.png';
-import datingLogoImage from '@/assets/dating-logo.png';
-import type { Database } from '@/integrations/supabase/types';
-
-type AccountMode = 'dating' | 'fishing' | 'both';
-type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
 interface DiscoverSidebarProps {
-  accountMode: AccountMode;
-  discoveryMode: DiscoveryMode;
-  onDiscoveryModeChange: (mode: DiscoveryMode) => void;
   userName: string;
   userPhoto?: string;
   isPremium?: boolean;
+  pendingLikes?: { id: string; name: string; photo: string }[];
+  newMatches?: { id: string; name: string; photo: string; isOnline?: boolean }[];
+  onMatchClick?: (matchId: string) => void;
 }
-
-interface NavItem {
-  to: string;
-  icon: React.ElementType;
-  label: string;
-  hasMessageBadge?: boolean;
-  hasMatchBadge?: boolean;
-}
-
-// Dating-specific nav items
-const datingNavItems: NavItem[] = [
-  { to: '/app/discover', icon: Compass, label: 'Discover' },
-  { to: '/app/likes', icon: Sparkles, label: 'Who Likes You' },
-  { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
-  { to: '/app/messages', icon: MessageSquare, label: 'Messages', hasMessageBadge: true },
-];
-
-// Fishing/Both mode nav items
-const fishingNavItems: NavItem[] = [
-  { to: '/app/discover', icon: Home, label: 'Home' },
-  { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
-  { to: '/app/spots', icon: MapPin, label: 'Fishing Map' },
-  { to: '/app/messages', icon: MessageSquare, label: 'Messages', hasMessageBadge: true },
-];
 
 export function DiscoverSidebar({
-  accountMode,
-  discoveryMode,
-  onDiscoveryModeChange,
   userName,
   userPhoto,
   isPremium,
+  pendingLikes = [],
+  newMatches = [],
+  onMatchClick,
 }: DiscoverSidebarProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
-  // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
-  
   const navigate = useNavigate();
+  const [conversationsOpen, setConversationsOpen] = useState(true);
   
-  // For combo users, switch view preference and navigate to appropriate section
-  const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
-    setActiveMode(mode);
-    // Navigate to the appropriate home page for the selected mode
-    switch (mode) {
-      case 'dating':
-        navigate('/app/discover');
-        break;
-      case 'fishing':
-        navigate('/app/feed');
-        break;
-      case 'unified':
-      default:
-        navigate('/app/dashboard');
-        break;
-    }
-  };
+  // Fetch conversations using the optimized hook
+  const { conversations, isLoading: conversationsLoading } = useDatingConversations();
 
-  // Fetch unread messages count
-  const { data: unreadMessagesCount = 0 } = useQuery({
-    queryKey: ["unread-messages-count", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return 0;
-      
-      // First get all matches where user is a participant
-      const { data: matches } = await supabase
-        .from("matches")
-        .select("id")
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .eq("is_match", true);
-
-      if (!matches || matches.length === 0) return 0;
-
-      const matchIds = matches.map(m => m.id);
-      
-      // Count unread messages in those matches
-      const { count } = await supabase
-        .from("messages")
-        .select("*", { count: "exact", head: true })
-        .in("match_id", matchIds)
-        .neq("sender_id", user.id)
-        .eq("is_read", false);
-
-      return count || 0;
-    },
-    enabled: !!user?.id,
-  });
-
-  // Fetch new matches count (unviewed matches)
-  const { data: newMatchesCount = 0 } = useQuery({
-    queryKey: ["new-matches-count", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return 0;
-      
-      // Get all matches with viewed timestamps
-      const { data: matches } = await supabase
-        .from("matches")
-        .select("id, user1_id, user2_id, matched_at, user1_viewed_at, user2_viewed_at")
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .eq("is_match", true);
-
-      if (!matches) return 0;
-
-      // Count unviewed matches
-      const unviewedCount = matches.filter(m => {
-        const isUser1 = m.user1_id === user.id;
-        const viewedAt = isUser1 ? m.user1_viewed_at : m.user2_viewed_at;
-        
-        // If never viewed, it's new
-        if (!viewedAt) return true;
-        
-        // If matched after last viewed, it's new
-        return m.matched_at && new Date(m.matched_at) > new Date(viewedAt);
-      }).length;
-
-      return unviewedCount;
-    },
-    enabled: !!user?.id,
-  });
-
-  // Real-time subscription for messages and matches
+  // Real-time subscription for updates
   useEffect(() => {
     if (!user?.id) return;
 
     const channel = supabase
-      .channel("sidebar-updates")
+      .channel("bumble-sidebar-updates")
       .on(
         "postgres_changes",
         {
@@ -161,7 +52,7 @@ export function DiscoverSidebar({
           table: "messages",
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["unread-messages-count", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["dating-conversations", user.id] });
         }
       )
       .on(
@@ -172,7 +63,7 @@ export function DiscoverSidebar({
           table: "matches",
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["new-matches-count", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["dating-conversations", user.id] });
         }
       )
       .subscribe();
@@ -182,43 +73,7 @@ export function DiscoverSidebar({
     };
   }, [user?.id, queryClient]);
 
-  const getModeLabel = () => {
-    // Use activeMode for combo users to show their current active mode
-    if (isComboUser) {
-      switch (activeMode) {
-        case 'dating':
-          return 'DATING MODE';
-        case 'fishing':
-          return 'FISHING MODE';
-        case 'unified':
-        default:
-          return 'COMBO MODE';
-      }
-    }
-    // Non-combo users
-    switch (accountMode) {
-      case 'dating':
-        return 'DATING MODE';
-      case 'fishing':
-        return 'FISHING MODE';
-      default:
-        return 'COMBO MODE';
-    }
-  };
-
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
-  
-  // Determine nav items based on account mode and active mode for combo users
-  const getNavItems = () => {
-    if (accountMode === 'dating') return datingNavItems;
-    if (accountMode === 'fishing') return fishingNavItems;
-    // For combo users, use activeMode to determine nav items
-    if (isComboUser) {
-      return activeMode === 'fishing' ? fishingNavItems : datingNavItems;
-    }
-    return datingNavItems;
-  };
-  const navItems = getNavItems();
 
   // Invite button component
   const InviteButton = ({ userId }: { userId?: string }) => {
@@ -263,110 +118,76 @@ export function DiscoverSidebar({
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 h-screen border-r border-border bg-background p-6 fixed top-0 left-0 z-40">
-      {/* Mode Switcher for Combo Users */}
-      {isComboUser && (
-        <div className="mb-4">
-          <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2 mb-2">
-            <Link to="/app/dashboard">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
-          <div className="flex bg-muted rounded-lg p-1 gap-1">
-            {[
-              { value: 'unified' as ActiveMode, label: 'All', icon: LayoutDashboard },
-              { value: 'dating' as ActiveMode, label: 'Dating', icon: Heart },
-              { value: 'fishing' as ActiveMode, label: 'Fishing', icon: Anchor },
-            ].map((mode) => (
-              <button
-                key={mode.value}
-                onClick={() => handleModeSwitch(mode.value)}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
-                  activeMode === mode.value
-                    ? "bg-background text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <mode.icon className="h-3 w-3" />
-                {mode.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Logo */}
-      <div className={cn("mb-8", isComboUser && "mb-6")}>
+    <aside className="hidden lg:flex flex-col w-80 h-screen border-r border-border bg-background fixed top-0 left-0 z-40">
+      {/* Brand Header */}
+      <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
           <span className="font-bold text-lg">Find Fishing Dates</span>
         </div>
-        <p className="text-xs text-muted-foreground mt-1">{getModeLabel()}</p>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium relative',
-                isActive
-                  ? 'bg-accent text-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-              )
-            }
-          >
-            <item.icon className="h-5 w-5" />
-            <span className="flex-1">{item.label}</span>
-            {item.hasMessageBadge && unreadMessagesCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="h-5 min-w-5 flex items-center justify-center text-xs px-1.5"
-              >
-                {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
-              </Badge>
-            )}
-            {item.hasMatchBadge && newMatchesCount > 0 && (
-              <Badge 
-                className="h-5 min-w-5 flex items-center justify-center text-xs px-1.5 bg-primary"
-              >
-                {newMatchesCount > 99 ? "99+" : newMatchesCount}
-              </Badge>
-            )}
-          </NavLink>
-        ))}
+      {/* Match Queue */}
+      <SidebarMatchQueue
+        pendingLikes={pendingLikes}
+        newMatches={newMatches}
+        isPremium={isPremium}
+        onMatchClick={onMatchClick}
+      />
 
-        {/* Discovery Mode Section - Only for account mode 'both' but not using activeMode context */}
-        {accountMode === 'both' && !isComboUser && (
-          <div className="pt-6">
-            <p className="text-xs font-semibold text-muted-foreground px-4 mb-3">DISCOVERY</p>
-            <div className="flex flex-wrap gap-2 px-2">
-              {(['fishing', 'dating', 'combo'] as DiscoveryMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => onDiscoveryModeChange(mode)}
-                  className={cn(
-                    'px-4 py-1.5 rounded-full text-sm font-medium transition-colors capitalize',
-                    discoveryMode === mode
-                      ? 'bg-foreground text-background'
-                      : 'border border-border text-muted-foreground hover:border-foreground hover:text-foreground'
-                  )}
-                >
-                  {mode}
-                </button>
+      {/* Conversations List */}
+      <Collapsible
+        open={conversationsOpen}
+        onOpenChange={setConversationsOpen}
+        className="flex-1 flex flex-col min-h-0"
+      >
+        <CollapsibleTrigger className="flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Conversations
+          </h3>
+          {conversationsOpen ? (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="flex-1 overflow-y-auto scrollbar-hide">
+          {conversationsLoading ? (
+            <div className="px-4 py-8 text-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            </div>
+          ) : conversations.length === 0 ? (
+            <div className="px-4 py-8 text-center">
+              <p className="text-sm text-muted-foreground">No conversations yet</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Start swiping to find matches!
+              </p>
+            </div>
+          ) : (
+            <div className="px-2 pb-2">
+              {conversations.map((conv) => (
+                <SidebarConversationItem
+                  key={conv.id}
+                  id={conv.id}
+                  name={conv.name}
+                  photo={conv.photo}
+                  lastMessage={conv.lastMessage}
+                  time={conv.time}
+                  unreadCount={conv.unreadCount}
+                  isOnline={conv.isOnline}
+                  isYourMove={conv.lastSenderId !== user?.id && conv.lastSenderId !== null}
+                  matchedAt={conv.lastMessageTime || undefined}
+                  onClick={() => navigate(`/app/messages/${conv.id}`)}
+                />
               ))}
             </div>
-          </div>
-        )}
-      </nav>
+          )}
+        </CollapsibleContent>
+      </Collapsible>
 
-      {/* User Profile */}
-      <div className="flex items-center gap-3 pt-6 border-t border-border">
+      {/* User Profile Footer */}
+      <div className="flex items-center gap-3 p-4 border-t border-border mt-auto">
         <NavLink to="/app/profile" className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
           <Avatar className="h-10 w-10">
             <AvatarImage src={userPhoto} alt={userName} />

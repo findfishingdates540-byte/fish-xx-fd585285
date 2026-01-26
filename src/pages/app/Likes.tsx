@@ -465,16 +465,13 @@ export default function Likes() {
   };
 
   const isMobile = useIsMobile();
-  const [discoveryMode, setDiscoveryMode] = useState<'fishing' | 'dating' | 'combo'>('dating');
+  
 
   return (
     <div className="flex min-h-screen">
       {/* Desktop Sidebar */}
       {!isMobile && (
         <DiscoverSidebar
-          accountMode={accountMode}
-          discoveryMode={discoveryMode}
-          onDiscoveryModeChange={setDiscoveryMode}
           userName={profile?.display_name || "User"}
           userPhoto={profile?.photos?.[0]}
           isPremium={isPremium}
@@ -482,7 +479,7 @@ export default function Likes() {
       )}
 
       {/* Main Content */}
-      <div className={`flex-1 ${!isMobile ? 'lg:ml-60' : ''}`}>
+      <div className={`flex-1 ${!isMobile ? 'lg:ml-80' : ''}`}>
         <div className="p-4 pb-24 max-w-3xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-2 mb-6">

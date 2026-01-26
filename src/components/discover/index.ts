@@ -7,3 +7,6 @@ export { MatchCelebrationModal } from './MatchCelebrationModal';
 export { DatingTutorial } from './DatingTutorial';
 export { ReportProfileSheet } from './ReportProfileSheet';
 export { QuickFiltersSheet } from './QuickFiltersSheet';
+export { ProfileInfoPanel } from './ProfileInfoPanel';
+export { SidebarMatchQueue } from './SidebarMatchQueue';
+export { SidebarConversationItem } from './SidebarConversationItem';
