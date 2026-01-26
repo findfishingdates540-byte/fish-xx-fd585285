@@ -87,17 +87,30 @@ export function QuickFiltersSheet({ trigger, className }: QuickFiltersSheetProps
     setDistance(50);
   };
 
+  // Check if filters are non-default
+  const hasActiveFilters = ageRange[0] !== 18 || ageRange[1] !== 45 || distance !== 50;
+  const activeFilterCount = (ageRange[0] !== 18 || ageRange[1] !== 45 ? 1 : 0) + (distance !== 50 ? 1 : 0);
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         {trigger || (
           <Button 
-            variant="outline" 
+            variant={hasActiveFilters ? "default" : "outline"}
             size="sm" 
-            className={cn("gap-2", className)}
+            className={cn(
+              "gap-2 rounded-full px-4 transition-all",
+              hasActiveFilters && "bg-primary text-primary-foreground",
+              className
+            )}
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filters
+            {activeFilterCount > 0 && (
+              <span className="ml-1 h-5 w-5 rounded-full bg-background text-foreground text-xs font-bold flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
           </Button>
         )}
       </SheetTrigger>

@@ -17,7 +17,7 @@ import {
   ReportProfileSheet,
   QuickFiltersSheet,
 } from '@/components/discover';
-import { RefreshCw, Heart, X, HelpCircle } from 'lucide-react';
+import { RefreshCw, Heart, X, HelpCircle, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -364,17 +364,26 @@ export default function Discover() {
     );
   }
 
-  // Empty state when no more profiles
+  // Empty state when no more profiles - Enhanced design
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center text-center p-8">
-      <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
-        <Heart className="h-12 w-12 text-muted-foreground" />
+      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 relative">
+        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" style={{ animationDuration: '2s' }} />
+        <span className="text-5xl">🎣</span>
       </div>
-      <h2 className="text-2xl font-semibold mb-2">No more profiles</h2>
-      <p className="text-muted-foreground mb-6 max-w-sm">
-        You've seen all available profiles in your area. Check back later or adjust your preferences to see more people.
+      <h2 className="text-2xl font-bold mb-2">That's everyone for now!</h2>
+      <p className="text-muted-foreground mb-6 max-w-xs">
+        You've seen all the anglers nearby. Widen your filters or check back soon for new catches.
       </p>
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+        <QuickFiltersSheet 
+          trigger={
+            <Button variant="default" className="flex-1 gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              Adjust Filters
+            </Button>
+          }
+        />
         <Button 
           onClick={async () => {
             setIsRefreshing(true);
@@ -382,15 +391,11 @@ export default function Discover() {
             setTimeout(() => setIsRefreshing(false), 1000);
           }} 
           variant="outline" 
-          className="gap-2"
+          className="flex-1 gap-2"
           disabled={isRefreshing}
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Refreshing...' : 'Refresh'}
-        </Button>
-        <Button onClick={startTutorial} variant="ghost" className="gap-2" disabled>
-          <HelpCircle className="h-4 w-4" />
-          Tutorial
         </Button>
       </div>
     </div>
@@ -524,12 +529,7 @@ export default function Discover() {
                     />
                   </div>
 
-                  {/* Keyboard hint - Desktop */}
-                  <p className="hidden lg:block text-center text-sm text-muted-foreground mt-4">
-                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">←</kbd> Pass{' · '}
-                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">↑</kbd> Super Like{' · '}
-                    <kbd className="px-1.5 py-0.5 bg-accent rounded text-xs">→</kbd> Like
-                  </p>
+                  {/* Keyboard hints now in tooltips - removed inline hint */}
                 </>
               )}
             </div>
