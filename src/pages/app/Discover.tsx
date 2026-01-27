@@ -33,6 +33,20 @@ export default function Discover() {
   );
   const [showDetailView, setShowDetailView] = useState(false);
   const isMobile = useIsMobile();
+  const [isTablet, setIsTablet] = useState(false);
+
+  // Tablet detection (768-1024px) - uses mobile layout for better responsiveness
+  useEffect(() => {
+    const checkTablet = () => {
+      const width = window.innerWidth;
+      setIsTablet(width >= 768 && width < 1024);
+    };
+    checkTablet();
+    window.addEventListener('resize', checkTablet);
+    return () => window.removeEventListener('resize', checkTablet);
+  }, []);
+
+  const useCompactLayout = isMobile || isTablet;
   const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -65,9 +79,9 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
-  // Prevent vertical scrolling on mobile
+  // Prevent vertical scrolling on mobile/tablet
   useEffect(() => {
-    if (!isMobile) return;
+    if (!useCompactLayout) return;
 
     const prevHtmlOverflow = document.documentElement.style.overflow;
     const prevBodyOverflow = document.body.style.overflow;
@@ -79,7 +93,7 @@ export default function Discover() {
       document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.overflow = prevBodyOverflow;
     };
-  }, [isMobile]);
+  }, [useCompactLayout]);
 
   // Auto-start tutorial for first-time users
   useEffect(() => {
@@ -112,7 +126,7 @@ export default function Discover() {
 
   // Keyboard navigation for desktop
   useEffect(() => {
-    if (isMobile || isLoading || noMoreProfiles || !currentProfile) return;
+    if (useCompactLayout || isLoading || noMoreProfiles || !currentProfile) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -129,7 +143,7 @@ export default function Discover() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isMobile, isLoading, noMoreProfiles, currentProfile, onPass, onLike, onSuperLike]);
+  }, [useCompactLayout, isLoading, noMoreProfiles, currentProfile, onPass, onLike, onSuperLike]);
 
   // Show detail view
   if (showDetailView && currentDetailProfile) {
@@ -185,8 +199,8 @@ export default function Discover() {
     </div>
   );
 
-  // Mobile Layout - Single column card
-  if (isMobile) {
+  // Mobile & Tablet Layout - Single column card
+  if (useCompactLayout) {
     return (
       <>
         <div className="h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex flex-col overflow-hidden">
