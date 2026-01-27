@@ -232,7 +232,12 @@ export default function Discover() {
   // Desktop Layout - Bumble-style 2-column
   return (
     <>
-      <div className="flex h-[100dvh] overflow-hidden">
+      {/*
+        On tablet/mobile (<lg), AppLayout renders AppHeader (h-14) and BottomNav (h-14 + safe area).
+        Discover is intentionally pb-0 in AppLayout, so we must reserve that space here to avoid
+        the action buttons being cut off behind the BottomNav.
+      */}
+      <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] lg:h-[100dvh] overflow-hidden">
         {/* Left Sidebar - Match Queue & Conversations */}
         <DiscoverLeftSidebar
           userName={profile?.display_name || 'User'}
