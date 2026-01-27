@@ -180,45 +180,47 @@ export default function Discover() {
     </div>
   );
 
-  // Mobile Layout - Single column card
+  // Mobile Layout - Bumble-style card with bio/tags visible
   if (isMobile) {
     return (
       <>
-        <div className="h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex flex-col overflow-hidden">
+        <div className="h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex flex-col overflow-hidden bg-background">
           {/* Profile Completion Banner */}
           <ProfileCompletionBanner profile={profile} />
           
-          <div className="flex-1 flex flex-col items-center justify-center p-2 min-h-0">
+          <div className="flex-1 flex flex-col items-center justify-center px-4 py-2 min-h-0">
             {isLoading ? (
               renderLoading()
             ) : noMoreProfiles || !currentProfile ? (
               renderEmptyState()
             ) : (
-              <>
-                <div className="w-full max-w-sm flex-1 flex items-center justify-center min-h-0">
-                  <ProfileCard
-                    profile={{
-                      ...currentProfile,
-                      occupation: currentDetailProfile?.occupation,
-                    }}
-                    onSwipeLeft={onPass}
-                    onSwipeRight={onLike}
-                    onInfoClick={() => setShowMobileDetail(true)}
-                    className="w-full h-full"
-                  />
-                </div>
-                <div className="w-full pt-2 pb-1">
-                  <div className="mx-auto w-fit">
-                    <SwipeActions
-                      onRewind={() => {}}
-                      onPass={onPass}
-                      onSuperLike={onSuperLike}
-                      onLike={onLike}
-                      canRewind={false}
+              <div className="w-full max-w-sm h-full flex flex-col min-h-0">
+                {/* Profile Card Container */}
+                <div className="flex-1 min-h-0 bg-background rounded-3xl overflow-hidden shadow-lg flex flex-col">
+                  {/* Photo Section */}
+                  <div className="relative flex-[3] min-h-0">
+                    <ProfileCard
+                      profile={{
+                        ...currentProfile,
+                        occupation: currentDetailProfile?.occupation,
+                      }}
+                      onSwipeLeft={onPass}
+                      onSwipeRight={onLike}
+                      onInfoClick={() => setShowMobileDetail(true)}
+                      className="w-full h-full"
                     />
                   </div>
                 </div>
-              </>
+
+                {/* Action Buttons - Below card */}
+                <div className="pt-4 pb-2 flex-shrink-0">
+                  <BumbleSwipeActions
+                    onPass={onPass}
+                    onSuperLike={onSuperLike}
+                    onLike={onLike}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>
