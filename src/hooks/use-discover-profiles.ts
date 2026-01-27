@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { ProfileData, ProfileDetailData } from '@/components/discover';
+import type { ProfileData } from '@/components/discover';
 
 export interface MatchedProfile {
   id: string;
@@ -131,6 +131,23 @@ function mapToProfileData(
     liveVerified: profile.live_verified || false,
     likedYou: likedYouIds.has(profile.id),
   };
+}
+
+// Extended profile data for detail view
+interface ProfileDetailData extends ProfileData {
+  idVerified: boolean;
+  liveVerified: boolean;
+  isActive: boolean;
+  heightCm?: number;
+  smoker?: string;
+  drinker?: string;
+  education?: string;
+  occupation?: string;
+  zodiacSign?: string;
+  personalityType?: string;
+  targetSpecies?: string;
+  interests?: string[];
+  promptResponses?: { question: string; answer: string }[];
 }
 
 // Map database profile to ProfileDetailData format
