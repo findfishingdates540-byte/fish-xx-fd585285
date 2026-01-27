@@ -195,29 +195,18 @@ export default function Discover() {
               renderEmptyState()
             ) : (
               <div className="w-full max-w-sm h-full flex flex-col min-h-0">
-                {/* Profile Card Container */}
-                <div className="flex-1 min-h-0 bg-background rounded-3xl overflow-hidden shadow-lg flex flex-col">
-                  {/* Photo Section */}
-                  <div className="relative flex-[3] min-h-0">
-                    <ProfileCard
-                      profile={{
-                        ...currentProfile,
-                        occupation: currentDetailProfile?.occupation,
-                      }}
-                      onSwipeLeft={onPass}
-                      onSwipeRight={onLike}
-                      onInfoClick={() => setShowMobileDetail(true)}
-                      className="w-full h-full"
-                    />
-                  </div>
-                </div>
-
-                {/* Action Buttons - Below card */}
-                <div className="pt-4 pb-2 flex-shrink-0">
-                  <BumbleSwipeActions
-                    onPass={onPass}
+                {/* Profile Card Container - Full height, no action buttons */}
+                <div className="flex-1 min-h-0 bg-background rounded-3xl overflow-hidden shadow-lg">
+                  <ProfileCard
+                    profile={{
+                      ...currentProfile,
+                      occupation: currentDetailProfile?.occupation,
+                    }}
+                    onSwipeLeft={onPass}
+                    onSwipeRight={onLike}
                     onSuperLike={onSuperLike}
-                    onLike={onLike}
+                    onInfoClick={() => setShowMobileDetail(true)}
+                    className="w-full h-full"
                   />
                 </div>
               </div>
