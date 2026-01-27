@@ -33,20 +33,6 @@ export default function Discover() {
   );
   const [showDetailView, setShowDetailView] = useState(false);
   const isMobile = useIsMobile();
-  const [isTablet, setIsTablet] = useState(false);
-
-  // Tablet detection (768-1024px) - uses mobile layout for better responsiveness
-  useEffect(() => {
-    const checkTablet = () => {
-      const width = window.innerWidth;
-      setIsTablet(width >= 768 && width < 1024);
-    };
-    checkTablet();
-    window.addEventListener('resize', checkTablet);
-    return () => window.removeEventListener('resize', checkTablet);
-  }, []);
-
-  const useCompactLayout = isMobile || isTablet;
   const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -79,9 +65,9 @@ export default function Discover() {
     enabled: !!user?.id,
   });
 
-  // Prevent vertical scrolling on mobile/tablet
+  // Prevent vertical scrolling on mobile
   useEffect(() => {
-    if (!useCompactLayout) return;
+    if (!isMobile) return;
 
     const prevHtmlOverflow = document.documentElement.style.overflow;
     const prevBodyOverflow = document.body.style.overflow;
@@ -93,7 +79,7 @@ export default function Discover() {
       document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.overflow = prevBodyOverflow;
     };
-  }, [useCompactLayout]);
+  }, [isMobile]);
 
   // Auto-start tutorial for first-time users
   useEffect(() => {
@@ -126,7 +112,7 @@ export default function Discover() {
 
   // Keyboard navigation for desktop
   useEffect(() => {
-    if (useCompactLayout || isLoading || noMoreProfiles || !currentProfile) return;
+    if (isMobile || isLoading || noMoreProfiles || !currentProfile) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -143,7 +129,7 @@ export default function Discover() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [useCompactLayout, isLoading, noMoreProfiles, currentProfile, onPass, onLike, onSuperLike]);
+  }, [isMobile, isLoading, noMoreProfiles, currentProfile, onPass, onLike, onSuperLike]);
 
   // Show detail view
   if (showDetailView && currentDetailProfile) {
@@ -199,8 +185,8 @@ export default function Discover() {
     </div>
   );
 
-  // Mobile & Tablet Layout - Single column card
-  if (useCompactLayout) {
+  // Mobile Layout - Single column card
+  if (isMobile) {
     return (
       <>
         <div className="h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex flex-col overflow-hidden">
@@ -286,10 +272,10 @@ export default function Discover() {
               renderEmptyState()
             ) : (
               <div className="relative flex flex-col items-center max-w-4xl w-full">
-                {/* Combined Profile Card */}
-                <div className="flex w-full h-[680px] max-h-[80vh] rounded-3xl overflow-hidden shadow-lg">
-                  {/* Profile Card - Left Side (50%) */}
-                  <div className="w-1/2 h-full">
+                {/* Combined Profile Card - Stack on tablet, side-by-side on desktop */}
+                <div className="flex flex-col lg:flex-row w-full max-w-md lg:max-w-full h-auto lg:h-[680px] lg:max-h-[80vh] rounded-3xl overflow-hidden shadow-lg">
+                  {/* Profile Card - Full width on tablet, 50% on desktop */}
+                  <div className="w-full lg:w-1/2 h-[400px] lg:h-full">
                     <BumbleProfileCard
                       profile={currentProfile}
                       onSwipeLeft={onPass}
@@ -299,8 +285,8 @@ export default function Discover() {
                     />
                   </div>
 
-                  {/* Profile Info Panel - Right Side (50%) */}
-                  <div className="w-1/2 h-full">
+                  {/* Profile Info Panel - Full width on tablet, 50% on desktop */}
+                  <div className="w-full lg:w-1/2 h-auto lg:h-full">
                     <ProfileInfoPanel
                       name={currentProfile.name}
                       age={currentProfile.age}
@@ -308,7 +294,7 @@ export default function Discover() {
                       idVerified={currentProfile.idVerified}
                       liveVerified={currentProfile.liveVerified}
                       onMoreClick={handleProfileClick}
-                      className="h-full"
+                      className="h-full min-h-[200px] lg:min-h-0"
                     />
                   </div>
                 </div>
