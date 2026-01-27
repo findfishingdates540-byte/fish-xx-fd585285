@@ -239,12 +239,12 @@ export function ProfileCardStack({
     </div>
   );
 
-  // Card 2: Interests (full-width)
+  // Card 2: Interests (full-width, centered)
   const renderInterestsCard = () => (
-    <div className="flex flex-col justify-center h-full w-full bg-muted px-8 py-12">
-      <div className="space-y-6">
+    <div className="flex flex-col items-center justify-center h-full w-full bg-muted px-8 py-12">
+      <div className="space-y-6 text-center">
         <h3 className="text-2xl font-semibold text-foreground">Interests</h3>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap justify-center gap-3">
           {profile.interests?.map((interest, idx) => (
             <Badge 
               key={idx} 
@@ -259,7 +259,7 @@ export function ProfileCardStack({
 
       <button
         onClick={onMoreClick}
-        className="mt-8 p-2 w-fit rounded-full hover:bg-accent transition-colors"
+        className="mt-8 p-2 rounded-full hover:bg-accent transition-colors"
         aria-label="View more details"
       >
         <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
@@ -267,12 +267,12 @@ export function ProfileCardStack({
     </div>
   );
 
-  // Card 3: Lifestyle (full-width)
+  // Card 3: Lifestyle (full-width, centered)
   const renderLifestyleCard = () => (
-    <div className="flex flex-col justify-center h-full w-full bg-muted px-8 py-12">
-      <div className="space-y-6">
+    <div className="flex flex-col items-center justify-center h-full w-full bg-muted px-8 py-12">
+      <div className="space-y-6 text-center">
         <h3 className="text-2xl font-semibold text-foreground">Lifestyle</h3>
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col items-center">
           {profile.heightCm && (
             <div className="flex items-center gap-4">
               <div className="h-10 w-10 rounded-full bg-background/80 flex items-center justify-center">
@@ -322,7 +322,7 @@ export function ProfileCardStack({
 
       <button
         onClick={onMoreClick}
-        className="mt-8 p-2 w-fit rounded-full hover:bg-accent transition-colors"
+        className="mt-8 p-2 rounded-full hover:bg-accent transition-colors"
         aria-label="View more details"
       >
         <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
@@ -330,17 +330,17 @@ export function ProfileCardStack({
     </div>
   );
 
-  // Card 4: Prompts (full-width)
+  // Card 4: Prompts (full-width, centered)
   const renderPromptsCard = () => {
     const prompts = profile.promptResponses?.filter(p => p.answer) || [];
     
     return (
-      <div className="flex flex-col justify-center h-full w-full bg-muted px-8 py-12">
-        <div className="space-y-6">
+      <div className="flex flex-col items-center justify-center h-full w-full bg-muted px-8 py-12">
+        <div className="space-y-6 text-center">
           <h3 className="text-2xl font-semibold text-foreground">Prompts</h3>
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col items-center">
             {prompts.slice(0, 3).map((prompt, idx) => (
-              <div key={idx} className="flex items-start gap-4">
+              <div key={idx} className="flex items-start gap-4 text-left max-w-md">
                 <div className="h-10 w-10 rounded-full bg-background/80 flex items-center justify-center flex-shrink-0">
                   <MessageCircle className="h-5 w-5 text-foreground" />
                 </div>
@@ -355,7 +355,7 @@ export function ProfileCardStack({
 
         <button
           onClick={onMoreClick}
-          className="mt-8 p-2 w-fit rounded-full hover:bg-accent transition-colors"
+          className="mt-8 p-2 rounded-full hover:bg-accent transition-colors"
           aria-label="View more details"
         >
           <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
