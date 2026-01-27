@@ -265,7 +265,7 @@ export default function Discover() {
           </div>
 
           {/* Profile Content */}
-          <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-hidden">
+          <div className="flex-1 flex flex-col items-center justify-start pt-4 lg:justify-center lg:pt-0 p-6 overflow-hidden">
             {isLoading ? (
               renderLoading()
             ) : noMoreProfiles || !currentProfile ? (
