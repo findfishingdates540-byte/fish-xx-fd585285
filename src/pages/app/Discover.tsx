@@ -274,7 +274,7 @@ export default function Discover() {
             ) : (
               <div className="relative flex flex-col items-center max-w-4xl w-full">
                 {/* Combined Profile Card */}
-                <div className="flex gap-0 w-full h-[520px] max-h-[65vh] rounded-3xl overflow-hidden shadow-lg">
+                <div className="flex gap-0 w-full h-[600px] max-h-[75vh] rounded-3xl overflow-hidden shadow-lg">
                   {/* Profile Card - Left Side (~60%) */}
                   <div className="w-[60%] h-full">
                     <BumbleProfileCard
