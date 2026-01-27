@@ -35,6 +35,7 @@ export default function Discover() {
   const isMobile = useIsMobile();
   const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [cardStackState, setCardStackState] = useState({ currentIndex: 0, totalCards: 1 });
 
   const {
     currentProfile,
@@ -273,7 +274,21 @@ export default function Discover() {
             ) : (
               <div className="relative flex flex-col items-center max-w-4xl w-full">
                 {/* Combined Profile Card - Stack on tablet, side-by-side on desktop */}
-                <div className="flex flex-col lg:flex-row w-full max-w-md lg:max-w-full h-auto lg:h-[680px] lg:max-h-[80vh] rounded-3xl overflow-hidden shadow-lg">
+                <div className="relative flex flex-col lg:flex-row w-full max-w-md lg:max-w-full h-auto lg:h-[680px] lg:max-h-[80vh] rounded-3xl overflow-hidden shadow-lg">
+                  {/* Progress Indicator - Outside the cards, top-right of container */}
+                  {cardStackState.totalCards > 1 && (
+                    <div className="absolute top-4 right-4 z-10 flex flex-col gap-1">
+                      {Array.from({ length: cardStackState.totalCards }).map((_, i) => (
+                        <div 
+                          key={i}
+                          className={`w-1 h-4 rounded-full transition-colors duration-200 ${
+                            i === cardStackState.currentIndex ? 'bg-foreground' : 'bg-muted-foreground/30'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   {/* Profile Card - Full width on tablet, 50% on desktop */}
                   <div className="w-full lg:w-1/2 h-[400px] lg:h-full">
                     <BumbleProfileCard
@@ -304,6 +319,7 @@ export default function Discover() {
                         promptResponses: currentDetailProfile?.promptResponses,
                       }}
                       onMoreClick={handleProfileClick}
+                      onCardChange={(currentIndex, totalCards) => setCardStackState({ currentIndex, totalCards })}
                       className="h-full min-h-[200px] lg:min-h-0"
                     />
                   </div>
