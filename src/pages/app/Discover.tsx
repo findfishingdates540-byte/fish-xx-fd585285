@@ -12,7 +12,6 @@ import {
   ProfileCardStack,
   ProfileCard,
   SwipeActions,
-  ProfileDetailView,
   MatchCelebrationModal,
   DatingTutorial,
 } from '@/components/discover';
@@ -30,7 +29,7 @@ export default function Discover() {
   const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>(
     accountMode === 'both' ? 'combo' : accountMode
   );
-  const [showDetailView, setShowDetailView] = useState(false);
+  
   const isMobile = useIsMobile();
   const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -91,24 +90,15 @@ export default function Discover() {
 
   const onPass = useCallback(async () => {
     await handlePass();
-    setShowDetailView(false);
   }, [handlePass]);
 
   const onLike = useCallback(async () => {
     await handleLike();
-    setShowDetailView(false);
   }, [handleLike]);
 
   const onSuperLike = useCallback(async () => {
     await handleSuperLike();
-    setShowDetailView(false);
   }, [handleSuperLike]);
-
-  const handleProfileClick = () => {
-    if (currentProfile) {
-      setShowDetailView(true);
-    }
-  };
 
   // Keyboard navigation for desktop
   useEffect(() => {
@@ -131,18 +121,6 @@ export default function Discover() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMobile, isLoading, noMoreProfiles, currentProfile, onPass, onLike, onSuperLike]);
 
-  // Show detail view
-  if (showDetailView && currentDetailProfile) {
-    return (
-      <ProfileDetailView
-        profile={currentDetailProfile}
-        onClose={() => setShowDetailView(false)}
-        onPass={onPass}
-        onSuperLike={onSuperLike}
-        onLike={onLike}
-      />
-    );
-  }
 
   // Empty state when no more profiles
   const renderEmptyState = () => (
@@ -200,7 +178,6 @@ export default function Discover() {
                 <div className="w-full max-w-sm flex-1 flex items-center justify-center min-h-0">
                   <ProfileCard
                     profile={currentProfile}
-                    onInfoClick={handleProfileClick}
                     onSwipeLeft={onPass}
                     onSwipeRight={onLike}
                     className="w-full h-full"
@@ -309,8 +286,6 @@ export default function Discover() {
                     profileId={currentProfile.id}
                     onSwipeLeft={onPass}
                     onSwipeRight={onLike}
-                    onExpandClick={handleProfileClick}
-                    onMoreClick={handleProfileClick}
                     onCardChange={(currentIndex, totalCards) => setCardStackState({ currentIndex, totalCards })}
                     className="h-full min-h-[500px] lg:min-h-0"
                   />

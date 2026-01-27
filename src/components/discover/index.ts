@@ -7,6 +7,5 @@ export { BumbleSwipeActions } from './BumbleSwipeActions';
 export { RightSidebar } from './RightSidebar';
 export { ProfileInfoPanel } from './ProfileInfoPanel';
 export { ProfileCardStack } from './ProfileCardStack';
-export { ProfileDetailView, type ProfileDetailData } from './ProfileDetailView';
 export { MatchCelebrationModal } from './MatchCelebrationModal';
 export { DatingTutorial } from './DatingTutorial';
