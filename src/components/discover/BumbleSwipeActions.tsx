@@ -24,7 +24,7 @@ export function BumbleSwipeActions({
       gravity: 0,
       decay: 0.94,
       startVelocity: 30,
-      colors: ['#f59e0b', '#fbbf24', '#fcd34d', '#fef3c7', '#ffffff'],
+      colors: ['#1a1a1a', '#333333', '#666666', '#999999', '#ffffff'],
     };
 
     confetti({
@@ -66,7 +66,7 @@ export function BumbleSwipeActions({
 
   return (
     <div className="flex items-end justify-center gap-2">
-      {/* Pass (X) - Gray circle */}
+      {/* Pass (X) - Light gray circle */}
       <motion.button
         onClick={() => handleClick(onPass, 'pass')}
         data-tutorial="pass-button"
@@ -78,7 +78,7 @@ export function BumbleSwipeActions({
         <X className="h-8 w-8" strokeWidth={2} />
       </motion.button>
 
-      {/* Super Like (Star) - Amber hexagon - LARGER */}
+      {/* Super Like (Star) - Black hexagon */}
       <motion.button
         onClick={() => handleClick(onSuperLike!, 'superlike')}
         data-tutorial="superlike-button"
@@ -89,21 +89,21 @@ export function BumbleSwipeActions({
       >
         {/* Hexagon shape using CSS clip-path */}
         <div 
-          className="absolute inset-0 bg-amber-400 hover:bg-amber-300 transition-colors shadow-xl"
+          className="absolute inset-0 bg-foreground hover:bg-foreground/90 transition-colors shadow-xl"
           style={{
             clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
           }}
         />
         <Star 
           className={cn(
-            "h-9 w-9 text-white relative z-10",
+            "h-9 w-9 text-background relative z-10",
             animatingButton === 'superlike' && "fill-current"
           )} 
           strokeWidth={1.5} 
         />
       </motion.button>
 
-      {/* Like (Checkmark) - Gray circle with amber check */}
+      {/* Like (Checkmark) - Light gray circle with black check */}
       <motion.button
         onClick={() => handleClick(onLike, 'like')}
         data-tutorial="like-button"
@@ -112,7 +112,7 @@ export function BumbleSwipeActions({
         className="h-16 w-16 rounded-full border border-border bg-background flex items-center justify-center transition-all hover:scale-105 shadow-lg"
         aria-label="Like"
       >
-        <Check className="h-8 w-8 text-amber-400" strokeWidth={2.5} />
+        <Check className="h-8 w-8 text-foreground" strokeWidth={2.5} />
       </motion.button>
     </div>
   );

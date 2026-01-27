@@ -26,7 +26,7 @@ export function ProfileInfoPanel({
   return (
     <div 
       className={cn(
-        "flex flex-col justify-center px-8 py-12 bg-primary/10 dark:bg-primary/5 h-full min-h-[450px]",
+        "flex flex-col justify-center px-8 py-12 bg-muted h-full min-h-[450px]",
         className
       )}
     >
@@ -41,7 +41,7 @@ export function ProfileInfoPanel({
           </h2>
           <VerificationBadge idVerified={idVerified} liveVerified={liveVerified} size="md" />
           {isVerified && (
-            <span className="text-xs text-primary font-medium leading-tight">
+            <span className="text-xs text-foreground font-medium leading-tight">
               Photo<br />verified
             </span>
           )}
@@ -58,7 +58,7 @@ export function ProfileInfoPanel({
       {/* More Info Button */}
       <button
         onClick={onMoreClick}
-        className="mt-4 p-2 w-fit rounded-full hover:bg-primary/10 transition-colors"
+        className="mt-4 p-2 w-fit rounded-full hover:bg-accent transition-colors"
         aria-label="View more details"
       >
         <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
