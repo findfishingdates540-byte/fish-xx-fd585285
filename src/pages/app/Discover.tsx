@@ -257,7 +257,16 @@ export default function Discover() {
           </div>
 
           {/* Profile Content */}
-          <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 min-h-0 overflow-hidden">
+          <div className="relative flex-1 flex flex-col items-center justify-center p-4 lg:p-6 min-h-0 overflow-hidden">
+            {/* Filter - Tablet only, top-left floating */}
+            <div className="hidden md:block lg:hidden absolute top-4 left-4 z-30">
+              <DiscoverFiltersPopover
+                filters={filters}
+                onFiltersChange={setFilters}
+                defaultFilters={defaultFilters}
+              />
+            </div>
+
             {isLoading ? (
               renderLoading()
             ) : noMoreProfiles || !currentProfile ? (
@@ -323,14 +332,6 @@ export default function Discover() {
                     Block and report
                   </button>
 
-                  {/* Filter - Only on tablet (hidden on mobile and desktop) */}
-                  <div className="hidden md:block lg:hidden">
-                    <DiscoverFiltersPopover
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      defaultFilters={defaultFilters}
-                    />
-                  </div>
 
                   {/* Keyboard Hints - Right, smaller on tablet */}
                   <div className="flex items-center gap-2 lg:gap-4 text-muted-foreground text-[10px] lg:text-xs">
