@@ -15,6 +15,7 @@ import {
   MatchCelebrationModal,
   DatingTutorial,
   DiscoverFiltersPopover,
+  MobileProfileDetail,
   type DiscoverFilters,
 } from '@/components/discover';
 import { RefreshCw, Heart, Flag, HelpCircle } from 'lucide-react';
@@ -35,6 +36,7 @@ export default function Discover() {
   const { isRunning, shouldShowTutorial, startTutorial, completeTutorial, stopTutorial } = useDatingTutorial();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cardStackState, setCardStackState] = useState({ currentIndex: 0, totalCards: 1 });
+  const [showMobileDetail, setShowMobileDetail] = useState(false);
 
   // Default filter values
   const defaultFilters: DiscoverFilters = {
@@ -197,6 +199,7 @@ export default function Discover() {
                     }}
                     onSwipeLeft={onPass}
                     onSwipeRight={onLike}
+                    onInfoClick={() => setShowMobileDetail(true)}
                     className="w-full h-full"
                   />
                 </div>
@@ -222,6 +225,32 @@ export default function Discover() {
           matchProfile={matchedProfile}
           currentUserPhoto={profile?.photos?.[0]}
         />
+
+        {currentProfile && currentDetailProfile && (
+          <MobileProfileDetail
+            open={showMobileDetail}
+            onClose={() => setShowMobileDetail(false)}
+            profile={{
+              name: currentProfile.name,
+              age: currentProfile.age,
+              location: currentProfile.location,
+              distance: currentProfile.distance,
+              bio: currentDetailProfile.bio,
+              occupation: currentDetailProfile.occupation,
+              idVerified: currentProfile.idVerified,
+              liveVerified: currentProfile.liveVerified,
+              photos: currentProfile.photos,
+              interests: currentDetailProfile.interests,
+              heightCm: currentDetailProfile.heightCm,
+              smoker: currentDetailProfile.smoker,
+              drinker: currentDetailProfile.drinker,
+              zodiacSign: currentDetailProfile.zodiacSign,
+              personalityType: currentDetailProfile.personalityType,
+              promptResponses: currentDetailProfile.promptResponses,
+              tags: currentProfile.tags,
+            }}
+          />
+        )}
 
         <DatingTutorial
           isRunning={isRunning}
