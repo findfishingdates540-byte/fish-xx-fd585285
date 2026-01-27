@@ -276,7 +276,7 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
         </p>
 
         <div className={cn("flex flex-wrap gap-2", isMobile ? "mt-3" : "mt-4")}>
-          {profile.tags.slice(0, isMobile ? 8 : profile.tags.length).map((tag, idx) => (
+          {profile.tags.map((tag, idx) => (
             <Badge
               key={idx}
               variant="outline"
