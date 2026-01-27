@@ -320,11 +320,19 @@ export default function Discover() {
                   <div />
 
                   {/* Keyboard Hints - Right */}
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">←</kbd>
-                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">↑</kbd>
-                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">↓</kbd>
-                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">→</kbd>
+                  <div className="flex items-center gap-4 text-muted-foreground text-xs">
+                    <div className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-muted rounded border">←</kbd>
+                      <span>Pass</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-muted rounded border">↑</kbd>
+                      <span>Super</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-muted rounded border">→</kbd>
+                      <span>Like</span>
+                    </div>
                   </div>
                 </div>
               </div>
