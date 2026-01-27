@@ -275,19 +275,19 @@ export default function Discover() {
               <div className="relative flex flex-col items-center max-w-4xl w-full">
                 {/* Combined Profile Card */}
                 <div className="flex w-full h-[680px] max-h-[80vh] rounded-3xl overflow-hidden shadow-lg">
-                  {/* Profile Card - Left Side (~60%) */}
-                  <div className="w-[60%] h-full">
+                  {/* Profile Card - Left Side (50%) */}
+                  <div className="w-1/2 h-full">
                     <BumbleProfileCard
                       profile={currentProfile}
                       onSwipeLeft={onPass}
                       onSwipeRight={onLike}
                       onExpandClick={handleProfileClick}
-                      className="h-full rounded-none"
+                      className="h-full w-full rounded-none max-w-none aspect-auto"
                     />
                   </div>
 
-                  {/* Profile Info Panel - Right Side (~40%) */}
-                  <div className="w-[40%] h-full">
+                  {/* Profile Info Panel - Right Side (50%) */}
+                  <div className="w-1/2 h-full">
                     <ProfileInfoPanel
                       name={currentProfile.name}
                       age={currentProfile.age}
