@@ -279,7 +279,15 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
           {profile.bio}
         </p>
 
-        <div className={cn("flex flex-wrap gap-2", isMobile ? "mt-3" : "mt-4")}>
+        {/* Interests Section Label */}
+        <h3 className={cn(
+          "font-semibold text-foreground",
+          isMobile ? "mt-5 mb-2 text-sm" : "mt-4 mb-2 text-sm"
+        )}>
+          Interests
+        </h3>
+
+        <div className={cn("flex flex-wrap gap-2")}>
           {profile.tags.map((tag, idx) => (
             <Badge
               key={idx}
