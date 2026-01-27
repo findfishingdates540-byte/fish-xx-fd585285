@@ -20,6 +20,7 @@ import {
 } from '@/components/discover';
 import { RefreshCw, Heart, Flag, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ProfileCompletionBanner } from '@/components/profile';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
@@ -72,7 +73,7 @@ export default function Discover() {
       if (!user?.id) return null;
       const { data } = await supabase
         .from('profiles')
-        .select('display_name, photos, is_premium, occupation')
+        .select('display_name, photos, is_premium, occupation, bio, height_cm, smoking, drinking, zodiac_sign, city, state')
         .eq('id', user.id)
         .single();
       return data;
@@ -184,6 +185,9 @@ export default function Discover() {
     return (
       <>
         <div className="h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex flex-col overflow-hidden">
+          {/* Profile Completion Banner */}
+          <ProfileCompletionBanner profile={profile} className="mx-2 mt-2 flex-shrink-0" />
+          
           <div className="flex-1 flex flex-col items-center justify-center p-2 min-h-0">
             {isLoading ? (
               renderLoading()
@@ -273,6 +277,9 @@ export default function Discover() {
 
         {/* Main Content Area */}
         <main className="flex-1 lg:ml-80 flex flex-col h-full min-h-0 overflow-hidden">
+          {/* Profile Completion Banner - Desktop */}
+          <ProfileCompletionBanner profile={profile} className="mx-4 mt-4 lg:mx-6" />
+          
           {/* Top Bar - Only show on desktop when sidebar is visible */}
           <div className="hidden lg:flex h-14 flex-shrink-0 border-b border-border items-center justify-between px-6 bg-background">
             <DiscoverFiltersPopover
