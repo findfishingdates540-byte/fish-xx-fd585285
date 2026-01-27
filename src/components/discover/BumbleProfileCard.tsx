@@ -97,7 +97,7 @@ export function BumbleProfileCard({
       whileTap={{ cursor: 'grabbing' }}
       data-tutorial="profile-card"
       className={cn(
-        "bg-background rounded-3xl shadow-lg overflow-hidden cursor-grab relative",
+        "bg-transparent overflow-hidden cursor-grab relative",
         isMobile ? "touch-none h-full w-full" : "touch-pan-y aspect-[3/4] w-full max-w-md",
         className
       )}
