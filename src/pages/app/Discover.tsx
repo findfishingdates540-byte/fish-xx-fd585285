@@ -287,13 +287,15 @@ export default function Discover() {
 
                   {/* Profile Info Panel - Full width on tablet, 50% on desktop */}
                   <div className="w-full lg:w-1/2 h-auto lg:h-full">
-                    {currentDetailProfile && (
-                      <ProfileInfoPanel
-                        profile={currentDetailProfile}
-                        onMoreClick={handleProfileClick}
-                        className="h-full min-h-[300px] lg:min-h-0"
-                      />
-                    )}
+                    <ProfileInfoPanel
+                      name={currentProfile.name}
+                      age={currentProfile.age}
+                      occupation={(currentProfile as any).occupation}
+                      idVerified={currentProfile.idVerified}
+                      liveVerified={currentProfile.liveVerified}
+                      onMoreClick={handleProfileClick}
+                      className="h-full min-h-[200px] lg:min-h-0"
+                    />
                   </div>
                 </div>
 
