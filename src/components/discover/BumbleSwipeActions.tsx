@@ -65,52 +65,103 @@ export function BumbleSwipeActions({
   };
 
   return (
-    <div className="flex items-end justify-center gap-6">
+    <motion.div 
+      className="flex items-end justify-center gap-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
       {/* Pass (X) - Light gray circle */}
       <motion.button
         onClick={() => handleClick(onPass, 'pass')}
         data-tutorial="pass-button"
-        animate={animatingButton === 'pass' ? { scale: [1, 0.85, 1.1, 1], rotate: [0, -8, 8, 0] } : {}}
-        transition={{ duration: 0.35 }}
-        className="h-20 w-20 rounded-full border border-border bg-background text-muted-foreground flex items-center justify-center transition-all hover:text-foreground hover:scale-105 shadow-lg"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.1, boxShadow: "0 8px 25px rgba(0,0,0,0.15)" }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 400, 
+          damping: 17,
+          delay: 0.1
+        }}
+        className="h-20 w-20 rounded-full border border-border bg-background text-muted-foreground flex items-center justify-center shadow-lg hover:text-destructive hover:border-destructive/50"
         aria-label="Pass"
       >
-        <X className="h-10 w-10" strokeWidth={2} />
+        <motion.div
+          animate={animatingButton === 'pass' ? { rotate: [0, -15, 15, 0], x: [-5, 5, 0] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          <X className="h-10 w-10" strokeWidth={2} />
+        </motion.div>
       </motion.button>
 
-      {/* Super Like (Star) - Black hexagon */}
+      {/* Super Like (Star) - Black rounded square */}
       <motion.button
         onClick={() => handleClick(onSuperLike!, 'superlike')}
         data-tutorial="superlike-button"
-        animate={animatingButton === 'superlike' ? { scale: [1, 0.8, 1.25, 1] } : {}}
-        transition={{ duration: 0.4 }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.08, y: -4 }}
+        whileTap={{ scale: 0.92 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 400, 
+          damping: 17,
+          delay: 0.2
+        }}
         className="relative h-24 w-24 flex items-center justify-center -mb-2"
         aria-label="Super Like"
       >
-        {/* Rounded hexagon shape */}
-        <div 
-          className="absolute inset-0 bg-foreground hover:bg-foreground/90 transition-colors shadow-xl rounded-3xl"
+        {/* Rounded shape with glow on hover */}
+        <motion.div 
+          className="absolute inset-0 bg-foreground shadow-xl rounded-3xl"
+          whileHover={{ 
+            boxShadow: "0 0 30px rgba(0,0,0,0.4)",
+          }}
+          transition={{ duration: 0.2 }}
         />
-        <Star 
-          className={cn(
-            "h-11 w-11 text-background relative z-10",
-            animatingButton === 'superlike' && "fill-current"
-          )} 
-          strokeWidth={1.5} 
-        />
+        <motion.div
+          animate={animatingButton === 'superlike' ? { 
+            scale: [1, 1.3, 1], 
+            rotate: [0, 15, -15, 0] 
+          } : {}}
+          transition={{ duration: 0.4 }}
+        >
+          <Star 
+            className={cn(
+              "h-11 w-11 text-background relative z-10 transition-all",
+              animatingButton === 'superlike' && "fill-current"
+            )} 
+            strokeWidth={1.5} 
+          />
+        </motion.div>
       </motion.button>
 
       {/* Like (Checkmark) - Light gray circle with black check */}
       <motion.button
         onClick={() => handleClick(onLike, 'like')}
         data-tutorial="like-button"
-        animate={animatingButton === 'like' ? { scale: [1, 0.85, 1.2, 1] } : {}}
-        transition={{ duration: 0.4 }}
-        className="h-20 w-20 rounded-full border border-border bg-background flex items-center justify-center transition-all hover:scale-105 shadow-lg"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.1, boxShadow: "0 8px 25px rgba(0,0,0,0.15)" }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 400, 
+          damping: 17,
+          delay: 0.3
+        }}
+        className="h-20 w-20 rounded-full border border-border bg-background flex items-center justify-center shadow-lg hover:text-green-600 hover:border-green-500/50"
         aria-label="Like"
       >
-        <Check className="h-10 w-10 text-foreground" strokeWidth={2.5} />
+        <motion.div
+          animate={animatingButton === 'like' ? { scale: [1, 1.4, 1], y: [0, -5, 0] } : {}}
+          transition={{ duration: 0.35 }}
+        >
+          <Check className="h-10 w-10 text-foreground" strokeWidth={2.5} />
+        </motion.div>
       </motion.button>
-    </div>
+    </motion.div>
   );
 }
