@@ -340,19 +340,27 @@ export function ProfileCardStack({
   return <div ref={containerRef} className={cn("relative h-full w-full overflow-hidden", className)}>
       {/* Animated Card Content */}
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div key={currentCardIndex} initial={{
-        opacity: 0,
-        y: direction > 0 ? 20 : -20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} exit={{
-        opacity: 0,
-        y: direction > 0 ? -20 : 20
-      }} transition={{
-        duration: 0.2,
-        ease: 'easeOut'
-      }} className="h-full w-full">
+        <motion.div 
+          key={currentCardIndex} 
+          initial={{
+            opacity: 0,
+            y: direction > 0 ? 15 : -15
+          }} 
+          animate={{
+            opacity: 1,
+            y: 0
+          }} 
+          exit={{
+            opacity: 0,
+            y: direction > 0 ? -15 : 15
+          }} 
+          transition={{
+            duration: 0.15,
+            ease: [0.25, 0.1, 0.25, 1]
+          }} 
+          className="h-full w-full transform-gpu"
+          style={{ willChange: 'transform, opacity' }}
+        >
           {renderCardContent(currentCard.type)}
         </motion.div>
       </AnimatePresence>
