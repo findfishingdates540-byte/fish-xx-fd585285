@@ -8,7 +8,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useDatingTutorial } from '@/hooks/use-dating-tutorial';
 import {
   DiscoverLeftSidebar,
-  BumbleProfileCard,
   BumbleSwipeActions,
   ProfileCardStack,
   ProfileCard,
@@ -273,8 +272,8 @@ export default function Discover() {
               renderEmptyState()
             ) : (
               <div className="relative flex flex-col items-center max-w-4xl w-full">
-                {/* Combined Profile Card - Stack on tablet, side-by-side on desktop */}
-                <div className="relative flex flex-col lg:flex-row w-full max-w-md lg:max-w-full h-auto lg:h-[680px] lg:max-h-[80vh] rounded-3xl overflow-hidden shadow-lg">
+                {/* Full Card Stack - Entire card swaps between different views */}
+                <div className="relative w-full max-w-md lg:max-w-full h-auto lg:h-[680px] lg:max-h-[80vh] rounded-3xl overflow-hidden shadow-lg">
                   {/* Progress Indicator - Outside the cards, top-right of container */}
                   {cardStackState.totalCards > 1 && (
                     <div className="absolute top-4 right-4 z-10 flex flex-col gap-1">
@@ -289,40 +288,32 @@ export default function Discover() {
                     </div>
                   )}
 
-                  {/* Profile Card - Full width on tablet, 50% on desktop */}
-                  <div className="w-full lg:w-1/2 h-[400px] lg:h-full">
-                    <BumbleProfileCard
-                      profile={currentProfile}
-                      onSwipeLeft={onPass}
-                      onSwipeRight={onLike}
-                      onExpandClick={handleProfileClick}
-                      className="h-full w-full rounded-none max-w-none aspect-auto"
-                    />
-                  </div>
-
-                  {/* Profile Card Stack - Full width on tablet, 50% on desktop */}
-                  <div className="w-full lg:w-1/2 h-auto lg:h-full">
-                    <ProfileCardStack
-                      profile={{
-                        name: currentProfile.name,
-                        age: currentProfile.age,
-                        bio: currentDetailProfile?.bio,
-                        occupation: (currentProfile as any).occupation || currentDetailProfile?.occupation,
-                        idVerified: currentProfile.idVerified,
-                        liveVerified: currentProfile.liveVerified,
-                        interests: currentDetailProfile?.interests,
-                        heightCm: currentDetailProfile?.heightCm,
-                        smoker: currentDetailProfile?.smoker,
-                        drinker: currentDetailProfile?.drinker,
-                        zodiacSign: currentDetailProfile?.zodiacSign,
-                        personalityType: currentDetailProfile?.personalityType,
-                        promptResponses: currentDetailProfile?.promptResponses,
-                      }}
-                      onMoreClick={handleProfileClick}
-                      onCardChange={(currentIndex, totalCards) => setCardStackState({ currentIndex, totalCards })}
-                      className="h-full min-h-[200px] lg:min-h-0"
-                    />
-                  </div>
+                  {/* Single ProfileCardStack that handles all cards including photo */}
+                  <ProfileCardStack
+                    profile={{
+                      name: currentProfile.name,
+                      age: currentProfile.age,
+                      bio: currentDetailProfile?.bio,
+                      occupation: (currentProfile as any).occupation || currentDetailProfile?.occupation,
+                      idVerified: currentProfile.idVerified,
+                      liveVerified: currentProfile.liveVerified,
+                      interests: currentDetailProfile?.interests,
+                      heightCm: currentDetailProfile?.heightCm,
+                      smoker: currentDetailProfile?.smoker,
+                      drinker: currentDetailProfile?.drinker,
+                      zodiacSign: currentDetailProfile?.zodiacSign,
+                      personalityType: currentDetailProfile?.personalityType,
+                      promptResponses: currentDetailProfile?.promptResponses,
+                    }}
+                    profileCardData={currentProfile}
+                    profileId={currentProfile.id}
+                    onSwipeLeft={onPass}
+                    onSwipeRight={onLike}
+                    onExpandClick={handleProfileClick}
+                    onMoreClick={handleProfileClick}
+                    onCardChange={(currentIndex, totalCards) => setCardStackState({ currentIndex, totalCards })}
+                    className="h-full min-h-[500px] lg:min-h-0"
+                  />
                 </div>
 
                 {/* Overlapping Action Buttons - Centered on bottom of card */}
