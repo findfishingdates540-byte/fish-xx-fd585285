@@ -88,18 +88,19 @@ export function BumbleProfileCard({
 
   return (
     <motion.div 
-      style={{ x, rotate, opacity }}
+      style={{ x, rotate, opacity, willChange: 'transform' }}
       drag="x"
       dragDirectionLock
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.9}
+      dragElastic={0.7}
+      dragTransition={{ bounceStiffness: 500, bounceDamping: 30 }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={handleCardClick}
       whileTap={{ cursor: 'grabbing' }}
       data-tutorial="profile-card"
       className={cn(
-        "bg-transparent overflow-hidden cursor-grab relative",
+        "bg-transparent overflow-hidden cursor-grab relative transform-gpu",
         isMobile ? "touch-none h-full w-full" : "touch-pan-y aspect-[3/4] w-full max-w-md",
         className
       )}
