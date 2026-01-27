@@ -191,7 +191,10 @@ export default function Discover() {
               <>
                 <div className="w-full max-w-sm flex-1 flex items-center justify-center min-h-0">
                   <ProfileCard
-                    profile={currentProfile}
+                    profile={{
+                      ...currentProfile,
+                      occupation: currentDetailProfile?.occupation,
+                    }}
                     onSwipeLeft={onPass}
                     onSwipeRight={onLike}
                     className="w-full h-full"
