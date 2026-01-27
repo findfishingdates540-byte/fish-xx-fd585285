@@ -253,21 +253,6 @@ export function DiscoverLeftSidebar({
               {userName}
             </Link>
           </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleInvite}
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors"
-              title="Invite Friends"
-            >
-              {copied ? <Check className="h-5 w-5 text-foreground" /> : <UserPlus className="h-5 w-5" />}
-            </button>
-            <Link
-              to="/app/settings"
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors"
-            >
-              <Settings className="h-5 w-5" />
-            </Link>
-          </div>
         </div>
       </div>
 
