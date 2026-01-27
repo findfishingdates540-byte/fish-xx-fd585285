@@ -76,9 +76,8 @@ export function CommentSheet({ postId, isOpen, onClose, commentsCount }: Comment
       if (!textAfterAt.includes(' ') && textAfterAt.length >= 0) {
         setMentionSearch(textAfterAt);
         setShowMentions(true);
-        if (textAfterAt.length >= 2) {
-          mentionSuggestions.mutate(textAfterAt);
-        }
+        // Trigger mutation immediately (empty string shows followers, otherwise searches)
+        mentionSuggestions.mutate(textAfterAt);
       } else {
         setShowMentions(false);
       }

@@ -547,10 +547,33 @@ export function useToggleCommentReaction() {
 }
 
 export function useMentionSuggestions() {
+  const { user } = useAuth();
+  
   return useMutation({
     mutationFn: async (searchTerm: string) => {
-      if (!searchTerm || searchTerm.length < 2) return [];
+      if (!user?.id) return [];
 
+      // If no search term, show followers
+      if (!searchTerm || searchTerm.length === 0) {
+        const { data: followers, error } = await supabase
+          .from('user_follows')
+          .select(`
+            following:profiles!user_follows_following_id_fkey (
+              id,
+              display_name,
+              photos
+            )
+          `)
+          .eq('follower_id', user.id)
+          .limit(10);
+
+        if (error) throw error;
+        return (followers || [])
+          .map(f => f.following)
+          .filter((p): p is { id: string; display_name: string | null; photos: string[] | null } => p !== null);
+      }
+
+      // Search by name
       const { data, error } = await supabase
         .from('public_profiles')
         .select('id, display_name, photos')
