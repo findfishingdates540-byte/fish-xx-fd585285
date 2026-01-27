@@ -355,7 +355,7 @@ export default function Discover() {
                 </div>
 
                 {/* Bottom Row - Block/Report, Filter (tablet), and Keyboard Hints */}
-                <div className="w-full flex items-center justify-between px-4 -mt-4 flex-shrink-0">
+                <div className="w-full flex items-center justify-between px-4 mt-auto pt-4 flex-shrink-0">
                   {/* Block and Report - Left */}
                   <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <Flag className="h-4 w-4" />
