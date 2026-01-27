@@ -26,6 +26,7 @@ interface BumbleProfileCardProps {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onExpandClick?: () => void;
+  showExpandButton?: boolean;
   className?: string;
 }
 
@@ -34,6 +35,7 @@ export function BumbleProfileCard({
   onSwipeLeft, 
   onSwipeRight, 
   onExpandClick,
+  showExpandButton = true,
   className 
 }: BumbleProfileCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -162,13 +164,15 @@ export function BumbleProfileCard({
         )}
 
         {/* Expand Button - Top right */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onExpandClick?.(); }}
-          className="absolute top-4 right-4 h-8 w-8 rounded-lg bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors z-10"
-          aria-label="Expand profile"
-        >
-          <Expand className="h-4 w-4" />
-        </button>
+        {showExpandButton && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onExpandClick?.(); }}
+            className="absolute top-4 right-4 h-8 w-8 rounded-lg bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors z-10"
+            aria-label="Expand profile"
+          >
+            <Expand className="h-4 w-4" />
+          </button>
+        )}
 
         {/* Top Badges */}
         <div className="absolute top-14 left-4 flex flex-col gap-2 z-10">
