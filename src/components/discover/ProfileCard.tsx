@@ -257,8 +257,12 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
           <div className="flex items-center gap-1 text-background/90 text-sm mt-1">
             <MapPin className="h-4 w-4" />
             <span>{profile.location}</span>
-            <span className="mx-1">•</span>
-            <span>{profile.distance}</span>
+            {!isMobile && (
+              <>
+                <span className="mx-1">•</span>
+                <span>{profile.distance}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
