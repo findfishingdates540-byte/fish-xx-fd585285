@@ -127,18 +127,24 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, c
           className="w-full h-full object-cover absolute inset-0"
         />
 
-        {/* Photo Navigation Dots */}
+        {/* Photo Navigation Dots - Tappable on mobile */}
         {profile.photos.length > 1 && (
-          <div className="absolute top-3 left-0 right-0 flex justify-center gap-1">
+          <div className="absolute top-3 left-0 right-0 flex justify-center gap-1.5 px-4">
             {profile.photos.map((_, idx) => (
-              <div
+              <button
                 key={idx}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setCurrentPhotoIndex(idx); 
+                }}
                 className={cn(
-                  'h-1 rounded-full transition-all',
+                  'h-1.5 rounded-full transition-all',
+                  isMobile ? 'min-w-[24px] flex-1' : 'w-auto',
                   idx === currentPhotoIndex
-                    ? 'w-6 bg-background'
-                    : 'w-1 bg-background/50'
+                    ? 'bg-background'
+                    : 'bg-background/40'
                 )}
+                aria-label={`View photo ${idx + 1}`}
               />
             ))}
           </div>
