@@ -105,16 +105,36 @@ function mapToProfileData(
     }
   }
 
-  // Create tags from fishing data
+  // Create tags from fishing data and interests
   const tags: { icon: string; label: string }[] = [];
+  
+  // Format label helper
+  const formatLabel = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  
+  // Fishing experience
   if (profile.fishing_experience) {
-    tags.push({ icon: '🎣', label: profile.fishing_experience.charAt(0).toUpperCase() + profile.fishing_experience.slice(1) });
+    tags.push({ icon: '🎣', label: formatLabel(profile.fishing_experience) });
   }
-  if (profile.preferred_species?.[0]) {
-    tags.push({ icon: '🐟', label: profile.preferred_species[0] });
+  
+  // All preferred species
+  if (profile.preferred_species?.length) {
+    profile.preferred_species.forEach(species => {
+      tags.push({ icon: '🐟', label: formatLabel(species) });
+    });
   }
-  if (profile.fishing_gear?.[0]) {
-    tags.push({ icon: '🎯', label: profile.fishing_gear[0] });
+  
+  // Fishing gear
+  if (profile.fishing_gear?.length) {
+    profile.fishing_gear.forEach(gear => {
+      tags.push({ icon: '🎯', label: formatLabel(gear) });
+    });
+  }
+  
+  // Interests
+  if (profile.interests?.length) {
+    profile.interests.forEach(interest => {
+      tags.push({ icon: '✨', label: formatLabel(interest) });
+    });
   }
 
   return {
@@ -126,7 +146,7 @@ function mapToProfileData(
     bio: profile.bio || '',
     photos: profile.photos || [],
     fishingType: profile.fishing_experience || undefined,
-    tags: tags.length > 0 ? tags : undefined,
+    tags: tags.length > 0 ? tags : [],
     idVerified: profile.id_verified || false,
     liveVerified: profile.live_verified || false,
     likedYou: likedYouIds.has(profile.id),
