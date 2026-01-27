@@ -10,3 +10,4 @@ export { ProfileCardStack } from './ProfileCardStack';
 export { MatchCelebrationModal } from './MatchCelebrationModal';
 export { DatingTutorial } from './DatingTutorial';
 export { DiscoverFiltersPopover, type DiscoverFilters } from './DiscoverFiltersPopover';
+export { MobileProfileDetail } from './MobileProfileDetail';
