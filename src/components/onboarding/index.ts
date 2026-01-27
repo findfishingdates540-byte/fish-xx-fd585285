@@ -13,3 +13,4 @@ export { StepTargetSpecies } from './StepTargetSpecies';
 export { StepFishingGear } from './StepFishingGear';
 export { StepDatingPreference } from './StepDatingPreference';
 export { StepPreferenceSync } from './StepPreferenceSync';
+export { StepLifestyle } from './StepLifestyle';

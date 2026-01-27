@@ -17,6 +17,7 @@ import { StepTargetSpecies } from "@/components/onboarding/StepTargetSpecies";
 import { StepFishingGear } from "@/components/onboarding/StepFishingGear";
 import { StepDatingPreference } from "@/components/onboarding/StepDatingPreference";
 import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
+import { StepLifestyle } from "@/components/onboarding/StepLifestyle";
 import { OnboardingDebugOverlay } from "@/components/onboarding/OnboardingDebugOverlay";
 
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
@@ -58,24 +59,26 @@ type FishingExperience = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
 // Step configurations per account mode
 const stepConfigs: Record<AccountMode, string[]> = {
-  dating: ['basic_info', 'photo', 'location', 'interests', 'dating_preference', 'success'],
-  fishing: ['basic_info', 'experience', 'target_species', 'gear', 'interests', 'photo', 'location', 'success'],
-  both: ['basic_info', 'photo', 'location', 'experience', 'target_species', 'gear', 'interests', 'dating_preference', 'preference_sync', 'success'],
+  dating: ['basic_info', 'photo', 'location', 'lifestyle', 'interests', 'dating_preference', 'success'],
+  fishing: ['basic_info', 'photo', 'location', 'lifestyle', 'experience', 'target_species', 'gear', 'interests', 'success'],
+  both: ['basic_info', 'photo', 'location', 'lifestyle', 'experience', 'target_species', 'gear', 'interests', 'dating_preference', 'preference_sync', 'success'],
 };
 
 // Mode-specific step titles and subtitles
 const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subtitle: string }>> = {
   dating: {
     basic_info: { title: "Let's get to know you", subtitle: 'We need a few basics to help you find your perfect match.' },
-    photo: { title: 'Show your best self!', subtitle: 'Upload a clear photo of yourself. A good photo helps build trust and connection!' },
+    photo: { title: 'Show your best self!', subtitle: 'Upload at least one clear photo of yourself. A good photo helps build trust!' },
     location: { title: 'Where are you located?', subtitle: 'Set your location to find matches nearby.' },
+    lifestyle: { title: 'Tell us about yourself', subtitle: 'Share your bio and lifestyle details to help others know you better.' },
     interests: { title: 'What are you into?', subtitle: 'Select at least 3 interests to help us find compatible matches.' },
     dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
   },
   fishing: {
     basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to connect you with fellow anglers.' },
-    photo: { title: 'Show us your best catch!', subtitle: 'Upload a clear photo of yourself so others can recognize you on the water.' },
-    location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots.' },
+    photo: { title: 'Show us your best catch!', subtitle: 'Upload at least one clear photo of yourself so others can recognize you.' },
+    location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and fishing spots.' },
+    lifestyle: { title: 'Tell us about yourself', subtitle: 'Share your bio and lifestyle details to connect better with buddies.' },
     experience: { title: 'How experienced are you?', subtitle: 'This helps us match you with the right fishing buddies.' },
     target_species: { title: 'What fish do you target?', subtitle: 'Select the species you love to catch.' },
     gear: { title: 'What gear do you use?', subtitle: 'Select the fishing equipment you own or prefer.' },
@@ -83,8 +86,9 @@ const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subt
   },
   both: {
     basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to find your perfect catch or fishing buddy.' },
-    photo: { title: 'Show us your best catch!', subtitle: 'Upload a clear photo of yourself so others can recognize you on the water. A good photo builds trust!' },
-    location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and discover the best fishing spots in your waters.' },
+    photo: { title: 'Show us your best catch!', subtitle: 'Upload at least one clear photo of yourself. A good photo builds trust!' },
+    location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and matches.' },
+    lifestyle: { title: 'Tell us about yourself', subtitle: 'Share your bio and lifestyle details to make meaningful connections.' },
     experience: { title: 'How much experience do you have on the water?', subtitle: 'This helps us match you with the right fishing buddies or dates.' },
     target_species: { title: 'What fish do you target?', subtitle: 'Select the species you love to catch.' },
     gear: { title: 'What gear do you use?', subtitle: 'Select the fishing equipment you own or prefer.' },
@@ -102,6 +106,7 @@ const stepLabels: Record<string, string> = {
   basic_info: 'Basic Info',
   photo: 'Profile Photo',
   location: 'Location Setup',
+  lifestyle: 'About You',
   experience: 'Experience Level',
   target_species: 'Target Species',
   gear: 'Fishing Gear',
@@ -156,6 +161,14 @@ export default function Onboarding() {
   const [myPace, setMyPace] = useState<'relaxed' | 'intense'>('relaxed');
   const [theirPace, setTheirPace] = useState<'relaxed' | 'intense'>('relaxed');
   const [comboActivities, setComboActivities] = useState<string[]>([]);
+  
+  // Lifestyle fields
+  const [bio, setBio] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [heightCm, setHeightCm] = useState<number | null>(null);
+  const [smoking, setSmoking] = useState('');
+  const [drinking, setDrinking] = useState('');
+  const [zodiacSign, setZodiacSign] = useState('');
 
   const steps = stepConfigs[accountMode].filter(s => s !== 'success');
   const totalSteps = steps.length;
@@ -215,6 +228,13 @@ export default function Onboarding() {
           setAgeRange([data.min_age_preference, data.max_age_preference]);
         }
         if (data.max_distance_miles) setMaxDistance(data.max_distance_miles);
+        // Load lifestyle fields
+        if (data.bio) setBio(data.bio);
+        if (data.occupation) setOccupation(data.occupation);
+        if (data.height_cm) setHeightCm(data.height_cm);
+        if (data.smoking) setSmoking(data.smoking);
+        if (data.drinking) setDrinking(data.drinking);
+        if (data.zodiac_sign) setZodiacSign(data.zodiac_sign);
       }
 
       setLoading(false);
@@ -240,10 +260,46 @@ export default function Onboarding() {
         }
         return true;
       case 'photo':
-        // Photo is optional but encouraged
+        if (photos.length === 0) {
+          toast({ title: "Please upload at least one photo", variant: "destructive" });
+          return false;
+        }
         return true;
       case 'location':
-        // Location can be skipped
+        if (!city.trim() && !state.trim()) {
+          toast({ title: "Please enter your location", variant: "destructive" });
+          return false;
+        }
+        return true;
+      case 'lifestyle':
+        if (!bio.trim()) {
+          toast({ title: "Please write a short bio about yourself", variant: "destructive" });
+          return false;
+        }
+        if (bio.trim().length < 20) {
+          toast({ title: "Bio should be at least 20 characters", variant: "destructive" });
+          return false;
+        }
+        if (!occupation.trim()) {
+          toast({ title: "Please enter your occupation", variant: "destructive" });
+          return false;
+        }
+        if (!heightCm) {
+          toast({ title: "Please select your height", variant: "destructive" });
+          return false;
+        }
+        if (!smoking) {
+          toast({ title: "Please select your smoking preference", variant: "destructive" });
+          return false;
+        }
+        if (!drinking) {
+          toast({ title: "Please select your drinking preference", variant: "destructive" });
+          return false;
+        }
+        if (!zodiacSign) {
+          toast({ title: "Please select your zodiac sign", variant: "destructive" });
+          return false;
+        }
         return true;
       case 'experience':
         return true;
@@ -337,6 +393,13 @@ export default function Onboarding() {
         // Grant 30-day free trial to all users
         is_premium: true,
         premium_expires_at: trialExpiresAt.toISOString(),
+        // Lifestyle fields
+        bio,
+        occupation,
+        height_cm: heightCm,
+        smoking,
+        drinking,
+        zodiac_sign: zodiacSign,
       };
 
       if (accountMode === 'dating' || accountMode === 'both') {
@@ -449,6 +512,23 @@ export default function Onboarding() {
             setLocationLng={setLocationLng}
           />
         );
+      case 'lifestyle':
+        return (
+          <StepLifestyle
+            bio={bio}
+            setBio={setBio}
+            occupation={occupation}
+            setOccupation={setOccupation}
+            heightCm={heightCm}
+            setHeightCm={setHeightCm}
+            smoking={smoking}
+            setSmoking={setSmoking}
+            drinking={drinking}
+            setDrinking={setDrinking}
+            zodiacSign={zodiacSign}
+            setZodiacSign={setZodiacSign}
+          />
+        );
       case 'experience':
         return (
           <StepExperienceLevel
@@ -516,7 +596,7 @@ export default function Onboarding() {
     }
   };
 
-  const canSkip = ['photo', 'location'].includes(currentStepKey);
+  // All steps are now mandatory - no skipping allowed
   const isLastStep = currentStep === totalSteps - 1;
 
   return (
@@ -684,24 +764,7 @@ export default function Onboarding() {
                 </div>
 
                 {/* Skip centered below */}
-                <AnimatePresence mode="wait">
-                  {canSkip && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex justify-center mt-2"
-                    >
-                      <Button
-                        variant="ghost"
-                        onClick={handleSkip}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        Skip for now
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Skip button removed - all steps are mandatory */}
               </div>
             </div>
           </div>
