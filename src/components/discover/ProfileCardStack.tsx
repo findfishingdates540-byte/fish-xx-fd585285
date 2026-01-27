@@ -226,7 +226,7 @@ export function ProfileCardStack({
             </p>}
 
           {/* Bio */}
-          <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+          <p className="text-sm font-semibold text-muted-foreground leading-relaxed">
             {profile.bio || 'No bio yet'}
           </p>
 
