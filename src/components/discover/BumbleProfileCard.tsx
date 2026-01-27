@@ -177,11 +177,6 @@ export function BumbleProfileCard({
               💕 Liked You
             </Badge>
           )}
-          {profile.fishingType && (
-            <Badge variant="secondary" className="bg-background/90 text-foreground font-medium">
-              🎣 {profile.fishingType}
-            </Badge>
-          )}
         </div>
       </div>
     </motion.div>
