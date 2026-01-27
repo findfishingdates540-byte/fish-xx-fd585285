@@ -92,8 +92,8 @@ export function BumbleProfileCard({
       drag="x"
       dragDirectionLock
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.7}
-      dragTransition={{ bounceStiffness: 500, bounceDamping: 30 }}
+      dragElastic={0.5}
+      dragTransition={{ bounceStiffness: 650, bounceDamping: 38 }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={handleCardClick}
