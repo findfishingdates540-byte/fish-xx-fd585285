@@ -14,10 +14,11 @@ import {
   SwipeActions,
   MatchCelebrationModal,
   DatingTutorial,
+  DiscoverFiltersPopover,
+  type DiscoverFilters,
 } from '@/components/discover';
-import { RefreshCw, Heart, SlidersHorizontal, Flag, HelpCircle } from 'lucide-react';
+import { RefreshCw, Heart, Flag, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import logoImage from '@/assets/logo.png';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
@@ -35,6 +36,15 @@ export default function Discover() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cardStackState, setCardStackState] = useState({ currentIndex: 0, totalCards: 1 });
 
+  // Default filter values
+  const defaultFilters: DiscoverFilters = {
+    minAge: 18,
+    maxAge: 65,
+    maxDistance: 500, // 500 = unlimited
+  };
+
+  const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
+
   const {
     currentProfile,
     currentDetailProfile,
@@ -48,7 +58,11 @@ export default function Discover() {
     loadMoreProfiles,
     matchedProfile,
     clearMatchedProfile,
-  } = useDiscoverProfiles();
+  } = useDiscoverProfiles({
+    minAge: filters.minAge,
+    maxAge: filters.maxAge,
+    maxDistance: filters.maxDistance,
+  });
 
   const { data: profile } = useQuery({
     queryKey: ['user-profile', user?.id],
@@ -229,10 +243,11 @@ export default function Discover() {
         <main className="flex-1 lg:ml-80 flex flex-col">
           {/* Top Bar - Only show on desktop when sidebar is visible */}
           <div className="hidden lg:flex h-14 border-b border-border items-center justify-between px-6 bg-background">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-            </Button>
+            <DiscoverFiltersPopover
+              filters={filters}
+              onFiltersChange={setFilters}
+              defaultFilters={defaultFilters}
+            />
             
             <div className="flex items-center gap-2">
               <span className="font-bold text-lg text-primary">Find Fishing Dates</span>
