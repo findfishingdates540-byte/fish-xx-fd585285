@@ -272,7 +272,7 @@ export default function Discover() {
             ) : noMoreProfiles || !currentProfile ? (
               renderEmptyState()
             ) : (
-              <div className="flex flex-col items-center gap-4 max-w-4xl w-full">
+              <div className="relative flex flex-col items-center max-w-4xl w-full">
                 {/* Combined Profile Card */}
                 <div className="flex gap-0 w-full h-[520px] max-h-[65vh] rounded-3xl overflow-hidden shadow-lg">
                   {/* Profile Card - Left Side (~60%) */}
@@ -299,21 +299,25 @@ export default function Discover() {
                   </div>
                 </div>
 
-                {/* Actions Row - Below the card */}
-                <div className="w-full flex items-center justify-between px-4">
+                {/* Overlapping Action Buttons - Centered on bottom of card */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20">
+                  <BumbleSwipeActions
+                    onPass={onPass}
+                    onSuperLike={onSuperLike}
+                    onLike={onLike}
+                  />
+                </div>
+
+                {/* Bottom Row - Block/Report and Keyboard Hints */}
+                <div className="w-full flex items-center justify-between px-4 mt-14">
                   {/* Block and Report - Left */}
                   <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <Flag className="h-4 w-4" />
                     Block and report
                   </button>
 
-                  {/* Swipe Actions - Center */}
-                  <BumbleSwipeActions
-                    onPass={onPass}
-                    onSuperLike={onSuperLike}
-                    onLike={onLike}
-                    showKeyboardHints={false}
-                  />
+                  {/* Spacer */}
+                  <div />
 
                   {/* Keyboard Hints - Right */}
                   <div className="flex items-center gap-2 text-muted-foreground">
