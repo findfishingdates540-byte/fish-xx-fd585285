@@ -108,18 +108,19 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
 
   return (
     <motion.div 
-      style={{ x, rotate, opacity }}
+      style={{ x, rotate, opacity, willChange: 'transform' }}
       drag="x"
       dragDirectionLock
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.9}
+      dragElastic={0.5}
+      dragTransition={{ bounceStiffness: 650, bounceDamping: 38 }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={handleCardClick}
       whileTap={{ cursor: 'grabbing' }}
       data-tutorial="profile-card"
       className={cn(
-        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-[calc(100vw-1.5rem)] sm:max-w-sm w-full mx-auto cursor-grab relative flex flex-col",
+        "bg-background rounded-3xl shadow-medium overflow-hidden max-w-[calc(100vw-1.5rem)] sm:max-w-sm w-full mx-auto cursor-grab relative flex flex-col transform-gpu",
         isMobile ? "touch-none h-full" : "touch-pan-y",
         className
       )}
@@ -267,10 +268,10 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
         </div>
       </div>
 
-      {/* Bio & Tags Section - Scrollable on mobile */}
+      {/* Bio & Tags Section - Touch-none on mobile to enable full-card swiping */}
       <div className={cn(
-        "flex-1 overflow-y-auto",
-        isMobile ? "p-4" : "p-5"
+        "flex-1",
+        isMobile ? "p-4 touch-none" : "p-5 overflow-y-auto"
       )}>
         <p className={cn(
           "text-muted-foreground leading-relaxed",
