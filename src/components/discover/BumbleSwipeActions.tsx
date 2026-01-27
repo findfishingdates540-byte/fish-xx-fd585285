@@ -65,17 +65,17 @@ export function BumbleSwipeActions({
   };
 
   return (
-    <div className="flex items-end justify-center gap-2">
+    <div className="flex items-end justify-center gap-6">
       {/* Pass (X) - Light gray circle */}
       <motion.button
         onClick={() => handleClick(onPass, 'pass')}
         data-tutorial="pass-button"
         animate={animatingButton === 'pass' ? { scale: [1, 0.85, 1.1, 1], rotate: [0, -8, 8, 0] } : {}}
         transition={{ duration: 0.35 }}
-        className="h-16 w-16 rounded-full border border-border bg-background text-muted-foreground flex items-center justify-center transition-all hover:text-foreground hover:scale-105 shadow-lg"
+        className="h-20 w-20 rounded-full border border-border bg-background text-muted-foreground flex items-center justify-center transition-all hover:text-foreground hover:scale-105 shadow-lg"
         aria-label="Pass"
       >
-        <X className="h-8 w-8" strokeWidth={2} />
+        <X className="h-10 w-10" strokeWidth={2} />
       </motion.button>
 
       {/* Super Like (Star) - Black hexagon */}
@@ -84,7 +84,7 @@ export function BumbleSwipeActions({
         data-tutorial="superlike-button"
         animate={animatingButton === 'superlike' ? { scale: [1, 0.8, 1.25, 1] } : {}}
         transition={{ duration: 0.4 }}
-        className="relative h-20 w-20 flex items-center justify-center -mb-2"
+        className="relative h-24 w-24 flex items-center justify-center -mb-2"
         aria-label="Super Like"
       >
         {/* Hexagon shape using CSS clip-path */}
@@ -96,7 +96,7 @@ export function BumbleSwipeActions({
         />
         <Star 
           className={cn(
-            "h-9 w-9 text-background relative z-10",
+            "h-11 w-11 text-background relative z-10",
             animatingButton === 'superlike' && "fill-current"
           )} 
           strokeWidth={1.5} 
@@ -109,10 +109,10 @@ export function BumbleSwipeActions({
         data-tutorial="like-button"
         animate={animatingButton === 'like' ? { scale: [1, 0.85, 1.2, 1] } : {}}
         transition={{ duration: 0.4 }}
-        className="h-16 w-16 rounded-full border border-border bg-background flex items-center justify-center transition-all hover:scale-105 shadow-lg"
+        className="h-20 w-20 rounded-full border border-border bg-background flex items-center justify-center transition-all hover:scale-105 shadow-lg"
         aria-label="Like"
       >
-        <Check className="h-8 w-8 text-foreground" strokeWidth={2.5} />
+        <Check className="h-10 w-10 text-foreground" strokeWidth={2.5} />
       </motion.button>
     </div>
   );
