@@ -270,7 +270,7 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
       )}>
         <p className={cn(
           "text-muted-foreground leading-relaxed",
-          isMobile ? "text-base font-medium" : "text-sm line-clamp-2"
+          isMobile ? "text-base font-medium mt-2" : "text-sm line-clamp-2"
         )}>
           {profile.bio}
         </p>
