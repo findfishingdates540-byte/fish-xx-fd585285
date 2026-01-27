@@ -1,68 +1,108 @@
 
-# Mobile Profile Card Enhancement
+# Redesign Mobile Discover Layout to Match Bumble
 
 ## Overview
-Update the mobile Discover page profile card to match the Bumble-style layout shown in the reference. Currently, the mobile card only displays the photo with name/age overlay. The new design will add bio text and interest tags below the photo section.
+Transform the mobile Discover page to match Bumble's clean card-only design where action buttons are hidden and swiping is the primary interaction method.
 
-## Current State
-- Mobile `ProfileCard` hides the bio and tags section entirely (line 217-237 uses `{!isMobile && (...)}`)
-- The photo takes up the full card height on mobile
-- Only name, age, location, and verification badges are visible on the photo overlay
+## Visual Comparison
 
-## Target State (Based on Reference)
-1. **Photo section**: Takes up majority of card but not 100%
-2. **Name/Age overlay**: Remains on photo with verification badge
-3. **Occupation**: Shown below name (currently not displayed on mobile)
-4. **Bio section**: Visible below the photo
-5. **Interest tags**: Displayed as pills at the bottom
+**Current Design:**
+- Card + 3 visible action buttons below
 
-## Technical Implementation
+**Target Design (Bumble):**
+- Full card only, no visible Pass/Like buttons
+- Single SuperLike FAB in bottom-right corner of photo
+- Swipe gestures handle Pass (left) and Like (right)
 
-### File: `src/components/discover/ProfileCard.tsx`
+## Implementation Plan
 
-**Change 1: Adjust photo section height for mobile**
-- Currently: `isMobile ? "flex-1 min-h-0" : "aspect-[3/4]"` (line 121)
-- Change to: Mobile uses a fixed aspect ratio (like 4:5) instead of flex-1 to leave room for bio/tags
+### 1. Remove Action Buttons Row on Mobile
+**File: `src/pages/app/Discover.tsx`**
 
-**Change 2: Add occupation to name overlay on mobile**
-- Add occupation prop to ProfileData interface
-- Display occupation below the name in the gradient overlay (like "Yoga Instructor" in reference)
+Remove the `BumbleSwipeActions` component from the mobile layout entirely. The swiping functionality already exists on the `ProfileCard` component.
 
-**Change 3: Show bio and tags on mobile**
-- Remove the `{!isMobile && (...)}` condition (line 218)
-- Always show the bio and tags section
-- Adjust padding and sizing for mobile (smaller text, compact layout)
+### 2. Add SuperLike FAB to ProfileCard
+**File: `src/components/discover/ProfileCard.tsx`**
 
-**Change 4: Update ProfileData interface**
-- Add `occupation?: string` field to the interface
+Add a floating SuperLike button (yellow/golden honeycomb style like Bumble) positioned at the bottom-right of the photo section. This will:
+- Be visible only on mobile
+- Trigger the `onSuperLike` callback
+- Feature a subtle glow/animation on tap
 
-### File: `src/pages/app/Discover.tsx`
+### 3. Update ProfileCard Props
+**File: `src/components/discover/ProfileCard.tsx`**
 
-**Change 5: Pass occupation to ProfileCard**
-- The occupation data is available in `currentDetailProfile?.occupation`
-- Update the profile data passed to `ProfileCard` to include occupation
+Add an optional `onSuperLike` prop to enable the SuperLike FAB functionality.
 
-## Layout Structure (Mobile)
+### 4. Expand Card to Fill More Space
+**File: `src/pages/app/Discover.tsx`**
 
+With action buttons removed, the card can now take up more vertical space, providing a larger photo area and better readability for bio/tags.
+
+---
+
+## Technical Details
+
+### Changes to `src/pages/app/Discover.tsx`:
+
+```tsx
+// Mobile Layout - Bumble-style (no action buttons)
+<div className="w-full max-w-sm h-full flex flex-col min-h-0">
+  <div className="flex-1 min-h-0 bg-background rounded-3xl overflow-hidden shadow-lg">
+    <ProfileCard
+      profile={{...currentProfile, occupation: currentDetailProfile?.occupation}}
+      onSwipeLeft={onPass}
+      onSwipeRight={onLike}
+      onSuperLike={onSuperLike}  // NEW: Pass super like handler
+      onInfoClick={() => setShowMobileDetail(true)}
+      className="w-full h-full"
+    />
+  </div>
+  {/* Action buttons REMOVED */}
+</div>
 ```
-+---------------------------+
-|        Photo              |
-|     (aspect 4:5)          |
-|                           |
-|  Name, Age [verified]     |
-|  Occupation               |
-|  Location • Distance      |
-+---------------------------+
-|  Bio text (2-3 lines)     |
-|                           |
-|  [Tag] [Tag] [Tag]        |
-+---------------------------+
-|    [Action Buttons]       |
-+---------------------------+
+
+### Changes to `src/components/discover/ProfileCard.tsx`:
+
+**Add prop:**
+```tsx
+interface ProfileCardProps {
+  // ... existing props
+  onSuperLike?: () => void;  // NEW
+}
 ```
 
-## Styling Notes
-- Bio: `text-sm text-muted-foreground line-clamp-2` (limit to 2 lines)
-- Tags: Smaller pills with `text-xs` on mobile, `flex-wrap` with overflow handling
-- Padding: Reduce to `p-3` on mobile vs `p-5` on desktop
-- Photo aspect ratio: Use `aspect-[4/5]` on mobile to balance photo vs content
+**Add SuperLike FAB (inside photo section, bottom-right):**
+```tsx
+{/* SuperLike FAB - Mobile only */}
+{isMobile && onSuperLike && (
+  <motion.button
+    onClick={(e) => { e.stopPropagation(); onSuperLike(); }}
+    whileHover={{ scale: 1.1 }}
+    whileTap={{ scale: 0.9 }}
+    className="absolute bottom-4 right-4 h-12 w-12 rounded-xl bg-foreground shadow-lg flex items-center justify-center z-20"
+    aria-label="Super Like"
+  >
+    <Star className="h-6 w-6 text-background" strokeWidth={1.5} />
+  </motion.button>
+)}
+```
+
+### Update exports
+**File: `src/components/discover/index.ts`** - No changes needed
+
+---
+
+## Summary of Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/pages/app/Discover.tsx` | Remove `BumbleSwipeActions` from mobile, pass `onSuperLike` to ProfileCard |
+| `src/components/discover/ProfileCard.tsx` | Add `onSuperLike` prop and SuperLike FAB button |
+
+## Result
+- Cleaner, more immersive mobile experience
+- Card takes full available height
+- Swipe gestures for Pass/Like (already working)
+- Single SuperLike FAB in bottom-right corner of photo
+- Matches Bumble's minimal mobile UI pattern
