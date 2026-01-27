@@ -241,15 +241,16 @@ export default function Discover() {
 
         {/* Main Content Area */}
         <main className="flex-1 lg:ml-80 flex flex-col h-full min-h-0 overflow-hidden">
-          {/* Top Bar - Show on medium+ screens (tablet and desktop) */}
-          <div className="hidden md:flex h-14 flex-shrink-0 border-b border-border items-center justify-between px-6 bg-background">
-            <div className="flex items-center gap-3">
+          {/* Top Bar - Only show on desktop when sidebar is visible */}
+          <div className="hidden lg:flex h-14 flex-shrink-0 border-b border-border items-center justify-between px-6 bg-background">
+            <DiscoverFiltersPopover
+              filters={filters}
+              onFiltersChange={setFilters}
+              defaultFilters={defaultFilters}
+            />
+            
+            <div className="flex items-center gap-2">
               <span className="font-bold text-lg text-primary">Find Fishing Dates</span>
-              <DiscoverFiltersPopover
-                filters={filters}
-                onFiltersChange={setFilters}
-                defaultFilters={defaultFilters}
-              />
             </div>
             
             <div className="w-20" /> {/* Spacer for balance */}
@@ -314,7 +315,7 @@ export default function Discover() {
                   />
                 </div>
 
-                {/* Bottom Row - Block/Report and Keyboard Hints */}
+                {/* Bottom Row - Block/Report, Filter (tablet), and Keyboard Hints */}
                 <div className="w-full flex items-center justify-between px-4 -mt-4 flex-shrink-0">
                   {/* Block and Report - Left */}
                   <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -322,8 +323,14 @@ export default function Discover() {
                     Block and report
                   </button>
 
-                  {/* Spacer */}
-                  <div />
+                  {/* Filter - Only on tablet (hidden on mobile and desktop) */}
+                  <div className="hidden md:block lg:hidden">
+                    <DiscoverFiltersPopover
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      defaultFilters={defaultFilters}
+                    />
+                  </div>
 
                   {/* Keyboard Hints - Right, smaller on tablet */}
                   <div className="flex items-center gap-2 lg:gap-4 text-muted-foreground text-[10px] lg:text-xs">
