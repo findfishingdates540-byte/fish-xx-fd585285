@@ -87,12 +87,9 @@ export function BumbleSwipeActions({
         className="relative h-24 w-24 flex items-center justify-center -mb-2"
         aria-label="Super Like"
       >
-        {/* Hexagon shape using CSS clip-path */}
+        {/* Rounded hexagon shape */}
         <div 
-          className="absolute inset-0 bg-foreground hover:bg-foreground/90 transition-colors shadow-xl"
-          style={{
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-          }}
+          className="absolute inset-0 bg-foreground hover:bg-foreground/90 transition-colors shadow-xl rounded-3xl"
         />
         <Star 
           className={cn(
