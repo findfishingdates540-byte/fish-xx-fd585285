@@ -259,7 +259,7 @@ export function DiscoverLeftSidebar({
               className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors"
               title="Invite Friends"
             >
-              {copied ? <Check className="h-5 w-5 text-green-500" /> : <UserPlus className="h-5 w-5" />}
+              {copied ? <Check className="h-5 w-5 text-foreground" /> : <UserPlus className="h-5 w-5" />}
             </button>
             <Link
               to="/app/settings"
@@ -287,8 +287,8 @@ export function DiscoverLeftSidebar({
               className="flex-shrink-0 relative"
             >
               <div className="relative">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-                  <span className="text-lg font-bold text-white">{pendingLikesCount}</span>
+                <div className="h-14 w-14 rounded-full bg-foreground flex items-center justify-center">
+                  <span className="text-lg font-bold text-background">{pendingLikesCount}</span>
                 </div>
               </div>
             </button>
@@ -361,7 +361,7 @@ export function DiscoverLeftSidebar({
                         {convo.name}
                       </span>
                       {convo.isYourMove && (
-                        <Badge className="bg-amber-500 hover:bg-amber-500 text-white text-[10px] px-1.5 py-0 h-5 font-medium">
+                        <Badge className="bg-foreground hover:bg-foreground text-background text-[10px] px-1.5 py-0 h-5 font-medium">
                           Your move
                         </Badge>
                       )}
@@ -375,7 +375,7 @@ export function DiscoverLeftSidebar({
                       {convo.lastMessage}
                     </p>
                     {convo.expiresIn && (
-                      <p className="text-xs text-amber-500 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Conversation expires in {convo.expiresIn}
                       </p>
                     )}

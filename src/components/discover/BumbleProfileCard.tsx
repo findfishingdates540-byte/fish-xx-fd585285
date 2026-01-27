@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flag, ChevronLeft, ChevronRight, Expand } from 'lucide-react';
+import { Flag, Expand } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
@@ -107,7 +107,7 @@ export function BumbleProfileCard({
         style={{ opacity: likeOpacity }} 
         className="absolute top-8 right-8 z-20 pointer-events-none"
       >
-        <div className="bg-green-500 text-white px-5 py-2 rounded-lg font-bold text-xl rotate-[15deg] border-4 border-green-500 shadow-lg">
+        <div className="bg-foreground text-background px-5 py-2 rounded-lg font-bold text-xl rotate-[15deg] border-4 border-foreground shadow-lg">
           LIKE
         </div>
       </motion.div>
@@ -115,7 +115,7 @@ export function BumbleProfileCard({
         style={{ opacity: passOpacity }} 
         className="absolute top-8 left-8 z-20 pointer-events-none"
       >
-        <div className="bg-red-500 text-white px-5 py-2 rounded-lg font-bold text-xl rotate-[-15deg] border-4 border-red-500 shadow-lg">
+        <div className="bg-destructive text-destructive-foreground px-5 py-2 rounded-lg font-bold text-xl rotate-[-15deg] border-4 border-destructive shadow-lg">
           NOPE
         </div>
       </motion.div>
@@ -137,8 +137,8 @@ export function BumbleProfileCard({
                 className={cn(
                   'h-1 flex-1 rounded-full transition-all',
                   idx === currentPhotoIndex
-                    ? 'bg-white'
-                    : 'bg-white/40'
+                    ? 'bg-background'
+                    : 'bg-background/40'
                 )}
               />
             ))}
@@ -164,7 +164,7 @@ export function BumbleProfileCard({
         {/* Expand Button - Top right */}
         <button
           onClick={(e) => { e.stopPropagation(); onExpandClick?.(); }}
-          className="absolute top-4 right-4 h-8 w-8 rounded-lg bg-background/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-background/30 transition-colors z-10"
+          className="absolute top-4 right-4 h-8 w-8 rounded-lg bg-background/20 backdrop-blur-sm flex items-center justify-center text-background hover:bg-background/30 transition-colors z-10"
           aria-label="Expand profile"
         >
           <Expand className="h-4 w-4" />
@@ -173,12 +173,12 @@ export function BumbleProfileCard({
         {/* Top Badges */}
         <div className="absolute top-14 left-4 flex flex-col gap-2 z-10">
           {profile.likedYou && (
-            <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold border-0 shadow-lg animate-pulse">
+            <Badge className="bg-foreground text-background font-semibold border-0 shadow-lg animate-pulse">
               💕 Liked You
             </Badge>
           )}
           {profile.fishingType && (
-            <Badge variant="secondary" className="bg-white/90 text-foreground font-medium">
+            <Badge variant="secondary" className="bg-background/90 text-foreground font-medium">
               🎣 {profile.fishingType}
             </Badge>
           )}
