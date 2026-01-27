@@ -186,7 +186,7 @@ export default function Discover() {
       <>
         <div className="h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex flex-col overflow-hidden">
           {/* Profile Completion Banner */}
-          <ProfileCompletionBanner profile={profile} className="mx-2 mt-2 flex-shrink-0" />
+          <ProfileCompletionBanner profile={profile} />
           
           <div className="flex-1 flex flex-col items-center justify-center p-2 min-h-0">
             {isLoading ? (
@@ -278,7 +278,7 @@ export default function Discover() {
         {/* Main Content Area */}
         <main className="flex-1 lg:ml-80 flex flex-col h-full min-h-0 overflow-hidden">
           {/* Profile Completion Banner - Desktop */}
-          <ProfileCompletionBanner profile={profile} className="mx-4 mt-4 lg:mx-6" />
+          <ProfileCompletionBanner profile={profile} />
           
           {/* Top Bar - Only show on desktop when sidebar is visible */}
           <div className="hidden lg:flex h-14 flex-shrink-0 border-b border-border items-center justify-between px-6 bg-background">
