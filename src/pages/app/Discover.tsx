@@ -319,18 +319,18 @@ export default function Discover() {
                   {/* Spacer */}
                   <div />
 
-                  {/* Keyboard Hints - Right, hidden on tablet */}
-                  <div className="hidden lg:flex items-center gap-4 text-muted-foreground text-xs">
-                    <div className="flex items-center gap-1">
-                      <kbd className="px-1.5 py-0.5 bg-muted rounded border">←</kbd>
+                  {/* Keyboard Hints - Right, smaller on tablet */}
+                  <div className="flex items-center gap-2 lg:gap-4 text-muted-foreground text-[10px] lg:text-xs">
+                    <div className="flex items-center gap-0.5 lg:gap-1">
+                      <kbd className="px-1 lg:px-1.5 py-0.5 bg-muted rounded border text-[10px] lg:text-xs">←</kbd>
                       <span>Pass</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <kbd className="px-1.5 py-0.5 bg-muted rounded border">↑</kbd>
+                    <div className="flex items-center gap-0.5 lg:gap-1">
+                      <kbd className="px-1 lg:px-1.5 py-0.5 bg-muted rounded border text-[10px] lg:text-xs">↑</kbd>
                       <span>Super</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <kbd className="px-1.5 py-0.5 bg-muted rounded border">→</kbd>
+                    <div className="flex items-center gap-0.5 lg:gap-1">
+                      <kbd className="px-1 lg:px-1.5 py-0.5 bg-muted rounded border text-[10px] lg:text-xs">→</kbd>
                       <span>Like</span>
                     </div>
                   </div>
