@@ -66,7 +66,7 @@ export function BumbleSwipeActions({
 
   return (
     <motion.div 
-      className="flex items-end justify-center gap-6"
+      className="flex items-end justify-center gap-4 sm:gap-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -85,14 +85,14 @@ export function BumbleSwipeActions({
           damping: 17,
           delay: 0.1
         }}
-        className="h-20 w-20 rounded-full border border-border bg-background text-muted-foreground flex items-center justify-center shadow-lg hover:text-destructive hover:border-destructive/50"
+        className="h-14 w-14 sm:h-20 sm:w-20 rounded-full border border-border bg-background text-muted-foreground flex items-center justify-center shadow-lg hover:text-destructive hover:border-destructive/50"
         aria-label="Pass"
       >
         <motion.div
           animate={animatingButton === 'pass' ? { rotate: [0, -15, 15, 0], x: [-5, 5, 0] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <X className="h-10 w-10" strokeWidth={2} />
+          <X className="h-7 w-7 sm:h-10 sm:w-10" strokeWidth={2} />
         </motion.div>
       </motion.button>
 
@@ -110,12 +110,12 @@ export function BumbleSwipeActions({
           damping: 17,
           delay: 0.2
         }}
-        className="relative h-24 w-24 flex items-center justify-center -mb-2"
+        className="relative h-16 w-16 sm:h-24 sm:w-24 flex items-center justify-center -mb-1 sm:-mb-2"
         aria-label="Super Like"
       >
         {/* Rounded shape with glow on hover */}
         <motion.div 
-          className="absolute inset-0 bg-foreground shadow-xl rounded-3xl"
+          className="absolute inset-0 bg-foreground shadow-xl rounded-2xl sm:rounded-3xl"
           whileHover={{ 
             boxShadow: "0 0 30px rgba(0,0,0,0.4)",
           }}
@@ -130,7 +130,7 @@ export function BumbleSwipeActions({
         >
           <Star 
             className={cn(
-              "h-11 w-11 text-background relative z-10 transition-all",
+              "h-8 w-8 sm:h-11 sm:w-11 text-background relative z-10 transition-all",
               animatingButton === 'superlike' && "fill-current"
             )} 
             strokeWidth={1.5} 
@@ -152,14 +152,14 @@ export function BumbleSwipeActions({
           damping: 17,
           delay: 0.3
         }}
-        className="h-20 w-20 rounded-full border border-border bg-background flex items-center justify-center shadow-lg hover:text-green-600 hover:border-green-500/50"
+        className="h-14 w-14 sm:h-20 sm:w-20 rounded-full border border-border bg-background flex items-center justify-center shadow-lg hover:text-green-600 hover:border-green-500/50"
         aria-label="Like"
       >
         <motion.div
           animate={animatingButton === 'like' ? { scale: [1, 1.4, 1], y: [0, -5, 0] } : {}}
           transition={{ duration: 0.35 }}
         >
-          <Check className="h-10 w-10 text-foreground" strokeWidth={2.5} />
+          <Check className="h-7 w-7 sm:h-10 sm:w-10 text-foreground" strokeWidth={2.5} />
         </motion.div>
       </motion.button>
     </motion.div>
