@@ -274,7 +274,7 @@ export default function Discover() {
             ) : (
               <div className="relative flex flex-col items-center max-w-4xl w-full h-full max-h-full min-h-0">
                 {/* Full Card Stack - Entire card swaps between different views */}
-                <div className="relative w-full max-w-md lg:max-w-full flex-1 min-h-0 max-h-[calc(100%-10rem)] lg:max-h-[calc(100%-8rem)] rounded-3xl overflow-hidden shadow-lg">
+                <div className="relative w-full max-w-md lg:max-w-full flex-1 min-h-0 max-h-[calc(100%-10rem)] lg:max-h-[calc(100%-6rem)] rounded-3xl overflow-hidden shadow-lg">
                   {/* Progress Indicator - Outside the cards, top-right of container */}
                   {cardStackState.totalCards > 1 && (
                     <div className="absolute top-4 right-4 z-10 flex flex-col gap-1">
