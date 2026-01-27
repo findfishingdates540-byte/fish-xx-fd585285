@@ -188,7 +188,13 @@ function mapToProfileDetailData(
   };
 }
 
-export function useDiscoverProfiles() {
+export interface DiscoverFilterOverrides {
+  minAge?: number;
+  maxAge?: number;
+  maxDistance?: number;
+}
+
+export function useDiscoverProfiles(filterOverrides?: DiscoverFilterOverrides) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -283,7 +289,7 @@ export function useDiscoverProfiles() {
 
   // Fetch discoverable profiles
   const { data: profiles, isLoading, refetch } = useQuery({
-    queryKey: ['discover-profiles', user?.id, userPreferences, swipedProfiles],
+    queryKey: ['discover-profiles', user?.id, userPreferences, swipedProfiles, filterOverrides],
     queryFn: async () => {
       if (!user?.id || !userPreferences) return [];
 
@@ -319,17 +325,31 @@ export function useDiscoverProfiles() {
 
       const userLat = userPreferences.location_lat;
       const userLng = userPreferences.location_lng;
-      const maxDistanceMiles = userPreferences.max_distance_miles || 50;
+      
+      // Use filter overrides if provided, otherwise fall back to user preferences
+      const minAge = filterOverrides?.minAge ?? userPreferences.min_age_preference;
+      const maxAge = filterOverrides?.maxAge ?? userPreferences.max_age_preference;
+      const maxDistanceMiles = filterOverrides?.maxDistance ?? userPreferences.max_distance_miles ?? 500;
 
-      // Filter by age only - no distance restriction for dating
+      // Filter by age and optionally by distance
       const filtered = (data as DiscoverProfile[]).filter(profile => {
         // Age filter
         const age = profile.age;
-        if (age && (age < userPreferences.min_age_preference || age > userPreferences.max_age_preference)) {
+        if (age && (age < minAge || age > maxAge)) {
           return false;
         }
         
-        // No distance filter - all profiles are shown regardless of location
+        // Distance filter (only if not set to unlimited 500+)
+        if (maxDistanceMiles < 500 && userLat && userLng && profile.location_lat && profile.location_lng) {
+          const distanceKm = calculateDistance(userLat, userLng, profile.location_lat, profile.location_lng);
+          if (distanceKm !== null) {
+            const distanceMiles = kmToMiles(distanceKm);
+            if (distanceMiles > maxDistanceMiles) {
+              return false;
+            }
+          }
+        }
+        
         return true;
       });
 
