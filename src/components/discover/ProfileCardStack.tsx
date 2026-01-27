@@ -178,12 +178,12 @@ export function ProfileCardStack({
   const currentCard = cards[currentCardIndex];
   const isVerified = profile.idVerified || profile.liveVerified;
 
-  // Card 1: Basics with Photo (split layout on desktop, stacked on tablet)
+  // Card 1: Basics with Photo (split layout on desktop, overlay on tablet)
   const renderBasicsCard = () => (
     <div className="flex flex-col lg:flex-row h-full w-full">
-      {/* Photo Section - Left on desktop, top on tablet */}
+      {/* Photo Section with name overlay on tablet - Left on desktop, top on tablet */}
       {profileCardData && (
-        <div className="w-full lg:w-1/2 h-[400px] lg:h-full flex-shrink-0">
+        <div className="relative w-full lg:w-1/2 h-[50%] lg:h-full flex-shrink-0">
           <BumbleProfileCard
             profile={profileCardData}
             onSwipeLeft={onSwipeLeft}
@@ -192,17 +192,37 @@ export function ProfileCardStack({
             showExpandButton={false}
             className="h-full w-full rounded-none max-w-none aspect-auto"
           />
+          
+          {/* Name/Occupation overlay on tablet only */}
+          <div className="absolute bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 py-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-2xl font-bold text-white">
+                {profile.name}{profile.age ? `, ${profile.age}` : ''}
+              </h2>
+              <VerificationBadge idVerified={profile.idVerified} liveVerified={profile.liveVerified} size="md" />
+              {isVerified && (
+                <span className="text-xs text-white/90 font-medium leading-tight">
+                  Photo<br />verified
+                </span>
+              )}
+            </div>
+            {profile.occupation && (
+              <p className="text-sm text-white/80 mt-1">
+                {profile.occupation}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
       {/* Basics Content - Right on desktop, bottom on tablet */}
       <div className={cn(
-        "flex flex-col justify-center bg-muted px-6 py-8",
-        profileCardData ? "w-full lg:w-1/2 h-auto lg:h-full" : "w-full h-full"
+        "flex flex-col justify-start lg:justify-center bg-muted px-5 py-4 lg:px-6 lg:py-8 overflow-y-auto",
+        profileCardData ? "w-full lg:w-1/2 h-[50%] lg:h-full" : "w-full h-full"
       )}>
-        <div className="flex-1 flex flex-col justify-center">
-          {/* Name, Age, Verification */}
-          <div className="flex items-center gap-2 flex-wrap mb-3">
+        <div className="flex-1 flex flex-col justify-start lg:justify-center">
+          {/* Name, Age, Verification - Desktop only */}
+          <div className="hidden lg:flex items-center gap-2 flex-wrap mb-3">
             <h2 className="text-3xl font-bold text-foreground">
               {profile.name}{profile.age ? `, ${profile.age}` : ''}
             </h2>
@@ -214,9 +234,9 @@ export function ProfileCardStack({
             )}
           </div>
 
-          {/* Occupation */}
+          {/* Occupation - Desktop only */}
           {profile.occupation && (
-            <p className="text-sm text-muted-foreground mb-3">
+            <p className="hidden lg:block text-sm text-muted-foreground mb-3">
               {profile.occupation}
             </p>
           )}
@@ -229,7 +249,7 @@ export function ProfileCardStack({
           {/* More Info Button */}
           <button
             onClick={onMoreClick}
-            className="mt-4 p-2 w-fit rounded-full hover:bg-accent transition-colors"
+            className="mt-3 lg:mt-4 p-2 w-fit rounded-full hover:bg-accent transition-colors"
             aria-label="View more details"
           >
             <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
