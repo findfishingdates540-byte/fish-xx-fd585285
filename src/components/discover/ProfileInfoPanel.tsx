@@ -26,7 +26,7 @@ export function ProfileInfoPanel({
   return (
     <div 
       className={cn(
-        "flex flex-col justify-center px-8 py-12 bg-muted",
+        "flex flex-col justify-center pl-6 pr-8 py-12 bg-muted",
         className
       )}
     >
