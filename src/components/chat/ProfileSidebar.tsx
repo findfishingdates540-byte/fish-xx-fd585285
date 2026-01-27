@@ -83,10 +83,10 @@ export function ProfileSidebar({
   };
 
   return (
-    <aside className={cn("flex flex-col bg-background overflow-y-auto", className)}>
-      {/* Hero Photo Section */}
+    <aside className={cn("flex flex-col bg-background overflow-y-auto scrollbar-hide", className)}>
+      {/* Hero Photo Section - Taller for better visibility */}
       <div 
-        className="relative h-48 w-full overflow-hidden cursor-pointer"
+        className="relative h-64 w-full overflow-hidden cursor-pointer flex-shrink-0"
         onClick={() => openLightbox(0)}
       >
         <img
