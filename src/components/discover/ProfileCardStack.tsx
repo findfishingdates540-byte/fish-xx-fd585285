@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { MoreHorizontal, Ruler, Wine, Cigarette, Star, Brain, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { BumbleProfileCard, ProfileData } from './BumbleProfileCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 interface ProfilePrompt {
   question: string;
   answer?: string;
@@ -56,6 +57,31 @@ export function ProfileCardStack({
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number>(0);
   const isScrolling = useRef(false);
+  const isMobile = useIsMobile();
+  
+  // Horizontal swipe motion values for full-card swiping
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 200], [-8, 8]);
+  const cardOpacity = useTransform(x, [-200, -100, 0, 100, 200], [0.7, 1, 1, 1, 0.7]);
+  const likeOpacity = useTransform(x, [0, 100], [0, 1]);
+  const passOpacity = useTransform(x, [-100, 0], [1, 0]);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 100;
+    
+    if (info.offset.x > threshold) {
+      onSwipeRight?.();
+    } else if (info.offset.x < -threshold) {
+      onSwipeLeft?.();
+    }
+    
+    setTimeout(() => setIsDragging(false), 100);
+  };
 
   // Reset to first card when profile changes
   useEffect(() => {
@@ -337,7 +363,45 @@ export function ProfileCardStack({
         return null;
     }
   };
-  return <div ref={containerRef} className={cn("relative h-full w-full overflow-hidden", className)}>
+  return (
+    <motion.div 
+      ref={containerRef} 
+      style={{ x, rotate, opacity: cardOpacity, willChange: 'transform' }}
+      drag={isMobile ? "x" : false}
+      dragDirectionLock
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.7}
+      dragTransition={{ bounceStiffness: 500, bounceDamping: 30 }}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className={cn(
+        "relative h-full w-full overflow-hidden transform-gpu",
+        isMobile && "touch-none cursor-grab",
+        className
+      )}
+    >
+      {/* Swipe Indicators - Corner positioned stamps */}
+      {isMobile && (
+        <>
+          <motion.div 
+            style={{ opacity: likeOpacity }} 
+            className="absolute top-8 right-8 z-30 pointer-events-none"
+          >
+            <div className="bg-foreground text-background px-5 py-2 rounded-lg font-bold text-xl rotate-[15deg] border-4 border-foreground shadow-lg">
+              LIKE
+            </div>
+          </motion.div>
+          <motion.div 
+            style={{ opacity: passOpacity }} 
+            className="absolute top-8 left-8 z-30 pointer-events-none"
+          >
+            <div className="bg-destructive text-destructive-foreground px-5 py-2 rounded-lg font-bold text-xl rotate-[-15deg] border-4 border-destructive shadow-lg">
+              NOPE
+            </div>
+          </motion.div>
+        </>
+      )}
+      
       {/* Animated Card Content */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.div 
@@ -364,5 +428,6 @@ export function ProfileCardStack({
           {renderCardContent(currentCard.type)}
         </motion.div>
       </AnimatePresence>
-    </div>;
+    </motion.div>
+  );
 }
