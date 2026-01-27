@@ -142,10 +142,10 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
         </div>
       </motion.div>
 
-      {/* Photo Section */}
+      {/* Photo Section - 50% on mobile */}
       <div className={cn(
         "relative bg-muted overflow-hidden",
-        isMobile ? "aspect-[4/5]" : "aspect-[3/4]"
+        isMobile ? "h-1/2 flex-shrink-0" : "aspect-[3/4]"
       )}>
         <img
           src={profile.photos[currentPhotoIndex]}
@@ -240,10 +240,10 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
         <div
           className={cn(
             "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent",
-            isMobile ? "p-3 pt-12" : "p-4 pt-16"
+            isMobile ? "p-4 pt-16" : "p-4 pt-16"
           )}
         >
-          <h2 className={cn("font-bold text-background flex items-center gap-1", isMobile ? "text-lg" : "text-xl")}>
+          <h2 className={cn("font-bold text-background flex items-center gap-1", isMobile ? "text-2xl" : "text-xl")}>
             {profile.name}, {profile.age}
             <VerificationBadge 
               idVerified={profile.idVerified} 
@@ -263,23 +263,26 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
         </div>
       </div>
 
-      {/* Bio & Tags Section */}
-      <div className={cn("shrink-0", isMobile ? "p-3" : "p-5")}>
+      {/* Bio & Tags Section - Scrollable on mobile */}
+      <div className={cn(
+        "flex-1 overflow-y-auto",
+        isMobile ? "p-4" : "p-5"
+      )}>
         <p className={cn(
-          "text-muted-foreground leading-relaxed line-clamp-2",
-          isMobile ? "text-sm" : "text-sm"
+          "text-muted-foreground leading-relaxed",
+          isMobile ? "text-base font-medium line-clamp-3" : "text-sm line-clamp-2"
         )}>
           {profile.bio}
         </p>
 
-        <div className={cn("flex flex-wrap gap-1.5", isMobile ? "mt-2" : "mt-4 gap-2")}>
-          {profile.tags.slice(0, isMobile ? 4 : profile.tags.length).map((tag, idx) => (
+        <div className={cn("flex flex-wrap gap-2", isMobile ? "mt-3" : "mt-4")}>
+          {profile.tags.slice(0, isMobile ? 8 : profile.tags.length).map((tag, idx) => (
             <Badge
               key={idx}
               variant="outline"
               className={cn(
-                "font-medium rounded-full",
-                isMobile ? "px-2 py-1 text-xs" : "px-3 py-1.5 text-sm"
+                "font-semibold rounded-full",
+                isMobile ? "px-3 py-1.5 text-sm" : "px-3 py-1.5 text-sm"
               )}
             >
               {tag.icon && <span className="mr-1">{tag.icon}</span>}
