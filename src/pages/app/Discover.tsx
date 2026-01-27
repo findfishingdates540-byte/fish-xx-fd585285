@@ -300,7 +300,7 @@ export default function Discover() {
                 </div>
 
                 {/* Overlapping Action Buttons - Centered on bottom of card */}
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20">
+                <div className="-mt-14 z-20">
                   <BumbleSwipeActions
                     onPass={onPass}
                     onSuperLike={onSuperLike}
