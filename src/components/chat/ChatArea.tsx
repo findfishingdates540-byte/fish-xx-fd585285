@@ -369,10 +369,10 @@ export function ChatArea({
             <AvatarImage src={matchPhoto} alt={matchName} />
             <AvatarFallback>{matchName.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div className="cursor-pointer" onClick={onShowProfile}>
-            <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-sm md:text-base flex items-center gap-1">
-                {matchName}
+          <div className="cursor-pointer min-w-0 flex-1" onClick={onShowProfile}>
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="font-semibold text-sm md:text-base flex items-center gap-1 min-w-0">
+                <span className="truncate max-w-[120px] md:max-w-[180px]">{matchName}</span>
                 <VerificationBadge 
                   idVerified={matchIdVerified} 
                   liveVerified={matchLiveVerified} 
@@ -380,11 +380,11 @@ export function ChatArea({
                 />
               </h2>
               {chatType === 'date' ? (
-                <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] px-1.5 py-0 h-4">
+                <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] px-1.5 py-0 h-4 flex-shrink-0">
                   💕 DATE
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50">
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50 flex-shrink-0">
                   🎣 BUDDY
                 </Badge>
               )}
