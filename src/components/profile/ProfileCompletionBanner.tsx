@@ -47,48 +47,49 @@ export function ProfileCompletionBanner({ profile }: ProfileCompletionBannerProp
   return (
     <Dialog open={true}>
       <DialogContent 
-        className="sm:max-w-md [&>button]:hidden" 
+        className="sm:max-w-md [&>button]:hidden max-h-[90vh] flex flex-col" 
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader className="text-center sm:text-center">
-          <div className="mx-auto h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-            <AlertCircle className="h-8 w-8 text-primary" />
+        <div className="flex-1 overflow-y-auto">
+          <DialogHeader className="text-center sm:text-center">
+            <div className="mx-auto h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center mb-3">
+              <AlertCircle className="h-7 w-7 text-primary" />
+            </div>
+            <DialogTitle className="text-lg">Complete Your Profile</DialogTitle>
+            <DialogDescription className="text-sm">
+              Your profile is {completionPercent}% complete. Add your missing info to start discovering matches!
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Progress bar */}
+          <div className="mt-3 h-2.5 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary rounded-full transition-all duration-500"
+              style={{ width: `${completionPercent}%` }}
+            />
           </div>
-          <DialogTitle className="text-xl">Complete Your Profile</DialogTitle>
-          <DialogDescription className="text-base">
-            Your profile is {completionPercent}% complete. Add your {missingFields.slice(0, 3).join(', ').toLowerCase()}
-            {missingFields.length > 3 && ` and ${missingFields.length - 3} more`} to start discovering matches!
-          </DialogDescription>
-        </DialogHeader>
 
-        {/* Progress bar */}
-        <div className="mt-2 h-3 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary rounded-full transition-all duration-500"
-            style={{ width: `${completionPercent}%` }}
-          />
-        </div>
-
-        {/* Missing fields list */}
-        <div className="mt-4 space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Missing information:</p>
-          <div className="flex flex-wrap gap-2">
-            {missingFields.map((field) => (
-              <span 
-                key={field}
-                className="px-2.5 py-1 bg-muted rounded-full text-xs font-medium text-muted-foreground"
-              >
-                {field}
-              </span>
-            ))}
+          {/* Missing fields list */}
+          <div className="mt-3 space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">Missing information:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {missingFields.map((field) => (
+                <span 
+                  key={field}
+                  className="px-2 py-0.5 bg-muted rounded-full text-xs font-medium text-muted-foreground"
+                >
+                  {field}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
         <Button
           onClick={() => navigate('/app/profile/edit')}
           size="lg"
-          className="w-full mt-4"
+          className="w-full mt-4 flex-shrink-0"
         >
           <User className="h-4 w-4 mr-2" />
           Complete Profile Now
