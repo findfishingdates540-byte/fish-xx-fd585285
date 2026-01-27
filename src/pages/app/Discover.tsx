@@ -250,8 +250,8 @@ export default function Discover() {
 
         {/* Main Content Area */}
         <main className="flex-1 lg:ml-80 flex flex-col">
-          {/* Top Bar */}
-          <div className="h-14 border-b border-border flex items-center justify-between px-6 bg-background">
+          {/* Top Bar - Only show on desktop when sidebar is visible */}
+          <div className="hidden lg:flex h-14 border-b border-border items-center justify-between px-6 bg-background">
             <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
               <SlidersHorizontal className="h-4 w-4" />
               Filters
