@@ -266,63 +266,66 @@ export default function Discover() {
           </div>
 
           {/* Profile Content */}
-          <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
+          <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-hidden">
             {isLoading ? (
               renderLoading()
             ) : noMoreProfiles || !currentProfile ? (
               renderEmptyState()
             ) : (
-              <div className="flex gap-0 max-w-4xl w-full h-[600px] max-h-[80vh]">
-                {/* Profile Card - Left Side (~60%) */}
-                <div className="w-[60%] h-full">
-                  <BumbleProfileCard
-                    profile={currentProfile}
-                    onSwipeLeft={onPass}
-                    onSwipeRight={onLike}
-                    onExpandClick={handleProfileClick}
-                    className="h-full rounded-r-none"
-                  />
+              <div className="flex flex-col items-center gap-4 max-w-4xl w-full">
+                {/* Combined Profile Card */}
+                <div className="flex gap-0 w-full h-[520px] max-h-[65vh] rounded-3xl overflow-hidden shadow-lg">
+                  {/* Profile Card - Left Side (~60%) */}
+                  <div className="w-[60%] h-full">
+                    <BumbleProfileCard
+                      profile={currentProfile}
+                      onSwipeLeft={onPass}
+                      onSwipeRight={onLike}
+                      onExpandClick={handleProfileClick}
+                      className="h-full rounded-none"
+                    />
+                  </div>
+
+                  {/* Profile Info Panel - Right Side (~40%) */}
+                  <div className="w-[40%] h-full">
+                    <ProfileInfoPanel
+                      name={currentProfile.name}
+                      age={currentProfile.age}
+                      occupation={(currentProfile as any).occupation}
+                      idVerified={currentProfile.idVerified}
+                      liveVerified={currentProfile.liveVerified}
+                      onMoreClick={handleProfileClick}
+                    />
+                  </div>
                 </div>
 
-                {/* Profile Info Panel - Right Side (~40%) */}
-                <div className="w-[40%] h-full">
-                  <ProfileInfoPanel
-                    name={currentProfile.name}
-                    age={currentProfile.age}
-                    occupation={(currentProfile as any).occupation}
-                    location={currentProfile.location}
-                    distance={currentProfile.distance}
-                    idVerified={currentProfile.idVerified}
-                    liveVerified={currentProfile.liveVerified}
-                    bio={currentProfile.bio}
-                    fishingType={currentProfile.fishingType}
-                    tags={currentProfile.tags}
-                    onMoreClick={handleProfileClick}
-                    className="rounded-l-none"
+                {/* Actions Row - Below the card */}
+                <div className="w-full flex items-center justify-between px-4">
+                  {/* Block and Report - Left */}
+                  <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <Flag className="h-4 w-4" />
+                    Block and report
+                  </button>
+
+                  {/* Swipe Actions - Center */}
+                  <BumbleSwipeActions
+                    onPass={onPass}
+                    onSuperLike={onSuperLike}
+                    onLike={onLike}
+                    showKeyboardHints={false}
                   />
+
+                  {/* Keyboard Hints - Right */}
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">←</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">↑</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">↓</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-muted rounded border text-xs">→</kbd>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Actions Footer */}
-          {!isLoading && !noMoreProfiles && currentProfile && (
-            <div className="py-4 flex flex-col items-center gap-3 border-t border-border bg-background">
-              {/* Block and Report Link */}
-              <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                <Flag className="h-4 w-4" />
-                Block and report
-              </button>
-
-              {/* Swipe Actions */}
-              <BumbleSwipeActions
-                onPass={onPass}
-                onSuperLike={onSuperLike}
-                onLike={onLike}
-                showKeyboardHints={true}
-              />
-            </div>
-          )}
         </main>
       </div>
 
