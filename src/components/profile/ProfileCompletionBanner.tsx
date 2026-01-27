@@ -47,7 +47,7 @@ export function ProfileCompletionBanner({ profile }: ProfileCompletionBannerProp
   return (
     <Dialog open={true}>
       <DialogContent 
-        className="sm:max-w-md [&>button]:hidden p-6 min-h-[420px]" 
+        className="sm:max-w-md [&>button.absolute.right-4.top-4]:hidden p-6 min-h-[420px]" 
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
