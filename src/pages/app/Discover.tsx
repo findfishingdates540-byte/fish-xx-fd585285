@@ -241,16 +241,15 @@ export default function Discover() {
 
         {/* Main Content Area */}
         <main className="flex-1 lg:ml-80 flex flex-col h-full min-h-0 overflow-hidden">
-          {/* Top Bar - Only show on desktop when sidebar is visible */}
-          <div className="hidden lg:flex h-14 flex-shrink-0 border-b border-border items-center justify-between px-6 bg-background">
-            <DiscoverFiltersPopover
-              filters={filters}
-              onFiltersChange={setFilters}
-              defaultFilters={defaultFilters}
-            />
-            
-            <div className="flex items-center gap-2">
+          {/* Top Bar - Show on medium+ screens (tablet and desktop) */}
+          <div className="hidden md:flex h-14 flex-shrink-0 border-b border-border items-center justify-between px-6 bg-background">
+            <div className="flex items-center gap-3">
               <span className="font-bold text-lg text-primary">Find Fishing Dates</span>
+              <DiscoverFiltersPopover
+                filters={filters}
+                onFiltersChange={setFilters}
+                defaultFilters={defaultFilters}
+              />
             </div>
             
             <div className="w-20" /> {/* Spacer for balance */}
