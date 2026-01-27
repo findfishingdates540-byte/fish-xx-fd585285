@@ -183,7 +183,7 @@ export function ProfileCardStack({
     <div className="flex flex-col lg:flex-row h-full w-full">
       {/* Photo Section with name overlay on tablet - Left on desktop, top on tablet */}
       {profileCardData && (
-        <div className="relative w-full lg:w-1/2 h-[50%] lg:h-full flex-shrink-0">
+        <div className="relative w-full lg:w-1/2 h-[60%] lg:h-full flex-shrink-0">
           <BumbleProfileCard
             profile={profileCardData}
             onSwipeLeft={onSwipeLeft}
@@ -194,20 +194,20 @@ export function ProfileCardStack({
           />
           
           {/* Name/Occupation overlay on tablet only */}
-          <div className="absolute bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 py-4">
+          <div className="absolute bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-black/80 via-black/40 to-transparent px-5 py-5">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-3xl font-extrabold text-white">
                 {profile.name}{profile.age ? `, ${profile.age}` : ''}
               </h2>
               <VerificationBadge idVerified={profile.idVerified} liveVerified={profile.liveVerified} size="md" />
               {isVerified && (
-                <span className="text-xs text-white/90 font-medium leading-tight">
+                <span className="text-sm text-white/90 font-semibold leading-tight">
                   Photo<br />verified
                 </span>
               )}
             </div>
             {profile.occupation && (
-              <p className="text-sm text-white/80 mt-1">
+              <p className="text-base font-medium text-white/90 mt-1.5">
                 {profile.occupation}
               </p>
             )}
@@ -218,7 +218,7 @@ export function ProfileCardStack({
       {/* Basics Content - Right on desktop, bottom on tablet */}
       <div className={cn(
         "flex flex-col justify-start lg:justify-center bg-muted px-5 py-4 lg:px-6 lg:py-8 overflow-y-auto",
-        profileCardData ? "w-full lg:w-1/2 h-[50%] lg:h-full" : "w-full h-full"
+        profileCardData ? "w-full lg:w-1/2 h-[40%] lg:h-full" : "w-full h-full"
       )}>
         <div className="flex-1 flex flex-col justify-start lg:justify-center">
           {/* Name, Age, Verification - Desktop only */}
