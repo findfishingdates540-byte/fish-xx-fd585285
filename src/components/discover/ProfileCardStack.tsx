@@ -27,6 +27,7 @@ interface ProfileCardStackProps {
     promptResponses?: ProfilePrompt[];
   };
   onMoreClick?: () => void;
+  onCardChange?: (currentIndex: number, totalCards: number) => void;
   className?: string;
 }
 
@@ -37,7 +38,7 @@ interface CardConfig {
   hasContent: boolean;
 }
 
-export function ProfileCardStack({ profile, onMoreClick, className }: ProfileCardStackProps) {
+export function ProfileCardStack({ profile, onMoreClick, onCardChange, className }: ProfileCardStackProps) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,6 +133,11 @@ export function ProfileCardStack({ profile, onMoreClick, className }: ProfileCar
       container.removeEventListener('touchend', handleTouchEnd);
     };
   }, [handleWheel, handleTouchStart, handleTouchEnd]);
+
+  // Notify parent of card changes
+  useEffect(() => {
+    onCardChange?.(currentCardIndex, totalCards);
+  }, [currentCardIndex, totalCards, onCardChange]);
 
   const formatHeight = (cm?: number) => {
     if (!cm) return null;
@@ -335,20 +341,6 @@ export function ProfileCardStack({ profile, onMoreClick, className }: ProfileCar
         className
       )}
     >
-      {/* Progress Indicator */}
-      {totalCards > 1 && (
-        <div className="absolute top-4 right-4 flex flex-col gap-1">
-          {cards.map((_, i) => (
-            <div 
-              key={i}
-              className={cn(
-                "w-1 h-4 rounded-full transition-colors duration-200",
-                i === currentCardIndex ? "bg-foreground" : "bg-muted-foreground/30"
-              )}
-            />
-          ))}
-        </div>
-      )}
 
       {/* Animated Card Content */}
       <AnimatePresence mode="wait" initial={false}>
