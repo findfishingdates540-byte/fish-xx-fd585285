@@ -309,7 +309,7 @@ export default function Discover() {
                 </div>
 
                 {/* Bottom Row - Block/Report and Keyboard Hints */}
-                <div className="w-full flex items-center justify-between px-4 mt-8">
+                <div className="w-full flex items-center justify-between px-4 mt-2">
                   {/* Block and Report - Left */}
                   <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <Flag className="h-4 w-4" />
