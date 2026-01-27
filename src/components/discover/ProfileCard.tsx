@@ -142,10 +142,10 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
         </div>
       </motion.div>
 
-      {/* Photo Section - 50% on mobile */}
+      {/* Photo Section - 55% on mobile */}
       <div className={cn(
         "relative bg-muted overflow-hidden",
-        isMobile ? "h-1/2 flex-shrink-0" : "aspect-[3/4]"
+        isMobile ? "h-[55%] flex-shrink-0" : "aspect-[3/4]"
       )}>
         <img
           src={profile.photos[currentPhotoIndex]}
