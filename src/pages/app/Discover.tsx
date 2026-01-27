@@ -258,7 +258,6 @@ export default function Discover() {
             </Button>
             
             <div className="flex items-center gap-2">
-              <img src={logoImage} alt="Logo" className="h-8 w-8 rounded" />
               <span className="font-bold text-lg text-primary">Find Fishing Dates</span>
             </div>
             
