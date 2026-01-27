@@ -229,7 +229,7 @@ export function ProfileCard({ profile, onInfoClick, onSwipeLeft, onSwipeRight, o
             onClick={handleSuperLike}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="absolute bottom-20 right-4 h-12 w-12 rounded-xl bg-foreground shadow-lg flex items-center justify-center z-20"
+            className="absolute bottom-4 right-4 h-12 w-12 rounded-xl bg-foreground shadow-lg flex items-center justify-center z-20"
             aria-label="Super Like"
           >
             <Star className="h-6 w-6 text-background" strokeWidth={1.5} />
