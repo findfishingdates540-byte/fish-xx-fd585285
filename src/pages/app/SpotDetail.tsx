@@ -65,6 +65,7 @@ interface FishingSpot {
   rating_count: number | null;
   photos: string[] | null;
   created_by: string | null;
+  area_type: string | null;
 }
 
 interface SpotCatch {
@@ -502,7 +503,15 @@ export default function SpotDetail() {
                 {spot.location_name || "Unknown Location"}
               </div>
               <span className="text-muted-foreground">•</span>
-              <Badge variant="secondary">Freshwater</Badge>
+              <Badge 
+                variant="secondary"
+                className={spot.area_type === 'saltwater' 
+                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" 
+                  : "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
+                }
+              >
+                {spot.area_type === 'saltwater' ? 'Saltwater' : 'Freshwater'}
+              </Badge>
             </div>
           </div>
           <div className="flex items-center gap-2">
