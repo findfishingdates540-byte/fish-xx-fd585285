@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Settings, SlidersHorizontal, UserPlus, Copy, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Settings, SlidersHorizontal, UserPlus, Copy, Check, LayoutDashboard, Heart, Anchor } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -7,7 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
@@ -37,6 +44,12 @@ interface DiscoverLeftSidebarProps {
   onFiltersClick?: () => void;
 }
 
+const modeOptions = [
+  { value: 'unified' as ActiveMode, icon: LayoutDashboard, label: 'Dashboard', route: '/app/dashboard' },
+  { value: 'dating' as ActiveMode, icon: Heart, label: 'Dating', route: '/app/discover' },
+  { value: 'fishing' as ActiveMode, icon: Anchor, label: 'Fishing', route: '/app/feed' },
+];
+
 export function DiscoverLeftSidebar({
   userName,
   userPhoto,
@@ -45,10 +58,16 @@ export function DiscoverLeftSidebar({
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { activeMode, setActiveMode, isComboUser } = useActiveMode();
   const [conversationsOpen, setConversationsOpen] = useState(true);
   const [copied, setCopied] = useState(false);
   
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
+
+  const handleModeSwitch = (mode: ActiveMode, route: string) => {
+    setActiveMode(mode);
+    navigate(route);
+  };
 
   // Fetch pending likes count (blurred avatars in match queue)
   const { data: pendingLikesCount = 0 } = useQuery({
@@ -253,6 +272,49 @@ export function DiscoverLeftSidebar({
               {userName}
             </Link>
           </div>
+          
+          {/* Mode Switcher for Combo Users */}
+          {isComboUser && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full hover:bg-accent"
+                >
+                  <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                className="flex flex-row items-center gap-1 p-2 min-w-0 w-auto bg-popover border border-border shadow-lg"
+              >
+                <TooltipProvider delayDuration={300}>
+                  {modeOptions.map((option) => (
+                    <Tooltip key={option.value}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleModeSwitch(option.value, option.route)}
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                            activeMode === option.value
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-accent text-foreground"
+                          )}
+                        >
+                          <option.icon className="h-4 w-4" />
+                          <span>{option.label}</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        Switch to {option.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </TooltipProvider>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
