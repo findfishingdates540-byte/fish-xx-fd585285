@@ -504,10 +504,10 @@ export default function SpotDetail() {
               </div>
               <span className="text-muted-foreground">•</span>
               <Badge 
-                variant="secondary"
+                variant="outline"
                 className={spot.area_type === 'saltwater' 
-                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" 
-                  : "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
+                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 hover:bg-blue-500/20" 
+                  : "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/20"
                 }
               >
                 {spot.area_type === 'saltwater' ? 'Saltwater' : 'Freshwater'}
