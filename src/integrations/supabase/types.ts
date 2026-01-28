@@ -700,6 +700,7 @@ export type Database = {
       }
       fishing_spots: {
         Row: {
+          area_type: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -717,6 +718,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          area_type?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -734,6 +736,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          area_type?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null

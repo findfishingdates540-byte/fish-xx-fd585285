@@ -16,6 +16,7 @@ interface AdminSpot {
   is_verified: boolean | null;
   rating_avg: number | null;
   rating_count: number | null;
+  area_type: string | null;
   created_at: string;
   created_by: string | null;
   creator: {

@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuditAction } from '@/hooks/use-audit-logs';
+import * as XLSX from 'xlsx';
 
 interface ImportSpotsDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface ParsedSpot {
   species_available?: string[];
   is_public?: boolean;
   is_verified?: boolean;
+  area_type?: 'freshwater' | 'saltwater';
   photos?: string[];
   valid: boolean;
   errors: string[];
@@ -36,7 +38,6 @@ interface ImportResult {
 }
 
 // Convert Google Drive sharing links to embeddable thumbnail URLs
-// Uses lh3.googleusercontent.com which is more reliable than uc?export=view
 const convertGoogleDriveUrl = (url: string): string => {
   if (!url) return '';
   const trimmedUrl = url.trim();
@@ -61,29 +62,74 @@ const convertGoogleDriveUrl = (url: string): string => {
     fileId = ucMatch[1];
   }
   
-  // Convert to lh3.googleusercontent.com thumbnail URL (more reliable for embedding)
+  // Convert to lh3.googleusercontent.com thumbnail URL
   if (fileId) {
     return `https://lh3.googleusercontent.com/d/${fileId}=w1000`;
   }
   
-  // Return as-is if not a Google Drive link
   return trimmedUrl;
+};
+
+// Normalize header names for flexible matching
+const normalizeHeader = (header: string): string => {
+  return header.toLowerCase().trim().replace(/[\s_-]+/g, '');
+};
+
+// Map normalized headers to field names
+const HEADER_MAPPINGS: Record<string, string> = {
+  'name': 'name',
+  'spotname': 'name',
+  'spot_name': 'name',
+  'description': 'description',
+  'desc': 'description',
+  'placedescription': 'description',
+  'place_description': 'description',
+  'location': 'location_name',
+  'locationname': 'location_name',
+  'location_name': 'location_name',
+  'address': 'location_name',
+  'latitude': 'latitude',
+  'lat': 'latitude',
+  'locationlat': 'latitude',
+  'location_lat': 'latitude',
+  'longitude': 'longitude',
+  'lng': 'longitude',
+  'lon': 'longitude',
+  'locationlng': 'longitude',
+  'location_lng': 'longitude',
+  'species': 'species',
+  'speciesavailable': 'species',
+  'species_available': 'species',
+  'fish': 'species',
+  'specie': 'species',
+  'public': 'is_public',
+  'ispublic': 'is_public',
+  'is_public': 'is_public',
+  'publicspot': 'is_public',
+  'public_spot': 'is_public',
+  'verified': 'is_verified',
+  'isverified': 'is_verified',
+  'is_verified': 'is_verified',
+  'verifiedspot': 'is_verified',
+  'verified_spot': 'is_verified',
+  'areatype': 'area_type',
+  'area_type': 'area_type',
+  'watertype': 'area_type',
+  'water_type': 'area_type',
+  'type': 'area_type',
 };
 
 // Detect if a header is an image column
 const isImageHeader = (header: string): boolean => {
-  const normalized = header.toLowerCase().trim();
+  const normalized = normalizeHeader(header);
   const imagePatterns = [
     'image', 'photo', 'picture', 'img', 'thumbnail',
-    'image_url', 'photo_url', 'image url', 'photo url',
-    'imageurl', 'photourl', 'pic', 'pics'
+    'imageurl', 'photourl', 'picurl', 'imgurl'
   ];
   
-  // Check for exact matches or patterns with numbers (image_url_1, image 1, etc.)
   return imagePatterns.some(pattern => 
     normalized === pattern || 
-    normalized.startsWith(pattern + ' ') ||
-    normalized.startsWith(pattern + '_') ||
+    normalized.startsWith(pattern) ||
     normalized.includes(pattern)
   );
 };
@@ -135,62 +181,67 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
     });
   };
 
-  const parseFile = async (selectedFile: File) => {
-    setFile(selectedFile);
-    setResult(null);
+  const parseExcel = async (selectedFile: File): Promise<string[][]> => {
+    const buffer = await selectedFile.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: 'array' });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json<string[]>(firstSheet, { header: 1, defval: '' });
+    return jsonData.map(row => row.map(cell => String(cell ?? '').trim()));
+  };
 
-    const text = await selectedFile.text();
-    const rows = parseCSV(text);
-    
-    if (rows.length < 2) {
-      toast.error('File must have a header row and at least one data row');
-      return;
-    }
-
-    const headers = rows[0].map(h => h.toLowerCase().trim());
-    const nameIdx = headers.findIndex(h => h === 'name' || h === 'spot name' || h === 'spot_name');
-    const descIdx = headers.findIndex(h => h === 'description' || h === 'desc');
-    const locationIdx = headers.findIndex(h => h === 'location' || h === 'location_name' || h === 'address');
-    const latIdx = headers.findIndex(h => h === 'latitude' || h === 'lat' || h === 'location_lat');
-    const lngIdx = headers.findIndex(h => h === 'longitude' || h === 'lng' || h === 'lon' || h === 'location_lng');
-    const speciesIdx = headers.findIndex(h => h === 'species' || h === 'species_available' || h === 'fish');
-    const publicIdx = headers.findIndex(h => h === 'public' || h === 'is_public');
-    const verifiedIdx = headers.findIndex(h => h === 'verified' || h === 'is_verified');
-
-    // Find all image columns
+  const processRows = (rows: string[][], headers: string[]): ParsedSpot[] => {
+    // Normalize headers and create index mapping
+    const headerMap: Record<string, number> = {};
     const imageColumnIndices: number[] = [];
+
     headers.forEach((header, idx) => {
+      const normalized = normalizeHeader(header);
+      const mappedField = HEADER_MAPPINGS[normalized];
+      
+      if (mappedField) {
+        headerMap[mappedField] = idx;
+      }
+      
       if (isImageHeader(header)) {
         imageColumnIndices.push(idx);
       }
     });
 
-    if (nameIdx === -1) {
-      toast.error('CSV must have a "name" column');
-      return;
+    // Ensure we have a name column
+    if (headerMap['name'] === undefined) {
+      toast.error('File must have a "name" or "spot name" column');
+      return [];
     }
 
     const spots: ParsedSpot[] = rows.slice(1).map((row, index) => {
       const errors: string[] = [];
-      const name = row[nameIdx]?.trim() || '';
+      const getValue = (field: string): string | undefined => {
+        const idx = headerMap[field];
+        return idx !== undefined ? row[idx]?.trim() : undefined;
+      };
+
+      const name = getValue('name') || '';
       
       if (!name) {
         errors.push(`Row ${index + 2}: Name is required`);
       }
 
+      // Parse coordinates
       let lat: number | undefined;
       let lng: number | undefined;
 
-      if (latIdx !== -1 && row[latIdx]) {
-        lat = parseFloat(row[latIdx]);
+      const latStr = getValue('latitude');
+      if (latStr) {
+        lat = parseFloat(latStr);
         if (isNaN(lat) || lat < -90 || lat > 90) {
           errors.push(`Row ${index + 2}: Invalid latitude`);
           lat = undefined;
         }
       }
 
-      if (lngIdx !== -1 && row[lngIdx]) {
-        lng = parseFloat(row[lngIdx]);
+      const lngStr = getValue('longitude');
+      if (lngStr) {
+        lng = parseFloat(lngStr);
         if (isNaN(lng) || lng < -180 || lng > 180) {
           errors.push(`Row ${index + 2}: Invalid longitude`);
           lng = undefined;
@@ -201,12 +252,25 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
       if (!lat) lat = 25.7617;
       if (!lng) lng = -80.1918;
 
+      // Parse species (comma, semicolon, or pipe separated)
       let species: string[] | undefined;
-      if (speciesIdx !== -1 && row[speciesIdx]) {
-        species = row[speciesIdx].split(/[,;|]/).map(s => s.trim()).filter(Boolean);
+      const speciesStr = getValue('species');
+      if (speciesStr) {
+        species = speciesStr.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
       }
 
-      // Parse photos from image columns
+      // Parse area type
+      let areaType: 'freshwater' | 'saltwater' | undefined;
+      const areaTypeStr = getValue('area_type')?.toLowerCase().trim();
+      if (areaTypeStr) {
+        if (areaTypeStr.includes('salt')) {
+          areaType = 'saltwater';
+        } else if (areaTypeStr.includes('fresh')) {
+          areaType = 'freshwater';
+        }
+      }
+
+      // Parse photos from all image columns
       const photos: string[] = [];
       imageColumnIndices.forEach(imgIdx => {
         const rawUrl = row[imgIdx]?.trim();
@@ -225,33 +289,67 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
 
       return {
         name,
-        description: descIdx !== -1 ? row[descIdx]?.trim() : undefined,
-        location_name: locationIdx !== -1 ? row[locationIdx]?.trim() : undefined,
+        description: getValue('description'),
+        location_name: getValue('location_name'),
         location_lat: lat,
         location_lng: lng,
         species_available: species,
-        is_public: publicIdx !== -1 ? parseBoolean(row[publicIdx]) : true,
-        is_verified: verifiedIdx !== -1 ? parseBoolean(row[verifiedIdx]) : false,
+        is_public: getValue('is_public') ? parseBoolean(getValue('is_public')) : true,
+        is_verified: getValue('is_verified') ? parseBoolean(getValue('is_verified')) : false,
+        area_type: areaType || 'freshwater',
         photos: photos.length > 0 ? photos : undefined,
         valid: errors.length === 0 && !!name,
         errors,
       };
-    }).filter(spot => spot.name); // Filter out empty rows
+    }).filter(spot => spot.name);
 
-    setParsedSpots(spots);
-    
-    // Show info about detected image columns
-    if (imageColumnIndices.length > 0) {
+    return spots;
+  };
+
+  const parseFile = async (selectedFile: File) => {
+    setFile(selectedFile);
+    setResult(null);
+
+    try {
+      let rows: string[][];
+      const isExcel = selectedFile.name.match(/\.xlsx?$/i);
+
+      if (isExcel) {
+        rows = await parseExcel(selectedFile);
+      } else {
+        const text = await selectedFile.text();
+        rows = parseCSV(text);
+      }
+
+      if (rows.length < 2) {
+        toast.error('File must have a header row and at least one data row');
+        return;
+      }
+
+      const headers = rows[0];
+      const spots = processRows(rows, headers);
+      
+      setParsedSpots(spots);
+
+      // Show summary
       const totalPhotos = spots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
-      toast.success(`Detected ${imageColumnIndices.length} image column(s) with ${totalPhotos} total photos`);
+      const saltwaterCount = spots.filter(s => s.area_type === 'saltwater').length;
+      const freshwaterCount = spots.filter(s => s.area_type === 'freshwater').length;
+
+      toast.success(
+        `Parsed ${spots.length} spots: ${saltwaterCount} saltwater, ${freshwaterCount} freshwater, ${totalPhotos} photos`
+      );
+    } catch (error) {
+      console.error('Error parsing file:', error);
+      toast.error('Failed to parse file. Please check the format.');
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.name.match(/\.(csv|txt)$/i)) {
-        toast.error('Please upload a CSV file');
+      if (!selectedFile.name.match(/\.(csv|txt|xlsx|xls)$/i)) {
+        toast.error('Please upload a CSV or Excel file');
         return;
       }
       parseFile(selectedFile);
@@ -262,8 +360,8 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
-      if (!droppedFile.name.match(/\.(csv|txt)$/i)) {
-        toast.error('Please upload a CSV file');
+      if (!droppedFile.name.match(/\.(csv|txt|xlsx|xls)$/i)) {
+        toast.error('Please upload a CSV or Excel file');
         return;
       }
       parseFile(droppedFile);
@@ -293,9 +391,10 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         location_name: spot.location_name || null,
         location_lat: spot.location_lat || 25.7617,
         location_lng: spot.location_lng || -80.1918,
-        species_available: spot.species_available || null,
+        species_available: null, // Species are UUIDs, will need to be set separately
         is_public: spot.is_public ?? true,
         is_verified: spot.is_verified ?? false,
+        area_type: spot.area_type || 'freshwater',
         photos: spot.photos || null,
       }));
 
@@ -332,9 +431,9 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   };
 
   const downloadTemplate = () => {
-    const template = `name,description,location,latitude,longitude,species,public,verified,image_url_1,image_url_2,image_url_3
-"Bass Lake","Great bass fishing spot","Lake Road, Florida",28.5383,-81.3792,"Largemouth Bass,Bluegill",true,false,"https://example.com/bass-lake.jpg","",""
-"Sunset Pier","Ocean fishing pier","Miami Beach, FL",25.7906,-80.1300,"Snapper,Grouper,Mahi-mahi",true,true,"https://drive.google.com/file/d/abc123/view","https://example.com/pier2.jpg",""`;
+    const template = `Spot Name,Place Description,Location Name,Latitude,Longitude,Specie (Seperate with comma),Public spot,Verified Spot,Image Url 1,Image Url 2,Image Url 3,Area Type
+"Bass Lake","Great bass fishing spot","Lake Road, Florida",28.5383,-81.3792,"Largemouth Bass,Bluegill",TRUE,FALSE,"https://example.com/bass-lake.jpg","","",Fresh Water
+"Sunset Pier","Ocean fishing pier","Miami Beach, FL",25.7906,-80.1300,"Snapper,Grouper,Mahi-mahi",TRUE,TRUE,"https://drive.google.com/file/d/abc123/view","https://example.com/pier2.jpg","",Salt Water`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -350,6 +449,8 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   const validCount = parsedSpots.filter(s => s.valid).length;
   const invalidCount = parsedSpots.filter(s => !s.valid).length;
   const totalPhotos = parsedSpots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
+  const saltwaterCount = parsedSpots.filter(s => s.area_type === 'saltwater').length;
+  const freshwaterCount = parsedSpots.filter(s => s.area_type === 'freshwater').length;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -360,7 +461,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
             Import Fishing Spots
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Upload a CSV file to bulk import fishing spots. Supports image URLs including Google Drive links.
+            Upload a CSV or Excel file to bulk import fishing spots. Supports image URLs including Google Drive links.
           </DialogDescription>
         </DialogHeader>
 
@@ -384,12 +485,12 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="w-12 h-12 mx-auto mb-4 text-slate-500" />
-              <p className="text-slate-300 mb-2">Drag and drop your CSV file here</p>
-              <p className="text-sm text-slate-500">or click to browse</p>
+              <p className="text-slate-300 mb-2">Drag and drop your CSV or Excel file here</p>
+              <p className="text-sm text-slate-500">Supports .csv, .xlsx, .xls files</p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,.txt"
+                accept=".csv,.txt,.xlsx,.xls"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -439,6 +540,16 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
                     {totalPhotos} photos
                   </Badge>
                 )}
+                {saltwaterCount > 0 && (
+                  <Badge className="bg-blue-500/20 text-blue-400 border-0">
+                    🌊 {saltwaterCount} saltwater
+                  </Badge>
+                )}
+                {freshwaterCount > 0 && (
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0">
+                    🏞️ {freshwaterCount} freshwater
+                  </Badge>
+                )}
               </div>
 
               {/* Preview */}
@@ -456,6 +567,13 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-white">{spot.name}</span>
+                          <Badge variant="outline" className={`text-xs ${
+                            spot.area_type === 'saltwater' 
+                              ? 'border-blue-500/50 text-blue-400' 
+                              : 'border-emerald-500/50 text-emerald-400'
+                          }`}>
+                            {spot.area_type === 'saltwater' ? '🌊' : '🏞️'}
+                          </Badge>
                           {spot.photos && spot.photos.length > 0 && (
                             <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
                               <Image className="w-3 h-3 mr-1" />
@@ -471,6 +589,12 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
                       </div>
                       {spot.location_name && (
                         <p className="text-slate-400 text-xs mt-1">{spot.location_name}</p>
+                      )}
+                      {spot.species_available && spot.species_available.length > 0 && (
+                        <p className="text-cyan-400 text-xs mt-1">
+                          🐟 {spot.species_available.slice(0, 3).join(', ')}
+                          {spot.species_available.length > 3 && ` +${spot.species_available.length - 3} more`}
+                        </p>
                       )}
                       {spot.errors.length > 0 && (
                         <p className="text-red-400 text-xs mt-1">{spot.errors.join(', ')}</p>

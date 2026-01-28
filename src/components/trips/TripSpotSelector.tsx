@@ -18,6 +18,7 @@ interface FishingSpot {
   rating_avg: number | null;
   species_available: string[] | null;
   photos: string[] | null;
+  area_type: string | null;
 }
 
 interface TripSpotSelectorProps {
@@ -63,7 +64,7 @@ export function TripSpotSelector({
     queryFn: async () => {
       let query = supabase
         .from("fishing_spots")
-        .select("id, name, location_lat, location_lng, location_name, rating_avg, species_available, photos")
+        .select("id, name, location_lat, location_lng, location_name, rating_avg, species_available, photos, area_type")
         .eq("is_public", true);
 
       if (view === "saved" && savedSpotIds && savedSpotIds.length > 0) {
