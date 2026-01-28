@@ -62,6 +62,7 @@ interface FishingSpot {
   rating_count: number | null;
   photos: string[] | null;
   created_by: string | null;
+  area_type: string | null;
 }
 
 const WATER_TYPE_OPTIONS = [
@@ -280,22 +281,12 @@ export default function Spots() {
 
     if (!matchesSearch) return false;
 
-    // Apply water type filter
-    if (waterType === "freshwater" && spot.species_available) {
-      // Freshwater fish keywords
-      const freshwaterSpecies = ["bass", "trout", "catfish", "crappie", "bluegill", "walleye", "pike", "perch", "carp", "muskie"];
-      const hasFreshwater = spot.species_available.some(s => 
-        freshwaterSpecies.some(fs => s.toLowerCase().includes(fs))
-      );
-      if (!hasFreshwater) return false;
+    // Apply water type filter using the area_type column
+    if (waterType === "freshwater") {
+      if (spot.area_type !== 'freshwater') return false;
     }
-    if (waterType === "saltwater" && spot.species_available) {
-      // Saltwater fish keywords
-      const saltwaterSpecies = ["tuna", "marlin", "snapper", "grouper", "mahi", "tarpon", "redfish", "flounder", "shark", "sailfish"];
-      const hasSaltwater = spot.species_available.some(s => 
-        saltwaterSpecies.some(ss => s.toLowerCase().includes(ss))
-      );
-      if (!hasSaltwater) return false;
+    if (waterType === "saltwater") {
+      if (spot.area_type !== 'saltwater') return false;
     }
 
     // Apply dropdown filters
