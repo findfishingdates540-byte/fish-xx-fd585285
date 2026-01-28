@@ -39,6 +39,7 @@ const actionLabels: Record<AuditAction, { label: string; color: string }> = {
   spot_unverified: { label: 'Spot Unverified', color: 'bg-yellow-500/20 text-yellow-400' },
   spot_deleted: { label: 'Spot Deleted', color: 'bg-red-500/20 text-red-400' },
   spot_visibility_changed: { label: 'Spot Visibility Changed', color: 'bg-cyan-500/20 text-cyan-400' },
+  spot_area_type_changed: { label: 'Spot Area Type Changed', color: 'bg-teal-500/20 text-teal-400' },
   spots_bulk_import: { label: 'Spots Bulk Import', color: 'bg-emerald-500/20 text-emerald-400' },
   catch_deleted: { label: 'Catch Deleted', color: 'bg-red-500/20 text-red-400' },
   post_deleted: { label: 'Post Deleted', color: 'bg-red-500/20 text-red-400' },
