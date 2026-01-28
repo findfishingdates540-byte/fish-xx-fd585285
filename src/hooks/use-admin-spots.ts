@@ -212,3 +212,30 @@ export function useBulkTogglePublic() {
     },
   });
 }
+
+export function useBulkUpdateAreaType() {
+  const queryClient = useQueryClient();
+  const { logAction } = useAuditAction();
+
+  return useMutation({
+    mutationFn: async ({ spotIds, areaType }: { spotIds: string[]; areaType: string }) => {
+      const { error } = await supabase
+        .from('fishing_spots')
+        .update({ area_type: areaType })
+        .in('id', spotIds);
+
+      if (error) throw error;
+      return { spotIds, areaType };
+    },
+    onSuccess: async ({ spotIds, areaType }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-spots'] });
+      toast.success(`${spotIds.length} spots updated to ${areaType}`);
+      for (const spotId of spotIds) {
+        await logAction('spot_area_type_changed', 'spot', spotId, { areaType, bulk: true });
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to update spots: ${error.message}`);
+    },
+  });
+}

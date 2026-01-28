@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus, Pencil, Upload, Filter, ChevronDown } from 'lucide-react';
+import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus, Pencil, Upload, Filter, ChevronDown, Waves, Droplets } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAdminSpots, useVerifySpot, useToggleSpotPublic, useBulkDeleteSpots, useBulkVerifySpots, useBulkTogglePublic } from '@/hooks/use-admin-spots';
+import { useAdminSpots, useVerifySpot, useToggleSpotPublic, useBulkDeleteSpots, useBulkVerifySpots, useBulkTogglePublic, useBulkUpdateAreaType } from '@/hooks/use-admin-spots';
 import { SpotDetailsModal } from '@/components/admin/SpotDetailsModal';
 import { DeleteSpotDialog } from '@/components/admin/DeleteSpotDialog';
 import { AddSpotDialog } from '@/components/admin/AddSpotDialog';
@@ -33,7 +33,7 @@ export default function AdminSpots() {
 
   // Selection states
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkAction, setBulkAction] = useState<'delete' | 'verify' | 'unverify' | 'public' | 'private' | null>(null);
+  const [bulkAction, setBulkAction] = useState<'delete' | 'verify' | 'unverify' | 'public' | 'private' | 'freshwater' | 'saltwater' | null>(null);
 
   // Modal states
   const [selectedSpot, setSelectedSpot] = useState<SpotType | null>(null);
@@ -49,8 +49,9 @@ export default function AdminSpots() {
   const { mutate: bulkDelete, isPending: bulkDeletePending } = useBulkDeleteSpots();
   const { mutate: bulkVerify, isPending: bulkVerifyPending } = useBulkVerifySpots();
   const { mutate: bulkTogglePublic, isPending: bulkPublicPending } = useBulkTogglePublic();
+  const { mutate: bulkUpdateAreaType, isPending: bulkAreaTypePending } = useBulkUpdateAreaType();
 
-  const isBulkPending = bulkDeletePending || bulkVerifyPending || bulkPublicPending;
+  const isBulkPending = bulkDeletePending || bulkVerifyPending || bulkPublicPending || bulkAreaTypePending;
 
   // Apply filters
   const filteredSpots = useMemo(() => {
@@ -115,6 +116,12 @@ export default function AdminSpots() {
         break;
       case 'private':
         bulkTogglePublic({ spotIds: ids, isPublic: false }, { onSuccess: () => setSelectedIds(new Set()) });
+        break;
+      case 'freshwater':
+        bulkUpdateAreaType({ spotIds: ids, areaType: 'freshwater' }, { onSuccess: () => setSelectedIds(new Set()) });
+        break;
+      case 'saltwater':
+        bulkUpdateAreaType({ spotIds: ids, areaType: 'saltwater' }, { onSuccess: () => setSelectedIds(new Set()) });
         break;
     }
     setBulkAction(null);
@@ -283,6 +290,26 @@ export default function AdminSpots() {
             >
               <Lock className="w-4 h-4 mr-1" />
               Make Private
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setBulkAction('freshwater')}
+              disabled={isBulkPending}
+              className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
+            >
+              <Droplets className="w-4 h-4 mr-1" />
+              Freshwater
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setBulkAction('saltwater')}
+              disabled={isBulkPending}
+              className="border-teal-500/50 text-teal-400 hover:bg-teal-500/20"
+            >
+              <Waves className="w-4 h-4 mr-1" />
+              Saltwater
             </Button>
             <Button
               size="sm"

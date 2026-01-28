@@ -33,6 +33,7 @@ export type AuditAction =
   | 'spot_unverified'
   | 'spot_deleted'
   | 'spot_visibility_changed'
+  | 'spot_area_type_changed'
   | 'spots_bulk_import'
   | 'catch_deleted'
   | 'post_deleted'

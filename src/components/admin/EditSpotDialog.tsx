@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,6 +29,7 @@ interface EditSpotDialogProps {
     is_verified: boolean | null;
     photos: string[] | null;
     species_available: string[] | null;
+    area_type: string | null;
   } | null;
 }
 
@@ -45,6 +47,7 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
   const [isVerified, setIsVerified] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
+  const [areaType, setAreaType] = useState<string>('freshwater');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +62,7 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
       setIsVerified(spot.is_verified ?? false);
       setPhotos(spot.photos || []);
       setSelectedSpecies(spot.species_available || []);
+      setAreaType(spot.area_type || 'freshwater');
     }
   }, [spot]);
 
@@ -139,6 +143,7 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
           is_verified: isVerified,
           photos: photos.length > 0 ? photos : null,
           species_available: selectedSpecies.length > 0 ? selectedSpecies : null,
+          area_type: areaType,
         })
         .eq('id', spot.id)
         .select()
@@ -184,9 +189,12 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg max-h-[90vh]">
+      <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg max-h-[90vh]" aria-describedby="edit-spot-description">
         <DialogHeader>
           <DialogTitle>Edit Fishing Spot</DialogTitle>
+          <DialogDescription id="edit-spot-description" className="text-slate-400">
+            Modify the details of this fishing spot.
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="max-h-[calc(90vh-120px)] pr-4">
@@ -241,6 +249,19 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-areaType">Area Type *</Label>
+              <Select value={areaType} onValueChange={setAreaType}>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Select area type" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="freshwater" className="text-slate-300">Freshwater</SelectItem>
+                  <SelectItem value="saltwater" className="text-slate-300">Saltwater</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
