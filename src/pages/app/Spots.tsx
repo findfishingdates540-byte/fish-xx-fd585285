@@ -982,11 +982,23 @@ function SpotCard({ spot, distance, isSelected, isHovered, isSaved, onToggleSave
 
           <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
             <MapPin className="h-3 w-3" />
-            {distance} • {spot.location_name || "Freshwater"}
+            {distance} • {spot.location_name || "Unknown location"}
           </p>
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-3">
+            {/* Water Type Badge */}
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "text-xs",
+                spot.area_type === 'saltwater' 
+                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" 
+                  : "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
+              )}
+            >
+              {spot.area_type === 'saltwater' ? 'Saltwater' : 'Freshwater'}
+            </Badge>
             {spot.species_available?.slice(0, 2).map((species) => (
               <Badge key={species} variant="secondary" className="text-xs">
                 {species}
