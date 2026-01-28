@@ -274,10 +274,14 @@ export default function Spots() {
   }, [token, userLocation, mapStyle, isMobile]);
 
   // Filter spots
+  // Filter spots based on search query and filters
   const filteredSpots = spots.filter((spot) => {
-    const matchesSearch =
-      spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      spot.location_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    // Search matches name, location, or species
+    const searchLower = searchQuery.toLowerCase().trim();
+    const matchesSearch = searchLower === '' ||
+      spot.name.toLowerCase().includes(searchLower) ||
+      spot.location_name?.toLowerCase().includes(searchLower) ||
+      spot.species_available?.some(species => species.toLowerCase().includes(searchLower));
 
     if (!matchesSearch) return false;
 
