@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDiscoverProfiles } from '@/hooks/use-discover-profiles';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDatingTutorial } from '@/hooks/use-dating-tutorial';
+import { useProfileCompletionGuide } from '@/hooks/use-profile-completion-guide';
 import {
   DiscoverLeftSidebar,
   BumbleSwipeActions,
@@ -38,6 +39,7 @@ export default function Discover() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cardStackState, setCardStackState] = useState({ currentIndex: 0, totalCards: 1 });
   const [showMobileDetail, setShowMobileDetail] = useState(false);
+  const hasAutoNavigated = useRef(false);
 
   // Default filter values
   const defaultFilters: DiscoverFilters = {
@@ -81,6 +83,26 @@ export default function Discover() {
     enabled: !!user?.id,
     staleTime: 30000, // Cache for 30 seconds to prevent unnecessary refetches
   });
+
+  // Profile completion guide - for auto-navigation
+  const {
+    shouldAutoNavigate,
+    markGuideShown,
+  } = useProfileCompletionGuide(isProfileLoading || isProfileFetching ? null : profile);
+
+  // Auto-navigate to profile edit on first detection of incomplete profile
+  useEffect(() => {
+    if (
+      !isProfileLoading && 
+      !isProfileFetching && 
+      shouldAutoNavigate && 
+      !hasAutoNavigated.current
+    ) {
+      hasAutoNavigated.current = true;
+      markGuideShown();
+      navigate('/app/profile/edit?guide=true');
+    }
+  }, [isProfileLoading, isProfileFetching, shouldAutoNavigate, markGuideShown, navigate]);
 
   // Prevent vertical scrolling on mobile
   useEffect(() => {
