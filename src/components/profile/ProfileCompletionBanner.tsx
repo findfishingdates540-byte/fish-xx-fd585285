@@ -20,24 +20,34 @@ interface ProfileCompletionBannerProps {
     photos?: string[] | null;
     city?: string | null;
     state?: string | null;
-  } | null;
+  } | null | undefined;
+  isLoading?: boolean;
 }
 
-export function ProfileCompletionBanner({ profile }: ProfileCompletionBannerProps) {
+export function ProfileCompletionBanner({ profile, isLoading }: ProfileCompletionBannerProps) {
   const navigate = useNavigate();
 
+  // Don't show while loading to prevent false positives
+  if (isLoading) return null;
   if (!profile) return null;
 
-  // Calculate missing fields
+  // Calculate missing fields with strict checks
   const missingFields: string[] = [];
-  if (!profile.bio?.trim()) missingFields.push('Bio');
-  if (!profile.occupation?.trim()) missingFields.push('Occupation');
-  if (!profile.height_cm) missingFields.push('Height');
+  
+  // Only check if the field is truly missing (null, undefined, or empty)
+  const bio = profile.bio?.trim();
+  const occupation = profile.occupation?.trim();
+  const city = profile.city?.trim();
+  const state = profile.state?.trim();
+  
+  if (!bio || bio.length === 0) missingFields.push('Bio');
+  if (!occupation || occupation.length === 0) missingFields.push('Occupation');
+  if (profile.height_cm === null || profile.height_cm === undefined) missingFields.push('Height');
   if (!profile.smoking) missingFields.push('Smoking preference');
   if (!profile.drinking) missingFields.push('Drinking preference');
   if (!profile.zodiac_sign) missingFields.push('Zodiac sign');
   if (!profile.photos || profile.photos.length === 0) missingFields.push('Photo');
-  if (!profile.city?.trim() && !profile.state?.trim()) missingFields.push('Location');
+  if (!city && !state) missingFields.push('Location');
 
   // If profile is complete, don't show modal
   if (missingFields.length === 0) return null;
