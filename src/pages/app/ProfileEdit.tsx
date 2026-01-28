@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProfilePromptEditor, type ProfilePrompt } from "@/components/profile";
+import { ProfilePromptEditor, type ProfilePrompt, ProfileCompletionGuide } from "@/components/profile";
 import { InterestSelector } from "@/components/profile";
+import { useProfileCompletionGuide } from "@/hooks/use-profile-completion-guide";
 import { toast } from "sonner";
 import { 
   User, 
@@ -76,6 +77,9 @@ const ZODIAC_SIGNS = [
 export default function ProfileEdit() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const shouldStartGuide = searchParams.get('guide') === 'true';
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -127,6 +131,44 @@ export default function ProfileEdit() {
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"profile" | "banner">("profile");
+
+  // Profile completion guide
+  const profileDataForGuide = {
+    bio,
+    occupation,
+    height_cm: heightCm,
+    smoking,
+    drinking,
+    zodiac_sign: zodiacSign,
+    photos,
+    city,
+    state,
+  };
+  
+  const {
+    missingFields,
+    isGuideRunning,
+    startGuide,
+    stopGuide,
+    markGuideShown,
+  } = useProfileCompletionGuide(loading ? null : profileDataForGuide);
+
+  // Start guide if coming from Discover with guide=true
+  useEffect(() => {
+    if (!loading && shouldStartGuide && missingFields.length > 0) {
+      const timer = setTimeout(() => {
+        startGuide();
+        // Clean up the URL param
+        navigate('/app/profile/edit', { replace: true });
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, shouldStartGuide, missingFields.length, startGuide, navigate]);
+
+  const handleGuideComplete = () => {
+    markGuideShown();
+    stopGuide();
+  };
 
   useEffect(() => {
     if (user) {
@@ -678,7 +720,7 @@ export default function ProfileEdit() {
         </div>
 
         {/* Photo Gallery */}
-        <Card className="mt-6">
+        <Card className="mt-6" data-profile-field="photos">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
               <ImageIcon className="h-5 w-5 text-primary" />
@@ -955,7 +997,7 @@ export default function ProfileEdit() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  <div data-profile-field="drinking">
                     <Label className="flex items-center gap-2 mb-1.5">
                       <Wine className="h-4 w-4" />
                       Drinking
@@ -971,7 +1013,7 @@ export default function ProfileEdit() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div data-profile-field="smoking">
                     <Label className="flex items-center gap-2 mb-1.5">
                       <Cigarette className="h-4 w-4" />
                       Smoking
@@ -990,7 +1032,7 @@ export default function ProfileEdit() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  <div data-profile-field="zodiac">
                     <Label className="flex items-center gap-2 mb-1.5">
                       <Star className="h-4 w-4" />
                       Zodiac Sign
@@ -1467,6 +1509,14 @@ export default function ProfileEdit() {
           cropShape={cropType === "profile" ? "round" : "rect"}
         />
       )}
+
+      {/* Profile Completion Guide */}
+      <ProfileCompletionGuide
+        isRunning={isGuideRunning}
+        missingFields={missingFields}
+        onComplete={handleGuideComplete}
+        onStop={stopGuide}
+      />
     </div>
   );
 }
