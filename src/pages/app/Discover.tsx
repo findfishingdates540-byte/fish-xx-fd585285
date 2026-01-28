@@ -67,7 +67,7 @@ export default function Discover() {
     maxDistance: filters.maxDistance,
   });
 
-  const { data: profile, isLoading: isProfileLoading } = useQuery({
+  const { data: profile, isLoading: isProfileLoading, isFetching: isProfileFetching } = useQuery({
     queryKey: ['user-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -187,7 +187,7 @@ export default function Discover() {
       <>
         <div className="h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex flex-col overflow-hidden bg-background">
           {/* Profile Completion Banner */}
-          <ProfileCompletionBanner profile={profile} isLoading={isProfileLoading} />
+          <ProfileCompletionBanner profile={profile} isLoading={isProfileLoading || isProfileFetching} />
           
           <div className="flex-1 flex flex-col items-center justify-center px-4 py-2 min-h-0">
             {isLoading ? (
@@ -270,7 +270,7 @@ export default function Discover() {
         {/* Main Content Area */}
         <main className="flex-1 lg:ml-80 flex flex-col h-full min-h-0 overflow-hidden">
           {/* Profile Completion Banner - Desktop */}
-          <ProfileCompletionBanner profile={profile} isLoading={isProfileLoading} />
+          <ProfileCompletionBanner profile={profile} isLoading={isProfileLoading || isProfileFetching} />
           
           {/* Top Bar - Only show on desktop when sidebar is visible */}
           <div className="hidden lg:flex h-14 flex-shrink-0 border-b border-border items-center justify-between px-6 bg-background">
