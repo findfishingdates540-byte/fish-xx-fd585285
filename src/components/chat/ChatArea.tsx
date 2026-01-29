@@ -500,7 +500,7 @@ export function ChatArea({
                       <div
                         className={cn(
                           'rounded-2xl overflow-hidden relative',
-                          message.imageUrl ? '' : 'px-3 py-1.5',
+                          message.imageUrl ? '' : 'px-4 py-2.5',
                           isMine
                             ? 'bg-foreground text-background rounded-br-sm'
                             : 'bg-accent rounded-bl-sm',

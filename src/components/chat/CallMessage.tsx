@@ -64,7 +64,7 @@ export const CallMessage: FC<CallMessageProps> = ({
       <button
         onClick={handleClick}
         className={cn(
-          "inline-flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap",
+          "flex items-start gap-3 px-4 py-3 rounded-2xl transition-all min-w-[200px] max-w-[280px]",
           "hover:opacity-90 active:scale-[0.98] cursor-pointer shadow-sm",
           isMissed
             ? "bg-destructive/10 border border-destructive/20"
@@ -74,56 +74,59 @@ export const CallMessage: FC<CallMessageProps> = ({
           isMine ? "rounded-br-sm" : "rounded-bl-sm"
         )}
       >
-        {/* Call Icon */}
+        {/* Call Icon - WhatsApp style dark circle */}
         <div className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+          "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
           isMissed 
             ? "bg-destructive/20 text-destructive" 
-            : isMine 
-              ? "bg-primary-foreground/20 text-primary-foreground"
-              : "bg-foreground/10 text-foreground"
+            : "bg-foreground/90 text-background"
         )}>
           {isMissed ? (
-            <PhoneMissed className="w-4 h-4" />
+            <PhoneMissed className="w-5 h-5" />
           ) : callType === 'video' ? (
-            <Video className="w-4 h-4" />
+            <Video className="w-5 h-5" />
           ) : (
-            <PhoneOutgoing className="w-4 h-4" />
+            <PhoneOutgoing className="w-5 h-5" />
           )}
         </div>
         
-        {/* Call Type */}
-        <span className={cn(
-          "text-sm font-medium flex-shrink-0",
-          isMissed 
-            ? "text-destructive" 
-            : isMine 
-              ? "text-primary-foreground" 
-              : "text-foreground"
-        )}>
-          {callType === 'video' ? 'Video call' : 'Voice call'}
-        </span>
+        {/* Call Details - stacked vertically */}
+        <div className="flex flex-col items-start flex-1 min-w-0">
+          {/* Call Type Title */}
+          <span className={cn(
+            "text-sm font-semibold",
+            isMissed 
+              ? "text-destructive" 
+              : isMine 
+                ? "text-primary-foreground" 
+                : "text-foreground"
+          )}>
+            {callType === 'video' ? 'Video call' : 'Voice call'}
+          </span>
+          
+          {/* Duration or Missed subtitle */}
+          <span className={cn(
+            "text-xs",
+            isMissed 
+              ? "text-destructive/80" 
+              : isMine 
+                ? "text-primary-foreground/70" 
+                : "text-muted-foreground"
+          )}>
+            {isMissed ? 'Tap to call back' : `${duration} • Tap to call again`}
+          </span>
+        </div>
         
-        {/* Duration or Missed */}
+        {/* Timestamp - bottom right corner, on its own line */}
         <span className={cn(
-          "text-xs flex-shrink-0",
+          "text-[11px] self-end flex-shrink-0",
           isMissed 
-            ? "text-destructive/80" 
+            ? "text-destructive/60" 
             : isMine 
-              ? "text-primary-foreground/70" 
+              ? "text-primary-foreground/60" 
               : "text-muted-foreground"
         )}>
-          {isMissed ? 'Missed' : duration}
-        </span>
-        
-        {/* Separator and Timestamp */}
-        <span className={cn(
-          "text-xs flex-shrink-0",
-          isMine 
-            ? "text-primary-foreground/60" 
-            : "text-muted-foreground"
-        )}>
-          • {timestamp}
+          {timestamp}
         </span>
       </button>
     </div>
