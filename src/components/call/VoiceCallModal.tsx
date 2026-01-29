@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { CallControls } from './CallControls';
@@ -28,6 +28,7 @@ export function VoiceCallModal({
   roomUrl,
   onRoomCreated,
 }: VoiceCallModalProps) {
+  const startedRef = useRef(false);
   const {
     callStatus,
     isMuted,
@@ -38,17 +39,23 @@ export function VoiceCallModal({
     toggleMute,
   } = useDailyCall();
 
-  // Start call when modal opens
+  // Start call once per open (prevents duplicate rooms / duplicate DailyIframe)
   useEffect(() => {
-    if (open && callStatus === 'idle') {
-      startCall(channelName, 'voice', userId, roomUrl).then((result) => {
-        if (result.success && result.roomUrl && !roomUrl && onRoomCreated) {
-          // Caller created a new room - notify parent to update session
-          onRoomCreated(result.roomUrl);
-        }
-      });
+    if (!open) {
+      startedRef.current = false;
+      return;
     }
-  }, [open, callStatus, channelName, userId, roomUrl, startCall, onRoomCreated]);
+
+    if (startedRef.current) return;
+    startedRef.current = true;
+
+    startCall(channelName, 'voice', userId, roomUrl).then((result) => {
+      if (result.success && result.roomUrl && !roomUrl && onRoomCreated) {
+        // Caller created a new room - notify parent to update session
+        onRoomCreated(result.roomUrl);
+      }
+    });
+  }, [open, channelName, userId, roomUrl, startCall, onRoomCreated]);
 
   // Handle closing
   const handleClose = async () => {
