@@ -173,9 +173,8 @@ export function CallProvider({ children }: CallProviderProps) {
     if (!open && activeSession) {
       await endCall(activeSession.id);
       
-      // Extract matchId from channel name (format: chat_matchId-timestamp)
-      const channelParts = outgoingCallChannel.split('-');
-      const matchId = channelParts[0].replace('chat_', '');
+       // Extract match UUID from channel name: chat_<match_uuid>-<timestamp>
+       const matchId = outgoingCallChannel.match(/^chat_([0-9a-f-]{36})/i)?.[1];
       
       if (matchId && durationSeconds !== undefined) {
         await insertCallMessage(matchId, outgoingCallType, durationSeconds);
@@ -192,9 +191,8 @@ export function CallProvider({ children }: CallProviderProps) {
     if (!open && activeSession) {
       await endCall(activeSession.id);
       
-      // Extract matchId from channel name
-      const channelParts = answeredCallChannel.split('-');
-      const matchId = channelParts[0].replace('chat_', '');
+       // Extract match UUID from channel name: chat_<match_uuid>-<timestamp>
+       const matchId = answeredCallChannel.match(/^chat_([0-9a-f-]{36})/i)?.[1];
       
       if (matchId && durationSeconds !== undefined) {
         await insertCallMessage(matchId, answeredCallType, durationSeconds);

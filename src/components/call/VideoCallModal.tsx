@@ -28,6 +28,7 @@ export function VideoCallModal({
   roomUrl,
   onRoomCreated,
 }: VideoCallModalProps) {
+  const startedRef = useRef(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   
@@ -46,17 +47,23 @@ export function VideoCallModal({
     attachRemoteVideo,
   } = useDailyCall();
 
-  // Start call when modal opens
+  // Start call once per open (prevents duplicate rooms / duplicate DailyIframe)
   useEffect(() => {
-    if (open && callStatus === 'idle') {
-      startCall(channelName, 'video', userId, roomUrl).then((result) => {
-        if (result.success && result.roomUrl && !roomUrl && onRoomCreated) {
-          // Caller created a new room - notify parent to update session
-          onRoomCreated(result.roomUrl);
-        }
-      });
+    if (!open) {
+      startedRef.current = false;
+      return;
     }
-  }, [open, callStatus, channelName, userId, roomUrl, startCall, onRoomCreated]);
+
+    if (startedRef.current) return;
+    startedRef.current = true;
+
+    startCall(channelName, 'video', userId, roomUrl).then((result) => {
+      if (result.success && result.roomUrl && !roomUrl && onRoomCreated) {
+        // Caller created a new room - notify parent to update session
+        onRoomCreated(result.roomUrl);
+      }
+    });
+  }, [open, channelName, userId, roomUrl, startCall, onRoomCreated]);
 
   // Attach local video
   useEffect(() => {
