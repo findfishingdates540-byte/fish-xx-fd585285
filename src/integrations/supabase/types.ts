@@ -341,6 +341,7 @@ export type Database = {
           created_at: string
           ended_at: string | null
           id: string
+          room_url: string | null
           started_at: string
           status: string
           updated_at: string
@@ -354,6 +355,7 @@ export type Database = {
           created_at?: string
           ended_at?: string | null
           id?: string
+          room_url?: string | null
           started_at?: string
           status?: string
           updated_at?: string
@@ -367,6 +369,7 @@ export type Database = {
           created_at?: string
           ended_at?: string | null
           id?: string
+          room_url?: string | null
           started_at?: string
           status?: string
           updated_at?: string

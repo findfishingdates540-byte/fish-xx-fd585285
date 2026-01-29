@@ -50,17 +50,14 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
   }, []);
 
-  // Create room and get token from edge function
-  const createRoom = useCallback(async (
+  // Get room token from edge function (creates room if needed)
+  const getOrCreateRoom = useCallback(async (
     roomName: string,
     type: CallType
-  ): Promise<{ roomUrl: string; token: string } | null> => {
+  ): Promise<{ roomUrl: string; roomName: string; token: string } | null> => {
     try {
-      // Add timestamp to room name to make it unique per call session
-      const uniqueRoomName = `${roomName}-${Date.now()}`;
-      
       const { data, error } = await supabase.functions.invoke('create-daily-room', {
-        body: { roomName: uniqueRoomName, callType: type },
+        body: { roomName, callType: type },
       });
 
       if (error) {
@@ -69,7 +66,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         return null;
       }
 
-      return { roomUrl: data.roomUrl, token: data.token };
+      return { roomUrl: data.roomUrl, roomName: data.roomName, token: data.token };
     } catch (err) {
       console.error('Failed to create Daily room:', err);
       toast.error('Failed to reach call service');
@@ -127,18 +124,43 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
   }, []);
 
-  // Start a call
-  const startCall = useCallback(async (channelName: string, type: CallType, _userId: string) => {
+  // Start a call - roomUrl is provided when joining an existing room (callee), otherwise creates a new room (caller)
+  const startCall = useCallback(async (
+    channelName: string, 
+    type: CallType, 
+    _userId: string,
+    existingRoomUrl?: string
+  ): Promise<{ success: boolean; roomUrl?: string }> => {
     try {
       setCallStatus('connecting');
       setCallType(type);
       setIsVideoEnabled(type === 'video');
 
-      // Create room with unique name
-      const roomData = await createRoom(channelName, type);
-      if (!roomData) {
-        setCallStatus('error');
-        return false;
+      let roomUrl: string;
+      let token: string;
+
+      if (existingRoomUrl) {
+        // Callee joining existing room - extract room name from URL
+        const urlParts = existingRoomUrl.split('/');
+        const roomName = urlParts[urlParts.length - 1];
+        
+        const roomData = await getOrCreateRoom(roomName, type);
+        if (!roomData) {
+          setCallStatus('error');
+          return { success: false };
+        }
+        roomUrl = roomData.roomUrl;
+        token = roomData.token;
+      } else {
+        // Caller creating new room with unique name
+        const uniqueRoomName = `${channelName}-${Date.now()}`;
+        const roomData = await getOrCreateRoom(uniqueRoomName, type);
+        if (!roomData) {
+          setCallStatus('error');
+          return { success: false };
+        }
+        roomUrl = roomData.roomUrl;
+        token = roomData.token;
       }
 
       // Create Daily call object
@@ -247,23 +269,23 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       });
 
       // Join the room with token
-      console.log('[Daily] Joining room:', roomData.roomUrl);
+      console.log('[Daily] Joining room:', roomUrl);
       await callObject.join({
-        url: roomData.roomUrl,
-        token: roomData.token,
+        url: roomUrl,
+        token: token,
         startVideoOff: type === 'voice',
         startAudioOff: false,
       });
 
-      return true;
+      return { success: true, roomUrl };
     } catch (error) {
       console.error('Error starting Daily call:', error);
       toast.error('Failed to start call');
       setCallStatus('error');
       await cleanupCall();
-      return false;
+      return { success: false };
     }
-  }, [createRoom, options, cleanupCall, playRemoteAudio, updateRemoteVideo, updateLocalVideo]);
+  }, [getOrCreateRoom, options, cleanupCall, playRemoteAudio, updateRemoteVideo, updateLocalVideo]);
 
   // End call
   const endCall = useCallback(async () => {
