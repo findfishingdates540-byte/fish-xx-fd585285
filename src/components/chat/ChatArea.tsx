@@ -552,10 +552,10 @@ export function ChatArea({
                           </div>
                         )}
                         {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
-                          <span className="inline-flex items-baseline gap-2 flex-wrap">
+                          <span className="inline">
                             <span className="text-sm">{message.content}</span>
                             <span className={cn(
-                              "text-[11px] inline-flex items-center gap-1 flex-shrink-0",
+                              "text-[11px] inline-flex items-center gap-1 ml-2 align-baseline",
                               isMine ? "text-background/60" : "text-muted-foreground"
                             )}>
                               {message.timestamp}
