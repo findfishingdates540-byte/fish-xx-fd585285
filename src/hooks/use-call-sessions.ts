@@ -8,6 +8,7 @@ export interface CallSession {
   caller_id: string;
   callee_id: string;
   channel_name: string;
+  room_url: string | null;
   call_type: 'voice' | 'video';
   status: 'ringing' | 'accepted' | 'declined' | 'ended' | 'missed' | 'busy';
   started_at: string;
@@ -34,7 +35,8 @@ export function useCallSessions(options: UseCallSessionsOptions = {}) {
   const createCallSession = useCallback(async (
     calleeId: string,
     channelName: string,
-    callType: 'voice' | 'video'
+    callType: 'voice' | 'video',
+    roomUrl?: string
   ): Promise<CallSession | null> => {
     if (!user) return null;
 
@@ -47,6 +49,7 @@ export function useCallSessions(options: UseCallSessionsOptions = {}) {
           channel_name: channelName,
           call_type: callType,
           status: 'ringing',
+          room_url: roomUrl || null,
         })
         .select()
         .single();
@@ -63,6 +66,28 @@ export function useCallSessions(options: UseCallSessionsOptions = {}) {
       return null;
     }
   }, [user]);
+
+  // Update call session room URL (called after caller creates room)
+  const updateRoomUrl = useCallback(async (
+    sessionId: string,
+    roomUrl: string
+  ): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('call_sessions')
+        .update({ room_url: roomUrl })
+        .eq('id', sessionId);
+
+      if (error) {
+        console.error('Error updating room URL:', error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Failed to update room URL:', err);
+      return false;
+    }
+  }, []);
 
   // Update call session status
   const updateCallStatus = useCallback(async (
@@ -102,14 +127,33 @@ export function useCallSessions(options: UseCallSessionsOptions = {}) {
     }
   }, []);
 
-  // Accept incoming call
-  const acceptCall = useCallback(async (sessionId: string): Promise<boolean> => {
-    const success = await updateCallStatus(sessionId, 'accepted');
-    if (success && incomingCall) {
-      setActiveCall(incomingCall);
-      setIncomingCall(null);
+  // Accept incoming call - refetch session to get latest room_url
+  const acceptCall = useCallback(async (sessionId: string): Promise<CallSession | null> => {
+    try {
+      // Refetch the session to get the latest room_url (caller may have updated it)
+      const { data: freshSession, error: fetchError } = await supabase
+        .from('call_sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .single();
+
+      if (fetchError || !freshSession) {
+        console.error('Error fetching call session:', fetchError);
+        return null;
+      }
+
+      const success = await updateCallStatus(sessionId, 'accepted');
+      if (success) {
+        const sessionWithRoomUrl = { ...incomingCall, ...freshSession } as CallSession;
+        setActiveCall(sessionWithRoomUrl);
+        setIncomingCall(null);
+        return sessionWithRoomUrl;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to accept call:', err);
+      return null;
     }
-    return success;
   }, [updateCallStatus, incomingCall]);
 
   // Decline incoming call
@@ -233,6 +277,7 @@ export function useCallSessions(options: UseCallSessionsOptions = {}) {
     activeCall,
     createCallSession,
     updateCallStatus,
+    updateRoomUrl,
     acceptCall,
     declineCall,
     endCall,

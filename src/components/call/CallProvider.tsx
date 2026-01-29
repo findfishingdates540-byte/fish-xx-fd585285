@@ -65,6 +65,7 @@ export function CallProvider({ children }: CallProviderProps) {
     incomingCall,
     activeCall,
     createCallSession,
+    updateRoomUrl,
     acceptCall,
     declineCall,
     endCall,
@@ -72,6 +73,18 @@ export function CallProvider({ children }: CallProviderProps) {
     onIncomingCall: handleIncomingCall,
     onCallEnded: handleCallEnded,
   });
+
+  // State for room URL (for outgoing calls - will be updated when room is created)
+  const [outgoingRoomUrl, setOutgoingRoomUrl] = useState<string | null>(null);
+  const [answeredRoomUrl, setAnsweredRoomUrl] = useState<string | null>(null);
+
+  // Handle room creation by caller - update the session so callee can join same room
+  const handleRoomCreated = useCallback(async (roomUrl: string) => {
+    if (activeSession) {
+      setOutgoingRoomUrl(roomUrl);
+      await updateRoomUrl(activeSession.id, roomUrl);
+    }
+  }, [activeSession, updateRoomUrl]);
 
   // Start an outgoing call
   const startCall = useCallback(async (
@@ -104,15 +117,16 @@ export function CallProvider({ children }: CallProviderProps) {
   const handleAcceptCall = useCallback(async () => {
     if (!incomingCall) return;
 
-    const success = await acceptCall(incomingCall.id);
-    if (success) {
-      setAnsweredCallType(incomingCall.call_type);
-      setAnsweredCallChannel(incomingCall.channel_name);
+    const acceptedSession = await acceptCall(incomingCall.id);
+    if (acceptedSession) {
+      setAnsweredCallType(acceptedSession.call_type);
+      setAnsweredCallChannel(acceptedSession.channel_name);
+      setAnsweredRoomUrl(acceptedSession.room_url || null); // Use the room URL from the refreshed session
       setAnsweredCallerInfo({
         name: incomingCall.caller?.display_name || 'Unknown',
         photo: incomingCall.caller?.photos?.[0],
       });
-      setActiveSession(incomingCall);
+      setActiveSession(acceptedSession);
       setAnsweredCallOpen(true);
     } else {
       toast.error('Failed to accept call');
@@ -205,7 +219,7 @@ export function CallProvider({ children }: CallProviderProps) {
         onDecline={handleDeclineCall}
       />
 
-      {/* Outgoing Call Modals */}
+      {/* Outgoing Call Modals - caller creates room, no roomUrl initially */}
       {outgoingCallType === 'voice' ? (
         <VoiceCallModal
           open={outgoingCallOpen}
@@ -214,6 +228,7 @@ export function CallProvider({ children }: CallProviderProps) {
           userId={user?.id || ''}
           remoteUserName={outgoingCalleeInfo.name}
           remoteUserPhoto={outgoingCalleeInfo.photo}
+          onRoomCreated={handleRoomCreated}
         />
       ) : (
         <VideoCallModal
@@ -223,10 +238,11 @@ export function CallProvider({ children }: CallProviderProps) {
           userId={user?.id || ''}
           remoteUserName={outgoingCalleeInfo.name}
           remoteUserPhoto={outgoingCalleeInfo.photo}
+          onRoomCreated={handleRoomCreated}
         />
       )}
 
-      {/* Answered Call Modals */}
+      {/* Answered Call Modals - callee joins existing room using roomUrl */}
       {answeredCallType === 'voice' ? (
         <VoiceCallModal
           open={answeredCallOpen}
@@ -235,6 +251,7 @@ export function CallProvider({ children }: CallProviderProps) {
           userId={user?.id || ''}
           remoteUserName={answeredCallerInfo.name}
           remoteUserPhoto={answeredCallerInfo.photo}
+          roomUrl={answeredRoomUrl || undefined}
         />
       ) : (
         <VideoCallModal
@@ -244,6 +261,7 @@ export function CallProvider({ children }: CallProviderProps) {
           userId={user?.id || ''}
           remoteUserName={answeredCallerInfo.name}
           remoteUserPhoto={answeredCallerInfo.photo}
+          roomUrl={answeredRoomUrl || undefined}
         />
       )}
     </CallContext.Provider>

@@ -14,6 +14,8 @@ interface VoiceCallModalProps {
   userId: string;
   remoteUserName: string;
   remoteUserPhoto?: string;
+  roomUrl?: string; // If provided, join this room instead of creating a new one
+  onRoomCreated?: (roomUrl: string) => void; // Called when caller creates a room
 }
 
 export function VoiceCallModal({
@@ -23,6 +25,8 @@ export function VoiceCallModal({
   userId,
   remoteUserName,
   remoteUserPhoto,
+  roomUrl,
+  onRoomCreated,
 }: VoiceCallModalProps) {
   const {
     callStatus,
@@ -37,9 +41,14 @@ export function VoiceCallModal({
   // Start call when modal opens
   useEffect(() => {
     if (open && callStatus === 'idle') {
-      startCall(channelName, 'voice', userId);
+      startCall(channelName, 'voice', userId, roomUrl).then((result) => {
+        if (result.success && result.roomUrl && !roomUrl && onRoomCreated) {
+          // Caller created a new room - notify parent to update session
+          onRoomCreated(result.roomUrl);
+        }
+      });
     }
-  }, [open, callStatus, channelName, userId, startCall]);
+  }, [open, callStatus, channelName, userId, roomUrl, startCall, onRoomCreated]);
 
   // Handle closing
   const handleClose = async () => {

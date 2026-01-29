@@ -14,6 +14,8 @@ interface VideoCallModalProps {
   userId: string;
   remoteUserName: string;
   remoteUserPhoto?: string;
+  roomUrl?: string; // If provided, join this room instead of creating a new one
+  onRoomCreated?: (roomUrl: string) => void; // Called when caller creates a room
 }
 
 export function VideoCallModal({
@@ -23,6 +25,8 @@ export function VideoCallModal({
   userId,
   remoteUserName,
   remoteUserPhoto,
+  roomUrl,
+  onRoomCreated,
 }: VideoCallModalProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -45,9 +49,14 @@ export function VideoCallModal({
   // Start call when modal opens
   useEffect(() => {
     if (open && callStatus === 'idle') {
-      startCall(channelName, 'video', userId);
+      startCall(channelName, 'video', userId, roomUrl).then((result) => {
+        if (result.success && result.roomUrl && !roomUrl && onRoomCreated) {
+          // Caller created a new room - notify parent to update session
+          onRoomCreated(result.roomUrl);
+        }
+      });
     }
-  }, [open, callStatus, channelName, userId, startCall]);
+  }, [open, callStatus, channelName, userId, roomUrl, startCall, onRoomCreated]);
 
   // Attach local video
   useEffect(() => {
