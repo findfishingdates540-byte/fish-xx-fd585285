@@ -132,6 +132,18 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     existingRoomUrl?: string
   ): Promise<{ success: boolean; roomUrl?: string }> => {
     try {
+      // CRITICAL: Clean up any existing call object before creating a new one
+      if (callObjectRef.current) {
+        console.log('[Daily] Cleaning up existing call object before starting new call');
+        try {
+          await callObjectRef.current.leave();
+          await callObjectRef.current.destroy();
+        } catch (e) {
+          console.warn('[Daily] Error cleaning up previous call:', e);
+        }
+        callObjectRef.current = null;
+      }
+
       setCallStatus('connecting');
       setCallType(type);
       setIsVideoEnabled(type === 'video');
