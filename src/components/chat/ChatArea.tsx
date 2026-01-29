@@ -552,24 +552,45 @@ export function ChatArea({
                           </div>
                         )}
                         {message.content && !isLocationMessage(message.content) && message.content !== '📷 Photo' && message.content !== '🎤 Voice message' && !message.audioUrl && (
-                          <span className="inline">
+                          <span className="inline-flex items-baseline gap-2 flex-wrap">
                             <span className="text-sm">{message.content}</span>
-                            {/* Invisible spacer to reserve space for timestamp */}
-                            <span className="invisible text-xs ml-2 inline-flex items-center gap-1">
+                            <span className={cn(
+                              "text-[11px] inline-flex items-center gap-1 flex-shrink-0",
+                              isMine ? "text-background/60" : "text-muted-foreground"
+                            )}>
                               {message.timestamp}
-                              {isMine && <span>✓✓</span>}
+                              {isMine && (
+                                <MessageStatusIndicator 
+                                  status={message.isRead ? 'read' : message.deliveredAt ? 'delivered' : 'sent'} 
+                                  readAt={message.readAt}
+                                />
+                              )}
                             </span>
                           </span>
                         )}
                         {message.imageUrl && message.content === '📷 Photo' && (
-                          <p className="text-xs px-3 py-1.5 text-center opacity-70">📷 Photo</p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs opacity-70">📷 Photo</p>
+                            <span className={cn(
+                              "text-[11px] inline-flex items-center gap-1",
+                              isMine ? "text-background/60" : "text-muted-foreground"
+                            )}>
+                              {message.timestamp}
+                              {isMine && (
+                                <MessageStatusIndicator 
+                                  status={message.isRead ? 'read' : message.deliveredAt ? 'delivered' : 'sent'} 
+                                  readAt={message.readAt}
+                                />
+                              )}
+                            </span>
+                          </div>
                         )}
                         
-                        {/* Timestamp positioned at bottom-right */}
-                        {!isLocationMessage(message.content) && (
+                        {/* Timestamp for location messages only */}
+                        {isLocationMessage(message.content) && (
                           <span className={cn(
-                            "absolute bottom-1.5 right-3 text-xs flex items-center gap-1",
-                            isMine ? "text-background/70" : "text-muted-foreground"
+                            "absolute bottom-1.5 right-3 text-[11px] flex items-center gap-1",
+                            isMine ? "text-background/60" : "text-muted-foreground"
                           )}>
                             {message.timestamp}
                             {isMine && (
