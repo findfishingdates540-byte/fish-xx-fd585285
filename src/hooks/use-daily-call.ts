@@ -24,9 +24,22 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const audioElementsRef = useRef<HTMLAudioElement[]>([]);
+  const currentRoomUrlRef = useRef<string | null>(null);
+
+  // Delete room from Daily.co when call ends
+  const deleteRoom = useCallback(async (roomUrl: string) => {
+    try {
+      console.log('[Daily] Deleting room:', roomUrl);
+      await supabase.functions.invoke('delete-daily-room', {
+        body: { roomUrl },
+      });
+    } catch (err) {
+      console.error('[Daily] Failed to delete room:', err);
+    }
+  }, []);
 
   // Cleanup call object
-  const cleanupCall = useCallback(async () => {
+  const cleanupCall = useCallback(async (shouldDeleteRoom = false) => {
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
       durationIntervalRef.current = null;
@@ -48,7 +61,13 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       }
       callObjectRef.current = null;
     }
-  }, []);
+
+    // Delete room from Daily.co to prevent stale room connections
+    if (shouldDeleteRoom && currentRoomUrlRef.current) {
+      await deleteRoom(currentRoomUrlRef.current);
+      currentRoomUrlRef.current = null;
+    }
+  }, [deleteRoom]);
 
   // Get room token from edge function (creates room if needed)
   const getOrCreateRoom = useCallback(async (
@@ -168,6 +187,9 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         roomUrl = roomData.roomUrl;
         token = roomData.token;
       }
+
+      // Store roomUrl for cleanup
+      currentRoomUrlRef.current = roomUrl;
 
       // Create Daily call object
       const callObject = DailyIframe.createCallObject({
@@ -293,10 +315,11 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
   }, [getOrCreateRoom, options, cleanupCall, playRemoteAudio, updateRemoteVideo, updateLocalVideo]);
 
-  // End call
+  // End call - delete room to prevent stale connections
   const endCall = useCallback(async () => {
     try {
-      await cleanupCall();
+      // Pass true to delete the room when call ends
+      await cleanupCall(true);
       setCallStatus('ended');
       setRemoteParticipants([]);
       setCallDuration(0);
