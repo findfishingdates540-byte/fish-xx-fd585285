@@ -33,7 +33,8 @@ export default function AdminSpots() {
 
   // Selection states
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkAction, setBulkAction] = useState<'delete' | 'verify' | 'unverify' | 'public' | 'private' | 'freshwater' | 'saltwater' | null>(null);
+  const [bulkAction, setBulkAction] = useState<'delete' | 'verify' | 'unverify' | 'public' | 'private' | 'freshwater' | 'saltwater' | 'brackish' | null>(null);
+  const [selectedAreaType, setSelectedAreaType] = useState<string>('');
 
   // Modal states
   const [selectedSpot, setSelectedSpot] = useState<SpotType | null>(null);
@@ -118,10 +119,13 @@ export default function AdminSpots() {
         bulkTogglePublic({ spotIds: ids, isPublic: false }, { onSuccess: () => setSelectedIds(new Set()) });
         break;
       case 'freshwater':
-        bulkUpdateAreaType({ spotIds: ids, areaType: 'freshwater' }, { onSuccess: () => setSelectedIds(new Set()) });
+        bulkUpdateAreaType({ spotIds: ids, areaType: 'freshwater' }, { onSuccess: () => { setSelectedIds(new Set()); setSelectedAreaType(''); } });
         break;
       case 'saltwater':
-        bulkUpdateAreaType({ spotIds: ids, areaType: 'saltwater' }, { onSuccess: () => setSelectedIds(new Set()) });
+        bulkUpdateAreaType({ spotIds: ids, areaType: 'saltwater' }, { onSuccess: () => { setSelectedIds(new Set()); setSelectedAreaType(''); } });
+        break;
+      case 'brackish':
+        bulkUpdateAreaType({ spotIds: ids, areaType: 'brackish' }, { onSuccess: () => { setSelectedIds(new Set()); setSelectedAreaType(''); } });
         break;
     }
     setBulkAction(null);
@@ -291,26 +295,40 @@ export default function AdminSpots() {
               <Lock className="w-4 h-4 mr-1" />
               Make Private
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setBulkAction('freshwater')}
-              disabled={isBulkPending}
-              className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
-            >
-              <Droplets className="w-4 h-4 mr-1" />
-              Freshwater
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setBulkAction('saltwater')}
-              disabled={isBulkPending}
-              className="border-teal-500/50 text-teal-400 hover:bg-teal-500/20"
-            >
-              <Waves className="w-4 h-4 mr-1" />
-              Saltwater
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-400">Area Type:</span>
+              <Select 
+                value={selectedAreaType} 
+                onValueChange={(v) => {
+                  setSelectedAreaType(v);
+                  setBulkAction(v as 'freshwater' | 'saltwater' | 'brackish');
+                }}
+              >
+                <SelectTrigger className="w-[160px] h-8 bg-slate-800 border-slate-600 text-white text-sm">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="freshwater" className="text-slate-300">
+                    <span className="flex items-center gap-2">
+                      <Droplets className="w-4 h-4 text-blue-400" />
+                      Freshwater
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="saltwater" className="text-slate-300">
+                    <span className="flex items-center gap-2">
+                      <Waves className="w-4 h-4 text-teal-400" />
+                      Saltwater
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="brackish" className="text-slate-300">
+                    <span className="flex items-center gap-2">
+                      <Waves className="w-4 h-4 text-cyan-400" />
+                      Brackish Saltwater
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button
               size="sm"
               variant="outline"
