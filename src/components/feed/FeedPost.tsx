@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,6 +35,63 @@ import {
   CarouselDots,
 } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
+
+// Fast image component with eager loading and smooth fade-in
+function FeedImage({ 
+  src, 
+  alt, 
+  priority = false,
+  onDoubleClick,
+  className 
+}: { 
+  src: string; 
+  alt: string; 
+  priority?: boolean;
+  onDoubleClick?: () => void;
+  className?: string;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    // Check if already cached
+    if (imgRef.current?.complete && imgRef.current?.naturalHeight > 0) {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  // Preload priority images immediately
+  useEffect(() => {
+    if (priority && src) {
+      const img = new Image();
+      img.src = src;
+    }
+  }, [priority, src]);
+
+  return (
+    <>
+      {/* Skeleton placeholder */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-muted/50 animate-pulse" />
+      )}
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchPriority={priority ? 'high' : 'auto'}
+        onLoad={() => setIsLoaded(true)}
+        onDoubleClick={onDoubleClick}
+        className={cn(
+          "transition-opacity duration-200",
+          isLoaded ? "opacity-100" : "opacity-0",
+          className
+        )}
+      />
+    </>
+  );
+}
 
 interface FeedPostProps {
   post: FeedPostType;
@@ -282,24 +339,26 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
 
         {/* Photos - edge-to-edge with carousel dots */}
         {!post.video_url && allPhotos.length > 0 && (
-          <div className="relative bg-black">
+          <div className="relative bg-black min-h-[200px]">
             {allPhotos.length === 1 ? (
-              <img
+              <FeedImage
                 src={allPhotos[0]}
                 alt="Post"
-                className="w-full max-h-[600px] object-contain"
+                priority={true}
                 onDoubleClick={() => handleLike()}
+                className="w-full max-h-[600px] object-contain"
               />
             ) : (
               <Carousel className="w-full">
                 <CarouselContent>
                   {allPhotos.map((photo, index) => (
-                    <CarouselItem key={index}>
-                      <img
+                    <CarouselItem key={index} className="relative min-h-[200px]">
+                      <FeedImage
                         src={photo}
                         alt={`Post ${index + 1}`}
-                        className="w-full max-h-[600px] object-contain"
+                        priority={index === 0}
                         onDoubleClick={() => handleLike()}
+                        className="w-full max-h-[600px] object-contain"
                       />
                     </CarouselItem>
                   ))}
