@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Settings, SlidersHorizontal, UserPlus, Copy, Check, LayoutDashboard, Heart, Anchor } from 'lucide-react';
+import { ChevronDown, ChevronUp, Settings, SlidersHorizontal, UserPlus, Copy, Check, LayoutDashboard, Heart, Anchor, Bell } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
+import { useUnreadNotificationsCount } from '@/hooks/use-notifications';
 
 interface MatchQueueItem {
   id: string;
@@ -61,6 +62,7 @@ export function DiscoverLeftSidebar({
   const { activeMode, setActiveMode, isComboUser } = useActiveMode();
   const [conversationsOpen, setConversationsOpen] = useState(true);
   const [copied, setCopied] = useState(false);
+  const { data: notificationUnreadCount = 0 } = useUnreadNotificationsCount();
   
   const initials = userName?.charAt(0)?.toUpperCase() || 'U';
 
@@ -272,6 +274,23 @@ export function DiscoverLeftSidebar({
               {userName}
             </Link>
           </div>
+          
+          {/* Notification Bell */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-full hover:bg-accent relative"
+            onClick={() => navigate('/app/notifications')}
+          >
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            {notificationUnreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 min-w-[20px] bg-primary rounded-full flex items-center justify-center">
+                <span className="text-[10px] font-bold text-primary-foreground px-1">
+                  {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
+                </span>
+              </span>
+            )}
+          </Button>
           
           {/* Mode Switcher for Combo Users */}
           {isComboUser && (
