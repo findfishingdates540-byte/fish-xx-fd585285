@@ -257,9 +257,10 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
                 <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                   <SelectValue placeholder="Select area type" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectContent className="bg-slate-800 border-slate-700">
                   <SelectItem value="freshwater" className="text-slate-300">Freshwater</SelectItem>
                   <SelectItem value="saltwater" className="text-slate-300">Saltwater</SelectItem>
+                  <SelectItem value="brackish" className="text-slate-300">Brackish Saltwater</SelectItem>
                 </SelectContent>
               </Select>
             </div>
