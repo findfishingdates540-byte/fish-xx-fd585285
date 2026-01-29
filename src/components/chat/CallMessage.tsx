@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Phone, Video, PhoneOff, PhoneMissed, PhoneOutgoing, PhoneIncoming } from 'lucide-react';
+import { Phone, Video, PhoneMissed, PhoneOutgoing } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CallMessageProps {
@@ -50,8 +50,6 @@ export const CallMessage: FC<CallMessageProps> = ({
 }) => {
   const { callType, isMissed, duration } = parseCallMessage(content);
   
-  const CallIcon = callType === 'video' ? Video : Phone;
-  
   const handleClick = () => {
     if (callType && onCallback) {
       onCallback(callType);
@@ -66,7 +64,7 @@ export const CallMessage: FC<CallMessageProps> = ({
       <button
         onClick={handleClick}
         className={cn(
-          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all max-w-[85%] sm:max-w-[320px]",
+          "inline-flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap",
           "hover:opacity-90 active:scale-[0.98] cursor-pointer shadow-sm",
           isMissed
             ? "bg-destructive/10 border border-destructive/20"
@@ -76,9 +74,9 @@ export const CallMessage: FC<CallMessageProps> = ({
           isMine ? "rounded-br-sm" : "rounded-bl-sm"
         )}
       >
-        {/* Call Icon Container - WhatsApp style circular icon */}
+        {/* Call Icon */}
         <div className={cn(
-          "w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0",
+          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
           isMissed 
             ? "bg-destructive/20 text-destructive" 
             : isMine 
@@ -86,56 +84,47 @@ export const CallMessage: FC<CallMessageProps> = ({
               : "bg-foreground/10 text-foreground"
         )}>
           {isMissed ? (
-            <PhoneMissed className="w-5 h-5" />
+            <PhoneMissed className="w-4 h-4" />
           ) : callType === 'video' ? (
-            <Video className="w-5 h-5" />
+            <Video className="w-4 h-4" />
           ) : (
-            <PhoneOutgoing className="w-5 h-5" />
+            <PhoneOutgoing className="w-4 h-4" />
           )}
         </div>
         
-        {/* Call Details */}
-        <div className="flex flex-col items-start min-w-0 flex-1">
-          <span className={cn(
-            "text-sm font-semibold",
-            isMissed 
-              ? "text-destructive" 
-              : isMine 
-                ? "text-primary-foreground" 
-                : "text-foreground"
-          )}>
-            {callType === 'video' ? 'Video call' : 'Voice call'}
-          </span>
-          <span className={cn(
-            "text-xs",
-            isMissed 
-              ? "text-destructive/80" 
-              : isMine 
-                ? "text-primary-foreground/70" 
-                : "text-muted-foreground"
-          )}>
-            {isMissed ? (
-              <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-                Tap to call back
-              </span>
-            ) : (
-              `${duration} • Tap to call again`
-            )}
-          </span>
-        </div>
-        
-        {/* Timestamp - bottom right like WhatsApp */}
-        <div className={cn(
-          "self-end text-[10px] flex-shrink-0 ml-2",
+        {/* Call Type */}
+        <span className={cn(
+          "text-sm font-medium flex-shrink-0",
           isMissed 
-            ? "text-destructive/60" 
+            ? "text-destructive" 
             : isMine 
-              ? "text-primary-foreground/60" 
+              ? "text-primary-foreground" 
+              : "text-foreground"
+        )}>
+          {callType === 'video' ? 'Video call' : 'Voice call'}
+        </span>
+        
+        {/* Duration or Missed */}
+        <span className={cn(
+          "text-xs flex-shrink-0",
+          isMissed 
+            ? "text-destructive/80" 
+            : isMine 
+              ? "text-primary-foreground/70" 
               : "text-muted-foreground"
         )}>
-          {timestamp}
-        </div>
+          {isMissed ? 'Missed' : duration}
+        </span>
+        
+        {/* Separator and Timestamp */}
+        <span className={cn(
+          "text-xs flex-shrink-0",
+          isMine 
+            ? "text-primary-foreground/60" 
+            : "text-muted-foreground"
+        )}>
+          • {timestamp}
+        </span>
       </button>
     </div>
   );
