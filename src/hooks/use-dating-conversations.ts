@@ -59,7 +59,8 @@ export function useDatingConversations() {
       })) as DatingConversation[];
     },
     enabled: !!user?.id,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 10000, // Cache for 10 seconds
+    refetchOnMount: 'always', // Always refetch when component mounts
   });
 
   // Debounced invalidation to prevent rapid re-fetches
