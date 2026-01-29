@@ -127,29 +127,59 @@ export function useCallSessions(options: UseCallSessionsOptions = {}) {
     }
   }, []);
 
-  // Accept incoming call - refetch session to get latest room_url
+  // Accept incoming call - poll for room_url if not immediately available
   const acceptCall = useCallback(async (sessionId: string): Promise<CallSession | null> => {
     try {
-      // Refetch the session to get the latest room_url (caller may have updated it)
-      const { data: freshSession, error: fetchError } = await supabase
-        .from('call_sessions')
-        .select('*')
-        .eq('id', sessionId)
-        .single();
-
-      if (fetchError || !freshSession) {
-        console.error('Error fetching call session:', fetchError);
+      // First, update status to accepted
+      const statusSuccess = await updateCallStatus(sessionId, 'accepted');
+      if (!statusSuccess) {
+        console.error('Failed to update call status to accepted');
         return null;
       }
 
-      const success = await updateCallStatus(sessionId, 'accepted');
-      if (success) {
-        const sessionWithRoomUrl = { ...incomingCall, ...freshSession } as CallSession;
-        setActiveCall(sessionWithRoomUrl);
-        setIncomingCall(null);
-        return sessionWithRoomUrl;
+      // Poll for room_url with timeout (caller may still be creating it)
+      let freshSession: CallSession | null = null;
+      const maxAttempts = 10;
+      const pollInterval = 500; // 500ms between attempts
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const { data, error } = await supabase
+          .from('call_sessions')
+          .select('*')
+          .eq('id', sessionId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching call session:', error);
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          continue;
+        }
+
+        freshSession = data as CallSession;
+        
+        // If we have a room_url, we're good
+        if (freshSession.room_url) {
+          console.log('[CallSessions] Got room URL after', attempt + 1, 'attempts');
+          break;
+        }
+
+        // Wait before next attempt
+        if (attempt < maxAttempts - 1) {
+          console.log('[CallSessions] Waiting for room URL, attempt', attempt + 1);
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+        }
       }
-      return null;
+
+      if (!freshSession) {
+        console.error('Failed to fetch call session after polling');
+        return null;
+      }
+
+      // Even if no room_url after polling, return the session (caller might still be creating room)
+      const sessionWithRoomUrl = { ...incomingCall, ...freshSession } as CallSession;
+      setActiveCall(sessionWithRoomUrl);
+      setIncomingCall(null);
+      return sessionWithRoomUrl;
     } catch (err) {
       console.error('Failed to accept call:', err);
       return null;

@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, PhoneOff, Video, X } from 'lucide-react';
+import { Phone, PhoneOff, Video } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { CallSession } from '@/hooks/use-call-sessions';
@@ -17,26 +17,54 @@ export function IncomingCallOverlay({
   onAccept,
   onDecline,
 }: IncomingCallOverlayProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Play ringtone when call comes in
+  // Play ringtone when call comes in using Web Audio API (clean sound, no clicking)
   useEffect(() => {
-    if (call) {
-      // Create and play ringtone
-      const audio = new Audio();
-      audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp2djnZlYnB/j5+fnpF2Y1xndn6Ql5eWjXtpYGVxfIeMkI+KgHJpZ2x0fIaKjIqGfnNua25ze4GEhoaEfnhybGxxdnt/g4WFg397d3Jub3N4fH+Cg4OCf3t3c3Bwc3Z6fX+AgH99endzcHBzdnl8fn9/fnt4dXJwcXN2eXx9fn58enZzcXBxc3Z4e3x9fXt5dnRycHFzdXh6e3x8e3l2dHJxcXN1eHp7fHx7eXZ0cnFxc3V4ent8fHt5dnRycXFzdXh6e3x8e3l2dHJxcXN1eHp7fHx7eXZ0cnFxc3V4ent8fHt5dnRycXFzdXh6e3x8e3l2dHJxcXN1eHp7fHx7eXZ0cnFxc3V4ent8fHt5dnRycXFzdXh6e3x8e3l2dA==';
-      audio.loop = true;
-      audio.volume = 0.5;
-      audio.play().catch(() => {
-        // Autoplay might be blocked
-      });
-      audioRef.current = audio;
+    if (!call) return;
+    
+    let audioContext: AudioContext | null = null;
+    let oscillator: OscillatorNode | null = null;
+    let gainNode: GainNode | null = null;
+    let intervalId: NodeJS.Timeout | null = null;
 
-      return () => {
-        audio.pause();
-        audio.src = '';
-      };
-    }
+    const playRingTone = () => {
+      try {
+        audioContext = new AudioContext();
+        oscillator = audioContext.createOscillator();
+        gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+
+        oscillator.start();
+
+        // Create ring pattern: ring for 1s, pause for 2s
+        let ringing = true;
+        intervalId = setInterval(() => {
+          if (gainNode && audioContext) {
+            ringing = !ringing;
+            gainNode.gain.setValueAtTime(ringing ? 0.3 : 0, audioContext.currentTime);
+          }
+        }, 1000);
+      } catch (e) {
+        console.log('Could not play ringtone:', e);
+      }
+    };
+
+    playRingTone();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (oscillator) {
+        try { oscillator.stop(); } catch {}
+      }
+      if (audioContext) {
+        try { audioContext.close(); } catch {}
+      }
+    };
   }, [call]);
 
   if (!call) return null;
@@ -75,7 +103,7 @@ export function IncomingCallOverlay({
           {/* Caller Avatar with Pulse Animation */}
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-full bg-green-500/30"
+              className="absolute inset-0 rounded-full bg-emerald-500/30"
               animate={{
                 scale: [1, 1.3, 1],
                 opacity: [0.5, 0, 0.5],
@@ -87,7 +115,7 @@ export function IncomingCallOverlay({
               }}
             />
             <motion.div
-              className="absolute inset-0 rounded-full bg-green-500/30"
+              className="absolute inset-0 rounded-full bg-emerald-500/30"
               animate={{
                 scale: [1, 1.3, 1],
                 opacity: [0.5, 0, 0.5],
@@ -99,9 +127,9 @@ export function IncomingCallOverlay({
                 delay: 0.5,
               }}
             />
-            <Avatar className="h-32 w-32 ring-4 ring-green-500/50 relative z-10">
+            <Avatar className="h-32 w-32 ring-4 ring-emerald-500/50 relative z-10">
               <AvatarImage src={callerPhoto} alt={callerName} />
-              <AvatarFallback className="text-4xl bg-green-500/20 text-white">
+              <AvatarFallback className="text-4xl bg-emerald-500/20 text-white">
                 {callerName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -129,7 +157,7 @@ export function IncomingCallOverlay({
               <Button
                 variant="destructive"
                 size="lg"
-                className="h-16 w-16 rounded-full shadow-lg shadow-red-500/30"
+                className="h-16 w-16 rounded-full shadow-lg"
                 onClick={onDecline}
               >
                 <PhoneOff className="h-7 w-7" />
@@ -146,7 +174,7 @@ export function IncomingCallOverlay({
                 size="lg"
                 className={cn(
                   'h-16 w-16 rounded-full shadow-lg',
-                  'bg-green-500 hover:bg-green-600 shadow-green-500/30'
+                  'bg-emerald-500 hover:bg-emerald-600'
                 )}
                 onClick={onAccept}
               >
