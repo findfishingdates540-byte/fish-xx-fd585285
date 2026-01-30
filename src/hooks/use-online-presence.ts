@@ -125,7 +125,7 @@ export function useOnlineStatus(userIds: string[]) {
     userIdsRef.current = userIds;
   }, [userIds]);
 
-  // Fetch last_active_at for all users
+  // Fetch last_active_at for all users and check if recently active
   useEffect(() => {
     if (userIds.length === 0) return;
 
@@ -137,16 +137,34 @@ export function useOnlineStatus(userIds: string[]) {
       
       if (data) {
         const map = new Map<string, string>();
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const recentlyActiveUsers = new Set<string>();
+        
         data.forEach(profile => {
           if (profile.last_active_at) {
             map.set(profile.id, profile.last_active_at);
+            // Check if user was active within last 5 minutes (same as Discover sidebar)
+            const lastActive = new Date(profile.last_active_at);
+            if (lastActive > fiveMinutesAgo) {
+              recentlyActiveUsers.add(profile.id);
+            }
           }
         });
         setLastSeenMap(map);
+        // Merge with presence-based online users
+        setOnlineUsers(prev => {
+          const merged = new Set(prev);
+          recentlyActiveUsers.forEach(id => merged.add(id));
+          return merged;
+        });
       }
     };
 
     fetchLastSeen();
+    
+    // Refresh every 30 seconds to keep online status updated
+    const interval = setInterval(fetchLastSeen, 30000);
+    return () => clearInterval(interval);
   }, [userIds.join(',')]);
 
   // Process presence state and update online users
