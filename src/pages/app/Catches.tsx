@@ -201,17 +201,48 @@ export default function Catches() {
       // Upload photos first
       const photoUrls = await uploadPhotos();
 
-      // Get species name if selected from dropdown
+      // Get species name and ID
       let speciesName = formData.species_name;
+      let speciesId = formData.species_id || null;
+      
       if (formData.species_id) {
+        // User selected from dropdown
         const selectedSpecies = species.find((s) => s.id === formData.species_id);
         speciesName = selectedSpecies?.name || formData.species_name;
+      } else if (formData.species_name) {
+        // Custom species entered - add to database
+        const trimmedName = formData.species_name.trim();
+        
+        // Check if species already exists (case-insensitive)
+        const existingSpecies = species.find(
+          (s) => s.name.toLowerCase() === trimmedName.toLowerCase()
+        );
+        
+        if (existingSpecies) {
+          speciesId = existingSpecies.id;
+          speciesName = existingSpecies.name;
+        } else {
+          // Add new species to database
+          const { data: newSpecies, error: speciesError } = await supabase
+            .from("fish_species")
+            .insert({ name: trimmedName })
+            .select()
+            .single();
+          
+          if (!speciesError && newSpecies) {
+            speciesId = newSpecies.id;
+            speciesName = newSpecies.name;
+            // Update local species list
+            setSpecies((prev) => [...prev, newSpecies].sort((a, b) => a.name.localeCompare(b.name)));
+            toast.success(`Added "${trimmedName}" to species database`);
+          }
+        }
       }
 
       const { error } = await supabase.from("catches").insert({
         user_id: user.id,
         species_name: speciesName || null,
-        species_id: formData.species_id || null,
+        species_id: speciesId,
         fishing_spot_id: formData.fishing_spot_id || null,
         location_name: formData.custom_spot_name || null,
         weight_lbs: formData.weight_lbs ? parseFloat(formData.weight_lbs) : null,
