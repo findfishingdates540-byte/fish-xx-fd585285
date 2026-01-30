@@ -40,7 +40,7 @@ serve(async (req) => {
       roomData = await getResponse.json();
       console.log("Reusing existing room:", finalRoomName);
     } else if (getResponse.status === 404) {
-      // Room doesn't exist, create it
+      // Room doesn't exist, create it with optimized audio settings
       const createResponse = await fetch("https://api.daily.co/v1/rooms", {
         method: "POST",
         headers: {
@@ -53,11 +53,17 @@ serve(async (req) => {
           properties: {
             // Room expires in 1 hour
             exp: Math.floor(Date.now() / 1000) + 3600,
-            enable_chat: true,
+            enable_chat: false, // Disable unused features
             enable_screenshare: false,
+            enable_recording: false, // Disable recording for lower latency
             start_video_off: callType === "voice",
             start_audio_off: false,
             max_participants: 2,
+            // Audio optimization settings
+            sfu_switchover: 0.5, // Use SFU mode for better audio quality
+            enable_advanced_chat: false,
+            enable_network_ui: false, // Reduce overhead
+            enable_prejoin_ui: false,
           },
         }),
       });
