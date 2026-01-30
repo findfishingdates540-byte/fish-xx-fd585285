@@ -12,8 +12,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuditAction } from '@/hooks/use-audit-logs';
-import { useFishSpecies } from '@/hooks/use-fish-species';
-import { Upload, X, Loader2, Fish } from 'lucide-react';
+import { useFishSpecies, useCreateFishSpecies } from '@/hooks/use-fish-species';
+import { Upload, X, Loader2, Fish, Plus } from 'lucide-react';
 
 interface EditSpotDialogProps {
   open: boolean;
@@ -37,6 +37,7 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
   const queryClient = useQueryClient();
   const { logAction } = useAuditAction();
   const { data: fishSpecies } = useFishSpecies();
+  const { mutate: createSpecies, isPending: creatingSpecies } = useCreateFishSpecies();
   
   const [name, setName] = useState('');
   const [locationName, setLocationName] = useState('');
@@ -49,7 +50,34 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
   const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
   const [areaType, setAreaType] = useState<string>('freshwater');
   const [uploading, setUploading] = useState(false);
+  const [newSpeciesName, setNewSpeciesName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddCustomSpecies = () => {
+    const trimmed = newSpeciesName.trim();
+    if (!trimmed) return;
+    
+    // Check if species already exists (case-insensitive)
+    const exists = fishSpecies?.some(
+      (s) => s.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    
+    if (exists) {
+      toast.error('This species already exists');
+      return;
+    }
+    
+    createSpecies(
+      { name: trimmed },
+      {
+        onSuccess: (data) => {
+          setNewSpeciesName('');
+          // Auto-select the newly added species
+          setSelectedSpecies((prev) => [...prev, data.name]);
+        },
+      }
+    );
+  };
 
   useEffect(() => {
     if (spot) {
@@ -306,6 +334,35 @@ export function EditSpotDialog({ open, onOpenChange, spot }: EditSpotDialogProps
               {selectedSpecies.length > 0 && (
                 <p className="text-xs text-slate-400">{selectedSpecies.length} species selected</p>
               )}
+              
+              {/* Add custom species */}
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={newSpeciesName}
+                  onChange={(e) => setNewSpeciesName(e.target.value)}
+                  placeholder="Add new species..."
+                  className="bg-slate-800 border-slate-700 text-white text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomSpecies();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleAddCustomSpecies}
+                  disabled={creatingSpecies || !newSpeciesName.trim()}
+                  className="bg-emerald-600 hover:bg-emerald-700 shrink-0"
+                >
+                  {creatingSpecies ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
