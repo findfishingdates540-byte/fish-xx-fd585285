@@ -117,6 +117,13 @@ export function useOnlinePresence() {
 export function useOnlineStatus(userIds: string[]) {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [lastSeenMap, setLastSeenMap] = useState<Map<string, string>>(new Map());
+  const userIdsRef = useRef<string[]>(userIds);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Keep ref updated
+  useEffect(() => {
+    userIdsRef.current = userIds;
+  }, [userIds]);
 
   // Fetch last_active_at for all users
   useEffect(() => {
@@ -142,48 +149,58 @@ export function useOnlineStatus(userIds: string[]) {
     fetchLastSeen();
   }, [userIds.join(',')]);
 
-  useEffect(() => {
-    if (userIds.length === 0) return;
-
-    // Subscribe to the SAME presence channel to receive sync events
-    const channel = supabase.channel(PRESENCE_CHANNEL, {
-      config: { presence: { key: `listener-${Math.random().toString(36).slice(2)}` } }
+  // Process presence state and update online users
+  const processPresenceState = useCallback((state: Record<string, unknown[]>) => {
+    const online = new Set<string>();
+    const currentUserIds = userIdsRef.current;
+    
+    Object.keys(state).forEach(presenceKey => {
+      // Check if this key matches any user we're tracking
+      if (currentUserIds.includes(presenceKey)) {
+        online.add(presenceKey);
+      } else {
+        // Also check presence payload for user_id field
+        const presences = state[presenceKey] as unknown as PresenceState[];
+        presences?.forEach(presence => {
+          if (presence.user_id && currentUserIds.includes(presence.user_id)) {
+            online.add(presence.user_id);
+          }
+        });
+      }
     });
+    
+    setOnlineUsers(online);
+  }, []);
+
+  // Subscribe to presence channel once on mount
+  useEffect(() => {
+    // Create a unique listener key to avoid conflicts
+    const listenerKey = `listener-${Math.random().toString(36).slice(2)}`;
+    const channel = supabase.channel(PRESENCE_CHANNEL, {
+      config: { presence: { key: listenerKey } }
+    });
+
+    channelRef.current = channel;
 
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        const online = new Set<string>();
-        
-        // Presence state keys are the user IDs (from config.presence.key)
-        Object.keys(state).forEach(presenceKey => {
-          // Check if this key matches any user we're tracking
-          if (userIds.includes(presenceKey)) {
-            online.add(presenceKey);
-          } else {
-            // Also check presence payload for user_id field
-            const presences = state[presenceKey] as unknown as PresenceState[];
-            presences?.forEach(presence => {
-              if (presence.user_id && userIds.includes(presence.user_id)) {
-                online.add(presence.user_id);
-              }
-            });
-          }
-        });
-        
-        setOnlineUsers(online);
+        processPresenceState(state);
       })
       .subscribe(async (status) => {
-        // Must track presence after subscribing to receive sync events
         if (status === 'SUBSCRIBED') {
           await channel.track({ listening: true });
+          // Immediately check presence state after subscribing
+          const state = channel.presenceState();
+          processPresenceState(state);
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [userIds.join(',')]);
+  }, [processPresenceState]);
 
   const isOnline = useCallback((userId: string) => {
     return onlineUsers.has(userId);
