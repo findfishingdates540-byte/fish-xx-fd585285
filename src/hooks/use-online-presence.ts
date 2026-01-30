@@ -147,7 +147,7 @@ export function useOnlineStatus(userIds: string[]) {
 
     // Subscribe to the SAME presence channel to receive sync events
     const channel = supabase.channel(PRESENCE_CHANNEL, {
-      config: { presence: { key: 'listener' } } // Use a listener key to avoid conflicts
+      config: { presence: { key: `listener-${Math.random().toString(36).slice(2)}` } }
     });
 
     channel
@@ -173,7 +173,12 @@ export function useOnlineStatus(userIds: string[]) {
         
         setOnlineUsers(online);
       })
-      .subscribe();
+      .subscribe(async (status) => {
+        // Must track presence after subscribing to receive sync events
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ listening: true });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
