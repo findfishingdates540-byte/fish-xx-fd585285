@@ -68,11 +68,33 @@ export default function Chat() {
   // Message reactions
   const { getReactionSummary, toggleReaction } = useMessageReactions(matchId);
 
-  // Get all user IDs for online status tracking
+  // Show loading skeleton while fetching chat data
+  if (loading) {
+    return (
+      <div className={`flex ${isInline ? 'h-full flex-1' : 'h-[100dvh]'} bg-background overflow-hidden`}>
+        <div className="flex-1 flex flex-col">
+          <div className="h-16 border-b border-border flex items-center gap-3 px-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </div>
+          <div className="flex-1 p-4 space-y-4">
+            <Skeleton className="h-12 w-48 rounded-xl" />
+            <Skeleton className="h-12 w-36 rounded-xl ml-auto" />
+            <Skeleton className="h-12 w-52 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Get all user IDs for online status tracking (filter out undefined/null)
   const allUserIds = useMemo(() => {
-    const ids = conversations.map(c => c.matchedUserId);
+    const ids = conversations.map(c => c.matchedUserId).filter(Boolean);
     if (matchProfile?.id) ids.push(matchProfile.id);
-    return [...new Set(ids)];
+    return [...new Set(ids.filter(Boolean))] as string[];
   }, [conversations, matchProfile?.id]);
   
   const { isOnline, getLastSeen } = useOnlineStatus(allUserIds);
