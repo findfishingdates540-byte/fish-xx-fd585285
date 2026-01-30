@@ -64,7 +64,7 @@ export const CallMessage: FC<CallMessageProps> = ({
       <button
         onClick={handleClick}
         className={cn(
-          "flex items-start gap-3 px-4 py-3 rounded-2xl transition-all min-w-[200px] max-w-[280px]",
+          "flex items-center gap-3 px-4 py-3 rounded-2xl transition-all min-w-[240px]",
           "hover:opacity-90 active:scale-[0.98] cursor-pointer shadow-sm",
           isMissed
             ? "bg-destructive/10 border border-destructive/20"
@@ -91,10 +91,10 @@ export const CallMessage: FC<CallMessageProps> = ({
         </div>
         
         {/* Call Details - stacked vertically */}
-        <div className="flex flex-col items-start flex-1 min-w-0">
+        <div className="flex flex-col items-start flex-1">
           {/* Call Type Title */}
           <span className={cn(
-            "text-sm font-semibold",
+            "text-sm font-semibold whitespace-nowrap",
             isMissed 
               ? "text-destructive" 
               : isMine 
@@ -106,7 +106,7 @@ export const CallMessage: FC<CallMessageProps> = ({
           
           {/* Duration or Missed subtitle */}
           <span className={cn(
-            "text-xs",
+            "text-xs whitespace-nowrap",
             isMissed 
               ? "text-destructive/80" 
               : isMine 

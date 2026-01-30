@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CallControls } from './CallControls';
@@ -32,6 +32,14 @@ export function VideoCallModal({
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   
+  // Handle remote user leaving - end call automatically
+  const handleRemoteUserLeft = useCallback(() => {
+    console.log('[VideoCall] Remote user left, ending call');
+    const duration = callDurationRef.current;
+    endCallRef.current?.();
+    onOpenChange(false, duration);
+  }, [onOpenChange]);
+  
   const {
     callStatus,
     isMuted,
@@ -45,7 +53,17 @@ export function VideoCallModal({
     toggleVideo,
     attachLocalVideo,
     attachRemoteVideo,
-  } = useDailyCall();
+  } = useDailyCall({
+    onRemoteUserLeft: handleRemoteUserLeft,
+  });
+  
+  // Keep refs updated for the callback
+  const callDurationRef = useRef(callDuration);
+  const endCallRef = useRef(endCall);
+  useEffect(() => {
+    callDurationRef.current = callDuration;
+    endCallRef.current = endCall;
+  }, [callDuration, endCall]);
 
   // Start call once per open (prevents duplicate rooms / duplicate DailyIframe)
   useEffect(() => {
