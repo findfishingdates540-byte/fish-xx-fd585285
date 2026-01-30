@@ -470,7 +470,7 @@ export function ChatArea({
               >
                 <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
                   
-                  <div className="flex items-end gap-2 max-w-[70%]">
+                  <div className="flex items-end gap-2 max-w-[85%]">
                     {!isMine && matchUserId && (
                       <Link to={`/app/dating-profile/${matchUserId}`}>
                         <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80">
