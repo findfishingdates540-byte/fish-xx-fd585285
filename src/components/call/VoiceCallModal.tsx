@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { CallControls } from './CallControls';
@@ -29,6 +29,15 @@ export function VoiceCallModal({
   onRoomCreated,
 }: VoiceCallModalProps) {
   const startedRef = useRef(false);
+  
+  // Handle remote user leaving - end call automatically
+  const handleRemoteUserLeft = useCallback(() => {
+    console.log('[VoiceCall] Remote user left, ending call');
+    const duration = callDurationRef.current;
+    endCallRef.current?.();
+    onOpenChange(false, duration);
+  }, [onOpenChange]);
+  
   const {
     callStatus,
     isMuted,
@@ -37,7 +46,17 @@ export function VoiceCallModal({
     startCall,
     endCall,
     toggleMute,
-  } = useDailyCall();
+  } = useDailyCall({
+    onRemoteUserLeft: handleRemoteUserLeft,
+  });
+  
+  // Keep refs updated for the callback
+  const callDurationRef = useRef(callDuration);
+  const endCallRef = useRef(endCall);
+  useEffect(() => {
+    callDurationRef.current = callDuration;
+    endCallRef.current = endCall;
+  }, [callDuration, endCall]);
 
   // Start call once per open (prevents duplicate rooms / duplicate DailyIframe)
   useEffect(() => {
