@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { SpeciesCombobox } from "@/components/catches/SpeciesCombobox";
 import {
   Plus,
   Fish,
@@ -361,33 +362,23 @@ export default function Catches() {
                 />
               </div>
 
-              {/* Species Selection */}
+              {/* Species Selection - Combobox with custom entry */}
               <div>
                 <Label htmlFor="species">Species</Label>
-                <Select
-                  value={formData.species_id}
-                  onValueChange={(val) => setFormData({ ...formData, species_id: val, species_name: "" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select species" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {species.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Or enter a custom species name below
-                </p>
-                <Input
-                  placeholder="Custom species name"
-                  value={formData.species_name}
-                  onChange={(e) => setFormData({ ...formData, species_name: e.target.value, species_id: "" })}
-                  className="mt-2"
+                <SpeciesCombobox
+                  species={species}
+                  value={formData.species_id ? species.find(s => s.id === formData.species_id)?.name || '' : formData.species_name}
+                  onSelect={(speciesId, speciesName) => {
+                    if (speciesId) {
+                      setFormData({ ...formData, species_id: speciesId, species_name: '' });
+                    } else {
+                      setFormData({ ...formData, species_id: '', species_name: speciesName });
+                    }
+                  }}
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Select from list or type a custom species name
+                </p>
               </div>
 
               {/* Fishing Spot Selection */}
