@@ -19,6 +19,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useFollowStatus, useFollowUser, useUnfollowUser } from '@/hooks/use-follow';
 import { useBookmarkStatus, useToggleBookmark } from '@/hooks/use-bookmarks';
 import { useRepostStatus, useToggleRepost } from '@/hooks/use-reposts';
+import { useCreateStory } from '@/hooks/use-stories';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,6 +131,9 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const isReposted = repostData?.isReposted ?? false;
   const [isRepostAnimating, setIsRepostAnimating] = useState(false);
 
+  // Story sharing
+  const createStory = useCreateStory();
+
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
@@ -233,6 +237,33 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const getShareText = () => post.content 
     ? `${displayName}: ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`
     : `Check out this post by ${displayName}`;
+
+  const handleAddToStory = () => {
+    if (!user) {
+      toast.error('Please sign in to share to story');
+      return;
+    }
+    
+    // Get the first photo from the post
+    const mediaUrl = allPhotos[0] || null;
+    
+    if (mediaUrl) {
+      createStory.mutate({
+        media_url: mediaUrl,
+        media_type: 'image',
+        text_overlay: post.content?.substring(0, 100) || undefined,
+      });
+    } else if (post.content) {
+      // Text-only story
+      createStory.mutate({
+        media_type: 'text',
+        text_overlay: post.content.substring(0, 200),
+        background_color: '#1877F2',
+      });
+    } else {
+      toast.error('This post has no content to share');
+    }
+  };
 
   const formatCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -532,6 +563,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
         shareUrl={getShareUrl()}
         shareTitle={`Post by ${displayName}`}
         shareText={getShareText()}
+        onAddToStory={handleAddToStory}
       />
     </>
   );
