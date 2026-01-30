@@ -145,16 +145,29 @@ export function useOnlineStatus(userIds: string[]) {
   useEffect(() => {
     if (userIds.length === 0) return;
 
-    const channel = supabase.channel(PRESENCE_CHANNEL);
+    // Subscribe to the SAME presence channel to receive sync events
+    const channel = supabase.channel(PRESENCE_CHANNEL, {
+      config: { presence: { key: 'listener' } } // Use a listener key to avoid conflicts
+    });
 
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
         const online = new Set<string>();
         
-        Object.keys(state).forEach(userId => {
-          if (userIds.includes(userId)) {
-            online.add(userId);
+        // Presence state keys are the user IDs (from config.presence.key)
+        Object.keys(state).forEach(presenceKey => {
+          // Check if this key matches any user we're tracking
+          if (userIds.includes(presenceKey)) {
+            online.add(presenceKey);
+          } else {
+            // Also check presence payload for user_id field
+            const presences = state[presenceKey] as unknown as PresenceState[];
+            presences?.forEach(presence => {
+              if (presence.user_id && userIds.includes(presence.user_id)) {
+                online.add(presence.user_id);
+              }
+            });
           }
         });
         
