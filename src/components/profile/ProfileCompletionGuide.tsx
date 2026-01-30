@@ -52,7 +52,10 @@ export function ProfileCompletionGuide({
       showProgress
       scrollToFirstStep
       spotlightClicks
-      disableOverlayClose
+      disableOverlay
+      floaterProps={{
+        disableAnimation: true,
+      }}
       callback={handleCallback}
       locale={{
         back: 'Back',
@@ -68,11 +71,11 @@ export function ProfileCompletionGuide({
           backgroundColor: isDark ? 'hsl(var(--card))' : 'hsl(var(--background))',
           textColor: isDark ? 'hsl(var(--foreground))' : 'hsl(var(--foreground))',
           arrowColor: isDark ? 'hsl(var(--card))' : 'hsl(var(--background))',
-          overlayColor: 'rgba(0, 0, 0, 0.5)',
         },
         tooltip: {
           borderRadius: '12px',
           padding: '16px',
+          boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)',
         },
         tooltipTitle: {
           fontSize: '16px',
@@ -94,9 +97,6 @@ export function ProfileCompletionGuide({
         },
         buttonSkip: {
           color: isDark ? 'hsl(var(--muted-foreground))' : 'hsl(var(--muted-foreground))',
-        },
-        spotlight: {
-          borderRadius: '8px',
         },
       }}
     />
