@@ -200,7 +200,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       callObjectRef.current = callObject;
 
       // Set up event handlers
-      callObject.on('joined-meeting', () => {
+      callObject.on('joined-meeting', async () => {
         console.log('[Daily] Joined meeting');
         setCallStatus('connected');
         
@@ -209,9 +209,13 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
           setCallDuration(prev => prev + 1);
         }, 1000);
 
-        // Update local video if this is a video call
+        // For video calls, ensure video is ON immediately
         if (type === 'video') {
-          setTimeout(updateLocalVideo, 500);
+          // Force enable video in case it wasn't started
+          await callObject.setLocalVideo(true);
+          setIsVideoEnabled(true);
+          // Update local video display with a slight delay for the track to be ready
+          setTimeout(updateLocalVideo, 200);
         }
       });
 
