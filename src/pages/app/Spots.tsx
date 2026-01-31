@@ -69,6 +69,7 @@ const WATER_TYPE_OPTIONS = [
   { id: "all", label: "All Types" },
   { id: "freshwater", label: "Freshwater" },
   { id: "saltwater", label: "Saltwater" },
+  { id: "brackish saltwater", label: "Brackish Saltwater" },
 ];
 
 export default function Spots() {
