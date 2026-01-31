@@ -14,7 +14,6 @@ interface RouteGuardProps {
 // Map routes to feature names for the upgrade modal
 const routeFeatureNames: Record<string, string> = {
   '/app/spots': 'Fishing Spots',
-  '/app/feed': 'Fishing Feed',
   '/app/catches': 'Catch Logbook',
   '/app/buddies': 'Fishing Buddies',
   '/app/buddy-messages': 'Buddy Messages',
