@@ -204,24 +204,35 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         console.log('[Daily] Joined meeting');
         setCallStatus('connected');
         
-        // Start duration timer
-        durationIntervalRef.current = setInterval(() => {
-          setCallDuration(prev => prev + 1);
-        }, 1000);
+        // NOTE: Duration timer now starts when remote participant joins (see participant-joined handler)
 
         // For video calls, ensure video is ON immediately
         if (type === 'video') {
-          // Force enable video in case it wasn't started
-          await callObject.setLocalVideo(true);
-          setIsVideoEnabled(true);
-          // Update local video display with a slight delay for the track to be ready
-          setTimeout(updateLocalVideo, 200);
+          try {
+            // Force enable video in case it wasn't started
+            await callObject.setLocalVideo(true);
+            setIsVideoEnabled(true);
+            // Update local video display with a slight delay for the track to be ready
+            setTimeout(updateLocalVideo, 200);
+          } catch (e) {
+            // Camera may not be available - gracefully handle
+            console.warn('[Daily] Could not enable video:', e);
+            setIsVideoEnabled(false);
+          }
         }
       });
 
       callObject.on('participant-joined', (event?: DailyEventObjectParticipant) => {
         if (event?.participant && !event.participant.local) {
           console.log('[Daily] Remote participant joined:', event.participant.session_id);
+          
+          // Start duration timer when remote participant joins (not when we join alone)
+          if (!durationIntervalRef.current) {
+            durationIntervalRef.current = setInterval(() => {
+              setCallDuration(prev => prev + 1);
+            }, 1000);
+          }
+          
           setRemoteParticipants(prev => {
             const exists = prev.find(p => p.session_id === event.participant.session_id);
             if (exists) return prev;

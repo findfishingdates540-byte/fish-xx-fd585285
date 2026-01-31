@@ -1,11 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CallControls } from './CallControls';
 import { useDailyCall } from '@/hooks/use-daily-call';
-import { Loader2, Video } from 'lucide-react';
+import { Loader2, Video, VideoOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface VideoCallModalProps {
   open: boolean;
@@ -108,7 +109,10 @@ export function VideoCallModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-black border-0 max-h-[90vh]">
+      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-black border-0 max-h-[90vh]" aria-describedby={undefined}>
+        <VisuallyHidden>
+          <DialogTitle>Video call with {remoteUserName}</DialogTitle>
+        </VisuallyHidden>
         <div className="relative flex flex-col h-[600px]">
           {/* Main Video Area */}
           <div className="flex-1 relative bg-muted">
@@ -202,9 +206,9 @@ export function VideoCallModal({
                 />
               ) : (
                 <div className="text-center">
-                  <Avatar className="h-12 w-12 mx-auto">
-                    <AvatarFallback>You</AvatarFallback>
-                  </Avatar>
+                  <div className="h-12 w-12 mx-auto rounded-full bg-muted flex items-center justify-center">
+                    <VideoOff className="h-5 w-5 text-muted-foreground" />
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">Camera off</p>
                 </div>
               )}
