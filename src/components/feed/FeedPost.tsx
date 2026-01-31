@@ -281,6 +281,21 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
         )}
         onClick={handleCardClick}
       >
+        {/* Repost Attribution Header */}
+        {post.reposted_by && (
+          <button
+            className="flex items-center gap-1.5 px-3 pt-2 pb-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/app/u/${post.reposted_by!.id}`);
+            }}
+          >
+            <Repeat2 className="h-3.5 w-3.5" />
+            <span className="font-medium">{post.reposted_by.display_name || 'Someone'}</span>
+            <span>reposted</span>
+          </button>
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between p-3">
           <button 

@@ -31,6 +31,12 @@ export interface FeedPost {
     photos: string[] | null;
   } | null;
   user_has_liked: boolean;
+  // Repost info - if this post is being shown because someone reposted it
+  reposted_by?: {
+    id: string;
+    display_name: string | null;
+    reposted_at: string;
+  } | null;
 }
 
 export interface CommentReaction {
@@ -66,7 +72,7 @@ export function useFeedPosts() {
     queryKey: ['feed-posts', user?.id],
     staleTime: 60 * 1000, // Feed data fresh for 1 minute
     queryFn: async () => {
-      // Get posts
+      // Get regular posts
       const { data: posts, error } = await supabase
         .from('feed_posts')
         .select('*')
@@ -74,20 +80,75 @@ export function useFeedPosts() {
         .limit(50);
 
       if (error) throw error;
-      if (!posts || posts.length === 0) return [];
 
-      // Get unique user IDs and catch IDs
-      const userIds = [...new Set(posts.map(p => p.user_id))];
-      const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
+      // Get reposts to show in feed (posts reposted by users we follow or all users for "For You")
+      const { data: reposts } = await supabase
+        .from('post_reposts')
+        .select(`
+          id,
+          created_at,
+          user_id,
+          post_id,
+          feed_posts(*)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(30);
 
-      // Fetch profiles - use profiles table directly to ensure proper id matching
+      // Collect all posts (original + reposted)
+      const allPosts: Array<{
+        post: typeof posts[0];
+        reposted_by?: { id: string; reposted_at: string };
+        sort_date: string;
+      }> = [];
+
+      // Add original posts
+      (posts || []).forEach(post => {
+        allPosts.push({
+          post,
+          sort_date: post.created_at
+        });
+      });
+
+      // Add reposted posts (with repost info)
+      (reposts || []).forEach(repost => {
+        if (repost.feed_posts) {
+          // Don't duplicate if already in feed
+          const existingIndex = allPosts.findIndex(
+            p => p.post.id === repost.post_id && !p.reposted_by
+          );
+          // Add as repost entry (will show with "reposted by" header)
+          allPosts.push({
+            post: repost.feed_posts as typeof posts[0],
+            reposted_by: {
+              id: repost.user_id,
+              reposted_at: repost.created_at
+            },
+            sort_date: repost.created_at // Sort by repost time
+          });
+        }
+      });
+
+      // Sort by date (newest first)
+      allPosts.sort((a, b) => new Date(b.sort_date).getTime() - new Date(a.sort_date).getTime());
+
+      // Limit to 50
+      const limitedPosts = allPosts.slice(0, 50);
+
+      if (limitedPosts.length === 0) return [];
+
+      // Get unique user IDs (post authors + reposters)
+      const postUserIds = limitedPosts.map(p => p.post.user_id);
+      const reposterIds = limitedPosts.filter(p => p.reposted_by).map(p => p.reposted_by!.id);
+      const userIds = [...new Set([...postUserIds, ...reposterIds])];
+      const catchIds = limitedPosts.map(p => p.post.catch_id).filter(Boolean) as string[];
+
+      // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
       
       if (profilesError) console.error('Error fetching profiles:', profilesError);
-      console.log('Feed profiles fetched:', profiles?.length, 'for userIds:', userIds);
 
       // Fetch catches if any
       let catches: { id: string; species_name: string | null; weight_lbs: number | null; length_in: number | null; photos: string[] | null }[] = [];
@@ -110,18 +171,26 @@ export function useFeedPosts() {
         userLikes = likes?.map(l => l.post_id) || [];
       }
 
-      // Map profiles and catches to posts - filter out null ids from view
+      // Map profiles and catches
       const profileMap = new Map(
         profiles?.filter(p => p.id !== null).map(p => [p.id, p]) || []
       );
       const catchMap = new Map(catches.map(c => [c.id, c]));
 
-      return posts.map(post => ({
-        ...post,
-        profile: profileMap.get(post.user_id) || null,
-        catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
-        user_has_liked: userLikes.includes(post.id)
-      })) as FeedPost[];
+      return limitedPosts.map(({ post, reposted_by }) => {
+        const reposterProfile = reposted_by ? profileMap.get(reposted_by.id) : null;
+        return {
+          ...post,
+          profile: profileMap.get(post.user_id) || null,
+          catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
+          user_has_liked: userLikes.includes(post.id),
+          reposted_by: reposted_by ? {
+            id: reposted_by.id,
+            display_name: reposterProfile?.display_name || null,
+            reposted_at: reposted_by.reposted_at
+          } : null
+        };
+      }) as FeedPost[];
     },
   });
 }
@@ -153,12 +222,65 @@ export function useFollowingFeedPosts() {
         .limit(50);
 
       if (error) throw error;
-      if (!posts || posts.length === 0) return [];
 
-      const userIds = [...new Set(posts.map(p => p.user_id))];
-      const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
+      // Get reposts from followed users
+      const { data: reposts } = await supabase
+        .from('post_reposts')
+        .select(`
+          id,
+          created_at,
+          user_id,
+          post_id,
+          feed_posts(*)
+        `)
+        .in('user_id', followingIds)
+        .order('created_at', { ascending: false })
+        .limit(30);
 
-      // Fetch profiles - use profiles table directly to ensure proper id matching
+      // Collect all posts (original + reposted)
+      const allPosts: Array<{
+        post: typeof posts[0];
+        reposted_by?: { id: string; reposted_at: string };
+        sort_date: string;
+      }> = [];
+
+      // Add original posts
+      (posts || []).forEach(post => {
+        allPosts.push({
+          post,
+          sort_date: post.created_at
+        });
+      });
+
+      // Add reposted posts
+      (reposts || []).forEach(repost => {
+        if (repost.feed_posts) {
+          allPosts.push({
+            post: repost.feed_posts as typeof posts[0],
+            reposted_by: {
+              id: repost.user_id,
+              reposted_at: repost.created_at
+            },
+            sort_date: repost.created_at
+          });
+        }
+      });
+
+      // Sort by date (newest first)
+      allPosts.sort((a, b) => new Date(b.sort_date).getTime() - new Date(a.sort_date).getTime());
+
+      // Limit to 50
+      const limitedPosts = allPosts.slice(0, 50);
+
+      if (limitedPosts.length === 0) return [];
+
+      // Get unique user IDs
+      const postUserIds = limitedPosts.map(p => p.post.user_id);
+      const reposterIds = limitedPosts.filter(p => p.reposted_by).map(p => p.reposted_by!.id);
+      const userIds = [...new Set([...postUserIds, ...reposterIds])];
+      const catchIds = limitedPosts.map(p => p.post.catch_id).filter(Boolean) as string[];
+
+      // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, display_name, photos, id_verified, live_verified')
@@ -187,12 +309,20 @@ export function useFollowingFeedPosts() {
       );
       const catchMap = new Map(catches.map(c => [c.id, c]));
 
-      return posts.map(post => ({
-        ...post,
-        profile: profileMap.get(post.user_id) || null,
-        catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
-        user_has_liked: userLikes.includes(post.id)
-      })) as FeedPost[];
+      return limitedPosts.map(({ post, reposted_by }) => {
+        const reposterProfile = reposted_by ? profileMap.get(reposted_by.id) : null;
+        return {
+          ...post,
+          profile: profileMap.get(post.user_id) || null,
+          catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
+          user_has_liked: userLikes.includes(post.id),
+          reposted_by: reposted_by ? {
+            id: reposted_by.id,
+            display_name: reposterProfile?.display_name || null,
+            reposted_at: reposted_by.reposted_at
+          } : null
+        };
+      }) as FeedPost[];
     },
     enabled: !!user?.id,
   });
