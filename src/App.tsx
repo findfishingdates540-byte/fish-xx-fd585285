@@ -100,7 +100,6 @@ const App = () => (
               </Route>
               
               {/* Fishing-only routes */}
-              <Route path="feed" element={<FishingRoute><Feed /></FishingRoute>} />
               <Route path="spots" element={<FishingRoute><Spots /></FishingRoute>} />
               <Route path="spots/new" element={<FishingRoute><AddSpot /></FishingRoute>} />
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
@@ -120,6 +119,7 @@ const App = () => (
               <Route path="dashboard" element={<ComboDashboard />} />
               
               {/* Shared routes (all account types) */}
+              <Route path="feed" element={<Feed />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="my-tickets" element={<MyTickets />} />
               <Route path="call-history" element={<CallHistory />} />
