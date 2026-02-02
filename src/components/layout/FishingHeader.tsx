@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Settings, LogOut, User, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
-import fishingHeaderLogo from "@/assets/fishing-header-logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 
@@ -148,8 +147,8 @@ export function FishingHeader() {
         {/* Left side - Logo and Nav */}
         <div className="flex items-center gap-8">
           {/* Logo */}
-          <Link to="/app/spots" className="flex items-center">
-            <img src={fishingHeaderLogo} alt="FishOn" className="h-10 w-auto" />
+          <Link to="/app/spots" className="font-bold text-xl tracking-tight">
+            FFD
           </Link>
 
           {/* Navigation */}

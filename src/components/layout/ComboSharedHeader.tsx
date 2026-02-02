@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
 
 export function ComboSharedHeader() {
   return (
@@ -16,9 +15,8 @@ export function ComboSharedHeader() {
           </Button>
         </div>
         
-        <Link to="/app/dashboard" className="flex items-center gap-2">
-          <img src={logo} alt="Find Fishing Dates" className="h-8 w-auto rounded" />
-          <span className="font-semibold text-sm hidden sm:inline">Find Fishing Dates</span>
+        <Link to="/app/dashboard" className="font-bold text-xl tracking-tight">
+          FFD
         </Link>
       </div>
     </header>
