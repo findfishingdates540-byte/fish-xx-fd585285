@@ -278,8 +278,8 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 px-4">
-        <Link to="/app" className="font-bold text-xl tracking-tight">
-          FFD
+        <Link to="/app" className="font-bold text-lg tracking-tight">
+          {effectiveMode === 'fishing' ? 'FISHON' : 'Find Fishing Dates'}
         </Link>
 
         <div className="flex items-center gap-2">
