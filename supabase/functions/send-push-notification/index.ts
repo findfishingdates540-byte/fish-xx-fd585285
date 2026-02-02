@@ -152,6 +152,11 @@ async function sendFCMNotification(
         notification: {
           sound: 'default',
           click_action: 'OPEN_APP',
+          icon: 'ic_notification', // Default Android notification icon
+          color: '#10B981', // Brand color (emerald)
+          default_vibrate_timings: true,
+          default_light_settings: true,
+          visibility: 'PUBLIC' as const,
         },
       },
       apns: {
@@ -159,7 +164,11 @@ async function sendFCMNotification(
           aps: {
             sound: 'default',
             badge: 1,
+            'mutable-content': 1,
           },
+        },
+        fcm_options: {
+          image: 'https://zjmnlelqoiclkbrqefyv.supabase.co/storage/v1/object/public/profile-photos/app-icon.png',
         },
       },
     },
