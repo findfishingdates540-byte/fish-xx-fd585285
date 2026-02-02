@@ -255,6 +255,31 @@ export default function Catches() {
 
       if (error) throw error;
 
+      // If a spot was selected and we have a species, add it to spot's species_available
+      if (formData.fishing_spot_id && speciesName) {
+        try {
+          // Get current spot species
+          const { data: spotData } = await supabase
+            .from("fishing_spots")
+            .select("species_available")
+            .eq("id", formData.fishing_spot_id)
+            .single();
+
+          const currentSpecies = spotData?.species_available || [];
+          
+          // Only add if not already present (case-insensitive check)
+          if (!currentSpecies.some((s: string) => s.toLowerCase() === speciesName.toLowerCase())) {
+            await supabase
+              .from("fishing_spots")
+              .update({ species_available: [...currentSpecies, speciesName] })
+              .eq("id", formData.fishing_spot_id);
+          }
+        } catch (spotErr) {
+          console.error("Error updating spot species:", spotErr);
+          // Don't fail the catch logging if species update fails
+        }
+      }
+
       toast.success("Catch logged successfully!");
       setIsDialogOpen(false);
       resetForm();

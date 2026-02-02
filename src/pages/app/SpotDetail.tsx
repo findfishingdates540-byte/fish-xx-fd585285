@@ -47,7 +47,16 @@ import {
   Camera,
   X,
   Loader2,
+  Plus,
+  Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -103,12 +112,13 @@ const getConditionIcon = (condition: string) => {
   return 'sun';
 };
 
-// Mock fish species data
-const mockSpecies = [
-  { name: "Rainbow Trout", rarity: "Very Common", depth: "Top water", image: "🐟" },
-  { name: "Kokanee Salmon", rarity: "Seasonal", depth: "Deep water", image: "🐠" },
-  { name: "Mackinaw", rarity: "Rare", depth: "Deep water", image: "🎣" },
-];
+// Fish species type
+interface FishSpecies {
+  id: string;
+  name: string;
+  scientific_name: string | null;
+  image_url: string | null;
+}
 
 const amenities = [
   { id: "boat", label: "Boat Launch", icon: Anchor },
@@ -130,6 +140,7 @@ export default function SpotDetail() {
   const [spot, setSpot] = useState<FishingSpot | null>(null);
   const [catches, setCatches] = useState<SpotCatch[]>([]);
   const [reviews, setReviews] = useState<SpotReview[]>([]);
+  const [allSpecies, setAllSpecies] = useState<FishSpecies[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [newReview, setNewReview] = useState("");
@@ -142,6 +153,9 @@ export default function SpotDetail() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [showSpeciesDialog, setShowSpeciesDialog] = useState(false);
+  const [speciesSearch, setSpeciesSearch] = useState("");
+  const [addingSpecies, setAddingSpecies] = useState(false);
   const reviewPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const isSaved = id ? isSpotSaved(id) : false;
@@ -159,8 +173,8 @@ export default function SpotDetail() {
       if (!id) return;
 
       try {
-        // Fetch spot, catches, and reviews in parallel
-        const [spotRes, catchesRes, reviewsRes] = await Promise.all([
+        // Fetch spot, catches, reviews, and all species in parallel
+        const [spotRes, catchesRes, reviewsRes, speciesRes] = await Promise.all([
           supabase
             .from("fishing_spots")
             .select("*")
@@ -201,6 +215,10 @@ export default function SpotDetail() {
             .eq("spot_id", id)
             .order("created_at", { ascending: false })
             .limit(20),
+          supabase
+            .from("fish_species")
+            .select("*")
+            .order("name"),
         ]);
 
         if (spotRes.error) throw spotRes.error;
@@ -208,6 +226,7 @@ export default function SpotDetail() {
         setCatches((catchesRes.data as SpotCatch[]) || []);
         const reviewsData = (reviewsRes.data as SpotReview[]) || [];
         setReviews(reviewsData);
+        setAllSpecies((speciesRes.data as FishSpecies[]) || []);
         
         // Check if current user has already reviewed
         if (user) {
@@ -436,6 +455,72 @@ export default function SpotDetail() {
 
   const ratingDistribution = getRatingDistribution();
 
+  // Handle adding a species to the spot
+  const handleAddSpecies = async (speciesName: string) => {
+    if (!spot || !id) return;
+    
+    setAddingSpecies(true);
+    try {
+      const currentSpecies = spot.species_available || [];
+      
+      // Check if already added
+      if (currentSpecies.some(s => s.toLowerCase() === speciesName.toLowerCase())) {
+        toast.info(`${speciesName} is already in common catches`);
+        setAddingSpecies(false);
+        return;
+      }
+
+      const updatedSpecies = [...currentSpecies, speciesName];
+      
+      const { error } = await supabase
+        .from("fishing_spots")
+        .update({ species_available: updatedSpecies })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setSpot({ ...spot, species_available: updatedSpecies });
+      toast.success(`Added ${speciesName} to common catches`);
+      setShowSpeciesDialog(false);
+      setSpeciesSearch("");
+    } catch (err) {
+      console.error("Error adding species:", err);
+      toast.error("Failed to add species");
+    } finally {
+      setAddingSpecies(false);
+    }
+  };
+
+  // Handle removing a species from the spot
+  const handleRemoveSpecies = async (speciesName: string) => {
+    if (!spot || !id) return;
+    
+    try {
+      const updatedSpecies = (spot.species_available || []).filter(
+        s => s.toLowerCase() !== speciesName.toLowerCase()
+      );
+      
+      const { error } = await supabase
+        .from("fishing_spots")
+        .update({ species_available: updatedSpecies })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setSpot({ ...spot, species_available: updatedSpecies });
+      toast.success(`Removed ${speciesName} from common catches`);
+    } catch (err) {
+      console.error("Error removing species:", err);
+      toast.error("Failed to remove species");
+    }
+  };
+
+  // Filter species for search
+  const filteredSpecies = allSpecies.filter(s => 
+    s.name.toLowerCase().includes(speciesSearch.toLowerCase()) &&
+    !(spot?.species_available || []).some(existing => existing.toLowerCase() === s.name.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -603,29 +688,152 @@ export default function SpotDetail() {
 
             {/* Common Catches */}
             <div className="bg-background rounded-xl p-6 border">
-              <h2 className="text-lg font-semibold mb-4">Common Catches</h2>
-              <div className="flex flex-wrap gap-3">
-                {(spot.species_available?.length ? spot.species_available : mockSpecies.map(s => s.name)).map((species, index) => {
-                  const speciesData = mockSpecies[index] || mockSpecies[0];
-                  return (
-                    <div
-                      key={species}
-                      className="flex items-center gap-3 p-3 rounded-xl border bg-muted/30 min-w-[180px]"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-2xl">
-                        {speciesData.image}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{species}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {speciesData.rarity} • {speciesData.depth}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Common Catches</h2>
+                {user && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSpeciesDialog(true)}
+                    className="gap-1.5"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Species
+                  </Button>
+                )}
               </div>
+              
+              {spot.species_available?.length ? (
+                <div className="flex flex-wrap gap-3">
+                  {spot.species_available.map((speciesName) => {
+                    const speciesInfo = allSpecies.find(s => s.name.toLowerCase() === speciesName.toLowerCase());
+                    return (
+                      <div
+                        key={speciesName}
+                        className="group flex items-center gap-3 p-3 rounded-xl border bg-muted/30 min-w-[160px] relative"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          {speciesInfo?.image_url ? (
+                            <img 
+                              src={speciesInfo.image_url} 
+                              alt={speciesName} 
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <Fish className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{speciesName}</p>
+                          {speciesInfo?.scientific_name && (
+                            <p className="text-xs text-muted-foreground italic truncate">
+                              {speciesInfo.scientific_name}
+                            </p>
+                          )}
+                        </div>
+                        {user && (
+                          <button
+                            onClick={() => handleRemoveSpecies(speciesName)}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove species"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <Fish className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No species reported yet</p>
+                  {user && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Be the first to add a fish species caught here!
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* Add Species Dialog */}
+            <Dialog open={showSpeciesDialog} onOpenChange={setShowSpeciesDialog}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add Species to Common Catches</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search species..."
+                      value={speciesSearch}
+                      onChange={(e) => setSpeciesSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {filteredSpecies.length > 0 ? (
+                      filteredSpecies.slice(0, 20).map((species) => (
+                        <button
+                          key={species.id}
+                          onClick={() => handleAddSpecies(species.name)}
+                          disabled={addingSpecies}
+                          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                            {species.image_url ? (
+                              <img 
+                                src={species.image_url} 
+                                alt={species.name}
+                                className="w-full h-full rounded-full object-cover"
+                              />
+                            ) : (
+                              <Fish className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{species.name}</p>
+                            {species.scientific_name && (
+                              <p className="text-xs text-muted-foreground italic truncate">
+                                {species.scientific_name}
+                              </p>
+                            )}
+                          </div>
+                          {addingSpecies && (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          )}
+                        </button>
+                      ))
+                    ) : speciesSearch ? (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground mb-2">No species found</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddSpecies(speciesSearch)}
+                          disabled={addingSpecies}
+                          className="gap-1.5"
+                        >
+                          {addingSpecies ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                          Add "{speciesSearch}" as custom species
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Start typing to search species...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* Location */}
             <div className="bg-background rounded-xl p-6 border">
