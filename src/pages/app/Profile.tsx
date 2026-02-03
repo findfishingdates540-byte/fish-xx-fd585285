@@ -387,15 +387,7 @@ export default function Profile() {
                     <p className="text-sm text-muted-foreground mb-4">
                       {profile?.bio || 'No bio added yet. Tell others about yourself!'}
                     </p>
-                    {profile?.preferred_species && profile.preferred_species.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {profile.preferred_species.slice(0, 4).map(interest => (
-                          <Badge key={interest} variant="secondary" className="text-xs">
-                            {interest.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    {/* Preferred species hidden for now */}
                   </CardContent>
                 </Card>
 
@@ -749,14 +741,7 @@ export default function Profile() {
                       </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Favorite Species</p>
-                        <div className="flex flex-wrap gap-2">
-                          {profile?.preferred_species?.slice(0, 3).map(species => (
-                            <Badge key={species} variant="secondary">{species.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Badge>
-                          )) || <span className="text-sm text-muted-foreground">Not specified</span>}
-                        </div>
-                      </div>
+                      {/* Favorite species hidden for now */}
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Skill Level</p>
                         <div className="space-y-2">

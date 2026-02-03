@@ -122,11 +122,7 @@ export function MyBuddyCard({
                     <span className="truncate">{experienceLabels[profile.fishing_experience]}</span>
                   </Badge>
                 )}
-                {profile.preferred_species?.slice(0, 2).map((species) => (
-                  <Badge key={species} variant="outline" className="text-xs max-w-[80px] sm:max-w-none truncate">
-                    {species.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                  </Badge>
-                ))}
+                {/* Preferred species hidden for now */}
               </div>
 
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-3">
