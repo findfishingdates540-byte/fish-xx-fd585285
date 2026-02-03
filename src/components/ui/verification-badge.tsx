@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { BadgeCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -11,9 +11,9 @@ interface VerificationBadgeProps {
 }
 
 const sizeMap = {
-  sm: { container: 'h-3.5 w-3.5', icon: 'h-2.5 w-2.5' },
-  md: { container: 'h-4 w-4', icon: 'h-3 w-3' },
-  lg: { container: 'h-5 w-5', icon: 'h-3.5 w-3.5' },
+  sm: 'h-3.5 w-3.5',
+  md: 'h-4 w-4',
+  lg: 'h-5 w-5',
 };
 
 export function VerificationBadge({
@@ -25,20 +25,22 @@ export function VerificationBadge({
 }: VerificationBadgeProps) {
   if (!idVerified && !liveVerified) return null;
 
-  const { container, icon } = sizeMap[size];
+  const sizeClass = sizeMap[size];
 
-  // Twitter/X style badge: filled circle with white checkmark
+  // Deep blue badge-check style (like FontAwesome's badge-check)
   const badges = (
     <span className={cn('inline-flex items-center gap-0.5', className)}>
       {idVerified && !liveVerified && (
-        <span className={cn(container, 'inline-flex items-center justify-center rounded-full bg-slate-400')}>
-          <Check className={cn(icon, 'text-white')} strokeWidth={3} />
-        </span>
+        <BadgeCheck 
+          className={cn(sizeClass, 'text-white fill-slate-500')} 
+          strokeWidth={2.5}
+        />
       )}
       {liveVerified && (
-        <span className={cn(container, 'inline-flex items-center justify-center rounded-full bg-[#1D9BF0]')}>
-          <Check className={cn(icon, 'text-white')} strokeWidth={3} />
-        </span>
+        <BadgeCheck 
+          className={cn(sizeClass, 'text-white fill-[#1877F2]')} 
+          strokeWidth={2.5}
+        />
       )}
     </span>
   );
