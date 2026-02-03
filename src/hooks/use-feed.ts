@@ -1,7 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
+
+const POSTS_PER_PAGE = 20;
 
 export interface FeedPost {
   id: string;
@@ -68,20 +70,23 @@ export interface FeedComment {
 export function useFeedPosts() {
   const { user } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['feed-posts', user?.id],
-    staleTime: 60 * 1000, // Feed data fresh for 1 minute
-    queryFn: async () => {
-      // Get regular posts
+    staleTime: 60 * 1000,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const offset = pageParam * POSTS_PER_PAGE;
+      
+      // Get regular posts with pagination
       const { data: posts, error } = await supabase
         .from('feed_posts')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .range(offset, offset + POSTS_PER_PAGE - 1);
 
       if (error) throw error;
 
-      // Get reposts to show in feed (posts reposted by users we follow or all users for "For You")
+      // Get reposts for this page
       const { data: reposts } = await supabase
         .from('post_reposts')
         .select(`
@@ -92,7 +97,7 @@ export function useFeedPosts() {
           feed_posts(*)
         `)
         .order('created_at', { ascending: false })
-        .limit(30);
+        .range(offset, offset + Math.floor(POSTS_PER_PAGE / 2) - 1);
 
       // Collect all posts (original + reposted)
       const allPosts: Array<{
@@ -112,18 +117,13 @@ export function useFeedPosts() {
       // Add reposted posts (with repost info)
       (reposts || []).forEach(repost => {
         if (repost.feed_posts) {
-          // Don't duplicate if already in feed
-          const existingIndex = allPosts.findIndex(
-            p => p.post.id === repost.post_id && !p.reposted_by
-          );
-          // Add as repost entry (will show with "reposted by" header)
           allPosts.push({
             post: repost.feed_posts as typeof posts[0],
             reposted_by: {
               id: repost.user_id,
               reposted_at: repost.created_at
             },
-            sort_date: repost.created_at // Sort by repost time
+            sort_date: repost.created_at
           });
         }
       });
@@ -131,16 +131,13 @@ export function useFeedPosts() {
       // Sort by date (newest first)
       allPosts.sort((a, b) => new Date(b.sort_date).getTime() - new Date(a.sort_date).getTime());
 
-      // Limit to 50
-      const limitedPosts = allPosts.slice(0, 50);
-
-      if (limitedPosts.length === 0) return [];
+      if (allPosts.length === 0) return { posts: [], nextPage: undefined };
 
       // Get unique user IDs (post authors + reposters)
-      const postUserIds = limitedPosts.map(p => p.post.user_id);
-      const reposterIds = limitedPosts.filter(p => p.reposted_by).map(p => p.reposted_by!.id);
+      const postUserIds = allPosts.map(p => p.post.user_id);
+      const reposterIds = allPosts.filter(p => p.reposted_by).map(p => p.reposted_by!.id);
       const userIds = [...new Set([...postUserIds, ...reposterIds])];
-      const catchIds = limitedPosts.map(p => p.post.catch_id).filter(Boolean) as string[];
+      const catchIds = allPosts.map(p => p.post.catch_id).filter(Boolean) as string[];
 
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
@@ -163,10 +160,12 @@ export function useFeedPosts() {
       // Get user's likes if logged in
       let userLikes: string[] = [];
       if (user?.id) {
+        const postIds = allPosts.map(p => p.post.id);
         const { data: likes } = await supabase
           .from('feed_likes')
           .select('post_id')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
         
         userLikes = likes?.map(l => l.post_id) || [];
       }
@@ -177,7 +176,7 @@ export function useFeedPosts() {
       );
       const catchMap = new Map(catches.map(c => [c.id, c]));
 
-      return limitedPosts.map(({ post, reposted_by }) => {
+      const mappedPosts = allPosts.map(({ post, reposted_by }) => {
         const reposterProfile = reposted_by ? profileMap.get(reposted_by.id) : null;
         return {
           ...post,
@@ -191,18 +190,27 @@ export function useFeedPosts() {
           } : null
         };
       }) as FeedPost[];
+
+      return {
+        posts: mappedPosts,
+        nextPage: posts && posts.length === POSTS_PER_PAGE ? pageParam + 1 : undefined
+      };
     },
+    getNextPageParam: (lastPage) => lastPage.nextPage,
   });
 }
 
 export function useFollowingFeedPosts() {
   const { user } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['feed-posts-following', user?.id],
-    staleTime: 60 * 1000, // Following feed data fresh for 1 minute
-    queryFn: async () => {
-      if (!user?.id) return [];
+    staleTime: 60 * 1000,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!user?.id) return { posts: [], nextPage: undefined };
+      
+      const offset = pageParam * POSTS_PER_PAGE;
       
       // Get users that the current user follows
       const { data: following } = await supabase
@@ -211,15 +219,15 @@ export function useFollowingFeedPosts() {
         .eq('follower_id', user.id);
       
       const followingIds = following?.map(f => f.following_id) || [];
-      if (followingIds.length === 0) return [];
+      if (followingIds.length === 0) return { posts: [], nextPage: undefined };
       
-      // Get posts from followed users
+      // Get posts from followed users with pagination
       const { data: posts, error } = await supabase
         .from('feed_posts')
         .select('*')
         .in('user_id', followingIds)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .range(offset, offset + POSTS_PER_PAGE - 1);
 
       if (error) throw error;
 
@@ -235,7 +243,7 @@ export function useFollowingFeedPosts() {
         `)
         .in('user_id', followingIds)
         .order('created_at', { ascending: false })
-        .limit(30);
+        .range(offset, offset + Math.floor(POSTS_PER_PAGE / 2) - 1);
 
       // Collect all posts (original + reposted)
       const allPosts: Array<{
@@ -269,16 +277,13 @@ export function useFollowingFeedPosts() {
       // Sort by date (newest first)
       allPosts.sort((a, b) => new Date(b.sort_date).getTime() - new Date(a.sort_date).getTime());
 
-      // Limit to 50
-      const limitedPosts = allPosts.slice(0, 50);
-
-      if (limitedPosts.length === 0) return [];
+      if (allPosts.length === 0) return { posts: [], nextPage: undefined };
 
       // Get unique user IDs
-      const postUserIds = limitedPosts.map(p => p.post.user_id);
-      const reposterIds = limitedPosts.filter(p => p.reposted_by).map(p => p.reposted_by!.id);
+      const postUserIds = allPosts.map(p => p.post.user_id);
+      const reposterIds = allPosts.filter(p => p.reposted_by).map(p => p.reposted_by!.id);
       const userIds = [...new Set([...postUserIds, ...reposterIds])];
-      const catchIds = limitedPosts.map(p => p.post.catch_id).filter(Boolean) as string[];
+      const catchIds = allPosts.map(p => p.post.catch_id).filter(Boolean) as string[];
 
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
@@ -297,10 +302,12 @@ export function useFollowingFeedPosts() {
         catches = catchData || [];
       }
 
+      const postIds = allPosts.map(p => p.post.id);
       const { data: likes } = await supabase
         .from('feed_likes')
         .select('post_id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
       
       const userLikes = likes?.map(l => l.post_id) || [];
 
@@ -309,7 +316,7 @@ export function useFollowingFeedPosts() {
       );
       const catchMap = new Map(catches.map(c => [c.id, c]));
 
-      return limitedPosts.map(({ post, reposted_by }) => {
+      const mappedPosts = allPosts.map(({ post, reposted_by }) => {
         const reposterProfile = reposted_by ? profileMap.get(reposted_by.id) : null;
         return {
           ...post,
@@ -323,7 +330,13 @@ export function useFollowingFeedPosts() {
           } : null
         };
       }) as FeedPost[];
+
+      return {
+        posts: mappedPosts,
+        nextPage: posts && posts.length === POSTS_PER_PAGE ? pageParam + 1 : undefined
+      };
     },
+    getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!user?.id,
   });
 }
