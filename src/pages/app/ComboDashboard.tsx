@@ -711,14 +711,8 @@ export default function ComboDashboard() {
       <aside className="hidden lg:flex w-60 border-r bg-card flex-col sticky top-0 h-screen">
         <div className="p-4 border-b flex items-center justify-between">
           <Link to="/app" className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={logo} alt="Find Fishing Dates" />
-              <AvatarFallback>FF</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold text-sm">Find Fishing Dates</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
-            </div>
+            <span className="font-bold text-xl tracking-tight">FFD</span>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
           </Link>
         </div>
 
