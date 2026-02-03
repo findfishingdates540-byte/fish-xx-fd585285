@@ -116,12 +116,12 @@ function mapToProfileData(
     tags.push({ icon: '🎣', label: formatLabel(profile.fishing_experience) });
   }
   
-  // All preferred species
-  if (profile.preferred_species?.length) {
-    profile.preferred_species.forEach(species => {
-      tags.push({ icon: '🐟', label: formatLabel(species) });
-    });
-  }
+  // Preferred species hidden for now
+  // if (profile.preferred_species?.length) {
+  //   profile.preferred_species.forEach(species => {
+  //     tags.push({ icon: '🐟', label: formatLabel(species) });
+  //   });
+  // }
   
   // Fishing gear
   if (profile.fishing_gear?.length) {

@@ -361,29 +361,7 @@ export default function UserProfile() {
               )}
             </div>
 
-            {/* Preferred Species */}
-            {profile.preferred_species && profile.preferred_species.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold mb-3">Target Species</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {profile.preferred_species.map((species: string) => (
-                    <Card key={species} className="overflow-hidden">
-                      <CardContent className="p-3 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Fish className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {species.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Target species</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Preferred Species hidden for now */}
 
             {/* Fishing Styles */}
             {profile.fishing_styles && profile.fishing_styles.length > 0 && (
@@ -466,12 +444,7 @@ export default function UserProfile() {
                       {experienceLabels[profile.fishing_experience || 'beginner']}
                     </Badge>
                   </div>
-                  {profile.preferred_species && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Target Species</span>
-                      <span className="font-semibold">{profile.preferred_species.length}</span>
-                    </div>
-                  )}
+                  {/* Target species count hidden for now */}
                 </div>
               </CardContent>
             </Card>
