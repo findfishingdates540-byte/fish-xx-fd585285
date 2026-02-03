@@ -16,9 +16,8 @@ export function ComboSharedHeader() {
           </Button>
         </div>
         
-        <Link to="/app/dashboard" className="flex items-center gap-2">
-          <img src={logo} alt="Find Fishing Dates" className="h-8 w-auto rounded" />
-          <span className="font-semibold text-sm hidden sm:inline">Find Fishing Dates</span>
+        <Link to="/app/dashboard" className="flex items-center">
+          <span className="font-bold text-xl tracking-tight">FFD</span>
         </Link>
       </div>
     </header>

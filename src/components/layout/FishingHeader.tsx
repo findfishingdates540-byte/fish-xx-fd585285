@@ -149,7 +149,7 @@ export function FishingHeader() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link to="/app/spots" className="flex items-center">
-            <img src={fishingHeaderLogo} alt="FishOn" className="h-10 w-auto" />
+            <span className="font-bold text-xl tracking-tight">FFD</span>
           </Link>
 
           {/* Navigation */}
