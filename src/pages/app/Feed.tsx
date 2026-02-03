@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FeedPost, CreatePostDialog, SponsoredPost, FeedComposerBar, StoriesRow } from '@/components/feed';
@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
-import { Fish } from 'lucide-react';
+import { Fish, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type FeedItem = 
@@ -26,13 +26,44 @@ export default function Feed() {
   const highlightedPostId = searchParams.get('post');
   const highlightedCommentId = searchParams.get('comment');
   const postRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { data: forYouPosts = [], isLoading: forYouLoading, refetch: refetchForYou } = useFeedPosts();
-  const { data: followingPosts = [], isLoading: followingLoading, refetch: refetchFollowing } = useFollowingFeedPosts();
+  
+  const { 
+    data: forYouData, 
+    isLoading: forYouLoading, 
+    refetch: refetchForYou,
+    fetchNextPage: fetchNextForYou,
+    hasNextPage: hasNextForYou,
+    isFetchingNextPage: isFetchingNextForYou
+  } = useFeedPosts();
+  
+  const { 
+    data: followingData, 
+    isLoading: followingLoading, 
+    refetch: refetchFollowing,
+    fetchNextPage: fetchNextFollowing,
+    hasNextPage: hasNextFollowing,
+    isFetchingNextPage: isFetchingNextFollowing
+  } = useFollowingFeedPosts();
+  
   const queryClient = useQueryClient();
+  
+  // Flatten infinite query pages into posts array
+  const forYouPosts = useMemo(() => 
+    forYouData?.pages.flatMap(page => page.posts) ?? [], 
+    [forYouData]
+  );
+  const followingPosts = useMemo(() => 
+    followingData?.pages.flatMap(page => page.posts) ?? [], 
+    [followingData]
+  );
   
   const posts = feedFilter === 'for-you' ? forYouPosts : followingPosts;
   const postsLoading = feedFilter === 'for-you' ? forYouLoading : followingLoading;
+  const hasNextPage = feedFilter === 'for-you' ? hasNextForYou : hasNextFollowing;
+  const isFetchingNextPage = feedFilter === 'for-you' ? isFetchingNextForYou : isFetchingNextFollowing;
+  const fetchNextPage = feedFilter === 'for-you' ? fetchNextForYou : fetchNextFollowing;
   // Fetch user profile for ad targeting
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile-for-ads', user?.id],
@@ -119,6 +150,24 @@ export default function Feed() {
     }
   }, [highlightedPostId, postsLoading, posts]);
 
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   const handleRefresh = async () => {
     queryClient.invalidateQueries({ queryKey: ['stories'] });
     if (feedFilter === 'for-you') {
@@ -195,24 +244,36 @@ export default function Feed() {
                       )}
                     </div>
                   ) : (
-                    feedItems.map((item, index) => (
-                      item.type === 'post' ? (
-                        <div 
-                          key={`post-${item.data.id}`}
-                          ref={(el) => {
-                            if (el) postRefs.current.set(item.data.id, el);
-                          }}
-                        >
-                          <FeedPost 
-                            post={item.data} 
-                            isHighlighted={highlightedPostId === item.data.id}
-                            autoOpenComments={highlightedPostId === item.data.id && !!highlightedCommentId}
-                          />
-                        </div>
-                      ) : (
-                        <SponsoredPost key={`ad-${item.data.id}-${index}`} ad={item.data} />
-                      )
-                    ))
+                    <>
+                      {feedItems.map((item, index) => (
+                        item.type === 'post' ? (
+                          <div 
+                            key={`post-${item.data.id}`}
+                            ref={(el) => {
+                              if (el) postRefs.current.set(item.data.id, el);
+                            }}
+                          >
+                            <FeedPost 
+                              post={item.data} 
+                              isHighlighted={highlightedPostId === item.data.id}
+                              autoOpenComments={highlightedPostId === item.data.id && !!highlightedCommentId}
+                            />
+                          </div>
+                        ) : (
+                          <SponsoredPost key={`ad-${item.data.id}-${index}`} ad={item.data} />
+                        )
+                      ))}
+                      
+                      {/* Infinite scroll trigger */}
+                      <div ref={loadMoreRef} className="py-4 flex justify-center">
+                        {isFetchingNextPage && (
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        )}
+                        {!hasNextPage && posts.length > 0 && (
+                          <p className="text-sm text-muted-foreground">You're all caught up!</p>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               </PullToRefresh>

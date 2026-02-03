@@ -78,7 +78,7 @@ export function PullToRefresh({ onRefresh, children, className, disabled = false
   return (
     <div
       ref={containerRef}
-      className={cn("relative overflow-auto touch-pan-y", className)}
+      className={cn("relative overflow-auto touch-pan-y scrollbar-hide", className)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
