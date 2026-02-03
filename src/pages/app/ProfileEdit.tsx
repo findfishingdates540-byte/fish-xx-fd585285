@@ -1369,17 +1369,21 @@ export default function ProfileEdit() {
                     <div className="flex justify-between items-center mb-3">
                       <Label className="text-sm font-medium">Maximum Distance</Label>
                       <span className="text-sm text-muted-foreground">
-                        {maxDistance} miles
+                        {maxDistance >= 500 ? 'Unlimited' : `${maxDistance} miles`}
                       </span>
                     </div>
                     <Slider
                       value={[maxDistance]}
                       onValueChange={(value) => setMaxDistance(value[0])}
                       min={5}
-                      max={200}
+                      max={500}
                       step={5}
                       className="w-full"
                     />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                      <span>5 miles</span>
+                      <span>Unlimited</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
