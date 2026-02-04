@@ -491,28 +491,42 @@ export function useLikePost() {
       
       // Helper to update posts in infinite query structure
       const updateInfiniteData = (old: any) => {
-        if (!old?.pages) return old;
+        // Don't update if there's no data yet
+        if (!old || !old.pages) return old;
+        
         return {
           ...old,
-          pages: old.pages.map((page: any) => ({
-            ...page,
-            posts: page.posts.map((post: FeedPost) => {
-              if (post.id === postId) {
-                return {
-                  ...post,
-                  likes_count: isLiked ? Math.max(0, post.likes_count - 1) : post.likes_count + 1,
-                  user_has_liked: !isLiked
-                };
-              }
-              return post;
-            })
-          }))
+          pages: old.pages.map((page: any) => {
+            // Ensure page.posts exists
+            if (!page || !page.posts) return page;
+            
+            return {
+              ...page,
+              posts: page.posts.map((post: FeedPost) => {
+                if (post.id === postId) {
+                  return {
+                    ...post,
+                    likes_count: isLiked ? Math.max(0, post.likes_count - 1) : post.likes_count + 1,
+                    user_has_liked: !isLiked
+                  };
+                }
+                return post;
+              })
+            };
+          })
         };
       };
       
-      // Optimistic update for both feed queries
-      queryClient.setQueryData(['feed-posts', user?.id], updateInfiniteData);
-      queryClient.setQueryData(['feed-posts-following', user?.id], updateInfiniteData);
+      // Optimistic update for both feed queries - only if data exists
+      const currentFeedPosts = queryClient.getQueryData(['feed-posts', user?.id]);
+      const currentFollowingPosts = queryClient.getQueryData(['feed-posts-following', user?.id]);
+      
+      if (currentFeedPosts) {
+        queryClient.setQueryData(['feed-posts', user?.id], updateInfiniteData);
+      }
+      if (currentFollowingPosts) {
+        queryClient.setQueryData(['feed-posts-following', user?.id], updateInfiniteData);
+      }
 
       return { previousFeedPosts, previousFollowingPosts };
     },
