@@ -69,9 +69,8 @@ export function FishSpeciesManagement() {
           />
         </div>
         <Button
-          variant="outline"
           onClick={() => setImportDialogOpen(true)}
-          className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
         >
           <Upload className="w-4 h-4" />
           Import
