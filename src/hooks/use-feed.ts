@@ -480,34 +480,54 @@ export function useLikePost() {
       }
     },
     onMutate: async ({ postId, isLiked }) => {
-      // Optimistic update
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['feed-posts'] });
+      await queryClient.cancelQueries({ queryKey: ['feed-posts-following'] });
+      await queryClient.cancelQueries({ queryKey: ['user-posts'] });
       
-      const previousPosts = queryClient.getQueryData(['feed-posts', user?.id]);
+      // Snapshot previous values
+      const previousFeedPosts = queryClient.getQueryData(['feed-posts', user?.id]);
+      const previousFollowingPosts = queryClient.getQueryData(['feed-posts-following', user?.id]);
       
-      queryClient.setQueryData(['feed-posts', user?.id], (old: FeedPost[] | undefined) => {
-        if (!old) return old;
-        return old.map(post => {
-          if (post.id === postId) {
-            return {
-              ...post,
-              likes_count: isLiked ? post.likes_count - 1 : post.likes_count + 1,
-              user_has_liked: !isLiked
-            };
-          }
-          return post;
-        });
-      });
+      // Helper to update posts in infinite query structure
+      const updateInfiniteData = (old: any) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            posts: page.posts.map((post: FeedPost) => {
+              if (post.id === postId) {
+                return {
+                  ...post,
+                  likes_count: isLiked ? Math.max(0, post.likes_count - 1) : post.likes_count + 1,
+                  user_has_liked: !isLiked
+                };
+              }
+              return post;
+            })
+          }))
+        };
+      };
+      
+      // Optimistic update for both feed queries
+      queryClient.setQueryData(['feed-posts', user?.id], updateInfiniteData);
+      queryClient.setQueryData(['feed-posts-following', user?.id], updateInfiniteData);
 
-      return { previousPosts };
+      return { previousFeedPosts, previousFollowingPosts };
     },
     onError: (err, variables, context) => {
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['feed-posts', user?.id], context.previousPosts);
+      // Rollback on error
+      if (context?.previousFeedPosts) {
+        queryClient.setQueryData(['feed-posts', user?.id], context.previousFeedPosts);
+      }
+      if (context?.previousFollowingPosts) {
+        queryClient.setQueryData(['feed-posts-following', user?.id], context.previousFollowingPosts);
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['feed-posts-following'] });
     },
   });
 }
