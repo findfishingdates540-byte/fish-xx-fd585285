@@ -1,84 +1,167 @@
 
-# Fix: White Screen When Clicking Message Notification
+# Instagram-Style Buddy Messages Redesign
 
-## Problem Summary
-When clicking on a message notification from the notification bell dropdown, the user is taken to a white/blank screen instead of the conversation. This happens because the `Chat` component doesn't properly handle loading states and potentially throws an error during data fetching.
+## Overview
 
-## Root Cause Analysis
+Redesign the BuddyMessages page to match the Instagram DM interface, featuring:
 
-After investigating the code flow, I identified these issues:
+1. **Online Buddies Row** - Horizontal scrollable avatars showing currently online/active buddies
+2. **Filter Tabs** - "Primary", "General", "Requests" pill-shaped filter tabs
+3. **Cleaner Conversation List** - Simplified layout with activity status and camera icon
+4. **Updated Search** - Visible on mobile with "Filter" button
 
-1. **Missing Loading State**: The `Chat` component doesn't use the `loading` state from `useDatingChat` to show a skeleton loader. When `matchProfile` is `null` during loading, it shows an "empty" state message which may not render properly in all cases.
+---
 
-2. **Potential Error in Hook Calls**: When `matchProfile` is `null`, the `useOnlineStatus` hook receives an array that includes `undefined` (`matchProfile?.id`), which could cause issues in status tracking.
+## Visual Layout
 
-3. **No Error Boundary**: There's no error handling to gracefully display errors if something fails during the fetch.
+```text
+┌────────────────────────────────┐
+│ [🔍 Search...       ] [Filter] │
+├────────────────────────────────┤
+│ (Jane)  (Boss)  (Mike)  (...)  │
+│   🟢      🟢      🟢           │
+│  Jane   BOSS    Mike           │
+├────────────────────────────────┤
+│ [●Primary 2] [General] [Req's] │
+├────────────────────────────────┤
+│ ○ Jane Smith               📷  │
+│   Active now                   │
+├────────────────────────────────┤
+│ ○ Mike Johnson             📷  │
+│   Active 4h ago                │
+└────────────────────────────────┘
+```
 
-## Technical Changes
+---
 
-### 1. Add Loading State to Chat Component
-**File: `src/pages/app/Chat.tsx`**
+## Implementation Plan
 
-Add a proper loading skeleton when data is being fetched:
+### 1. Create Online Buddies Row Component
 
-```tsx
-// After the useDatingChat hook, add loading check
-if (loading) {
-  return (
-    <div className={`flex ${isInline ? 'h-full flex-1' : 'h-[100dvh]'} bg-background overflow-hidden`}>
-      {/* Show loading skeleton with chat header and message area placeholder */}
-      <div className="flex-1 flex flex-col">
-        <div className="h-16 border-b border-border flex items-center gap-3 px-4">
-          <Skeleton className="h-10 w-10 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-        </div>
-        <div className="flex-1 p-4 space-y-4">
-          <Skeleton className="h-12 w-48 rounded-xl" />
-          <Skeleton className="h-12 w-36 rounded-xl ml-auto" />
-          <Skeleton className="h-12 w-52 rounded-xl" />
-        </div>
-      </div>
-    </div>
-  );
+New file: `src/components/messages/OnlineBuddiesRow.tsx`
+
+- Horizontal scrollable row showing online buddies only
+- 56-60px circular avatars with green online indicator ring
+- Truncated names below avatars (max 8 characters)
+- Clicking navigates directly to that buddy's chat
+- Shows "No buddies online" if none are active
+
+### 2. Add Filter Tabs
+
+Replace the collapsible "Message Requests" section with horizontal tabs:
+
+| Tab | Description |
+|-----|-------------|
+| **Primary** | Main conversations with unread count badge |
+| **General** | Secondary/muted conversations (optional) |
+| **Requests** | Pending message requests with count |
+
+- Pill-shaped buttons with rounded-full styling
+- Active tab has filled background (bg-foreground text-background)
+- Inactive tabs have outline/secondary styling
+
+### 3. Simplify Conversation Item Design
+
+Update each conversation row to:
+
+| Current | New |
+|---------|-----|
+| "BUDDY" badge | Remove (redundant in buddy messages) |
+| Last message preview | Remove for cleaner look |
+| Formatted timestamp | Replace with activity status |
+| Unread badge | Keep, move to right side |
+| Fish emoji indicator | Remove |
+| - | Add Camera icon on right |
+
+Activity status examples:
+- "Active now" (green dot visible)
+- "Active 2h ago"
+- "Active yesterday"
+
+### 4. Update Search Bar
+
+- Make visible on all screen sizes (remove `hidden lg:block`)
+- Add "Filter" text button on the right side
+- Rounded input styling with bg-muted
+
+---
+
+## Technical Details
+
+### New State Management
+
+```typescript
+// Filter tab state
+const [activeTab, setActiveTab] = useState<'primary' | 'general' | 'requests'>('primary');
+
+// Filter online buddies for the top row
+const onlineBuddies = useMemo(() => 
+  conversations.filter(conv => isOnline(conv.buddyUserId)),
+  [conversations, isOnline]
+);
+```
+
+### OnlineBuddiesRow Component
+
+```typescript
+interface OnlineBuddy {
+  buddyId: string;
+  displayName: string;
+  photo: string;
 }
+
+function OnlineBuddiesRow({ 
+  buddies, 
+  onSelect 
+}: { 
+  buddies: OnlineBuddy[]; 
+  onSelect: (buddyId: string) => void;
+})
 ```
 
-### 2. Fix Online Status Hook Usage
-**File: `src/pages/app/Chat.tsx`**
+### Conversation Item Simplification
 
-Ensure we don't pass undefined values to the online status hook:
-
+Before:
 ```tsx
-// Change this:
-const allUserIds = useMemo(() => {
-  const ids = conversations.map(c => c.matchedUserId);
-  if (matchProfile?.id) ids.push(matchProfile.id);
-  return [...new Set(ids)];
-}, [conversations, matchProfile?.id]);
-
-// To filter out undefined/null values:
-const allUserIds = useMemo(() => {
-  const ids = conversations.map(c => c.matchedUserId).filter(Boolean);
-  if (matchProfile?.id) ids.push(matchProfile.id);
-  return [...new Set(ids.filter(Boolean))];
-}, [conversations, matchProfile?.id]);
+<Badge>BUDDY</Badge>
+<p>{conv.lastMessage}</p>
+<span>{formatTime(conv.lastMessageTime)}</span>
+<span>🎣</span>
 ```
 
-### 3. Add Skeleton Import (if needed)
-Ensure the `Skeleton` component is imported in Chat.tsx (already imported on line 13).
+After:
+```tsx
+<p className="font-semibold">{conv.displayName}</p>
+<p className="text-muted-foreground text-sm">
+  {online ? 'Active now' : `Active ${formatLastSeen(lastSeen)}`}
+</p>
+<Camera className="h-5 w-5 text-muted-foreground" />
+```
 
-## Implementation Steps
+---
 
-1. Add early return with loading skeleton when `loading` is `true` in Chat.tsx
-2. Filter out undefined values in `allUserIds` memo to prevent potential errors
-3. Test the notification click flow end-to-end
+## File Changes Summary
 
-## Expected Outcome
+| File | Action | Changes |
+|------|--------|---------|
+| `src/components/messages/OnlineBuddiesRow.tsx` | Create | New component for online buddies horizontal scroll |
+| `src/pages/app/BuddyMessages.tsx` | Modify | Add online row, filter tabs, simplify conversation items |
 
-After these changes:
-- Clicking a message notification will show a loading skeleton while data fetches
-- Once data loads, the conversation will appear properly
-- No more white/blank screens during the transition
+---
+
+## Detailed Changes to BuddyMessages.tsx
+
+1. **Add imports**: Camera icon, new OnlineBuddiesRow component
+2. **Add state**: `activeTab` for filter tabs
+3. **Add memo**: `onlineBuddies` to filter online users
+4. **Replace search section**: Show on all sizes, add Filter button
+5. **Add OnlineBuddiesRow**: After search, before tabs
+6. **Replace Message Requests collapsible**: With horizontal filter tabs
+7. **Add tab content switching**: Show requests when Requests tab selected
+8. **Simplify conversation items**:
+   - Remove BUDDY badge
+   - Remove last message preview
+   - Show "Active now" / "Active X ago" as subtitle
+   - Add Camera icon on right
+   - Keep avatar with online indicator
+   - Keep unread count badge
