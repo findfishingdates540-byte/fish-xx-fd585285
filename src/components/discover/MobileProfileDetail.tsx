@@ -53,7 +53,7 @@ export function MobileProfileDetail({ open, onClose, profile }: MobileProfileDet
         className="h-[85vh] rounded-t-3xl p-0 overflow-hidden"
       >
         {/* Scrollable Content */}
-        <div className="h-full overflow-y-auto overscroll-contain">
+        <div className="h-full overflow-y-auto overscroll-contain scrollbar-hide">
           {/* Header with Photo */}
           {profile.photos?.[0] && (
             <div className="relative aspect-[4/5] w-full">
