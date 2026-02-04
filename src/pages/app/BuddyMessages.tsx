@@ -67,7 +67,12 @@ export default function BuddyMessages() {
     }
     const lastSeen = getLastSeen(userId);
     if (lastSeen) {
-      return `Active ${formatLastSeen(lastSeen)}`;
+      const formatted = formatLastSeen(lastSeen);
+      // Don't add "Active" prefix if formatLastSeen already includes it
+      if (formatted.startsWith('Active')) {
+        return formatted;
+      }
+      return `Active ${formatted}`;
     }
     return '';
   };
