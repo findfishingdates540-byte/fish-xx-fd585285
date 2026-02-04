@@ -106,29 +106,38 @@ export default function BuddyMessages() {
         </div>
       </div>
 
-      {/* Message Requests Section */}
-      {messageRequests.length > 0 && (
-        <div className="border-b border-border">
-          <button
-            onClick={() => setShowRequests(!showRequests)}
-            className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-sm">Message Requests</span>
+      {/* Message Requests Section - Always visible */}
+      <div className="border-b border-border">
+        <button
+          onClick={() => setShowRequests(!showRequests)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-sm">Message Requests</span>
+            {messageRequests.length > 0 && (
               <Badge variant="secondary" className="bg-primary text-primary-foreground text-xs">
                 {messageRequests.length}
               </Badge>
-            </div>
-            <ChevronRight className={cn(
-              "h-4 w-4 text-muted-foreground transition-transform",
-              showRequests && "rotate-90"
-            )} />
-          </button>
-          
-          {showRequests && (
-            <div className="bg-muted/30">
-              {messageRequests.map((request) => (
+            )}
+          </div>
+          <ChevronRight className={cn(
+            "h-4 w-4 text-muted-foreground transition-transform",
+            showRequests && "rotate-90"
+          )} />
+        </button>
+        
+        {showRequests && (
+          <div className="bg-muted/30">
+            {messageRequests.length === 0 ? (
+              <div className="px-4 py-6 text-center">
+                <p className="text-sm text-muted-foreground">No message requests</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  When someone who isn't your buddy messages you, it'll appear here
+                </p>
+              </div>
+            ) : (
+              messageRequests.map((request) => (
                 <div
                   key={request.buddyId}
                   className="flex items-center gap-3 p-4 border-b border-border/50 last:border-b-0"
@@ -168,11 +177,11 @@ export default function BuddyMessages() {
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Conversation List */}
       <ScrollArea className="flex-1">
