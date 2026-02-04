@@ -1,17 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, MessageCircle, Fish, Users } from 'lucide-react';
+import { Search, MessageCircle, Fish, Users, ChevronRight, Check, X, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useBuddyConversations } from '@/hooks/use-buddy-conversations';
-import { useState } from 'react';
+import { useMessageRequests, useAcceptMessageRequest, useDeclineMessageRequest } from '@/hooks/use-message-requests';
 
 export default function BuddyMessages() {
   const { buddyId } = useParams<{ buddyId?: string }>();
@@ -19,8 +19,12 @@ export default function BuddyMessages() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showRequests, setShowRequests] = useState(false);
 
   const { conversations, isLoading } = useBuddyConversations();
+  const { data: messageRequests = [], isLoading: requestsLoading } = useMessageRequests();
+  const acceptRequest = useAcceptMessageRequest();
+  const declineRequest = useDeclineMessageRequest();
 
   // Get online status for all buddies
   const buddyUserIds = useMemo(() => conversations.map(c => c.buddyUserId), [conversations]);
@@ -101,6 +105,74 @@ export default function BuddyMessages() {
           />
         </div>
       </div>
+
+      {/* Message Requests Section */}
+      {messageRequests.length > 0 && (
+        <div className="border-b border-border">
+          <button
+            onClick={() => setShowRequests(!showRequests)}
+            className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-sm">Message Requests</span>
+              <Badge variant="secondary" className="bg-primary text-primary-foreground text-xs">
+                {messageRequests.length}
+              </Badge>
+            </div>
+            <ChevronRight className={cn(
+              "h-4 w-4 text-muted-foreground transition-transform",
+              showRequests && "rotate-90"
+            )} />
+          </button>
+          
+          {showRequests && (
+            <div className="bg-muted/30">
+              {messageRequests.map((request) => (
+                <div
+                  key={request.buddyId}
+                  className="flex items-center gap-3 p-4 border-b border-border/50 last:border-b-0"
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={request.requesterPhoto} className="object-cover" />
+                    <AvatarFallback>
+                      {request.requesterName?.charAt(0)?.toUpperCase() || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{request.requesterName}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {request.messageCount} message{request.messageCount > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => declineRequest.mutate(request.buddyId)}
+                      disabled={declineRequest.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                      onClick={() => acceptRequest.mutate(request.buddyId)}
+                      disabled={acceptRequest.isPending}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Conversation List */}
       <ScrollArea className="flex-1">
