@@ -5,13 +5,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, MessageCircle, Fish, Users, ChevronRight, Check, X, Mail } from 'lucide-react';
+import { Search, MessageCircle, Fish, Users, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useBuddyConversations } from '@/hooks/use-buddy-conversations';
 import { useMessageRequests, useAcceptMessageRequest, useDeclineMessageRequest } from '@/hooks/use-message-requests';
+import { OnlineBuddiesRow } from '@/components/messages/OnlineBuddiesRow';
+import { Check, X } from 'lucide-react';
+
+type TabType = 'primary' | 'general' | 'requests';
 
 export default function BuddyMessages() {
   const { buddyId } = useParams<{ buddyId?: string }>();
@@ -19,7 +23,7 @@ export default function BuddyMessages() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showRequests, setShowRequests] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('primary');
 
   const { conversations, isLoading } = useBuddyConversations();
   const { data: messageRequests = [], isLoading: requestsLoading } = useMessageRequests();
@@ -30,23 +34,35 @@ export default function BuddyMessages() {
   const buddyUserIds = useMemo(() => conversations.map(c => c.buddyUserId), [conversations]);
   const { isOnline, getLastSeen } = useOnlineStatus(buddyUserIds);
 
-  const formatTime = (dateStr: string | null) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (days === 1) {
-      return 'Yesterday';
-    } else if (days < 7) {
-      return date.toLocaleDateString([], { weekday: 'short' });
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  // Format activity status
+  const formatActivityStatus = (userId: string) => {
+    if (isOnline(userId)) {
+      return 'Active now';
     }
+    const lastSeen = getLastSeen(userId);
+    if (lastSeen) {
+      return `Active ${formatLastSeen(lastSeen)}`;
+    }
+    return '';
   };
+
+  // Online buddies for the top row
+  const onlineBuddies = useMemo(() => 
+    conversations
+      .filter(conv => isOnline(conv.buddyUserId))
+      .map(conv => ({
+        buddyId: conv.buddyId,
+        displayName: conv.displayName || 'Unknown',
+        photo: conv.photo || '',
+      })),
+    [conversations, isOnline]
+  );
+
+  // Count unread messages for Primary tab badge
+  const primaryUnreadCount = useMemo(() => 
+    conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0),
+    [conversations]
+  );
 
   const filteredConversations = conversations.filter(conv =>
     conv.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,7 +85,7 @@ export default function BuddyMessages() {
   }
 
   // Empty state
-  if (conversations.length === 0) {
+  if (conversations.length === 0 && messageRequests.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-8 text-center">
         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -87,185 +103,212 @@ export default function BuddyMessages() {
     );
   }
 
+  // Filter Tabs Component
+  const FilterTabs = () => (
+    <div className="flex gap-2 px-4 py-3 border-b border-border overflow-x-auto">
+      <Button
+        variant={activeTab === 'primary' ? 'default' : 'secondary'}
+        size="sm"
+        className={cn(
+          "rounded-full gap-1.5 flex-shrink-0",
+          activeTab === 'primary' && "bg-foreground text-background hover:bg-foreground/90"
+        )}
+        onClick={() => setActiveTab('primary')}
+      >
+        {activeTab === 'primary' && (
+          <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+        )}
+        Primary
+        {primaryUnreadCount > 0 && (
+          <span className="text-xs">{primaryUnreadCount}</span>
+        )}
+      </Button>
+      <Button
+        variant={activeTab === 'general' ? 'default' : 'secondary'}
+        size="sm"
+        className={cn(
+          "rounded-full flex-shrink-0",
+          activeTab === 'general' && "bg-foreground text-background hover:bg-foreground/90"
+        )}
+        onClick={() => setActiveTab('general')}
+      >
+        General
+      </Button>
+      <Button
+        variant={activeTab === 'requests' ? 'default' : 'secondary'}
+        size="sm"
+        className={cn(
+          "rounded-full flex-shrink-0",
+          activeTab === 'requests' && "bg-foreground text-background hover:bg-foreground/90"
+        )}
+        onClick={() => setActiveTab('requests')}
+      >
+        Requests
+        {messageRequests.length > 0 && (
+          <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-primary text-primary-foreground">
+            {messageRequests.length}
+          </Badge>
+        )}
+      </Button>
+    </div>
+  );
+
+  // Requests Content
+  const RequestsContent = () => (
+    <div className="flex-1 overflow-y-auto">
+      {messageRequests.length === 0 ? (
+        <div className="px-4 py-12 text-center">
+          <p className="text-muted-foreground">No message requests</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            When someone who isn't your buddy messages you, it'll appear here
+          </p>
+        </div>
+      ) : (
+        messageRequests.map((request) => (
+          <div
+            key={request.buddyId}
+            className="flex items-center gap-3 p-4 border-b border-border"
+          >
+            <Avatar className="h-14 w-14">
+              <AvatarImage src={request.requesterPhoto} className="object-cover" />
+              <AvatarFallback>
+                {request.requesterName?.charAt(0)?.toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{request.requesterName}</p>
+              <p className="text-sm text-muted-foreground">
+                {request.messageCount} message{request.messageCount > 1 ? 's' : ''}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => declineRequest.mutate(request.buddyId)}
+                disabled={declineRequest.isPending}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 text-primary hover:text-primary hover:bg-primary/10"
+                onClick={() => acceptRequest.mutate(request.buddyId)}
+                disabled={acceptRequest.isPending}
+              >
+                <Check className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
   // Conversation List Component
   const ConversationListPanel = () => (
     <div className={cn(
       "flex flex-col bg-background border-r border-border",
       isMobile ? "w-full h-full" : "w-80 lg:w-96 flex-shrink-0"
     )}>
-      {/* Search - hidden on mobile */}
-      <div className="p-4 border-b border-border hidden lg:block">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search buddies..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      {/* Search with Filter button */}
+      <div className="p-4 border-b border-border">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-muted border-0 rounded-xl"
+            />
+          </div>
+          <Button variant="ghost" size="sm" className="text-primary font-semibold">
+            Filter
+          </Button>
         </div>
       </div>
 
-      {/* Message Requests Section - Always visible */}
-      <div className="border-b border-border">
-        <button
-          onClick={() => setShowRequests(!showRequests)}
-          className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-sm">Message Requests</span>
-            {messageRequests.length > 0 && (
-              <Badge variant="secondary" className="bg-primary text-primary-foreground text-xs">
-                {messageRequests.length}
-              </Badge>
-            )}
-          </div>
-          <ChevronRight className={cn(
-            "h-4 w-4 text-muted-foreground transition-transform",
-            showRequests && "rotate-90"
-          )} />
-        </button>
-        
-        {showRequests && (
-          <div className="bg-muted/30">
-            {messageRequests.length === 0 ? (
-              <div className="px-4 py-6 text-center">
-                <p className="text-sm text-muted-foreground">No message requests</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  When someone who isn't your buddy messages you, it'll appear here
-                </p>
+      {/* Online Buddies Row */}
+      <OnlineBuddiesRow 
+        buddies={onlineBuddies} 
+        onSelect={handleSelectConversation} 
+      />
+
+      {/* Filter Tabs */}
+      <FilterTabs />
+
+      {/* Content based on active tab */}
+      {activeTab === 'requests' ? (
+        <RequestsContent />
+      ) : (
+        <ScrollArea className="flex-1">
+          <div className="divide-y divide-border">
+            {filteredConversations.length === 0 ? (
+              <div className="px-4 py-12 text-center">
+                <p className="text-muted-foreground">No conversations yet</p>
               </div>
             ) : (
-              messageRequests.map((request) => (
-                <div
-                  key={request.buddyId}
-                  className="flex items-center gap-3 p-4 border-b border-border/50 last:border-b-0"
-                >
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={request.requesterPhoto} className="object-cover" />
-                    <AvatarFallback>
-                      {request.requesterName?.charAt(0)?.toUpperCase() || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{request.requesterName}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {request.messageCount} message{request.messageCount > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => declineRequest.mutate(request.buddyId)}
-                      disabled={declineRequest.isPending}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
-                      onClick={() => acceptRequest.mutate(request.buddyId)}
-                      disabled={acceptRequest.isPending}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
+              filteredConversations.map((conv) => {
+                const online = isOnline(conv.buddyUserId);
+                const isSelected = !isMobile && buddyId === conv.buddyId;
+                const activityStatus = formatActivityStatus(conv.buddyUserId);
+                
+                return (
+                  <button
+                    key={conv.buddyId}
+                    onClick={() => handleSelectConversation(conv.buddyId)}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-accent/50",
+                      isSelected && "bg-accent"
+                    )}
+                  >
+                    {/* Avatar with online indicator */}
+                    <div className="relative flex-shrink-0">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage src={conv.photo} className="object-cover" />
+                        <AvatarFallback>
+                          {conv.displayName?.charAt(0)?.toUpperCase() || '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      {online && (
+                        <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-primary border-2 border-background" />
+                      )}
+                    </div>
 
-      {/* Conversation List */}
-      <ScrollArea className="flex-1">
-        <div className="divide-y divide-border">
-          {filteredConversations.map((conv) => {
-            const online = isOnline(conv.buddyUserId);
-            const lastSeen = getLastSeen(conv.buddyUserId);
-            const isSelected = !isMobile && buddyId === conv.buddyId;
-            
-            return (
-              <button
-                key={conv.buddyId}
-                onClick={() => handleSelectConversation(conv.buddyId)}
-                className={cn(
-                  "w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-accent/50",
-                  conv.unreadCount > 0 && "bg-accent/30",
-                  isSelected && "bg-accent"
-                )}
-              >
-                {/* Avatar with online indicator */}
-                <div className="relative flex-shrink-0">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={conv.photo} className="object-cover" />
-                    <AvatarFallback>
-                      {conv.displayName?.charAt(0)?.toUpperCase() || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className={cn(
-                    "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
-                    online ? "bg-green-500" : "bg-muted-foreground/30"
-                  )} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "font-semibold text-sm",
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "font-semibold truncate",
                         conv.unreadCount > 0 && "font-bold"
                       )}>
                         {conv.displayName}
-                      </span>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50">
-                        <Fish className="h-2.5 w-2.5 mr-0.5" />
-                        BUDDY
-                      </Badge>
+                      </p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {activityStatus}
+                      </p>
                     </div>
-                    {conv.lastMessageTime && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(conv.lastMessageTime)}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {!online && lastSeen && (
-                    <p className="text-xs text-muted-foreground mb-0.5">
-                      {formatLastSeen(lastSeen)}
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <p className={cn(
-                      "text-sm truncate pr-2",
-                      conv.unreadCount > 0 ? "text-foreground font-medium" : "text-muted-foreground"
-                    )}>
-                      {conv.lastMessageSenderId === user?.id && (
-                        <span className="text-muted-foreground">You: </span>
+
+                    {/* Right side: unread badge or camera icon */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {conv.unreadCount > 0 ? (
+                        <Badge className="bg-primary text-primary-foreground text-xs h-5 min-w-[20px] flex items-center justify-center">
+                          {conv.unreadCount}
+                        </Badge>
+                      ) : (
+                        <Camera className="h-5 w-5 text-muted-foreground" />
                       )}
-                      {conv.lastMessage || 'No messages yet'}
-                    </p>
-                    {conv.unreadCount > 0 ? (
-                      <Badge className="bg-primary text-primary-foreground text-xs h-5 min-w-[20px] flex items-center justify-center">
-                        {conv.unreadCount}
-                      </Badge>
-                    ) : conv.lastMessageSenderId === user?.id ? (
-                      <span className="text-sm flex-shrink-0" title="Sent">🎣</span>
-                    ) : null}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </ScrollArea>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </ScrollArea>
+      )}
     </div>
   );
 
