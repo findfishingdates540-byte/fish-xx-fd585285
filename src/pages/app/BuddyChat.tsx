@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -775,7 +775,7 @@ export default function BuddyChat() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
         )}
-        <div className="relative">
+        <Link to={`/app/profile/${buddyProfile?.id}`} className="relative">
           <Avatar className="h-10 w-10">
             <AvatarImage src={buddyProfile?.photos?.[0]} className="object-cover" />
             <AvatarFallback>{buddyProfile?.display_name?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
@@ -787,8 +787,8 @@ export default function BuddyChat() {
             isRecentlyActive(buddyLastSeen) ? "bg-yellow-500" :
             "bg-muted-foreground/30"
           )} />
-        </div>
-        <div className="flex-1">
+        </Link>
+        <Link to={`/app/profile/${buddyProfile?.id}`} className="flex-1">
           <h2 className="font-semibold flex items-center gap-1">
             {buddyProfile?.display_name || 'Anonymous'}
             <VerificationBadge 
@@ -810,7 +810,7 @@ export default function BuddyChat() {
               <><Fish className="w-3 h-3" />Fishing Buddy</>
             )}
           </p>
-        </div>
+        </Link>
         
         {/* Call buttons */}
         <div className="flex items-center gap-1">
