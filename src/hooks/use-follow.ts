@@ -9,17 +9,28 @@ export function useFollowStatus(userId: string | undefined) {
   return useQuery({
     queryKey: ['follow-status', user?.id, userId],
     queryFn: async () => {
-      if (!user?.id || !userId || user.id === userId) return { isFollowing: false };
+      if (!user?.id || !userId || user.id === userId) return { isFollowing: false, isFollowedBy: false };
       
-      const { data, error } = await supabase
+      // Check if current user follows this user
+      const { data: following } = await supabase
         .from('user_follows')
         .select('id')
         .eq('follower_id', user.id)
         .eq('following_id', userId)
         .maybeSingle();
       
-      if (error) throw error;
-      return { isFollowing: !!data };
+      // Check if this user follows current user
+      const { data: followedBy } = await supabase
+        .from('user_follows')
+        .select('id')
+        .eq('follower_id', userId)
+        .eq('following_id', user.id)
+        .maybeSingle();
+      
+      return { 
+        isFollowing: !!following, 
+        isFollowedBy: !!followedBy 
+      };
     },
     enabled: !!user?.id && !!userId && user.id !== userId,
   });
