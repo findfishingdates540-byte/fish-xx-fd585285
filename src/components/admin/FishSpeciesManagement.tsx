@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Fish, ImageOff } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Fish, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,11 +15,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useFishSpecies, useDeleteFishSpecies, type FishSpecies } from '@/hooks/use-fish-species';
 import { FishSpeciesDialog } from './FishSpeciesDialog';
+import { FishSpeciesImportDialog } from './FishSpeciesImportDialog';
 
 export function FishSpeciesManagement() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedSpecies, setSelectedSpecies] = useState<FishSpecies | null>(null);
 
   const { data: species, isLoading } = useFishSpecies();
@@ -66,6 +68,14 @@ export function FishSpeciesManagement() {
             className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
           />
         </div>
+        <Button
+          variant="outline"
+          onClick={() => setImportDialogOpen(true)}
+          className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-2"
+        >
+          <Upload className="w-4 h-4" />
+          Import
+        </Button>
         <Button
           onClick={handleAdd}
           className="bg-emerald-600 hover:bg-emerald-700 gap-2"
@@ -166,6 +176,12 @@ export function FishSpeciesManagement() {
         species={selectedSpecies}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+      />
+
+      {/* Import Dialog */}
+      <FishSpeciesImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
       />
 
       {/* Delete Confirmation */}
