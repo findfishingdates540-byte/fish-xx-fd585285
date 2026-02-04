@@ -12,6 +12,7 @@ import { FollowButton, ProfileStatsBar, ProfilePostsGrid, PostViewerOverlay } fr
 import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-user-posts';
 import { useBookmarkedPosts } from '@/hooks/use-bookmarks';
 import { useRepostedPosts } from '@/hooks/use-reposts';
+import { useFollowStatus } from '@/hooks/use-follow';
 import { ArrowLeft, MapPin, Grid3X3, AtSign, Share2, Settings, MessageCircle, Bookmark, Repeat2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getShareBaseUrl } from '@/lib/config';
@@ -62,7 +63,12 @@ export default function SocialProfile() {
     enabled: !!userId,
   });
   
-  // Fetch buddy status to enable messaging
+  // Fetch follow status for IG-style messaging
+  const { data: followData } = useFollowStatus(userId);
+  const isFollowing = followData?.isFollowing ?? false;
+  const isFollowedBy = followData?.isFollowedBy ?? false;
+  
+  // Fetch buddy status to enable messaging (for existing buddies)
   const { data: buddyStatus } = useQuery({
     queryKey: ['buddy-status', userId, user?.id],
     queryFn: async () => {
@@ -72,6 +78,7 @@ export default function SocialProfile() {
         .from('fishing_buddies')
         .select('id, status, requester_id, recipient_id')
         .or(`and(requester_id.eq.${user.id},recipient_id.eq.${userId}),and(requester_id.eq.${userId},recipient_id.eq.${user.id})`)
+        .eq('status', 'accepted')
         .maybeSingle();
       
       return data;
@@ -99,21 +106,76 @@ export default function SocialProfile() {
     }
   };
   
-  const handleMessage = () => {
+  const handleMessage = async () => {
     if (!user) {
       toast.error('Please sign in to send messages');
       return;
     }
     
-    if (buddyStatus?.status === 'accepted') {
-      // Navigate to existing buddy chat
+    // If already buddies, go to existing chat
+    if (buddyStatus?.id) {
       navigate(`/app/buddy-chat/${buddyStatus.id}`);
-    } else if (buddyStatus?.status === 'pending') {
-      toast.info('Buddy request is pending. You can message once they accept.');
-    } else {
-      // Navigate to their profile page where they can send a buddy request
-      navigate(`/app/profile/${userId}`);
-      toast.info('Send a buddy request to start messaging');
+      return;
+    }
+    
+    // IG-style: If mutual follow OR they follow you, allow direct messaging
+    // Otherwise it goes to message requests
+    const canMessageDirectly = isFollowing && isFollowedBy; // mutual follow
+    const isMessageRequest = !canMessageDirectly;
+    
+    // Create or find buddy connection for messaging
+    try {
+      // Check if there's any existing buddy relationship
+      const { data: existingBuddy } = await supabase
+        .from('fishing_buddies')
+        .select('id, status')
+        .or(`and(requester_id.eq.${user.id},recipient_id.eq.${userId}),and(requester_id.eq.${userId},recipient_id.eq.${user.id})`)
+        .maybeSingle();
+      
+      if (existingBuddy?.status === 'accepted') {
+        navigate(`/app/buddy-chat/${existingBuddy.id}`);
+        return;
+      }
+      
+      // Create a new buddy connection with appropriate status
+      const { data: newBuddy, error } = await supabase
+        .from('fishing_buddies')
+        .insert({
+          requester_id: user.id,
+          recipient_id: userId,
+          status: canMessageDirectly ? 'accepted' : 'pending', // Auto-accept for mutual followers
+          accepted_at: canMessageDirectly ? new Date().toISOString() : null
+        })
+        .select('id')
+        .single();
+      
+      if (error) {
+        if (error.code === '23505') {
+          // Duplicate - try to find existing
+          const { data: existing } = await supabase
+            .from('fishing_buddies')
+            .select('id, status')
+            .or(`and(requester_id.eq.${user.id},recipient_id.eq.${userId}),and(requester_id.eq.${userId},recipient_id.eq.${user.id})`)
+            .single();
+          
+          if (existing?.status === 'accepted') {
+            navigate(`/app/buddy-chat/${existing.id}`);
+          } else {
+            toast.info('Message request already sent');
+          }
+          return;
+        }
+        throw error;
+      }
+      
+      if (canMessageDirectly) {
+        navigate(`/app/buddy-chat/${newBuddy.id}`);
+      } else {
+        toast.success('Message request sent! They\'ll see it in their requests.');
+      }
+    } catch (error) {
+      console.error('Message error:', error);
+      toast.error('Failed to start conversation');
     }
   };
   
