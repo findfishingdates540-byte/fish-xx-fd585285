@@ -325,7 +325,7 @@ export default function BuddyMessages() {
       {activeTab === 'requests' ? (
         <RequestsContent />
       ) : (
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 scrollbar-hide">
           <div className="divide-y divide-border">
             {filteredConversations.length === 0 ? (
               <div className="px-4 py-12 text-center">
