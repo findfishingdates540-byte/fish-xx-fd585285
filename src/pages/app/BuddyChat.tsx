@@ -178,46 +178,49 @@ export default function BuddyChat() {
     };
   }, [buddyId, user?.id, buddyProfile?.id]);
 
-  // Subscribe to messages
+  // Subscribe to messages with immediate subscription
   useEffect(() => {
     if (!buddyId || !user) return;
 
+    // Create a unique channel name per mount to avoid stale subscriptions
+    const channelName = `buddy-messages-${buddyId}-${Date.now()}`;
+    
     const channel = supabase
-      .channel(`buddy-messages-${buddyId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'buddy_messages',
           filter: `buddy_id=eq.${buddyId}`
         },
         (payload) => {
-          const newMsg = payload.new as Message;
-          setMessages(prev => [...prev, newMsg]);
-          fetchSharedContent([newMsg]);
-          if (newMsg.sender_id !== user.id) {
-            markMessagesAsDelivered();
-            markMessagesAsRead();
+          if (payload.eventType === 'INSERT') {
+            const newMsg = payload.new as Message;
+            setMessages(prev => {
+              // Prevent duplicates
+              if (prev.some(m => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
+            fetchSharedContent([newMsg]);
+            if (newMsg.sender_id !== user.id) {
+              markMessagesAsDelivered();
+              markMessagesAsRead();
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedMsg = payload.new as Message;
+            setMessages(prev => prev.map(msg => 
+              msg.id === updatedMsg.id ? updatedMsg : msg
+            ));
           }
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'buddy_messages',
-          filter: `buddy_id=eq.${buddyId}`
-        },
-        (payload) => {
-          const updatedMsg = payload.new as Message;
-          setMessages(prev => prev.map(msg => 
-            msg.id === updatedMsg.id ? updatedMsg : msg
-          ));
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[BuddyChat] Realtime subscription active');
         }
-      )
-      .subscribe();
+      });
 
     return () => {
       supabase.removeChannel(channel);

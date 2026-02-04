@@ -114,57 +114,58 @@ export function useDatingChat(matchId: string | undefined) {
     };
   }, [matchId, user?.id, matchProfile?.id]);
 
-  // Subscribe to real-time message updates
+  // Subscribe to real-time message updates with immediate subscription
   useEffect(() => {
     if (!matchId || !user) return;
 
+    // Create a unique channel name per mount to avoid stale subscriptions
+    const channelName = `dating-messages-${matchId}-${Date.now()}`;
+    
     const channel = supabase
-      .channel(`dating-messages-${matchId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'messages',
           filter: `match_id=eq.${matchId}`
         },
         (payload) => {
-          const newMsg = payload.new as Message;
-          // Optimistically update cache
-          queryClient.setQueryData(['dating-chat', matchId], (old: any) => {
-            if (!old) return old;
-            return {
-              ...old,
-              messages: [...old.messages, newMsg],
-            };
-          });
-          if (newMsg.sender_id !== user.id) {
-            markMessagesAsRead();
+          if (payload.eventType === 'INSERT') {
+            const newMsg = payload.new as Message;
+            // Optimistically update cache, preventing duplicates
+            queryClient.setQueryData(['dating-chat', matchId], (old: any) => {
+              if (!old) return old;
+              // Check if message already exists
+              if (old.messages.some((m: Message) => m.id === newMsg.id)) return old;
+              return {
+                ...old,
+                messages: [...old.messages, newMsg],
+              };
+            });
+            if (newMsg.sender_id !== user.id) {
+              markMessagesAsRead();
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedMsg = payload.new as Message;
+            queryClient.setQueryData(['dating-chat', matchId], (old: any) => {
+              if (!old) return old;
+              return {
+                ...old,
+                messages: old.messages.map((msg: Message) =>
+                  msg.id === updatedMsg.id ? updatedMsg : msg
+                ),
+              };
+            });
           }
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `match_id=eq.${matchId}`
-        },
-        (payload) => {
-          const updatedMsg = payload.new as Message;
-          queryClient.setQueryData(['dating-chat', matchId], (old: any) => {
-            if (!old) return old;
-            return {
-              ...old,
-              messages: old.messages.map((msg: Message) =>
-                msg.id === updatedMsg.id ? updatedMsg : msg
-              ),
-            };
-          });
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[DatingChat] Realtime subscription active');
         }
-      )
-      .subscribe();
+      });
 
     return () => {
       supabase.removeChannel(channel);
