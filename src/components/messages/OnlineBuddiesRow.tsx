@@ -25,7 +25,7 @@ export function OnlineBuddiesRow({ buddies, onSelect, currentUser }: OnlineBuddi
           {currentUser && (
             <div className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
               <div className="relative">
-                <div className="rounded-full p-[2px] bg-gradient-to-tr from-primary to-primary/80">
+                <div className="rounded-full p-[2px] bg-gradient-to-tr from-green-400 to-green-500">
                   <Avatar className="h-14 w-14 border-2 border-background">
                     <AvatarImage src={currentUser.photo} className="object-cover" />
                     <AvatarFallback className="text-sm font-medium">
@@ -34,7 +34,7 @@ export function OnlineBuddiesRow({ buddies, onSelect, currentUser }: OnlineBuddi
                   </Avatar>
                 </div>
                 {/* Online indicator for current user */}
-                <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-primary border-2 border-background" />
+                <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-background" />
               </div>
               <span className="text-xs text-muted-foreground max-w-[56px] truncate">
                 Your note
@@ -50,7 +50,7 @@ export function OnlineBuddiesRow({ buddies, onSelect, currentUser }: OnlineBuddi
               className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0"
             >
               <div className="relative">
-                <div className="rounded-full p-[2px] bg-gradient-to-tr from-primary to-primary/80">
+                <div className="rounded-full p-[2px] bg-gradient-to-tr from-green-400 to-green-500">
                   <Avatar className="h-14 w-14 border-2 border-background">
                     <AvatarImage src={buddy.photo} className="object-cover" />
                     <AvatarFallback className="text-sm font-medium">
@@ -58,7 +58,7 @@ export function OnlineBuddiesRow({ buddies, onSelect, currentUser }: OnlineBuddi
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-primary border-2 border-background" />
+                <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-background" />
               </div>
               <span className="text-xs text-muted-foreground max-w-[56px] truncate">
                 {buddy.displayName}
