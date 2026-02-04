@@ -278,8 +278,8 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 px-4">
-        <Link to="/app" className="font-bold text-lg tracking-tight">
-          FFD
+        <Link to="/app" className="flex items-center">
+          <img src="/favicon.png" alt="FFD" className="h-8 w-8" />
         </Link>
 
         <div className="flex items-center gap-2">
