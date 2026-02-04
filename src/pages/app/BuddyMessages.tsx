@@ -123,12 +123,12 @@ export default function BuddyMessages() {
 
   // Filter Tabs Component
   const FilterTabs = () => (
-    <div className="flex gap-2 px-4 py-3 border-b border-border overflow-x-auto">
+    <div className="flex gap-2 px-4 py-3 border-b border-border">
       <Button
         variant={activeTab === 'primary' ? 'default' : 'secondary'}
         size="sm"
         className={cn(
-          "rounded-full gap-1.5 flex-shrink-0",
+          "flex-1 rounded-lg gap-1.5 justify-center",
           activeTab === 'primary' && "bg-foreground text-background hover:bg-foreground/90"
         )}
         onClick={() => setActiveTab('primary')}
@@ -145,7 +145,7 @@ export default function BuddyMessages() {
         variant={activeTab === 'general' ? 'default' : 'secondary'}
         size="sm"
         className={cn(
-          "rounded-full flex-shrink-0",
+          "flex-1 rounded-lg justify-center",
           activeTab === 'general' && "bg-foreground text-background hover:bg-foreground/90"
         )}
         onClick={() => setActiveTab('general')}
@@ -156,7 +156,7 @@ export default function BuddyMessages() {
         variant={activeTab === 'requests' ? 'default' : 'secondary'}
         size="sm"
         className={cn(
-          "rounded-full flex-shrink-0",
+          "flex-1 rounded-lg justify-center",
           activeTab === 'requests' && "bg-foreground text-background hover:bg-foreground/90"
         )}
         onClick={() => setActiveTab('requests')}
