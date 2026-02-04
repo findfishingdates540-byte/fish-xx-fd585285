@@ -30,19 +30,25 @@ export function MentionText({ content, className }: MentionTextProps) {
       const map: Record<string, string> = {};
       
       for (const username of uniqueMentions) {
+        const lowerUsername = username.toLowerCase();
         const underscoreToSpace = username.replace(/_/g, ' ');
         const camelToWildcard = username.replace(/([a-z])([A-Z])/g, '$1%$2');
+        const noSpacesPattern = username.replace(/\s+/g, '');
 
         // We store mentions without spaces (CreatePostDialog/CommentSheet) so we need
         // patterns that can match display_name that may include spaces.
         const patterns = Array.from(
           new Set([
             username, // exact
+            lowerUsername, // lowercase exact
             `${username}%`, // prefix
+            `${lowerUsername}%`, // lowercase prefix
             underscoreToSpace,
             `${underscoreToSpace}%`,
             camelToWildcard,
             `${camelToWildcard}%`,
+            noSpacesPattern,
+            `${noSpacesPattern}%`,
           ])
         );
 
@@ -56,7 +62,7 @@ export function MentionText({ content, className }: MentionTextProps) {
           .maybeSingle();
 
         if (data?.id) {
-          map[username.toLowerCase()] = data.id;
+          map[lowerUsername] = data.id;
         }
       }
       
