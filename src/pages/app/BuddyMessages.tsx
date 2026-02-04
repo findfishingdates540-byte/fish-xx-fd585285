@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams, Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,22 @@ export default function BuddyMessages() {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('primary');
+
+  // Fetch current user's profile for the online row
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name, photos')
+        .eq('id', user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   const { conversations, isLoading } = useBuddyConversations();
   const { data: messageRequests = [], isLoading: requestsLoading } = useMessageRequests();
@@ -236,7 +254,11 @@ export default function BuddyMessages() {
       {/* Online Buddies Row */}
       <OnlineBuddiesRow 
         buddies={onlineBuddies} 
-        onSelect={handleSelectConversation} 
+        onSelect={handleSelectConversation}
+        currentUser={currentUserProfile ? {
+          name: currentUserProfile.display_name || 'You',
+          photo: currentUserProfile.photos?.[0] || '',
+        } : undefined}
       />
 
       {/* Filter Tabs */}
