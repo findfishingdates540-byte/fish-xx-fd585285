@@ -47,13 +47,17 @@ export function useBuddyConversations() {
   });
 
   // Debounced invalidation to prevent rapid re-fetches
-  const debouncedInvalidate = () => {
+  const debouncedInvalidate = (immediate = false) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    debounceTimerRef.current = setTimeout(() => {
+    if (immediate) {
       queryClient.invalidateQueries({ queryKey: ['buddy-conversations', user?.id] });
-    }, 1000); // Wait 1 second before refetching
+    } else {
+      debounceTimerRef.current = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['buddy-conversations', user?.id] });
+      }, 300); // Reduced to 300ms for faster updates
+    }
   };
 
   // Real-time subscription for new messages
@@ -74,7 +78,8 @@ export function useBuddyConversations() {
           if (payload.new && payload.new.sender_id !== user.id) {
             playNotificationSound();
           }
-          debouncedInvalidate();
+          // Always invalidate on new messages (including own sent messages)
+          debouncedInvalidate(true);
         }
       )
       .on(
@@ -84,12 +89,9 @@ export function useBuddyConversations() {
           schema: 'public',
           table: 'buddy_messages',
         },
-        (payload) => {
-          const updatedMessage = payload.new as { sender_id?: string };
-          // Only refresh for read receipts on our sent messages
-          if (updatedMessage.sender_id === user.id) {
-            debouncedInvalidate();
-          }
+        () => {
+          // Refresh on any update (read receipts, deletions, etc.)
+          debouncedInvalidate();
         }
       )
       .subscribe();

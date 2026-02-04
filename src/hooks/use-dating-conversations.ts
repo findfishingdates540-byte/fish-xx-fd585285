@@ -64,13 +64,17 @@ export function useDatingConversations() {
   });
 
   // Debounced invalidation to prevent rapid re-fetches
-  const debouncedInvalidate = () => {
+  const debouncedInvalidate = (immediate = false) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    debounceTimerRef.current = setTimeout(() => {
+    if (immediate) {
       queryClient.invalidateQueries({ queryKey: ['dating-conversations', user?.id] });
-    }, 1000); // Wait 1 second before refetching
+    } else {
+      debounceTimerRef.current = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['dating-conversations', user?.id] });
+      }, 300); // Reduced to 300ms for faster updates
+    }
   };
 
   // Subscribe to new messages for real-time updates
@@ -86,12 +90,9 @@ export function useDatingConversations() {
           schema: 'public',
           table: 'messages',
         },
-        (payload) => {
-          const newMessage = payload.new as { sender_id?: string };
-          // Only refresh if the message is from someone else (incoming message)
-          if (newMessage.sender_id !== user.id) {
-            debouncedInvalidate();
-          }
+        () => {
+          // Always refresh on new messages (including own sent messages)
+          debouncedInvalidate(true);
         }
       )
       .on(
@@ -101,13 +102,9 @@ export function useDatingConversations() {
           schema: 'public',
           table: 'messages',
         },
-        (payload) => {
-          const oldMessage = payload.old as { is_read?: boolean };
-          const newMessage = payload.new as { is_read?: boolean };
-          // Refresh on any read status change (handles both incoming read receipts and our own reads)
-          if (oldMessage.is_read !== newMessage.is_read) {
-            debouncedInvalidate();
-          }
+        () => {
+          // Refresh on any update (read receipts, deletions, etc.)
+          debouncedInvalidate();
         }
       )
       .subscribe();
