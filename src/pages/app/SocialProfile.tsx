@@ -118,14 +118,8 @@ export default function SocialProfile() {
       return;
     }
     
-    // IG-style: If mutual follow OR they follow you, allow direct messaging
-    // Otherwise it goes to message requests
-    const canMessageDirectly = isFollowing && isFollowedBy; // mutual follow
-    const isMessageRequest = !canMessageDirectly;
-    
-    // Create or find buddy connection for messaging
+    // Check for any existing buddy relationship (including pending)
     try {
-      // Check if there's any existing buddy relationship
       const { data: existingBuddy } = await supabase
         .from('fishing_buddies')
         .select('id, status')
@@ -137,42 +131,37 @@ export default function SocialProfile() {
         return;
       }
       
-      // Create a new buddy connection with appropriate status
+      if (existingBuddy?.status === 'pending') {
+        // Already has a pending request
+        if (existingBuddy) {
+          // Navigate to the chat anyway - it will show as a request
+          navigate(`/app/buddy-chat/${existingBuddy.id}`);
+        }
+        return;
+      }
+      
+      // Create a new pending buddy connection (message request)
       const { data: newBuddy, error } = await supabase
         .from('fishing_buddies')
         .insert({
           requester_id: user.id,
           recipient_id: userId,
-          status: canMessageDirectly ? 'accepted' : 'pending', // Auto-accept for mutual followers
-          accepted_at: canMessageDirectly ? new Date().toISOString() : null
+          status: 'pending'
         })
         .select('id')
         .single();
       
       if (error) {
         if (error.code === '23505') {
-          // Duplicate - try to find existing
-          const { data: existing } = await supabase
-            .from('fishing_buddies')
-            .select('id, status')
-            .or(`and(requester_id.eq.${user.id},recipient_id.eq.${userId}),and(requester_id.eq.${userId},recipient_id.eq.${user.id})`)
-            .single();
-          
-          if (existing?.status === 'accepted') {
-            navigate(`/app/buddy-chat/${existing.id}`);
-          } else {
-            toast.info('Message request already sent');
-          }
+          toast.info('Message request already sent');
           return;
         }
         throw error;
       }
       
-      if (canMessageDirectly) {
-        navigate(`/app/buddy-chat/${newBuddy.id}`);
-      } else {
-        toast.success('Message request sent! They\'ll see it in their requests.');
-      }
+      // Navigate to chat - they can send a message which becomes a request
+      navigate(`/app/buddy-chat/${newBuddy.id}`);
+      toast.success('Message request sent! They\'ll see it in their requests.');
     } catch (error) {
       console.error('Message error:', error);
       toast.error('Failed to start conversation');
