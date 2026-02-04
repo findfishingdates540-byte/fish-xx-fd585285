@@ -314,16 +314,14 @@ export default function BuddyMessages() {
                       </p>
                     </div>
 
-                    {/* Right side: unread badge or camera icon */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {conv.unreadCount > 0 ? (
+                    {/* Right side: unread badge */}
+                    {conv.unreadCount > 0 && (
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge className="bg-primary text-primary-foreground text-xs h-5 min-w-[20px] flex items-center justify-center">
                           {conv.unreadCount}
                         </Badge>
-                      ) : (
-                        <Camera className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </button>
                 );
               })
