@@ -62,6 +62,23 @@ export default function SocialProfile() {
     enabled: !!userId,
   });
   
+  // Fetch buddy status to enable messaging
+  const { data: buddyStatus } = useQuery({
+    queryKey: ['buddy-status', userId, user?.id],
+    queryFn: async () => {
+      if (!user || !userId || isOwnProfile) return null;
+      
+      const { data } = await supabase
+        .from('fishing_buddies')
+        .select('id, status, requester_id, recipient_id')
+        .or(`and(requester_id.eq.${user.id},recipient_id.eq.${userId}),and(requester_id.eq.${userId},recipient_id.eq.${user.id})`)
+        .maybeSingle();
+      
+      return data;
+    },
+    enabled: !!userId && !!user && !isOwnProfile,
+  });
+  
   // Fetch user's posts
   const { data: posts = [], isLoading: postsLoading } = useUserPosts(userId);
   const { data: postsCount = 0 } = useUserPostsCount(userId);
@@ -83,8 +100,21 @@ export default function SocialProfile() {
   };
   
   const handleMessage = () => {
-    // Navigate to messages - would need to find/create conversation
-    toast.info('Messaging coming soon');
+    if (!user) {
+      toast.error('Please sign in to send messages');
+      return;
+    }
+    
+    if (buddyStatus?.status === 'accepted') {
+      // Navigate to existing buddy chat
+      navigate(`/app/buddy-chat/${buddyStatus.id}`);
+    } else if (buddyStatus?.status === 'pending') {
+      toast.info('Buddy request is pending. You can message once they accept.');
+    } else {
+      // Navigate to their profile page where they can send a buddy request
+      navigate(`/app/profile/${userId}`);
+      toast.info('Send a buddy request to start messaging');
+    }
   };
   
   if (profileLoading) {
