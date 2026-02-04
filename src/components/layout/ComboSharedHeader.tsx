@@ -17,7 +17,7 @@ export function ComboSharedHeader() {
         </div>
         
         <Link to="/app/dashboard" className="flex items-center">
-          <span className="font-bold text-xl tracking-tight">FFD</span>
+          <img src={logo} alt="FFD" className="h-10 w-auto" />
         </Link>
       </div>
     </header>
