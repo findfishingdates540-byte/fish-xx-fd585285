@@ -117,6 +117,7 @@ export function useOnlinePresence() {
 export function useOnlineStatus(userIds: string[]) {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [lastSeenMap, setLastSeenMap] = useState<Map<string, string>>(new Map());
+  const [recentlyActiveUsers, setRecentlyActiveUsers] = useState<Set<string>>(new Set());
   const userIdsRef = useRef<string[]>(userIds);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -138,7 +139,7 @@ export function useOnlineStatus(userIds: string[]) {
       if (data) {
         const map = new Map<string, string>();
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-        const recentlyActiveUsers = new Set<string>();
+        const recentlyActive = new Set<string>();
         
         data.forEach(profile => {
           if (profile.last_active_at) {
@@ -146,17 +147,12 @@ export function useOnlineStatus(userIds: string[]) {
             // Check if user was active within last 5 minutes (same as Discover sidebar)
             const lastActive = new Date(profile.last_active_at);
             if (lastActive > fiveMinutesAgo) {
-              recentlyActiveUsers.add(profile.id);
+              recentlyActive.add(profile.id);
             }
           }
         });
         setLastSeenMap(map);
-        // Merge with presence-based online users
-        setOnlineUsers(prev => {
-          const merged = new Set(prev);
-          recentlyActiveUsers.forEach(id => merged.add(id));
-          return merged;
-        });
+        setRecentlyActiveUsers(recentlyActive);
       }
     };
 
@@ -167,30 +163,45 @@ export function useOnlineStatus(userIds: string[]) {
     return () => clearInterval(interval);
   }, [userIds.join(',')]);
 
-  // Process presence state and update online users
+  // Process presence state and update online users (merge with recently active)
   const processPresenceState = useCallback((state: Record<string, unknown[]>) => {
-    const online = new Set<string>();
+    const presenceOnline = new Set<string>();
     const currentUserIds = userIdsRef.current;
     
     Object.keys(state).forEach(presenceKey => {
       // Check if this key matches any user we're tracking
       if (currentUserIds.includes(presenceKey)) {
-        online.add(presenceKey);
+        presenceOnline.add(presenceKey);
       } else {
         // Also check presence payload for user_id field
         const presences = state[presenceKey] as unknown as PresenceState[];
         presences?.forEach(presence => {
           if (presence.user_id && currentUserIds.includes(presence.user_id)) {
-            online.add(presence.user_id);
+            presenceOnline.add(presence.user_id);
           }
         });
       }
     });
     
-    setOnlineUsers(online);
-  }, []);
+    // Merge presence-based online with recently active users from DB
+    setOnlineUsers(prev => {
+      const merged = new Set(presenceOnline);
+      recentlyActiveUsers.forEach(id => merged.add(id));
+      return merged;
+    });
+  }, [recentlyActiveUsers]);
 
-  // Subscribe to presence channel once on mount
+  // Sync onlineUsers when recentlyActiveUsers changes
+  useEffect(() => {
+    if (recentlyActiveUsers.size > 0) {
+      setOnlineUsers(prev => {
+        const merged = new Set(prev);
+        recentlyActiveUsers.forEach(id => merged.add(id));
+        return merged;
+      });
+    }
+  }, [recentlyActiveUsers]);
+
   useEffect(() => {
     // Create a unique listener key to avoid conflicts
     const listenerKey = `listener-${Math.random().toString(36).slice(2)}`;
