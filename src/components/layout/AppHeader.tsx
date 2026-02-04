@@ -278,9 +278,9 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
-      <div className="flex items-center justify-between h-14 px-4">
+      <div className="flex items-center justify-between h-14 pl-2 pr-4">
         <Link to="/app" className="flex items-center">
-          <img src={fishingHeaderLogo} alt="Fishon" className="h-10 w-auto" />
+          <img src={fishingHeaderLogo} alt="Fishon" className="h-7 w-auto" />
         </Link>
 
         <div className="flex items-center gap-2">
