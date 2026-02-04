@@ -196,7 +196,7 @@ export function useFeedPosts() {
         nextPage: posts && posts.length === POSTS_PER_PAGE ? pageParam + 1 : undefined
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
+    getNextPageParam: (lastPage) => lastPage?.nextPage,
   });
 }
 
@@ -336,7 +336,7 @@ export function useFollowingFeedPosts() {
         nextPage: posts && posts.length === POSTS_PER_PAGE ? pageParam + 1 : undefined
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
+    getNextPageParam: (lastPage) => lastPage?.nextPage,
     enabled: !!user?.id,
   });
 }
