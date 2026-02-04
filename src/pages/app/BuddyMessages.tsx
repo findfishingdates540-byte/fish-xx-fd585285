@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, MessageCircle, Fish, Users, Camera } from 'lucide-react';
+import { Search, MessageCircle, Fish, Users, Camera, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, formatLastSeen } from '@/hooks/use-online-presence';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,8 +16,15 @@ import { useBuddyConversations } from '@/hooks/use-buddy-conversations';
 import { useMessageRequests, useAcceptMessageRequest, useDeclineMessageRequest } from '@/hooks/use-message-requests';
 import { OnlineBuddiesRow } from '@/components/messages/OnlineBuddiesRow';
 import { Check, X } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type TabType = 'primary' | 'general' | 'requests';
+type FilterType = 'all' | 'unread' | 'unanswered';
 
 export default function BuddyMessages() {
   const { buddyId } = useParams<{ buddyId?: string }>();
@@ -26,6 +33,7 @@ export default function BuddyMessages() {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('primary');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   // Fetch current user's profile for the online row
   const { data: currentUserProfile } = useQuery({
@@ -82,9 +90,21 @@ export default function BuddyMessages() {
     [conversations]
   );
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = useMemo(() => {
+    let result = conversations.filter(conv =>
+      conv.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    // Apply filter
+    if (activeFilter === 'unread') {
+      result = result.filter(conv => conv.unreadCount > 0);
+    } else if (activeFilter === 'unanswered') {
+      // Unanswered = last message was from them (not from current user)
+      result = result.filter(conv => conv.lastMessageSenderId !== user?.id && conv.lastMessage);
+    }
+    
+    return result;
+  }, [conversations, searchQuery, activeFilter, user?.id]);
 
   const handleSelectConversation = (id: string) => {
     if (isMobile) {
@@ -245,9 +265,41 @@ export default function BuddyMessages() {
               className="pl-10 bg-muted border-0 rounded-xl"
             />
           </div>
-          <Button variant="ghost" size="sm" className="text-primary font-semibold">
-            Filter
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn(
+                  "font-semibold gap-1",
+                  activeFilter !== 'all' ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                <Filter className="h-4 w-4" />
+                {activeFilter === 'all' ? 'Filter' : activeFilter === 'unread' ? 'Unread' : 'Unanswered'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => setActiveFilter('all')}
+                className={activeFilter === 'all' ? 'bg-accent' : ''}
+              >
+                All messages
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setActiveFilter('unread')}
+                className={activeFilter === 'unread' ? 'bg-accent' : ''}
+              >
+                Unread
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setActiveFilter('unanswered')}
+                className={activeFilter === 'unanswered' ? 'bg-accent' : ''}
+              >
+                Unanswered
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
