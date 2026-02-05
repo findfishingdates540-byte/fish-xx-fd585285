@@ -20,6 +20,7 @@ export function usePushNotificationsUnified() {
       subscribe: nativelyPush.subscribe,
       unsubscribe: nativelyPush.unsubscribe,
       platform: 'native' as const,
+      debugInfo: nativelyPush.debugInfo,
     };
   }
 
@@ -32,5 +33,6 @@ export function usePushNotificationsUnified() {
     subscribe: webPush.subscribe,
     unsubscribe: webPush.unsubscribe,
     platform: 'web' as const,
+    debugInfo: '',
   };
 }
