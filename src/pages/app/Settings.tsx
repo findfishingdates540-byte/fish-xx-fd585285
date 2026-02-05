@@ -1258,7 +1258,10 @@ function NotificationsTab({
     subscribe,
     unsubscribe,
     platform,
+    debugInfo,
   } = usePushNotificationsUnified();
+  
+  const [showDebug, setShowDebug] = useState(false);
   
   // For unified hook, we consider it "loaded" when not loading
   const vapidKeyLoaded = !isLoading;
@@ -1286,7 +1289,7 @@ function NotificationsTab({
             </p>
           </div>
 
-          {!isSupported ? (
+          {!isSupported && platform !== 'native' ? (
             <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground">
               Push notifications are not supported in this browser. Try using Chrome, Firefox, or Edge.
             </div>
@@ -1296,22 +1299,46 @@ function NotificationsTab({
               Loading notification settings...
             </div>
           ) : (
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="font-medium text-sm">Enable Push Notifications</p>
-                <p className="text-xs text-muted-foreground">
-                  {isSubscribed
-                    ? "You'll receive alerts for matches, messages & trips"
-                    : permission === 'denied'
-                    ? "Notifications blocked. Enable in browser settings."
-                    : "Get notified instantly on your device"}
-                </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium text-sm">Enable Push Notifications</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isSubscribed
+                      ? "You'll receive alerts for matches, messages & trips"
+                      : permission === 'denied'
+                      ? "Notifications blocked. Enable in browser settings."
+                      : "Get notified instantly on your device"}
+                  </p>
+                </div>
+                <Switch
+                  checked={isSubscribed}
+                  onCheckedChange={handlePushToggle}
+                  disabled={isLoading || permission === 'denied'}
+                />
               </div>
-              <Switch
-                checked={isSubscribed}
-                onCheckedChange={handlePushToggle}
-                disabled={isLoading || permission === 'denied'}
-              />
+              
+              {/* Debug info for troubleshooting */}
+              <div className="text-xs text-muted-foreground border-t pt-3">
+                <div className="flex items-center justify-between">
+                  <span>Platform: <span className="font-mono">{platform || 'detecting...'}</span></span>
+                  <span>Supported: {isSupported ? 'Yes' : 'No'}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 px-2 text-xs"
+                    onClick={() => setShowDebug(!showDebug)}
+                  >
+                    {showDebug ? 'Hide Debug' : 'Show Debug'}
+                  </Button>
+                </div>
+                
+                {showDebug && debugInfo && (
+                  <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto max-h-32 font-mono">
+                    {debugInfo}
+                  </pre>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
