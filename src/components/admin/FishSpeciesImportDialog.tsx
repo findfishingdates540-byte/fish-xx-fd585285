@@ -169,7 +169,7 @@ export function FishSpeciesImportDialog({ open, onOpenChange }: FishSpeciesImpor
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col gap-4">
+        <div className="flex-1 min-h-0 flex flex-col gap-4">
           {/* File Input */}
           {rows.length === 0 && (
             <div 
@@ -215,9 +215,9 @@ export function FishSpeciesImportDialog({ open, onOpenChange }: FishSpeciesImpor
               )}
 
               {/* Table */}
-              <ScrollArea className="flex-1 border border-slate-700 rounded-lg">
+              <div className="flex-1 min-h-0 border border-slate-700 rounded-lg overflow-auto max-h-[400px]">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 bg-slate-900 z-10">
                     <TableRow className="border-slate-700 hover:bg-transparent">
                       <TableHead className="text-slate-400">Status</TableHead>
                       <TableHead className="text-slate-400">Species Name</TableHead>
@@ -266,7 +266,7 @@ export function FishSpeciesImportDialog({ open, onOpenChange }: FishSpeciesImpor
                     ))}
                   </TableBody>
                 </Table>
-              </ScrollArea>
+              </div>
             </>
           )}
         </div>

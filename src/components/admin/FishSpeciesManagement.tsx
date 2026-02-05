@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Fish, Upload } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Search, Edit2, Trash2, Fish, Upload, CheckSquare, Square, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,8 @@ export function FishSpeciesManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedSpecies, setSelectedSpecies] = useState<FishSpecies | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const { data: species, isLoading } = useFishSpecies();
   const { mutate: deleteSpecies, isPending: deletePending } = useDeleteFishSpecies();
@@ -31,6 +34,13 @@ export function FishSpeciesManagement() {
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.scientific_name?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const allFilteredSelected = useMemo(() => {
+    if (!filteredSpecies?.length) return false;
+    return filteredSpecies.every(s => selectedIds.has(s.id));
+  }, [filteredSpecies, selectedIds]);
+
+  const someSelected = selectedIds.size > 0;
 
   const handleAdd = () => {
     setSelectedSpecies(null);
@@ -50,9 +60,74 @@ export function FishSpeciesManagement() {
   const confirmDelete = () => {
     if (selectedSpecies) {
       deleteSpecies(selectedSpecies.id, {
-        onSuccess: () => setDeleteDialogOpen(false),
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setSelectedIds(prev => {
+            const next = new Set(prev);
+            next.delete(selectedSpecies.id);
+            return next;
+          });
+        },
       });
     }
+  };
+
+  const toggleSelectAll = () => {
+    if (!filteredSpecies) return;
+    if (allFilteredSelected) {
+      // Deselect all filtered
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredSpecies.forEach(s => next.delete(s.id));
+        return next;
+      });
+    } else {
+      // Select all filtered
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        filteredSpecies.forEach(s => next.add(s.id));
+        return next;
+      });
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    
+    const idsToDelete = Array.from(selectedIds);
+    let successCount = 0;
+    
+    for (const id of idsToDelete) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          deleteSpecies(id, {
+            onSuccess: () => {
+              successCount++;
+              resolve();
+            },
+            onError: reject,
+          });
+        });
+      } catch (error) {
+        console.error('Failed to delete species:', id, error);
+      }
+    }
+    
+    setSelectedIds(new Set());
+    setBulkDeleting(false);
   };
 
   return (
@@ -68,6 +143,25 @@ export function FishSpeciesManagement() {
             className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
           />
         </div>
+        {someSelected && (
+          <Button
+            onClick={handleBulkDelete}
+            disabled={bulkDeleting}
+            className="bg-red-600 hover:bg-red-700 text-white gap-2"
+          >
+            {bulkDeleting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4" />
+                Delete ({selectedIds.size})
+              </>
+            )}
+          </Button>
+        )}
         <Button
           onClick={() => setImportDialogOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
@@ -106,12 +200,34 @@ export function FishSpeciesManagement() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-700 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-700 max-h-[500px] overflow-y-auto">
+            {/* Select All Header */}
+            {filteredSpecies && filteredSpecies.length > 0 && (
+              <div className="p-3 bg-slate-800/50 flex items-center gap-3 sticky top-0 z-10 border-b border-slate-700">
+                <Checkbox
+                  checked={allFilteredSelected}
+                  onCheckedChange={toggleSelectAll}
+                  className="border-slate-500 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                />
+                <span className="text-sm text-slate-400">
+                  {allFilteredSelected ? 'Deselect all' : 'Select all'} ({filteredSpecies.length})
+                </span>
+              </div>
+            )}
             {filteredSpecies?.map((s) => (
               <div
                 key={s.id}
-                className="p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors"
+                className={`p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors ${
+                  selectedIds.has(s.id) ? 'bg-slate-800/30' : ''
+                }`}
               >
+                {/* Checkbox */}
+                <Checkbox
+                  checked={selectedIds.has(s.id)}
+                  onCheckedChange={() => toggleSelect(s.id)}
+                  className="border-slate-500 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                />
+                
                 {/* Image */}
                 <div className="w-12 h-12 rounded-lg bg-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
                   {s.image_url ? (
