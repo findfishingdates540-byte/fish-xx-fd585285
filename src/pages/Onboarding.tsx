@@ -418,6 +418,10 @@ export default function Onboarding() {
 
       // Save interests from StepInterests (styles + activities)
       updateData.interests = [...selectedStyles, ...selectedActivities];
+      // Also save fishing_styles separately for profile display
+      if (accountMode === 'fishing' || accountMode === 'both') {
+        updateData.fishing_styles = selectedStyles;
+      }
 
       // Debug mode: Log all form values before submission
       console.group('🔍 [ONBOARDING DEBUG] Form Submission Data');
