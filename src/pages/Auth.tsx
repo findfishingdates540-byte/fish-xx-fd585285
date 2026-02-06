@@ -195,11 +195,26 @@ const Auth = () => {
       } else {
         const { error } = await signIn(email, password);
         if (error) {
-          toast({
-            title: 'Login failed',
-            description: 'Invalid email or password. Please try again.',
-            variant: 'destructive',
-          });
+          const msg = error.message?.toLowerCase() || '';
+          if (msg.includes('email not confirmed') || msg.includes('email_not_confirmed')) {
+            toast({
+              title: 'Email not confirmed',
+              description: 'Please check your inbox and click the confirmation link before logging in. Check your spam folder too.',
+              variant: 'destructive',
+            });
+          } else if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
+            toast({
+              title: 'Login failed',
+              description: 'Invalid email or password. Please try again.',
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: 'Login failed',
+              description: error.message || 'Something went wrong. Please try again.',
+              variant: 'destructive',
+            });
+          }
         }
       }
     } finally {
