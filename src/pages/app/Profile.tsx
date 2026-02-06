@@ -664,7 +664,15 @@ export default function Profile() {
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Looking For</p>
                       <p className="text-sm font-medium">
-                        {profile?.looking_for?.join(', ') || 'Not specified'}
+                        {profile?.looking_for?.map(l => {
+                          const labels: Record<string, string> = {
+                            relationship: 'Relationship',
+                            casual: 'Something Casual',
+                            friends: 'Friends',
+                            fishing_buddy: 'Fishing Buddy',
+                          };
+                          return labels[l] || l;
+                        }).join(', ') || 'Not specified'}
                       </p>
                     </div>
                     <div>
@@ -676,13 +684,13 @@ export default function Profile() {
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Distance</p>
                       <p className="text-sm font-medium">
-                        Within {profile?.max_distance_miles || 50} miles
+                        {(profile?.max_distance_miles || 50) >= 500 ? 'Unlimited' : `Within ${profile?.max_distance_miles || 50} miles`}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Interested In</p>
-                      <p className="text-sm font-medium capitalize">
-                        {profile?.interested_in?.join(', ')?.replace(/_/g, ' ') || 'Not specified'}
+                      <p className="text-sm font-medium">
+                        {profile?.interested_in?.map(g => g === 'male' ? 'Men' : g === 'female' ? 'Women' : g).join(', ') || 'Not specified'}
                       </p>
                     </div>
                   </CardContent>
