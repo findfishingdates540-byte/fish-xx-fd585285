@@ -416,11 +416,36 @@ export default function Onboarding() {
         updateData.fishing_gear = fishingGear;
       }
 
-      // Save interests from StepInterests (styles + activities)
-      updateData.interests = [...selectedStyles, ...selectedActivities];
-      // Also save fishing_styles separately for profile display
+      // Map interest IDs to labels so they match ProfileEdit's InterestSelector
+      const interestIdToLabel: Record<string, string> = {
+        // Fishing styles
+        fly_fishing: 'Fly Fishing', deep_sea: 'Deep Sea', kayak_fishing: 'Kayak Fishing',
+        catch_and_cook: 'Catch & Release', ice_fishing: 'Ice Fishing', bass_fishing: 'Bass Fishing',
+        // General interests
+        music: 'Music', movies: 'Movies', fitness: 'Gym', art: 'Art',
+        gaming: 'Gaming', reading: 'Reading',
+        // Activities
+        camping: 'Camping', boating: 'Swimming', travel: 'Travel',
+        photography: 'Photography', conservation: 'Birdwatching', early_mornings: 'Running',
+        seafood_cooking: 'Cooking', hiking: 'Hiking',
+        wine: 'Wine Tasting', coffee: 'Coffee', dancing: 'Dancing',
+        pets: 'Birdwatching', foodie: 'Cooking', concerts: 'Music', nature: 'Mountains',
+      };
+
+      // Map fishing style IDs to ProfileEdit fishing_styles labels
+      const fishingStyleIdToLabel: Record<string, string> = {
+        fly_fishing: 'Fly Fishing', deep_sea: 'Deep Sea Fishing', kayak_fishing: 'Kayak Fishing',
+        catch_and_cook: 'Catch & Release', ice_fishing: 'Ice Fishing', bass_fishing: 'Bass Fishing',
+      };
+
+      const mapToLabels = (ids: string[], map: Record<string, string>) =>
+        ids.map(id => map[id] || id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+
+      // Save interests using labels (matching ProfileEdit's InterestSelector)
+      updateData.interests = mapToLabels([...selectedStyles, ...selectedActivities], interestIdToLabel);
+      // Also save fishing_styles separately using ProfileEdit-compatible labels
       if (accountMode === 'fishing' || accountMode === 'both') {
-        updateData.fishing_styles = selectedStyles;
+        updateData.fishing_styles = mapToLabels(selectedStyles.filter(s => s in fishingStyleIdToLabel), fishingStyleIdToLabel);
       }
 
       // Debug mode: Log all form values before submission
