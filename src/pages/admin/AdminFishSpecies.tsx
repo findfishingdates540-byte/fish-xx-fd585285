@@ -12,7 +12,7 @@ export default function AdminFishSpecies() {
         </div>
       </div>
 
-      <div className="max-w-4xl">
+      <div className="w-full">
         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-lg bg-emerald-500/20">
