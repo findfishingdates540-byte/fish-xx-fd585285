@@ -4,6 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,6 +63,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { Eye, Lock, Key } from "lucide-react";
 
 type AccountMode = Database["public"]["Enums"]["account_mode"];
 
@@ -60,6 +71,7 @@ const SUPABASE_URL = "https://zjmnlelqoiclkbrqefyv.supabase.co";
 
 const settingsNav = [
   { id: "account", label: "Account", icon: User },
+  { id: "security", label: "Security", icon: Key },
   { id: "verification", label: "Verification", icon: Shield },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "app-mode", label: "App Mode", icon: Smartphone },
@@ -135,6 +147,19 @@ export default function Settings() {
   const [messages, setMessages] = useState(true);
   const [likes, setLikes] = useState(true);
   const [marketing, setMarketing] = useState(false);
+
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // Delete account state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -282,7 +307,73 @@ export default function Settings() {
     navigate("/auth");
   };
 
-  // Get Mapbox token for geocoding
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      // Re-authenticate with current password first
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: currentPassword,
+      });
+      if (signInError) {
+        toast.error("Current password is incorrect");
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Password updated successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
+      }
+    } catch {
+      toast.error("Failed to update password");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeleteLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error || "Failed to delete account");
+      }
+      toast.success("Account deleted successfully");
+      await signOut();
+      navigate("/");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete account");
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+
   const getMapboxToken = async (): Promise<string | null> => {
     try {
       const { data, error } = await supabase.functions.invoke('get-mapbox-token');
@@ -657,6 +748,114 @@ export default function Settings() {
               </div>
             )}
 
+            {/* Security Tab - Change Password */}
+            {activeTab === "security" && (
+              <div className="space-y-6">
+                <Card>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-1 flex items-center gap-2">
+                        <Lock className="h-5 w-5" />
+                        Change Password
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Update your account password. You'll need your current password.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 max-w-md">
+                      <div>
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <div className="relative mt-1.5">
+                          <Input
+                            id="currentPassword"
+                            type={showCurrentPassword ? "text" : "password"}
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            placeholder="Enter current password"
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <div className="relative mt-1.5">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="At least 6 characters"
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                        <Input
+                          id="confirmNewPassword"
+                          type="password"
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          placeholder="Confirm new password"
+                          className="mt-1.5"
+                        />
+                      </div>
+
+                      <Button
+                        onClick={handleChangePassword}
+                        disabled={passwordLoading || !currentPassword || !newPassword || !confirmNewPassword}
+                      >
+                        {passwordLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          "Update Password"
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Danger Zone */}
+                <Card className="border-destructive/50">
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-1 text-destructive">Danger Zone</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete My Account
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Verification Tab */}
             {activeTab === "verification" && (
               <VerificationSection idVerified={idVerified} liveVerified={liveVerified} />
@@ -972,7 +1171,11 @@ export default function Settings() {
                       <User className="h-4 w-4 mr-2" />
                       Download My Data
                     </Button>
-                    <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start text-destructive hover:text-destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete Account
                     </Button>
@@ -1208,6 +1411,7 @@ export default function Settings() {
               <Button
                 variant="ghost"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10 w-full sm:w-auto"
+                onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Account
@@ -1224,6 +1428,48 @@ export default function Settings() {
           </main>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Delete Your Account</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>This will permanently delete your account and all your data including:</p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>Your profile, photos, and bio</li>
+                <li>All matches and conversations</li>
+                <li>Fishing spots, catches, and trips</li>
+                <li>Buddy connections and messages</li>
+              </ul>
+              <p className="font-medium">Type <span className="font-mono bg-muted px-1.5 py-0.5 rounded">DELETE</span> to confirm:</p>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+                className="mt-2"
+              />
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== "DELETE" || deleteLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Forever"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
