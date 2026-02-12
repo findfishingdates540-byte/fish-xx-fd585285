@@ -880,20 +880,33 @@ export default function Spots() {
       </div>
       )}
 
-      {/* Add Spot FAB - visible on all screen sizes */}
-      <Button
-        className={cn(
-          "fixed z-20 shadow-lg lg:absolute lg:bottom-6 lg:right-6 lg:w-auto lg:px-4",
-          showsModeSwitcher 
-            ? "bottom-36 right-4"  // Above the mode switcher FAB
-            : "bottom-20 right-4"  // Standard position above BottomNav
-        )}
-        size="icon"
-        onClick={() => navigate("/app/spots/new")}
-      >
-        <Fish className="h-5 w-5 lg:mr-2" />
-        <span className="hidden lg:inline">Add Spot</span>
-      </Button>
+      {/* Add FAB with action chooser */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className={cn(
+              "fixed z-20 shadow-lg lg:absolute lg:bottom-6 lg:right-6 lg:w-auto lg:px-4",
+              showsModeSwitcher 
+                ? "bottom-36 right-4"
+                : "bottom-20 right-4"
+            )}
+            size="icon"
+          >
+            <Plus className="h-5 w-5 lg:mr-2" />
+            <span className="hidden lg:inline">Add New</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="top" align="end" className="mb-2">
+          <DropdownMenuItem onClick={() => navigate("/app/spots/new")}>
+            <MapPin className="h-4 w-4 mr-2" />
+            Add a Spot
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/app/catches")}>
+            <Fish className="h-4 w-4 mr-2" />
+            Log a Catch
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
