@@ -138,7 +138,7 @@ export default function UserFeed() {
         nextCursor: postsData.length === POSTS_PER_PAGE ? pageParam + 1 : null,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
     initialPageParam: 0,
     enabled: !!userId,
   });

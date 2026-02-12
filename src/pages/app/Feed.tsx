@@ -111,8 +111,8 @@ export default function Feed() {
     const debouncedInvalidate = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['feed-posts'] });
-        queryClient.invalidateQueries({ queryKey: ['feed-posts-following'] });
+        queryClient.invalidateQueries({ queryKey: ['feed-posts', user?.id], exact: true });
+        queryClient.invalidateQueries({ queryKey: ['feed-posts-following', user?.id], exact: true });
       }, 2000); // 2 second debounce
     };
 

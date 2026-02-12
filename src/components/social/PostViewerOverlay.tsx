@@ -174,7 +174,7 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
     },
     initialPageParam: { direction: 'older' as const, cursor: anchorPost?.created_at, isInitial: true } as { direction: 'older' | 'newer'; cursor: string | undefined; isInitial?: boolean },
     getNextPageParam: (lastPage: PageData) => {
-      if (lastPage.posts.length < POSTS_PER_PAGE) return undefined;
+      if (!lastPage?.posts || lastPage.posts.length < POSTS_PER_PAGE) return undefined;
       const oldestPost = lastPage.posts[lastPage.posts.length - 1];
       return { direction: 'older' as const, cursor: oldestPost?.created_at, isInitial: false };
     },
