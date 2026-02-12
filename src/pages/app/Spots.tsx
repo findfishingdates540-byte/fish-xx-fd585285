@@ -287,12 +287,7 @@ export default function Spots() {
     if (!matchesSearch) return false;
 
     // Apply water type filter using the area_type column
-    if (waterType === "freshwater") {
-      if (spot.area_type !== 'freshwater') return false;
-    }
-    if (waterType === "saltwater") {
-      if (spot.area_type !== 'saltwater') return false;
-    }
+    if (waterType !== "all" && spot.area_type !== waterType) return false;
 
     // Apply dropdown filters
     if (showVerifiedOnly && !spot.is_verified) return false;
