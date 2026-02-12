@@ -73,7 +73,7 @@ export function useFeedPosts() {
   return useInfiniteQuery({
     queryKey: ['feed-posts', user?.id],
     staleTime: 60 * 1000,
-    initialPageParam: 0,
+    initialPageParam: 0 as number,
     queryFn: async ({ pageParam = 0 }) => {
       const offset = pageParam * POSTS_PER_PAGE;
       
@@ -85,7 +85,7 @@ export function useFeedPosts() {
         .range(offset, offset + POSTS_PER_PAGE - 1);
 
       if (error) throw error;
-
+      if (!posts) return { posts: [], nextPage: undefined };
       // Get reposts for this page
       const { data: reposts } = await supabase
         .from('post_reposts')
@@ -196,7 +196,7 @@ export function useFeedPosts() {
         nextPage: posts && posts.length === POSTS_PER_PAGE ? pageParam + 1 : undefined
       };
     },
-    getNextPageParam: (lastPage) => lastPage?.nextPage,
+    getNextPageParam: (lastPage) => lastPage?.nextPage ?? undefined,
   });
 }
 
@@ -206,7 +206,7 @@ export function useFollowingFeedPosts() {
   return useInfiniteQuery({
     queryKey: ['feed-posts-following', user?.id],
     staleTime: 60 * 1000,
-    initialPageParam: 0,
+    initialPageParam: 0 as number,
     queryFn: async ({ pageParam = 0 }) => {
       if (!user?.id) return { posts: [], nextPage: undefined };
       
@@ -230,6 +230,7 @@ export function useFollowingFeedPosts() {
         .range(offset, offset + POSTS_PER_PAGE - 1);
 
       if (error) throw error;
+      if (!posts) return { posts: [], nextPage: undefined };
 
       // Get reposts from followed users
       const { data: reposts } = await supabase
@@ -336,7 +337,7 @@ export function useFollowingFeedPosts() {
         nextPage: posts && posts.length === POSTS_PER_PAGE ? pageParam + 1 : undefined
       };
     },
-    getNextPageParam: (lastPage) => lastPage?.nextPage,
+    getNextPageParam: (lastPage) => lastPage?.nextPage ?? undefined,
     enabled: !!user?.id,
   });
 }
