@@ -40,9 +40,10 @@ function AppLayoutContent() {
     if (!user?.id) return;
     
     // Prefetch feed posts with profile data
-    queryClient.prefetchQuery({
+    queryClient.prefetchInfiniteQuery({
       queryKey: ['feed-posts', user.id],
-      queryFn: async () => {
+      initialPageParam: 0 as number,
+      queryFn: async ({ pageParam = 0 }) => {
         // Get posts
         const { data: posts } = await supabase
           .from('feed_posts')
@@ -50,7 +51,7 @@ function AppLayoutContent() {
           .order('created_at', { ascending: false })
           .limit(20);
 
-        if (!posts || posts.length === 0) return [];
+        if (!posts || posts.length === 0) return { posts: [], nextPage: undefined };
 
         // Get unique user IDs and catch IDs
         const userIds = [...new Set(posts.map(p => p.user_id))];
@@ -86,13 +87,17 @@ function AppLayoutContent() {
         );
         const catchMap = new Map(catches.map(c => [c.id, c]));
 
-        return posts.map(post => ({
-          ...post,
-          profile: profileMap.get(post.user_id) || null,
-          catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
-          user_has_liked: userLikes.includes(post.id)
-        }));
+        return {
+          posts: posts.map(post => ({
+            ...post,
+            profile: profileMap.get(post.user_id) || null,
+            catch_data: post.catch_id ? catchMap.get(post.catch_id) || null : null,
+            user_has_liked: userLikes.includes(post.id)
+          })),
+          nextPage: posts.length === 20 ? 1 : undefined
+        };
       },
+      getNextPageParam: (lastPage: any) => lastPage?.nextPage ?? undefined,
       staleTime: 60 * 1000,
     });
 
