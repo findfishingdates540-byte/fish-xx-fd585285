@@ -1,29 +1,31 @@
 
 
-# Add Action Chooser to the Spots FAB Button
+# Fix RLS Performance on `user_roles` Table
 
-## Overview
-When tapping the FAB (floating action button) on the Spots page, instead of navigating directly to "Add Spot", a small menu will appear letting the user choose between **Add a Spot** or **Log a Catch**, then navigate to the appropriate page.
+## Problem
+The `user_roles` table's "Users can view own roles" policy calls `auth.uid()` directly, causing PostgreSQL to re-evaluate it per row instead of once per query. This degrades performance at scale.
 
-## What Changes
+## Changes
 
-**File: `src/pages/app/Spots.tsx`**
+### Database Migration
+A single SQL migration to:
 
-1. Replace the single FAB button (lines 884-896) with a `DropdownMenu` component
-2. The FAB button becomes the trigger for the dropdown
-3. Two menu items:
-   - **Add a Spot** -- navigates to `/app/spots/new` (existing behavior)
-   - **Log a Catch** -- navigates to `/app/catches` (existing catches page which has the log catch form)
-4. Each menu item will have an icon (MapPin for spots, Fish for catches) for clarity
+1. Drop the existing policy
+2. Recreate it with `(SELECT auth.uid())` wrapper for optimal performance
+3. Add an index on `user_id` if not already present
 
-## Technical Details
+```sql
+DROP POLICY IF EXISTS "Users can view own roles" ON public.user_roles;
 
-- Uses the existing `DropdownMenu` component already imported in the file
-- No new dependencies or files needed
-- The dropdown will open upward (side="top") since the FAB is near the bottom of the screen
-- The FAB icon changes from `Fish` to `Plus` to better represent "add something" generically
-- Works on both mobile and desktop layouts
+CREATE POLICY "Users can view own roles"
+ON public.user_roles
+FOR SELECT
+TO authenticated
+USING (user_id = (SELECT auth.uid()));
 
-## Single file change
-- `src/pages/app/Spots.tsx` -- wrap the FAB in a DropdownMenu with two navigation options
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);
+```
+
+### No Code Changes
+This is a database-only fix. No application code needs to change -- the `has_role()` security definer function and all existing queries continue to work as before.
 
