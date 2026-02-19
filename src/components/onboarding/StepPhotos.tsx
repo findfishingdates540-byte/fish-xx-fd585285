@@ -3,6 +3,7 @@ import { Plus, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ImageCropModal } from "@/components/ui/image-crop-modal";
 
 interface StepPhotosProps {
   photos: string[];
@@ -20,41 +21,37 @@ export function StepPhotos({
   minPhotos = 1,
 }: StepPhotosProps) {
   const [uploading, setUploading] = useState<number | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeSlot, setActiveSlot] = useState<number>(0);
   const { toast } = useToast();
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select an image file",
-        variant: "destructive",
-      });
+      toast({ title: "Invalid file type", description: "Please select an image file", variant: "destructive" });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image under 5MB",
-        variant: "destructive",
-      });
+      toast({ title: "File too large", description: "Please select an image under 5MB", variant: "destructive" });
       return;
     }
 
+    const objectUrl = URL.createObjectURL(file);
+    setCropSrc(objectUrl);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
     setUploading(activeSlot);
-
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
-
+      const fileName = `${userId}/${Date.now()}.jpg`;
       const { error: uploadError } = await supabase.storage
         .from('profile-photos')
-        .upload(fileName, file);
+        .upload(fileName, croppedBlob, { contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
@@ -66,21 +63,13 @@ export function StepPhotos({
       newPhotos[activeSlot] = publicUrl;
       setPhotos(newPhotos.filter(Boolean));
 
-      toast({
-        title: "Photo uploaded",
-        description: "Your photo has been added successfully",
-      });
+      toast({ title: "Photo uploaded", description: "Your photo has been added successfully" });
     } catch (error: any) {
-      toast({
-        title: "Upload failed",
-        description: error.message || "Failed to upload photo",
-        variant: "destructive",
-      });
+      toast({ title: "Upload failed", description: error.message || "Failed to upload photo", variant: "destructive" });
     } finally {
       setUploading(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (cropSrc) URL.revokeObjectURL(cropSrc);
+      setCropSrc(null);
     }
   };
 
@@ -110,7 +99,18 @@ export function StepPhotos({
   };
 
   return (
-    <div className="space-y-4">
+    <>
+      {cropSrc && (
+        <ImageCropModal
+          open={!!cropSrc}
+          onClose={() => { if (cropSrc) URL.revokeObjectURL(cropSrc); setCropSrc(null); }}
+          imageSrc={cropSrc}
+          onCropComplete={handleCropComplete}
+          aspectRatio={3 / 4}
+          title="Position Your Photo"
+        />
+      )}
+      <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           Add at least {minPhotos} photo{minPhotos > 1 ? 's' : ''} (up to {maxPhotos})
@@ -190,5 +190,6 @@ export function StepPhotos({
         Tip: Your first photo will be shown prominently on your profile
       </p>
     </div>
+    </>
   );
 }

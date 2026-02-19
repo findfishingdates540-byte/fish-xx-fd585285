@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Camera, Check, X, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ImageCropModal } from "@/components/ui/image-crop-modal";
 
 interface StepPhotoUploadProps {
   photos: string[];
@@ -24,14 +25,15 @@ const guidelines = {
 export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileSelect = async (files: FileList | null) => {
+  const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0 || !userId) return;
 
     const file = files[0];
-    
+
     if (!file.type.startsWith('image/')) {
       toast({ title: "Please select an image file", variant: "destructive" });
       return;
@@ -42,15 +44,20 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
       return;
     }
 
+    const objectUrl = URL.createObjectURL(file);
+    setCropSrc(objectUrl);
+    // reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!userId) return;
     setUploading(true);
-
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
-
+      const fileName = `${userId}/${Date.now()}.jpg`;
       const { error: uploadError } = await supabase.storage
         .from('profile-photos')
-        .upload(fileName, file);
+        .upload(fileName, croppedBlob, { contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
@@ -61,13 +68,11 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
       setPhotos([...photos, publicUrl]);
       toast({ title: "Photo uploaded successfully!" });
     } catch (error: any) {
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
     } finally {
       setUploading(false);
+      if (cropSrc) URL.revokeObjectURL(cropSrc);
+      setCropSrc(null);
     }
   };
 
@@ -104,8 +109,20 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row gap-6">
+    <>
+      {cropSrc && (
+        <ImageCropModal
+          open={!!cropSrc}
+          onClose={() => { if (cropSrc) URL.revokeObjectURL(cropSrc); setCropSrc(null); }}
+          imageSrc={cropSrc}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+          title="Position Your Photo"
+          cropShape="round"
+        />
+      )}
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row gap-6">
         {/* Upload Area */}
         <div className="flex-1">
           {photos.length > 0 ? (
@@ -207,5 +224,6 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
         </div>
       </div>
     </div>
+    </>
   );
 }
