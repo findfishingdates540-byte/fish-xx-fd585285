@@ -98,6 +98,10 @@ export default function ProfileEdit() {
   const [locationLat, setLocationLat] = useState<number | null>(null);
   const [locationLng, setLocationLng] = useState<number | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<Array<{place_name: string; center: [number, number]; context: any[]}>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const locationSearchTimeout = useRef<NodeJS.Timeout | null>(null);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [bio, setBio] = useState("");
   const [gender, setGender] = useState<GenderType | null>(null);
@@ -484,8 +488,18 @@ export default function ProfileEdit() {
 
   // Handle manual location field changes - clear coordinates, will geocode on save
   const handleLocationFieldChange = (field: 'city' | 'state' | 'zipCode', value: string) => {
-    if (field === 'city') setCity(value);
-    else if (field === 'state') setState(value);
+    if (field === 'city') {
+      setCity(value);
+      // Trigger Mapbox search for city field
+      if (value.length >= 2) {
+        if (locationSearchTimeout.current) clearTimeout(locationSearchTimeout.current);
+        locationSearchTimeout.current = setTimeout(() => searchLocations(value), 300);
+        setShowSuggestions(true);
+      } else {
+        setLocationSuggestions([]);
+        setShowSuggestions(false);
+      }
+    } else if (field === 'state') setState(value);
     else if (field === 'zipCode') setZipCode(value);
     
     // Update the combined location name
@@ -496,6 +510,46 @@ export default function ProfileEdit() {
     // Clear coordinates when manually editing - will be geocoded on save
     setLocationLat(null);
     setLocationLng(null);
+  };
+
+  const searchLocations = async (query: string) => {
+    try {
+      let token = mapboxToken;
+      if (!token) {
+        const res = await fetch('https://zjmnlelqoiclkbrqefyv.supabase.co/functions/v1/get-mapbox-token');
+        if (res.ok) {
+          const data = await res.json();
+          token = data.token;
+          setMapboxToken(token);
+        }
+      }
+      if (!token) return;
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?types=place,postcode&limit=5&access_token=${token}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setLocationSuggestions(data.features || []);
+      }
+    } catch (e) {
+      console.error('Location search error:', e);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion: {place_name: string; center: [number, number]; context: any[]}) => {
+    const placeText = suggestion.place_name.split(',')[0].trim();
+    const regionCtx = suggestion.context?.find((c: any) => c.id?.startsWith('region'));
+    const postcodeCtx = suggestion.context?.find((c: any) => c.id?.startsWith('postcode'));
+    const newState = regionCtx?.text || '';
+    const newZip = postcodeCtx?.text || '';
+    setCity(placeText);
+    setState(newState);
+    setZipCode(newZip);
+    setLocationLat(suggestion.center[1]);
+    setLocationLng(suggestion.center[0]);
+    setLocationName([placeText, newState].filter(Boolean).join(', '));
+    setLocationSuggestions([]);
+    setShowSuggestions(false);
   };
 
   const handleSave = async () => {
@@ -836,13 +890,31 @@ export default function ProfileEdit() {
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="col-span-2">
+                    <div className="col-span-2 relative">
                       <Input
                         id="city"
                         value={city}
                         onChange={(e) => handleLocationFieldChange('city', e.target.value)}
-                        placeholder="City"
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                        onFocus={() => city.length >= 2 && locationSuggestions.length > 0 && setShowSuggestions(true)}
+                        placeholder="Search city..."
+                        autoComplete="off"
                       />
+                      {showSuggestions && locationSuggestions.length > 0 && (
+                        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lg overflow-hidden">
+                          {locationSuggestions.map((s, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 border-b border-border/50 last:border-0"
+                              onMouseDown={() => handleSelectSuggestion(s)}
+                            >
+                              <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                              <span className="truncate">{s.place_name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <Input
