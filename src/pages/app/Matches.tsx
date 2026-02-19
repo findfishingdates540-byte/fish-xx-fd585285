@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Bell, Settings, Heart } from 'lucide-react';
+import { Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MatchCard } from '@/components/matches/MatchCard';
 import { MatchFilters } from '@/components/matches/MatchFilters';
@@ -159,9 +159,6 @@ export default function Matches() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Bell className="h-5 w-5" />
-            </Button>
             <Button variant="ghost" size="icon" className="rounded-full" asChild>
               <Link to="/app/profile">
                 <Settings className="h-5 w-5" />
