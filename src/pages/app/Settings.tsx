@@ -656,25 +656,10 @@ export default function Settings() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="font-semibold mb-1">Account Type</h3>
-                      <div className="flex items-center gap-3 mb-4">
-                        {originalAccountMode === 'dating' ? <Heart className="h-5 w-5 text-primary" /> : <Fish className="h-5 w-5 text-primary" />}
-                        <span className="font-medium">
-                          {originalAccountMode === 'dating' ? 'Dating Account' : 'Fishing Account (Angler)'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {originalAccountMode === 'dating' 
-                          ? 'Upgrade to access fishing spots and maps, or get everything with Combo!'
-                          : 'Upgrade to Combo to unlock dating features alongside your fishing tools!'}
-                      </p>
-                      <Button asChild className="w-full">
-                        <Link to="/pricing">View Upgrade Options</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <DatingProfileAddon 
+                    originalAccountMode={originalAccountMode} 
+                    userId={user?.id}
+                  />
                 )}
 
                 {/* Personal Information */}
