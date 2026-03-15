@@ -11,7 +11,6 @@ const corsHeaders = {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -21,10 +20,20 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Find users who:
-    // 1. Created account 7+ days ago
-    // 2. Are not verified (id_verified = false OR null AND live_verified = false OR null)
-    // 3. Haven't received a reminder in the last 7 days
+    // Rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const { data: allowed } = await supabase.rpc('check_rate_limit', {
+      p_key: `verify-reminder:${ip}`,
+      p_max_requests: 3,
+      p_window_seconds: 3600,
+    });
+    if (allowed === false) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests" }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
@@ -43,7 +52,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Found ${unverifiedUsers?.length || 0} potentially unverified users`);
 
-    // Filter out users who received reminder in last 7 days
     const usersToNotify = unverifiedUsers?.filter(user => {
       if (!user.verification_reminder_sent_at) return true;
       const lastReminder = new Date(user.verification_reminder_sent_at);
@@ -58,7 +66,6 @@ const handler = async (req: Request): Promise<Response> => {
       if (!user.email) continue;
 
       try {
-        // Send reminder email
         const emailResponse = await resend.emails.send({
           from: "Find Fishing Dates <team@findfishingdates.net>",
           to: [user.email],
@@ -68,7 +75,6 @@ const handler = async (req: Request): Promise<Response> => {
 
         console.log(`Reminder sent to ${user.email}:`, emailResponse);
 
-        // Update reminder sent timestamp
         await supabase
           .from("profiles")
           .update({ verification_reminder_sent_at: new Date().toISOString() })
@@ -82,30 +88,22 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        totalProcessed: usersToNotify.length,
-        results 
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ success: true, totalProcessed: usersToNotify.length, results }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in send-verification-reminder function:", error);
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
 
 function generateReminderEmail(displayName: string): string {
+  // Sanitize displayName for HTML
+  const safeName = displayName.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   return `
 <!DOCTYPE html>
 <html>
@@ -119,26 +117,15 @@ function generateReminderEmail(displayName: string): string {
     <tr>
       <td style="padding: 40px 20px;">
         <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <!-- Header -->
           <tr>
             <td style="background-color: #3B82F6; padding: 32px 40px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
-                🛡️ Get Verified Today!
-              </h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">🛡️ Get Verified Today!</h1>
             </td>
           </tr>
-          
-          <!-- Content -->
           <tr>
             <td style="padding: 40px;">
-              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                Hi ${displayName},
-              </p>
-              
-              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                We noticed you haven't completed your profile verification yet. Verified members get:
-              </p>
-              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${safeName},</p>
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">We noticed you haven't completed your profile verification yet. Verified members get:</p>
               <div style="background-color: #EFF6FF; padding: 20px; margin: 24px 0; border-radius: 12px;">
                 <ul style="margin: 0; padding: 0 0 0 20px; color: #1D4ED8;">
                   <li style="margin-bottom: 8px;">✓ More profile views and connections</li>
@@ -147,36 +134,21 @@ function generateReminderEmail(displayName: string): string {
                   <li>✓ Access to verified-only features</li>
                 </ul>
               </div>
-              
-              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                It only takes a few minutes! Complete your ID verification or Live verification to stand out from the crowd.
-              </p>
-              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">It only takes a few minutes! Complete your ID verification or Live verification to stand out from the crowd.</p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
                 <tr>
                   <td style="background-color: #111827; border-radius: 8px;">
-                    <a href="https://findfishingdates.net/app/settings" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px;">
-                      Get Verified Now →
-                    </a>
+                    <a href="https://findfishingdates.net/app/settings" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px;">Get Verified Now →</a>
                   </td>
                 </tr>
               </table>
-              
-              <p style="margin: 0; font-size: 14px; color: #6B7280;">
-                Questions? Contact our support team anytime.
-              </p>
+              <p style="margin: 0; font-size: 14px; color: #6B7280;">Questions? Contact our support team anytime.</p>
             </td>
           </tr>
-          
-          <!-- Footer -->
           <tr>
             <td style="background-color: #F9FAFB; padding: 24px 40px; border-top: 1px solid #E5E7EB;">
-              <p style="margin: 0; font-size: 12px; color: #9CA3AF; text-align: center;">
-                © ${new Date().getFullYear()} Find Fishing Dates. All rights reserved.
-              </p>
-              <p style="margin: 8px 0 0; font-size: 11px; color: #9CA3AF; text-align: center;">
-                You're receiving this because you signed up for Find Fishing Dates.
-              </p>
+              <p style="margin: 0; font-size: 12px; color: #9CA3AF; text-align: center;">© ${new Date().getFullYear()} Find Fishing Dates. All rights reserved.</p>
+              <p style="margin: 8px 0 0; font-size: 11px; color: #9CA3AF; text-align: center;">You're receiving this because you signed up for Find Fishing Dates.</p>
             </td>
           </tr>
         </table>

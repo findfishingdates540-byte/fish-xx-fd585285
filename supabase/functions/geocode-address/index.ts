@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,17 +7,42 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const { data: allowed } = await supabase.rpc('check_rate_limit', {
+      p_key: `geocode:${ip}`,
+      p_max_requests: 30,
+      p_window_seconds: 60,
+    });
+    if (allowed === false) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { city, state, zipCode } = await req.json();
     
     if (!city && !state && !zipCode) {
       return new Response(
         JSON.stringify({ error: 'At least one of city, state, or zipCode is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Input length validation
+    if ((city && city.length > 100) || (state && state.length > 50) || (zipCode && zipCode.length > 10)) {
+      return new Response(
+        JSON.stringify({ error: 'Input too long' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -30,13 +56,11 @@ serve(async (req) => {
       );
     }
 
-    // Build address query
     const addressParts = [city, state, zipCode].filter(Boolean);
     const query = encodeURIComponent(addressParts.join(', '));
     
     console.log(`Geocoding address: ${addressParts.join(', ')}`);
 
-    // Call Mapbox Geocoding API
     const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${mapboxToken}&country=US&types=place,postcode,region&limit=1`;
     
     const response = await fetch(geocodeUrl);
@@ -65,12 +89,7 @@ serve(async (req) => {
     console.log(`Geocoded to: ${lat}, ${lng} (${placeName})`);
 
     return new Response(
-      JSON.stringify({ 
-        lat, 
-        lng, 
-        placeName,
-        success: true 
-      }),
+      JSON.stringify({ lat, lng, placeName, success: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
