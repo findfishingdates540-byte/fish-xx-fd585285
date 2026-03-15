@@ -23,31 +23,31 @@ export default function CookiePolicy() {
       name: 'sb-auth-token',
       purpose: 'Authentication session management',
       duration: 'Session / 7 days',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'sb-refresh-token',
       purpose: 'Maintains login session across visits',
       duration: '7 days',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'cookie-consent',
       purpose: 'Stores your cookie preferences',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'csrf-token',
       purpose: 'Security token to prevent cross-site request forgery',
       duration: 'Session',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'device-id',
       purpose: 'Identifies your device for security purposes',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
   ];
 
