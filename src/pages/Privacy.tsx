@@ -129,10 +129,10 @@ const Privacy = () => {
                   Our privacy team is available to answer your questions.
                 </p>
                 <a 
-                  href="mailto:privacy@findfishingdates.com" 
+                  href="mailto:privacy@fishx.app" 
                   className="text-primary text-sm font-medium hover:underline flex items-center gap-1"
                 >
-                  privacy@findfishingdates.com
+                  privacy@fishx.app
                 </a>
               </div>
             </div>
