@@ -712,11 +712,11 @@ export default function ComboDashboard() {
         <div className="p-4 border-b flex items-center justify-between">
           <Link to="/app" className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={logo} alt="Find Fishing Dates" />
-              <AvatarFallback>FF</AvatarFallback>
+              <AvatarImage src={logo} alt="FishX" />
+              <AvatarFallback>FX</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-sm">Find Fishing Dates</p>
+              <p className="font-semibold text-sm">FishX</p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Combo Mode</p>
             </div>
           </Link>

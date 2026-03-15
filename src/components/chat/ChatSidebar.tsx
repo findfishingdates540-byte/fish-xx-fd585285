@@ -150,9 +150,9 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
       <div className={cn("p-6 border-b border-border", isComboUser && "pt-2")}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logoImage} alt="Find Fishing Dates" className="h-8 w-8 rounded-lg" />
+            <img src={logoImage} alt="FishX" className="h-8 w-8 rounded-lg" />
             <div>
-              <span className="font-bold text-lg block">Find Fishing Dates</span>
+              <span className="font-bold text-lg block">FishX</span>
               <span className="text-xs text-primary">{getModeLabel()}</span>
             </div>
           </div>

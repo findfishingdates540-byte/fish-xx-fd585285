@@ -1714,7 +1714,7 @@ function InviteTab({ userId }: InviteTabProps) {
           </div>
           <h3 className="font-semibold text-xl mb-2">Invite Your Fishing Crew</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Share Find Fishing Dates with friends and help them find their perfect fishing buddies and dates!
+            Share FishX with friends and help them find their perfect fishing buddies!
           </p>
         </CardContent>
       </Card>
