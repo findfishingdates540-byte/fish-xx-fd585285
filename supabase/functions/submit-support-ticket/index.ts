@@ -193,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="white-space: pre-wrap; background: #f3f4f6; padding: 15px; border-radius: 6px;">${safeMessage}</p>
             </div>
             <p style="text-align: center;">
-              <a href="https://findfishingdates.com/admin/support" style="display: inline-block; background: #0ea5e9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">View in Admin Panel</a>
+              <a href="https://fishx.app/admin/support" style="display: inline-block; background: #0ea5e9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">View in Admin Panel</a>
             </p>
           </div>
         </body>
