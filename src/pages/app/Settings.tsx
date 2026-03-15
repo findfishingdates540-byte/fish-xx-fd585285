@@ -1680,8 +1680,8 @@ function InviteTab({ userId }: InviteTabProps) {
   };
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent('Join me on Find Fishing Dates!');
-    const body = encodeURIComponent(`Hey!\n\nI've been using Find Fishing Dates to connect with fishing buddies and dates who share my passion. You should check it out!\n\nJoin here: ${inviteUrl}`);
+    const subject = encodeURIComponent('Join me on FishX!');
+    const body = encodeURIComponent(`Hey!\n\nI've been using FishX to connect with fishing buddies who share my passion. You should check it out!\n\nJoin here: ${inviteUrl}`);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
 
