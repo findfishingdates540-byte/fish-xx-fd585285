@@ -36,7 +36,7 @@ const Help = () => {
 
   const faqs = {
     account: [
-      { question: 'How do I create an account?', answer: 'To create an account, visit our website or download the app and click "Sign Up". You\'ll need to provide your email address, create a password, and verify your age (18+). Then complete the onboarding process to set up your profile with photos, bio, and preferences.' },
+      { question: 'How do I create an account?', answer: 'Visit our website or download the app and click "Sign Up". You\'ll need to provide your email address, create a password, and verify your age (13+ for fishing features). Complete the onboarding process to set up your profile with photos, bio, and fishing preferences.' },
       { question: 'How do I edit my profile?', answer: 'Go to your Profile tab and tap "Edit Profile". From there, you can update your photos, bio, fishing preferences, and other information. Make sure to save your changes before leaving the page.' },
       { question: 'How do I switch between Dating and Fishing modes?', answer: 'Go to Settings → Account Mode. You can choose between "Dating Only", "Fishing Only", or "Both". Switching modes will change which features are available to you. Note that some data (like matches) is mode-specific.' },
       { question: 'How do I change my password?', answer: 'Go to Settings → Account → Change Password. You\'ll need to enter your current password and then create a new one. For security, your new password should be at least 8 characters with a mix of letters and numbers.' },
