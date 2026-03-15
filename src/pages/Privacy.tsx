@@ -193,7 +193,7 @@ const Privacy = () => {
                       <ul className="list-disc list-inside space-y-1">
                         <li>Full name and display name</li>
                         <li>Email address and phone number</li>
-                        <li>Date of birth (to verify you are 18+)</li>
+                        <li>Date of birth (to verify eligibility: 13+ for fishing, 18+ for dating)</li>
                         <li>Gender identity and pronouns</li>
                         <li>Profile photos and bio content</li>
                         <li>Location (city, state, ZIP code)</li>
