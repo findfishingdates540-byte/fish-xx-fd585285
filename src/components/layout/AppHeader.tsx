@@ -283,7 +283,7 @@ export function AppHeader() {
         <Link to="/app" className="flex items-center">
           <img 
             src={effectiveMode === 'dating' ? datingLogo : fishingHeaderLogo} 
-            alt={effectiveMode === 'dating' ? 'Find Fishing Dates' : 'Fishon'} 
+            alt={effectiveMode === 'dating' ? 'FishX Dating' : 'FishX'} 
             className="h-7 w-auto" 
           />
         </Link>

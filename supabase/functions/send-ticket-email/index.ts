@@ -98,7 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
         },
         body: JSON.stringify({
            from: "FishX <team@fishx.app>",
-          to: ["findfishingdates540@gmail.com"],
+          to: ["support@fishx.app"],
           subject: emailSubject,
           html: emailBody,
         }),

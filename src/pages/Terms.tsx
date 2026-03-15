@@ -803,7 +803,7 @@ const Terms = () => {
 
                   <div>
                     <h4 className="font-medium text-foreground">Entire Agreement</h4>
-                    <p>These Terms, along with our Privacy Policy and Community Guidelines, constitute the entire agreement between you and Find Fishing Dates.</p>
+                    <p>These Terms, along with our Privacy Policy and Community Guidelines, constitute the entire agreement between you and FishX.</p>
                   </div>
 
                   <div>

@@ -368,7 +368,7 @@ const Help = () => {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <a href="mailto:support@findfishingdates.com">
+              <a href="mailto:support@fishx.app">
                 <Button size="lg" variant="outline" className="border-background bg-transparent text-background hover:bg-background/10 font-semibold rounded-full px-10 py-6">
                   Email Us
                 </Button>

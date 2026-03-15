@@ -14,7 +14,7 @@ self.addEventListener('push', (event) => {
   console.log('Push event received:', event);
 
   let data = {
-    title: 'Find Fishing Dates',
+    title: 'FishX',
     body: 'You have a new notification',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
