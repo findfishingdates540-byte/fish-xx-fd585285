@@ -182,7 +182,11 @@ const Terms = () => {
                   <ul className="space-y-2">
                     <li className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span>You must be at least <strong className="text-foreground">18 years old</strong> to use any feature of Find Fishing Dates.</span>
+                      <span>You must be at least <strong className="text-foreground">13 years old</strong> to create a FishX account and use fishing features.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span>You must be at least <strong className="text-foreground">18 years old</strong> to create a Dating Profile (add-on feature).</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
