@@ -648,7 +648,7 @@ const Terms = () => {
                     <li>Provide as much detail as possible with your report</li>
                     <li>Reports are confidential; the reported user will not know who reported them</li>
                     <li>False reports made in bad faith may result in action against the reporter</li>
-                    <li>Urgent safety concerns can be reported to <a href="mailto:safety@findfishingdates.com" className="text-primary hover:underline">safety@findfishingdates.com</a></li>
+                    <li>Urgent safety concerns can be reported to <a href="mailto:safety@fishx.app" className="text-primary hover:underline">safety@fishx.app</a></li>
                   </ul>
 
                   <h3 className="font-semibold text-foreground">Meeting Safety</h3>
