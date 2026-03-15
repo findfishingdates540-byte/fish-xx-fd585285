@@ -156,12 +156,12 @@ const handler = async (req: Request): Promise<Response> => {
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
             <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
               <h2 style="color: #111827; margin-bottom: 16px;">Ticket Status Update</h2>
-              <p style="color: #374151;">Hi ${ticket.name},</p>
+              <p style="color: #374151;">Hi ${safeName},</p>
               <p style="color: #374151;">Your support ticket <strong>#${ticket.ticket_number}</strong> has been updated.</p>
               <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 0; color: #374151;">New Status: <strong style="color: #059669;">${statusDisplay}</strong></p>
               </div>
-              ${message ? `<p style="color: #374151;"><strong>Message:</strong> ${message}</p>` : ""}
+              ${message ? `<p style="color: #374151;"><strong>Message:</strong> ${escapeHtml(message)}</p>` : ""}
               <p style="color: #374151;">You can view your ticket and respond at any time by visiting your account.</p>
               <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Find Fishing Dates Team</p>
             </div>
