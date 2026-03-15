@@ -408,7 +408,7 @@ const Auth = () => {
         {/* Logo */}
         <div className="flex justify-end p-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Find Fishing Dates" className="h-12 w-auto" />
+            <img src={logo} alt="FishX" className="h-12 w-auto" />
           </Link>
         </div>
 
