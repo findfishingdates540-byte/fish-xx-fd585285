@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
               ` : ""}
               <p style="color: #374151;">Please review this ticket and respond to the user.</p>
               <div style="margin-top: 24px; text-align: center;">
-                <a href="https://findfishingdates.lovable.app/admin/support-tickets" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">View in Admin Panel</a>
+                <a href="https://fishx.app/admin/support-tickets" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">View in Admin Panel</a>
               </div>
             </div>
           </body>
