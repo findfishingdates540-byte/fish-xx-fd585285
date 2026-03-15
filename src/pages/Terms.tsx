@@ -140,20 +140,21 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-4 text-muted-foreground">
                   <p>
-                    Welcome to Find Fishing Dates! These Terms and Conditions ("Terms") govern your use of the Find Fishing Dates website and mobile application (collectively, the "Service") operated by Find Fishing Dates LLC ("Company," "we," "us," or "our").
+                    Welcome to FishX! These Terms and Conditions ("Terms") govern your use of the FishX website and mobile application (collectively, the "Service") operated by FishX LLC ("Company," "we," "us," or "our").
                   </p>
                   <p>
-                    By accessing or using Find Fishing Dates, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use our Service.
+                    By accessing or using FishX, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use our Service.
                   </p>
                   
                   <div className="bg-muted/30 rounded-xl p-5 border border-border">
                     <h4 className="font-semibold text-foreground mb-2">Definitions</h4>
                     <ul className="text-sm space-y-2">
-                      <li><strong>"Service"</strong> refers to the Find Fishing Dates website, mobile applications, and all related features.</li>
+                      <li><strong>"Service"</strong> refers to the FishX website, mobile applications, and all related features.</li>
                       <li><strong>"User"</strong> or <strong>"you"</strong> refers to any individual who accesses or uses the Service.</li>
                       <li><strong>"Content"</strong> refers to any photos, text, messages, or other materials you upload or share.</li>
-                      <li><strong>"Match"</strong> refers to a mutual connection between users in Dating mode.</li>
-                      <li><strong>"Buddy"</strong> refers to a connection between users in Fishing mode.</li>
+                      <li><strong>"Match"</strong> refers to a mutual connection between users in the Dating add-on.</li>
+                      <li><strong>"Buddy"</strong> refers to a connection between users for fishing activities.</li>
+                      <li><strong>"Dating Add-On"</strong> refers to the optional dating profile feature available to users 18 and older.</li>
                     </ul>
                   </div>
 
