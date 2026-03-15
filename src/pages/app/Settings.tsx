@@ -913,25 +913,21 @@ export default function Settings() {
                     <div>
                       <h3 className="font-semibold mb-1">Account Type</h3>
                       <p className="text-sm text-muted-foreground">
-                        {originalAccountMode === 'dating' 
-                          ? "You're on a free Dating account. Upgrade to unlock more features!"
-                          : "You're on an Angler subscription. Upgrade to Combo to unlock dating!"}
+                        You're on a Fishing account. Add a dating profile to unlock dating features!
                       </p>
                     </div>
                     <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                      {originalAccountMode === 'dating' ? <Heart className="h-6 w-6 text-primary" /> : <Fish className="h-6 w-6 text-primary" />}
+                      <Fish className="h-6 w-6 text-primary" />
                       <div>
-                        <p className="font-medium">{originalAccountMode === 'dating' ? 'Dating Account' : 'Angler Subscription'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {originalAccountMode === 'dating' ? 'Free tier - dating features only' : 'Fishing spots, buddies & trips'}
-                        </p>
+                        <p className="font-medium">Fishing Account</p>
+                        <p className="text-sm text-muted-foreground">Fishing spots, buddies & trips</p>
                       </div>
                     </div>
-                    <Button asChild className="w-full">
-                      <Link to="/pricing">
-                        {originalAccountMode === 'dating' ? 'Upgrade to Angler or Combo' : 'Upgrade to Combo'}
-                      </Link>
-                    </Button>
+                    <DatingProfileAddon 
+                      originalAccountMode={originalAccountMode} 
+                      userId={user?.id}
+                      compact
+                    />
                   </CardContent>
                 </Card>
               )
