@@ -163,7 +163,7 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               ${message ? `<p style="color: #374151;"><strong>Message:</strong> ${escapeHtml(message)}</p>` : ""}
               <p style="color: #374151;">You can view your ticket and respond at any time by visiting your account.</p>
-              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Find Fishing Dates Team</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>FishX Team</p>
             </div>
           </body>
         </html>
