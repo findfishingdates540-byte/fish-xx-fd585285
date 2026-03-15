@@ -412,8 +412,8 @@ const Index = () => {
               </ScrollReveal>
               <ScrollReveal delay={0.3}>
                 <div>
-                  <p className="font-semibold text-foreground">Sarah & Michael</p>
-                  <p className="text-muted-foreground">Married in 2023</p>
+                  <p className="font-semibold text-foreground">Jake & Friends</p>
+                  <p className="text-muted-foreground">FishX members since 2023</p>
                 </div>
               </ScrollReveal>
               <ScrollReveal delay={0.4}>
