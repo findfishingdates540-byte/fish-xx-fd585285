@@ -375,18 +375,11 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex">
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        {Object.entries(accountImages).map(([mode, src]) => (
-          <img 
-            key={mode}
-            src={src} 
-            alt={`${mode} mode`} 
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
-              accountMode === mode 
-                ? 'opacity-100 scale-100' 
-                : 'opacity-0 scale-105'
-            }`}
-          />
-        ))}
+        <img 
+          src={authFishingImage} 
+          alt="FishX" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
       </div>
 
