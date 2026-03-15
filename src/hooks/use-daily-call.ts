@@ -20,7 +20,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
   const [callDuration, setCallDuration] = useState(0);
 
   const callObjectRef = useRef<DailyCall | null>(null);
-  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const audioElementsRef = useRef<HTMLAudioElement[]>([]);

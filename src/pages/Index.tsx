@@ -89,7 +89,7 @@ const Index = () => {
               className="space-y-8"
             >
               <h1 className="display-text text-foreground">
-                Find Your
+                Your
                 <br />
                 <motion.span 
                   className="italic inline-block"
@@ -97,10 +97,10 @@ const Index = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
                 >
-                  Perfect
+                  Ultimate
                 </motion.span>
                 <br />
-                Fishing Date
+                Fishing Platform
               </h1>
               <motion.p 
                 className="text-xl text-muted-foreground max-w-lg leading-relaxed"
@@ -108,7 +108,7 @@ const Index = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                The dating app built for fishing enthusiasts. Connect with people who share your passion for the water.
+                Discover fishing spots, log your catches, find fishing buddies, and connect with anglers worldwide. All in one platform.
               </motion.p>
               <motion.div 
                 className="flex flex-col sm:flex-row gap-4"
@@ -178,8 +178,8 @@ const Index = () => {
               <p className="text-5xl md:text-6xl font-bold text-foreground">
                 <CountUp end={10} suffix="K+" duration={2} />
               </p>
-              <p className="text-muted-foreground mt-2">Matches Made</p>
-            </StaggerItem>
+               <p className="text-muted-foreground mt-2">Matches Made</p>
+             </StaggerItem>
             <StaggerItem className="text-center">
               <p className="text-5xl md:text-6xl font-bold text-foreground">
                 <CountUp end={5} suffix="K+" duration={2} />
@@ -203,12 +203,12 @@ const Index = () => {
             <ScrollReveal direction="left" className="space-y-8">
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Our Mission</span>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                We exist to bring fishing lovers closer to love.
+                Built by anglers, for anglers.
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                We believe meaningful connections happen when people share genuine passions. 
-                That's why we built a platform where fishing enthusiasts can find love, 
-                friendship, and their next fishing buddy.
+                We believe the best fishing experiences happen when you share them. 
+                That's why we built a platform where anglers can discover spots, 
+                log catches, find buddies, and connect with a passionate community.
               </p>
               <Link to="/about">
                 <Button className="btn-primary group">
@@ -255,7 +255,7 @@ const Index = () => {
               <FeatureCard
                 icon={<Heart className="w-8 h-8" />}
                 title="Smart Matching"
-                description="Our algorithm connects you with people who share your fishing preferences and dating goals."
+                description="Find fishing buddies who match your style, experience level, and preferred species."
               />
             </StaggerItem>
             <StaggerItem>
@@ -283,14 +283,14 @@ const Index = () => {
               <FeatureCard
                 icon={<MessageCircle className="w-8 h-8" />}
                 title="Real-time Chat"
-                description="Message your matches instantly and plan your first fishing date together."
+                description="Message your fishing buddies instantly and plan your next trip together."
               />
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
                 icon={<Star className="w-8 h-8" />}
                 title="Premium Features"
-                description="Unlock unlimited matches, priority discovery, and exclusive fishing spot data."
+                description="Unlock unlimited connections, priority discovery, and exclusive fishing spot data."
               />
             </StaggerItem>
           </StaggerContainer>
@@ -388,7 +388,7 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left" className="order-2 lg:order-1">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img src={coupleFishing} alt="Happy couple who met on Find Fishing Dates" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                <img src={coupleFishing} alt="Happy anglers on FishX" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
             </ScrollReveal>
             
@@ -406,14 +406,14 @@ const Index = () => {
               </ScrollReveal>
               <ScrollReveal delay={0.2}>
                 <blockquote className="text-3xl md:text-4xl font-medium text-foreground leading-snug -mt-12">
-                  We met on Find Fishing Dates and now we spend every weekend on the water together. 
-                  It's the best decision we ever made.
+                  FishX changed everything for us. We found the best fishing spots, planned amazing trips, 
+                  and built friendships that last a lifetime.
                 </blockquote>
               </ScrollReveal>
               <ScrollReveal delay={0.3}>
                 <div>
-                  <p className="font-semibold text-foreground">Sarah & Michael</p>
-                  <p className="text-muted-foreground">Married in 2023</p>
+                  <p className="font-semibold text-foreground">Jake & Friends</p>
+                  <p className="text-muted-foreground">FishX members since 2023</p>
                 </div>
               </ScrollReveal>
               <ScrollReveal delay={0.4}>
@@ -439,7 +439,7 @@ const Index = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Ready to find your perfect fishing date?
+            Ready to join the ultimate fishing community?
           </motion.h2>
           <motion.p 
             className="text-xl text-background/70 mb-10 max-w-2xl mx-auto"
@@ -448,8 +448,8 @@ const Index = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Join thousands of fishing enthusiasts who have found love, friendship, 
-            and their next fishing adventure on our platform.
+            Join thousands of anglers who are discovering spots, logging catches, 
+            and connecting with fishing buddies on FishX.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -480,8 +480,8 @@ const Index = () => {
                 Take the catch<br />with you
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Download our mobile app and start connecting with fishing enthusiasts 
-                wherever you are. Swipe, match, and plan your next fishing date on the go.
+                Download our mobile app and start connecting with anglers 
+                wherever you are. Discover spots, log catches, and plan trips on the go.
               </p>
               
               {/* App Features */}
@@ -574,7 +574,7 @@ const Index = () => {
                       
                       {/* App header */}
                       <div className="px-6 py-4 border-b border-border">
-                        <img src={logo} alt="Find Fishing Dates" className="h-8 w-auto" />
+                        <img src={logo} alt="FishX" className="h-8 w-auto" />
                       </div>
                       
                       {/* Profile card preview */}

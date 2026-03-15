@@ -24,7 +24,7 @@ export function IncomingCallOverlay({
     let audioContext: AudioContext | null = null;
     let oscillator: OscillatorNode | null = null;
     let gainNode: GainNode | null = null;
-    let intervalId: NodeJS.Timeout | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const playRingTone = () => {
       try {

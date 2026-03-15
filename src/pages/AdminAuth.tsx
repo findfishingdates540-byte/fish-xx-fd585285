@@ -100,7 +100,7 @@ const AdminAuth = () => {
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <img src={logo} alt="Find Fishing Dates" className="h-12 w-auto" />
+            <img src={logo} alt="FishX" className="h-12 w-auto" />
           </Link>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="p-3 rounded-full bg-primary/10">

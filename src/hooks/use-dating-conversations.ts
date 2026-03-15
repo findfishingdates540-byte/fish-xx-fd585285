@@ -35,7 +35,7 @@ function formatTimeAgo(dateStr: string | null): string {
 export function useDatingConversations() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch all matches with their profiles and latest messages using optimized RPC
   const { data: conversations, isLoading, refetch } = useQuery({

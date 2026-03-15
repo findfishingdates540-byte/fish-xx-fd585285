@@ -733,7 +733,7 @@ export default function Settings() {
                       <div className="flex items-start gap-3">
                         <Star className="h-6 w-6 flex-shrink-0 mt-0.5" />
                         <div>
-                          <h3 className="font-semibold text-lg">Find Fishing Dates Gold</h3>
+                          <h3 className="font-semibold text-lg">FishX Gold</h3>
                           <p className="text-sm opacity-90">
                             Unlock unlimited swipes, see who liked your catches, and get advanced map filters for top fishing spots.
                           </p>
@@ -1661,8 +1661,8 @@ function InviteTab({ userId }: InviteTabProps) {
 
   const handleShare = async () => {
     const shareData = {
-      title: 'Join me on Find Fishing Dates!',
-      text: 'Find fishing buddies and dates who share your passion for fishing.',
+      title: 'Join me on FishX!',
+      text: 'Find fishing buddies and connect with anglers who share your passion.',
       url: inviteUrl,
     };
 
@@ -1680,13 +1680,13 @@ function InviteTab({ userId }: InviteTabProps) {
   };
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent('Join me on Find Fishing Dates!');
-    const body = encodeURIComponent(`Hey!\n\nI've been using Find Fishing Dates to connect with fishing buddies and dates who share my passion. You should check it out!\n\nJoin here: ${inviteUrl}`);
+    const subject = encodeURIComponent('Join me on FishX!');
+    const body = encodeURIComponent(`Hey!\n\nI've been using FishX to connect with fishing buddies who share my passion. You should check it out!\n\nJoin here: ${inviteUrl}`);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
 
   const handleSMSShare = () => {
-    const message = encodeURIComponent(`Check out Find Fishing Dates! Find fishing buddies and dates who share your passion: ${inviteUrl}`);
+    const message = encodeURIComponent(`Check out FishX! Find fishing buddies and connect with anglers: ${inviteUrl}`);
     window.open(`sms:?body=${message}`, '_blank');
   };
 
@@ -1700,7 +1700,7 @@ function InviteTab({ userId }: InviteTabProps) {
   };
 
   const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(`Check out Find Fishing Dates! Find fishing buddies and dates who share your passion: ${inviteUrl}`);
+    const text = encodeURIComponent(`Check out FishX! Find fishing buddies and connect with anglers: ${inviteUrl}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
@@ -1714,7 +1714,7 @@ function InviteTab({ userId }: InviteTabProps) {
           </div>
           <h3 className="font-semibold text-xl mb-2">Invite Your Fishing Crew</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Share Find Fishing Dates with friends and help them find their perfect fishing buddies and dates!
+            Share FishX with friends and help them find their perfect fishing buddies!
           </p>
         </CardContent>
       </Card>

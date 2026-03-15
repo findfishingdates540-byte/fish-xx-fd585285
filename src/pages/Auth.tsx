@@ -127,7 +127,7 @@ const Auth = () => {
         return;
       }
 
-      navigate('/app/discover');
+      navigate('/app/feed');
     };
 
     checkOnboardingAndPremium();
@@ -169,7 +169,7 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, displayName, accountMode);
+        const { error } = await signUp(email, password, displayName);
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
@@ -186,7 +186,7 @@ const Auth = () => {
           }
         } else {
           toast({
-            title: 'Welcome to Find Fishing Dates!',
+            title: 'Welcome to FishX!',
             description: 'Check your email to confirm your account, then complete your profile.',
           });
           // Navigate to onboarding after successful signup
@@ -293,7 +293,7 @@ const Auth = () => {
           description: 'Your password has been successfully changed.',
         });
         setIsRecoveryMode(false);
-        navigate('/app/discover');
+        navigate('/app/feed');
       }
     } finally {
       setRecoveryLoading(false);
@@ -312,7 +312,7 @@ const Auth = () => {
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="w-full max-w-md">
           <div className="flex justify-center mb-8">
-            <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
+            <img src={logo} alt="FishX" className="h-16 w-auto" />
           </div>
           
           <h1 className="text-3xl font-bold mb-2 text-center">Set New Password</h1>
@@ -408,7 +408,7 @@ const Auth = () => {
         {/* Logo */}
         <div className="flex justify-end p-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Find Fishing Dates" className="h-12 w-auto" />
+            <img src={logo} alt="FishX" className="h-12 w-auto" />
           </Link>
         </div>
 
@@ -420,29 +420,6 @@ const Auth = () => {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Account Mode Selection - Only show on signup */}
-              {isSignUp && (
-                <div className="space-y-2">
-                  <Label>I'm looking for</Label>
-                  <div className="flex rounded-lg border border-border overflow-hidden">
-                    {accountModeOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setAccountMode(option.value)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium transition-colors ${
-                          accountMode === option.value
-                            ? 'bg-foreground text-background'
-                            : 'bg-background text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        {option.icon}
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Display Name - Only show on signup */}
               {isSignUp && (

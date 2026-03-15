@@ -106,7 +106,7 @@ export default function Feed() {
 
   // Debounced real-time subscription for new posts (prevents rapid refetches)
   useEffect(() => {
-    let debounceTimer: NodeJS.Timeout | null = null;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     
     const debouncedInvalidate = () => {
       if (debounceTimer) clearTimeout(debounceTimer);

@@ -68,7 +68,7 @@ const MobileHomeLanding = () => {
         {/* Brand Badge */}
         <div className="absolute top-4 left-4 bg-foreground text-background px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
           <Fish className="w-4 h-4" />
-          <span className="text-sm font-bold tracking-wide">Find Fishing Dates</span>
+          <span className="text-sm font-bold tracking-wide">FishX</span>
         </div>
         
         {/* Floating Fish Icon */}
@@ -118,10 +118,10 @@ const MobileHomeLanding = () => {
           className="text-center mb-2"
         >
           <h1 className="text-2xl font-bold text-foreground">
-            Catch feelings,
+            Fish. Connect.
           </h1>
           <h1 className="text-2xl font-bold italic text-foreground">
-            catch fish.
+            Explore.
           </h1>
         </motion.div>
 
@@ -143,7 +143,7 @@ const MobileHomeLanding = () => {
           className="text-center mb-6"
         >
           <p className="text-muted-foreground text-sm">
-            Dating • Fishing Spots • Combo Mode
+            Spots • Buddies • Catches • Feed
           </p>
         </motion.div>
 

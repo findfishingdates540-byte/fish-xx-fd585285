@@ -79,7 +79,7 @@ export default function Buddies() {
   const { isOnline, getLastSeen } = useOnlineStatus(allUserIds);
 
   // Debounce ref for real-time updates
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounced refetch to prevent scroll position reset
   const debouncedRefetch = useCallback(() => {
