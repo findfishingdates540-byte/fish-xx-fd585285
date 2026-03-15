@@ -1661,8 +1661,8 @@ function InviteTab({ userId }: InviteTabProps) {
 
   const handleShare = async () => {
     const shareData = {
-      title: 'Join me on Find Fishing Dates!',
-      text: 'Find fishing buddies and dates who share your passion for fishing.',
+      title: 'Join me on FishX!',
+      text: 'Find fishing buddies and connect with anglers who share your passion.',
       url: inviteUrl,
     };
 
