@@ -520,7 +520,7 @@ const Terms = () => {
                   <div className="bg-muted/30 rounded-xl p-5 border border-border text-sm">
                     <ul className="space-y-2">
                       <li><strong>7-Day Money-Back Guarantee:</strong> If you're not satisfied within the first 7 days of a new subscription, contact support for a full refund.</li>
-                      <li><strong>How to Request:</strong> Email <a href="mailto:billing@findfishingdates.com" className="text-primary hover:underline">billing@findfishingdates.com</a> with your account email and reason.</li>
+                      <li><strong>How to Request:</strong> Email <a href="mailto:billing@fishx.app" className="text-primary hover:underline">billing@fishx.app</a> with your account email and reason.</li>
                       <li><strong>Exceptions:</strong> Refunds may be denied if the account has been suspended for Terms violations or if refund requests appear to be abusive.</li>
                     </ul>
                   </div>
