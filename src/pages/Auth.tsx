@@ -293,7 +293,7 @@ const Auth = () => {
           description: 'Your password has been successfully changed.',
         });
         setIsRecoveryMode(false);
-        navigate('/app/discover');
+        navigate('/app/feed');
       }
     } finally {
       setRecoveryLoading(false);
