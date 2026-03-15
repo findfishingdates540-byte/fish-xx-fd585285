@@ -678,7 +678,7 @@ const Terms = () => {
                   
                   <h3 className="font-semibold text-foreground">Our Property</h3>
                   <p className="text-sm">
-                    The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of Find Fishing Dates LLC. This includes:
+                    The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of FishX LLC. This includes:
                   </p>
                   <ul className="text-sm list-disc list-inside space-y-1 mt-2">
                     <li>Trademarks: "Find Fishing Dates," logos, and brand assets</li>
