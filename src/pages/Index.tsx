@@ -388,7 +388,7 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left" className="order-2 lg:order-1">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img src={coupleFishing} alt="Happy couple who met on Find Fishing Dates" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                <img src={coupleFishing} alt="Happy anglers on FishX" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
             </ScrollReveal>
             
