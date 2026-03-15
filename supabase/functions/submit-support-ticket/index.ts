@@ -147,7 +147,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Category:</strong> ${safeCategory}</p>
             </div>
             <p>Our team will respond within 24-48 hours.</p>
-            <p>Best regards,<br><strong>The Find Fishing Dates Team</strong></p>
+            <p>Best regards,<br><strong>The FishX Team</strong></p>
           </div>
         </body>
         </html>
