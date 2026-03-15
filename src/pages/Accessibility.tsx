@@ -150,10 +150,10 @@ export default function Accessibility() {
   return (
     <>
       <Helmet>
-        <title>Accessibility Statement | Find Fishing Dates</title>
+        <title>Accessibility Statement | FishX</title>
         <meta 
           name="description" 
-          content="Find Fishing Dates is committed to digital accessibility. Learn about our WCAG compliance efforts and accessibility features." 
+          content="FishX is committed to digital accessibility. Learn about our WCAG compliance efforts and accessibility features." 
         />
       </Helmet>
       
