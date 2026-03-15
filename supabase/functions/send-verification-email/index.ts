@@ -134,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Find Fishing Dates <team@findfishingdates.net>",
+      from: "FishX <team@findfishingdates.net>",
       to: [email],
       subject,
       html,
