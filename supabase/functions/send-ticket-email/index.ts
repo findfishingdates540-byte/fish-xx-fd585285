@@ -140,9 +140,9 @@ const handler = async (req: Request): Promise<Response> => {
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
             <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
               <h2 style="color: #111827; margin-bottom: 16px;">Your Ticket Has Been Closed</h2>
-              <p style="color: #374151;">Hi ${ticket.name},</p>
-              <p style="color: #374151;">Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${ticket.subject}</em>" has been closed.</p>
-              ${message ? `<div style="background: #f3f4f6; padding: 16px; margin: 20px 0; border-radius: 8px;"><p style="margin: 0; color: #374151; white-space: pre-wrap;">${message.replace(/\n/g, "<br>")}</p></div>` : ""}
+              <p style="color: #374151;">Hi ${safeName},</p>
+              <p style="color: #374151;">Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${safeSubject}</em>" has been closed.</p>
+              ${message ? `<div style="background: #f3f4f6; padding: 16px; margin: 20px 0; border-radius: 8px;"><p style="margin: 0; color: #374151; white-space: pre-wrap;">${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>` : ""}
               <p style="color: #374151;">If you need further assistance, you can always submit a new support ticket.</p>
               <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Find Fishing Dates Team</p>
             </div>
