@@ -124,9 +124,9 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
               </div>
               <h2 style="color: #111827; margin-bottom: 16px;">Your Ticket Has Been Resolved</h2>
-              <p style="color: #374151;">Hi ${ticket.name},</p>
-              <p style="color: #374151;">Great news! Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${ticket.subject}</em>" has been resolved.</p>
-              ${message ? `<div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;"><p style="margin: 0; color: #166534; white-space: pre-wrap;">${message.replace(/\n/g, "<br>")}</p></div>` : ""}
+              <p style="color: #374151;">Hi ${safeName},</p>
+              <p style="color: #374151;">Great news! Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${safeSubject}</em>" has been resolved.</p>
+              ${message ? `<div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;"><p style="margin: 0; color: #166534; white-space: pre-wrap;">${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>` : ""}
               <p style="color: #374151;">If you have any further questions or need additional assistance, feel free to open a new ticket.</p>
               <p style="color: #6b7280; margin-top: 24px;">Thanks for your patience,<br>Find Fishing Dates Team</p>
             </div>
