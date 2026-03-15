@@ -127,7 +127,7 @@ const Auth = () => {
         return;
       }
 
-      navigate('/app/discover');
+      navigate('/app/feed');
     };
 
     checkOnboardingAndPremium();
