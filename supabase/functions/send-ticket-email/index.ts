@@ -169,16 +169,16 @@ const handler = async (req: Request): Promise<Response> => {
         </html>
       `;
     } else {
-      emailSubject = `Re: Ticket #${ticket.ticket_number} - ${ticket.subject}`;
+      emailSubject = `Re: Ticket #${ticket.ticket_number} - ${safeSubject}`;
       emailBody = `
         <html>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
             <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
               <h2 style="color: #111827; margin-bottom: 16px;">New Response to Your Ticket</h2>
-              <p style="color: #374151;">Hi ${ticket.name},</p>
+              <p style="color: #374151;">Hi ${safeName},</p>
               <p style="color: #374151;">Our support team has responded to your ticket <strong>#${ticket.ticket_number}</strong>:</p>
               <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-                <p style="margin: 0; color: #0c4a6e; white-space: pre-wrap;">${message?.replace(/\n/g, "<br>")}</p>
+                <p style="margin: 0; color: #0c4a6e; white-space: pre-wrap;">${message ? escapeHtml(message).replace(/\n/g, "<br>") : ""}</p>
               </div>
               <p style="color: #374151;">You can reply to this message by logging into your account and visiting your support tickets.</p>
               <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Find Fishing Dates Team</p>
