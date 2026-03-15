@@ -159,7 +159,7 @@ const Help = () => {
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <h1 className="text-5xl md:text-6xl font-bold text-foreground">Help Center</h1>
           <p className="text-xl text-muted-foreground">
-            Find answers to your questions and learn how to get the most out of Find Fishing Dates.
+            Find answers to your questions and learn how to get the most out of FishX.
           </p>
           <div className="relative max-w-xl mx-auto">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
