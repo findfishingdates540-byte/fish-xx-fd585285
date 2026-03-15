@@ -186,7 +186,7 @@ const Auth = () => {
           }
         } else {
           toast({
-            title: 'Welcome to Find Fishing Dates!',
+            title: 'Welcome to FishX!',
             description: 'Check your email to confirm your account, then complete your profile.',
           });
           // Navigate to onboarding after successful signup
