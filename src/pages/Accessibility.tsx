@@ -179,7 +179,7 @@ export default function Accessibility() {
             <section className="mb-12">
               <h2 className="text-2xl font-semibold text-foreground mb-4">Our Commitment to Accessibility</h2>
               <p className="text-lg text-muted-foreground mb-4">
-                Find Fishing Date LLC is committed to ensuring digital accessibility for people with disabilities. 
+                FishX LLC is committed to ensuring digital accessibility for people with disabilities. 
                 We are continually improving the user experience for everyone and applying the relevant 
                 accessibility standards to ensure we provide equal access to all users.
               </p>
