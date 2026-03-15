@@ -283,7 +283,7 @@ const Index = () => {
               <FeatureCard
                 icon={<MessageCircle className="w-8 h-8" />}
                 title="Real-time Chat"
-                description="Message your matches instantly and plan your first fishing date together."
+                description="Message your fishing buddies instantly and plan your next trip together."
               />
             </StaggerItem>
             <StaggerItem>
