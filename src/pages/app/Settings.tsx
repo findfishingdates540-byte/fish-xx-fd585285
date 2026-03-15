@@ -733,7 +733,7 @@ export default function Settings() {
                       <div className="flex items-start gap-3">
                         <Star className="h-6 w-6 flex-shrink-0 mt-0.5" />
                         <div>
-                          <h3 className="font-semibold text-lg">Find Fishing Dates Gold</h3>
+                          <h3 className="font-semibold text-lg">FishX Gold</h3>
                           <p className="text-sm opacity-90">
                             Unlock unlimited swipes, see who liked your catches, and get advanced map filters for top fishing spots.
                           </p>
