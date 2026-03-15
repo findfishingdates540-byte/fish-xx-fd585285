@@ -574,7 +574,7 @@ const Index = () => {
                       
                       {/* App header */}
                       <div className="px-6 py-4 border-b border-border">
-                        <img src={logo} alt="Find Fishing Dates" className="h-8 w-auto" />
+                        <img src={logo} alt="FishX" className="h-8 w-auto" />
                       </div>
                       
                       {/* Profile card preview */}
