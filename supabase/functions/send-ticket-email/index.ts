@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #374151;">Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${safeSubject}</em>" has been closed.</p>
               ${message ? `<div style="background: #f3f4f6; padding: 16px; margin: 20px 0; border-radius: 8px;"><p style="margin: 0; color: #374151; white-space: pre-wrap;">${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>` : ""}
               <p style="color: #374151;">If you need further assistance, you can always submit a new support ticket.</p>
-              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Find Fishing Dates Team</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>FishX Team</p>
             </div>
           </body>
         </html>
