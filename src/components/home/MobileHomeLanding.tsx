@@ -143,7 +143,7 @@ const MobileHomeLanding = () => {
           className="text-center mb-6"
         >
           <p className="text-muted-foreground text-sm">
-            Dating • Fishing Spots • Combo Mode
+            Spots • Buddies • Catches • Feed
           </p>
         </motion.div>
 

@@ -54,7 +54,7 @@ export function PublicFooter() {
         
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Find Fishing Dates. All rights reserved.
+            © {new Date().getFullYear()} FishX. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
