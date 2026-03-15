@@ -3,7 +3,7 @@
  */
 
 // The production domain for share links, referrals, etc.
-export const PRODUCTION_URL = 'https://findfishingdates.net';
+export const PRODUCTION_URL = 'https://fishx.app';
 
 /**
  * Get the base URL for shareable links.
