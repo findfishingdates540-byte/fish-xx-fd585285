@@ -1700,7 +1700,7 @@ function InviteTab({ userId }: InviteTabProps) {
   };
 
   const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(`Check out Find Fishing Dates! Find fishing buddies and dates who share your passion: ${inviteUrl}`);
+    const text = encodeURIComponent(`Check out FishX! Find fishing buddies and connect with anglers: ${inviteUrl}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
