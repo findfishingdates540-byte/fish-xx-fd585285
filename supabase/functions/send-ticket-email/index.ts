@@ -69,10 +69,10 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
               </div>
               <h2 style="color: #111827; margin-bottom: 16px;">A User Has Reopened Their Ticket</h2>
-              <p style="color: #374151;"><strong>${ticket.name}</strong> (${ticket.email}) has reopened ticket <strong>#${ticket.ticket_number}</strong>.</p>
+              <p style="color: #374151;"><strong>${safeName}</strong> (${safeEmail}) has reopened ticket <strong>#${ticket.ticket_number}</strong>.</p>
               <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;"><strong>Subject:</strong></p>
-                <p style="margin: 0; color: #111827;">${ticket.subject}</p>
+                <p style="margin: 0; color: #111827;">${safeSubject}</p>
               </div>
               ${reopenReason ? `
               <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
