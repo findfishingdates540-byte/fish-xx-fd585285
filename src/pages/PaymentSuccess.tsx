@@ -83,8 +83,8 @@ Status:         ✓ PAYMENT SUCCESSFUL
 Thank you for subscribing to FishX!
 Your premium features are now active.
 
-For support, visit: https://findfishingdates.com/help
-To manage your subscription: https://findfishingdates.com/app/settings
+For support, visit: https://fishx.app/help
+To manage your subscription: https://fishx.app/app/settings
 
 ================================================================================
                     This receipt is for your records.
