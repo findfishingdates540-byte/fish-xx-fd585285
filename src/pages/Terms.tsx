@@ -681,7 +681,7 @@ const Terms = () => {
                     The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of FishX LLC. This includes:
                   </p>
                   <ul className="text-sm list-disc list-inside space-y-1 mt-2">
-                    <li>Trademarks: "Find Fishing Dates," logos, and brand assets</li>
+                    <li>Trademarks: "FishX," logos, and brand assets</li>
                     <li>App design, user interface, and code</li>
                     <li>Matching algorithms and recommendation systems</li>
                     <li>Documentation, guides, and marketing materials</li>
