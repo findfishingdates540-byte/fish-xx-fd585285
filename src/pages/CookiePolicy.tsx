@@ -80,7 +80,7 @@ export default function CookiePolicy() {
       name: 'analytics_session',
       purpose: 'Tracks session-level engagement metrics',
       duration: 'Session',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
   ];
 
@@ -89,31 +89,31 @@ export default function CookiePolicy() {
       name: 'theme',
       purpose: 'Stores your light/dark mode preference',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'locale',
       purpose: 'Stores your language preference',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'map-style',
       purpose: 'Remembers your preferred map view style',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'units',
       purpose: 'Stores measurement unit preferences (imperial/metric)',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'notification-prefs',
       purpose: 'Stores in-app notification preferences',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
   ];
 
