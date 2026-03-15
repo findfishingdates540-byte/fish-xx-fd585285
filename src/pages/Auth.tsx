@@ -312,7 +312,7 @@ const Auth = () => {
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="w-full max-w-md">
           <div className="flex justify-center mb-8">
-            <img src={logo} alt="Find Fishing Dates" className="h-16 w-auto" />
+            <img src={logo} alt="FishX" className="h-16 w-auto" />
           </div>
           
           <h1 className="text-3xl font-bold mb-2 text-center">Set New Password</h1>
