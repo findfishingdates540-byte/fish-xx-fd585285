@@ -80,7 +80,7 @@ Status:         ✓ PAYMENT SUCCESSFUL
 
 --------------------------------------------------------------------------------
 
-Thank you for subscribing to Find Fishing Dates!
+Thank you for subscribing to FishX!
 Your premium features are now active.
 
 For support, visit: https://findfishingdates.com/help
