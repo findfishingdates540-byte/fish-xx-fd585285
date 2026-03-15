@@ -420,29 +420,6 @@ const Auth = () => {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Account Mode Selection - Only show on signup */}
-              {isSignUp && (
-                <div className="space-y-2">
-                  <Label>I'm looking for</Label>
-                  <div className="flex rounded-lg border border-border overflow-hidden">
-                    {accountModeOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setAccountMode(option.value)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium transition-colors ${
-                          accountMode === option.value
-                            ? 'bg-foreground text-background'
-                            : 'bg-background text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        {option.icon}
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Display Name - Only show on signup */}
               {isSignUp && (
