@@ -255,7 +255,7 @@ const Index = () => {
               <FeatureCard
                 icon={<Heart className="w-8 h-8" />}
                 title="Smart Matching"
-                description="Our algorithm connects you with people who share your fishing preferences and dating goals."
+                description="Find fishing buddies who match your style, experience level, and preferred species."
               />
             </StaggerItem>
             <StaggerItem>
