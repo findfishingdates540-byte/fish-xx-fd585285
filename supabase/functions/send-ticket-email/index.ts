@@ -48,7 +48,10 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(JSON.stringify({ error: "Ticket not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const statusDisplay = (newStatus || ticket.status).replace("_", " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
+    const statusDisplay = escapeHtml((newStatus || ticket.status).replace("_", " ").replace(/\b\w/g, (l: string) => l.toUpperCase()));
+    const safeName = escapeHtml(ticket.name);
+    const safeEmail = escapeHtml(ticket.email);
+    const safeSubject = escapeHtml(ticket.subject);
 
     let emailSubject = "";
     let emailBody = "";
