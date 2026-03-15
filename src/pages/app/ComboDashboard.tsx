@@ -367,7 +367,7 @@ export default function ComboDashboard() {
             queryClient.invalidateQueries({ queryKey: ['recent-matches', user.id] });
             // Play sound and show browser notification
             playNotificationSound();
-            showBrowserNotification('New Match!', 'You have a new match on Find Fishing Dates!');
+            showBrowserNotification('New Match!', 'You have a new match on FishX!');
           }
         }
       )
