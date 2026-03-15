@@ -170,11 +170,13 @@ const Contact = () => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name</Label>
-                      <Input id="name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="bg-background" />
+                      <Input id="name" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required maxLength={100} className="bg-background" />
+                      {validationErrors.name && <p className="text-sm text-destructive">{validationErrors.name}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className="bg-background" />
+                      <Input id="email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required maxLength={255} className="bg-background" />
+                      {validationErrors.email && <p className="text-sm text-destructive">{validationErrors.email}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
@@ -191,11 +193,13 @@ const Contact = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="subject">Subject</Label>
-                      <Input id="subject" placeholder="How can we help?" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required className="bg-background" />
+                      <Input id="subject" placeholder="How can we help?" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required maxLength={200} className="bg-background" />
+                      {validationErrors.subject && <p className="text-sm text-destructive">{validationErrors.subject}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="message">Message</Label>
-                      <Textarea id="message" placeholder="Tell us more..." value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required rows={6} className="bg-background" />
+                      <Label htmlFor="message">Message <span className="text-muted-foreground text-xs">({formData.message.length}/5000)</span></Label>
+                      <Textarea id="message" placeholder="Tell us more..." value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required rows={6} maxLength={5000} className="bg-background" />
+                      {validationErrors.message && <p className="text-sm text-destructive">{validationErrors.message}</p>}
                     </div>
                     <Button type="submit" className="btn-primary w-full" disabled={isSubmitting}>
                       {isSubmitting ? 'Submitting...' : 'Submit Ticket'}<Send className="ml-2 w-4 h-4" />
