@@ -111,8 +111,8 @@ const Contact = () => {
         <div className="max-w-7xl mx-auto">
           <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-4 gap-8" staggerDelay={0.1}>
             {[
-              { icon: Mail, title: 'Email Us', content: 'support@findfishingdates.com' },
-              { icon: Phone, title: 'Call Us', content: '1-800-FISH-DATE' },
+              { icon: Mail, title: 'Email Us', content: 'support@fishx.app' },
+              { icon: Phone, title: 'Call Us', content: '1-800-FISHX-APP' },
               { icon: MapPin, title: 'Location', content: '123 Fishing Lane\nLake City, FL 32055' },
               { icon: Clock, title: 'Hours', content: '24/7 Support\nAlways available' },
             ].map((item, i) => (
