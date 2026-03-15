@@ -181,7 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <p style="margin: 0; color: #0c4a6e; white-space: pre-wrap;">${message ? escapeHtml(message).replace(/\n/g, "<br>") : ""}</p>
               </div>
               <p style="color: #374151;">You can reply to this message by logging into your account and visiting your support tickets.</p>
-              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Find Fishing Dates Team</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>FishX Team</p>
             </div>
           </body>
         </html>
