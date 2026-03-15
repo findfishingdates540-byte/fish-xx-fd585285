@@ -30,8 +30,8 @@ const Fishing = () => {
                 Your Fishing Companion
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                More than just dating—we're a complete fishing platform. Log catches, discover spots, 
-                find fishing buddies, and track your angling journey.
+                FishX is your complete fishing platform. Log catches, discover spots, 
+                find fishing buddies, plan trips, and track your angling journey.
               </p>
               <Link to="/auth?mode=signup">
                 <Button size="lg" className="btn-primary text-lg px-10 py-6">
