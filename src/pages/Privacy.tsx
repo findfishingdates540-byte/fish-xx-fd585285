@@ -759,7 +759,7 @@ const Privacy = () => {
                     <li>Take steps to prevent future access</li>
                     <li>Notify the appropriate parties if required by law</li>
                   </ul>
-                  <p>If you believe a minor has created an account, please contact us immediately at <a href="mailto:safety@findfishingdates.com" className="text-primary hover:underline">safety@findfishingdates.com</a>.</p>
+                  <p>If you believe someone under 13 has created an account, please contact us immediately at <a href="mailto:safety@fishx.app" className="text-primary hover:underline">safety@fishx.app</a>.</p>
                 </div>
               </section>
 
