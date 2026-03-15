@@ -30,6 +30,29 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationErrors({});
+
+    // Client-side validation
+    const result = contactFormSchema.safeParse(formData);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) errors[err.path[0] as string] = err.message;
+      });
+      setValidationErrors(errors);
+      return;
+    }
+
+    // Client-side rate limiting
+    if (!canPerformAction('contact-form', 10000)) {
+      toast({
+        title: "Please wait",
+        description: "You can submit another ticket in a few seconds.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
