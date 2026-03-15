@@ -1686,7 +1686,7 @@ function InviteTab({ userId }: InviteTabProps) {
   };
 
   const handleSMSShare = () => {
-    const message = encodeURIComponent(`Check out Find Fishing Dates! Find fishing buddies and dates who share your passion: ${inviteUrl}`);
+    const message = encodeURIComponent(`Check out FishX! Find fishing buddies and connect with anglers: ${inviteUrl}`);
     window.open(`sms:?body=${message}`, '_blank');
   };
 
