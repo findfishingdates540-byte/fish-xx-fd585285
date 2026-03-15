@@ -161,7 +161,7 @@ const Privacy = () => {
                     This Privacy Policy explains what information we collect, how we use it, who we share it with, and your rights regarding your personal data. By using FishX, you consent to the practices described in this policy.
                   </p>
                   <p>
-                    <strong className="text-foreground">Data Protection Officer:</strong> For privacy-related inquiries, you may contact our Data Protection Officer at <a href="mailto:dpo@findfishingdates.com" className="text-primary hover:underline">dpo@findfishingdates.com</a>.
+                    <strong className="text-foreground">Data Protection Officer:</strong> For privacy-related inquiries, you may contact our Data Protection Officer at <a href="mailto:dpo@fishx.app" className="text-primary hover:underline">dpo@fishx.app</a>.
                   </p>
                 </div>
               </section>
