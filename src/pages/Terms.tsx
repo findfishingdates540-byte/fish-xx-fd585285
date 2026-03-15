@@ -756,7 +756,7 @@ const Terms = () => {
                     Informal Resolution First
                   </h3>
                   <p className="text-sm">
-                    Before initiating formal proceedings, you agree to contact us at <a href="mailto:legal@findfishingdates.com" className="text-primary hover:underline">legal@findfishingdates.com</a> and attempt to resolve the dispute informally for at least 30 days.
+                    Before initiating formal proceedings, you agree to contact us at <a href="mailto:legal@fishx.app" className="text-primary hover:underline">legal@fishx.app</a> and attempt to resolve the dispute informally for at least 30 days.
                   </p>
 
                   <h3 className="font-semibold text-foreground flex items-center gap-2">
