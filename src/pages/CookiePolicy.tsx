@@ -23,31 +23,31 @@ export default function CookiePolicy() {
       name: 'sb-auth-token',
       purpose: 'Authentication session management',
       duration: 'Session / 7 days',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'sb-refresh-token',
       purpose: 'Maintains login session across visits',
       duration: '7 days',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'cookie-consent',
       purpose: 'Stores your cookie preferences',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'csrf-token',
       purpose: 'Security token to prevent cross-site request forgery',
       duration: 'Session',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'device-id',
       purpose: 'Identifies your device for security purposes',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
   ];
 
@@ -80,7 +80,7 @@ export default function CookiePolicy() {
       name: 'analytics_session',
       purpose: 'Tracks session-level engagement metrics',
       duration: 'Session',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
   ];
 
@@ -89,31 +89,31 @@ export default function CookiePolicy() {
       name: 'theme',
       purpose: 'Stores your light/dark mode preference',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'locale',
       purpose: 'Stores your language preference',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'map-style',
       purpose: 'Remembers your preferred map view style',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'units',
       purpose: 'Stores measurement unit preferences (imperial/metric)',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
     {
       name: 'notification-prefs',
       purpose: 'Stores in-app notification preferences',
       duration: '1 year',
-      provider: 'Find Fishing Dates',
+      provider: 'FishX',
     },
   ];
 
@@ -135,10 +135,10 @@ export default function CookiePolicy() {
   return (
     <>
       <Helmet>
-        <title>Cookie Policy | Find Fishing Dates</title>
+        <title>Cookie Policy | FishX</title>
         <meta 
           name="description" 
-          content="Learn about how Find Fishing Dates uses cookies to improve your experience, including essential, analytics, and preference cookies." 
+          content="Learn about how FishX uses cookies to improve your experience, including essential, analytics, and preference cookies." 
         />
       </Helmet>
       
@@ -163,7 +163,7 @@ export default function CookiePolicy() {
             {/* Introduction */}
             <section className="mb-12">
               <p className="text-lg text-muted-foreground mb-6">
-                This Cookie Policy explains how Find Fishing Date LLC ("we", "us", or "our") uses cookies 
+                This Cookie Policy explains how FishX LLC ("we", "us", or "our") uses cookies 
                 and similar tracking technologies when you visit our website and use our services. This policy 
                 should be read alongside our Privacy Policy.
               </p>
@@ -517,8 +517,8 @@ export default function CookiePolicy() {
                     If you have any questions about our use of cookies or this Cookie Policy, please contact us:
                   </p>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>Email: <a href="mailto:privacy@findfishingdates.com" className="text-primary hover:underline">privacy@findfishingdates.com</a></li>
-                    <li>Mail: Find Fishing Date LLC, Lake City, FL</li>
+                    <li>Email: <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a></li>
+                    <li>Mail: FishX LLC, Lake City, FL</li>
                   </ul>
                 </div>
               </div>

@@ -9,7 +9,7 @@ export function InviteFriendsCard() {
   const [copied, setCopied] = useState(false);
 
   const handleShareInvite = async () => {
-    const PRODUCTION_URL = 'https://findfishingdates.net';
+    const PRODUCTION_URL = 'https://fishx.app';
     const inviteUrl = `${PRODUCTION_URL}?ref=${user?.id?.slice(0, 8)}`;
     const shareData = {
       title: 'Join me on FishX!',

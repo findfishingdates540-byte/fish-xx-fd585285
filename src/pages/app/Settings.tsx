@@ -1779,7 +1779,7 @@ interface InviteTabProps {
 function InviteTab({ userId }: InviteTabProps) {
   const [copied, setCopied] = useState(false);
   
-  const PRODUCTION_URL = 'https://findfishingdates.net';
+  const PRODUCTION_URL = 'https://fishx.app';
   const referralCode = userId?.slice(0, 8) || 'invite';
   const inviteUrl = `${PRODUCTION_URL}?ref=${referralCode}`;
 

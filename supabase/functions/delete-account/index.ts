@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "FishX <team@findfishingdates.net>",
+            from: "FishX <team@fishx.app>",
             to: [user.email],
             subject: "Your account has been deleted",
             html: `
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
                 </div>
                 <p style="color: #333; font-size: 16px; line-height: 1.6;">Hi there,</p>
                 <p style="color: #333; font-size: 16px; line-height: 1.6;">Your FishX account has been permanently deleted as requested. All your data, catches, messages, and profile information have been removed.</p>
-                <p style="color: #333; font-size: 16px; line-height: 1.6;">We're sorry to see you go. If you ever want to come back, you can create a new account at any time at <a href="https://findfishingdates.net" style="color: #2563eb;">findfishingdates.net</a>.</p>
+                <p style="color: #333; font-size: 16px; line-height: 1.6;">We're sorry to see you go. If you ever want to come back, you can create a new account at any time at <a href="https://fishx.app" style="color: #2563eb;">fishx.app</a>.</p>
                 <p style="color: #666; font-size: 14px; margin-top: 32px;">— The FishX Team 🎣</p>
               </div>
             `,

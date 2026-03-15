@@ -150,10 +150,10 @@ export default function Accessibility() {
   return (
     <>
       <Helmet>
-        <title>Accessibility Statement | Find Fishing Dates</title>
+        <title>Accessibility Statement | FishX</title>
         <meta 
           name="description" 
-          content="Find Fishing Dates is committed to digital accessibility. Learn about our WCAG compliance efforts and accessibility features." 
+          content="FishX is committed to digital accessibility. Learn about our WCAG compliance efforts and accessibility features." 
         />
       </Helmet>
       
@@ -179,7 +179,7 @@ export default function Accessibility() {
             <section className="mb-12">
               <h2 className="text-2xl font-semibold text-foreground mb-4">Our Commitment to Accessibility</h2>
               <p className="text-lg text-muted-foreground mb-4">
-                Find Fishing Date LLC is committed to ensuring digital accessibility for people with disabilities. 
+                FishX LLC is committed to ensuring digital accessibility for people with disabilities. 
                 We are continually improving the user experience for everyone and applying the relevant 
                 accessibility standards to ensure we provide equal access to all users.
               </p>
@@ -425,13 +425,13 @@ export default function Accessibility() {
                 <div>
                   <h2 className="text-xl font-semibold text-foreground mb-2">Accessibility Feedback</h2>
                   <p className="text-muted-foreground mb-4">
-                    We welcome your feedback on the accessibility of Find Fishing Dates. If you encounter 
+                    We welcome your feedback on the accessibility of FishX. If you encounter 
                     any accessibility barriers or have suggestions for improvement, please let us know:
                   </p>
                   <div className="space-y-2 text-muted-foreground">
                     <p className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-primary" />
-                      Email: <a href="mailto:accessibility@findfishingdates.com" className="text-primary hover:underline">accessibility@findfishingdates.com</a>
+                       <Mail className="w-4 h-4 text-primary" />
+                       Email: <a href="mailto:accessibility@fishx.app" className="text-primary hover:underline">accessibility@fishx.app</a>
                     </p>
                     <p>
                       We aim to respond to accessibility feedback within 2 business days and to resolve 

@@ -228,14 +228,14 @@ export function DiscoverLeftSidebar({
   }, [user?.id, queryClient]);
 
   const handleInvite = async () => {
-    const PRODUCTION_URL = 'https://findfishingdates.net';
+    const PRODUCTION_URL = 'https://fishx.app';
     const inviteUrl = `${PRODUCTION_URL}?ref=${user?.id?.slice(0, 8)}`;
     
     try {
       if (navigator.share) {
         await navigator.share({
-          title: 'Join me on Find Fishing Dates!',
-          text: 'Find fishing buddies and dates who share your passion.',
+          title: 'Join me on FishX!',
+          text: 'The ultimate fishing community — find buddies, log catches, and explore.',
           url: inviteUrl,
         });
       } else {

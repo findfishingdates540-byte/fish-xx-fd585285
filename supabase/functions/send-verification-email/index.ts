@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
                 <tr>
                   <td style="background-color: #111827; border-radius: 8px;">
-                    <a href="https://findfishingdates.net/app/settings" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px;">
+                    <a href="https://fishx.app/app/settings" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px;">
                       ${isApproved ? 'View Your Profile' : 'Submit New Request'}
                     </a>
                   </td>
@@ -134,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "FishX <team@findfishingdates.net>",
+      from: "FishX <team@fishx.app>",
       to: [email],
       subject,
       html,
