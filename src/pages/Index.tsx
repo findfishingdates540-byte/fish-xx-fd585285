@@ -290,7 +290,7 @@ const Index = () => {
               <FeatureCard
                 icon={<Star className="w-8 h-8" />}
                 title="Premium Features"
-                description="Unlock unlimited matches, priority discovery, and exclusive fishing spot data."
+                description="Unlock unlimited connections, priority discovery, and exclusive fishing spot data."
               />
             </StaggerItem>
           </StaggerContainer>
