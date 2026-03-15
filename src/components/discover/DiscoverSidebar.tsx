@@ -231,8 +231,8 @@ export function DiscoverSidebar({
       try {
         if (navigator.share) {
           await navigator.share({
-            title: 'Join me on Find Fishing Dates!',
-            text: 'Find fishing buddies and dates who share your passion.',
+            title: 'Join me on FishX!',
+            text: 'Find fishing buddies and connect with anglers who share your passion.',
             url: inviteUrl,
           });
         } else {
