@@ -89,7 +89,7 @@ const Index = () => {
               className="space-y-8"
             >
               <h1 className="display-text text-foreground">
-                Find Your
+                Your
                 <br />
                 <motion.span 
                   className="italic inline-block"
@@ -97,10 +97,10 @@ const Index = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
                 >
-                  Perfect
+                  Ultimate
                 </motion.span>
                 <br />
-                Fishing Date
+                Fishing Platform
               </h1>
               <motion.p 
                 className="text-xl text-muted-foreground max-w-lg leading-relaxed"
@@ -108,7 +108,7 @@ const Index = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                The dating app built for fishing enthusiasts. Connect with people who share your passion for the water.
+                Discover fishing spots, log your catches, find fishing buddies, and connect with anglers worldwide. All in one platform.
               </motion.p>
               <motion.div 
                 className="flex flex-col sm:flex-row gap-4"
