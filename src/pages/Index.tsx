@@ -406,8 +406,8 @@ const Index = () => {
               </ScrollReveal>
               <ScrollReveal delay={0.2}>
                 <blockquote className="text-3xl md:text-4xl font-medium text-foreground leading-snug -mt-12">
-                  We met on Find Fishing Dates and now we spend every weekend on the water together. 
-                  It's the best decision we ever made.
+                  FishX changed everything for us. We found the best fishing spots, planned amazing trips, 
+                  and built friendships that last a lifetime.
                 </blockquote>
               </ScrollReveal>
               <ScrollReveal delay={0.3}>
