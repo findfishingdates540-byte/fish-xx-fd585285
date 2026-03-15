@@ -229,7 +229,7 @@ const Terms = () => {
                       <li>Attempt to circumvent security measures</li>
                     </ul>
                     <p className="mt-3 text-sm">
-                      <strong>Appeal Process:</strong> You may appeal a suspension by contacting <a href="mailto:appeals@findfishingdates.com" className="text-primary hover:underline">appeals@findfishingdates.com</a> within 30 days. Appeals are reviewed within 5-7 business days.
+                      <strong>Appeal Process:</strong> You may appeal a suspension by contacting <a href="mailto:appeals@fishx.app" className="text-primary hover:underline">appeals@fishx.app</a> within 30 days. Appeals are reviewed within 5-7 business days.
                     </p>
                   </div>
                 </div>
