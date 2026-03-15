@@ -603,7 +603,7 @@ serve(async (req) => {
               sub.auth,
               vapidPublicKey!,
               vapidPrivateKey!,
-              'mailto:support@findfishingdates.com',
+              'mailto:support@fishx.app',
               payload
             );
 

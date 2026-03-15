@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (email: string) => {
     const siteUrl = window.location.hostname === 'localhost' 
       ? window.location.origin 
-      : 'https://findfishingdates.net';
+      : 'https://fishx.app';
     const redirectUrl = `${siteUrl}/auth?type=recovery`;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,

@@ -819,13 +819,13 @@ const Terms = () => {
                   <div>
                     <h4 className="font-medium text-foreground">Contact</h4>
                     <p>
-                      For questions about these Terms, contact us at <a href="mailto:legal@findfishingdates.com" className="text-primary hover:underline">legal@findfishingdates.com</a> or:
-                    </p>
-                    <p className="mt-2">
-                      Find Fishing Dates LLC<br />
-                      123 Fishing Lane<br />
-                      Lake City, FL 32055
-                    </p>
+                       For questions about these Terms, contact us at <a href="mailto:legal@fishx.app" className="text-primary hover:underline">legal@fishx.app</a> or:
+                     </p>
+                     <p className="mt-2">
+                       FishX LLC<br />
+                       123 Fishing Lane<br />
+                       Lake City, FL 32055
+                     </p>
                   </div>
                 </div>
               </section>

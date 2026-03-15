@@ -134,7 +134,7 @@ export default function PaymentSuccess() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `FindFishingDates_Receipt_${transactionId}.txt`;
+      link.download = `FishX_Receipt_${transactionId}.txt`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

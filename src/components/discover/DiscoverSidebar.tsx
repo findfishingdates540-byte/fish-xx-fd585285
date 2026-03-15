@@ -225,7 +225,7 @@ export function DiscoverSidebar({
     const [copied, setCopied] = useState(false);
     
     const handleInvite = async () => {
-      const PRODUCTION_URL = 'https://findfishingdates.net';
+      const PRODUCTION_URL = 'https://fishx.app';
       const inviteUrl = `${PRODUCTION_URL}?ref=${userId?.slice(0, 8)}`;
       
       try {

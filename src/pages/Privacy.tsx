@@ -827,13 +827,13 @@ const Privacy = () => {
                       </a>
                       
                       <a 
-                        href="mailto:dpo@findfishingdates.com"
+                       href="mailto:dpo@fishx.app"
                         className="flex items-center gap-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 rounded-full px-5 py-2.5 transition-colors"
                       >
                         <Lock className="h-4 w-4" />
                         <div className="text-left">
                           <div className="text-xs opacity-80">DATA PROTECTION OFFICER</div>
-                          <div className="text-sm font-medium">dpo@findfishingdates.com</div>
+                          <div className="text-sm font-medium">dpo@fishx.app</div>
                         </div>
                       </a>
                       

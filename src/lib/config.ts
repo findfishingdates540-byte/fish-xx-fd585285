@@ -14,7 +14,7 @@ export function getShareBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
     // If we're on the production domain or a lovable.app preview, use production URL for shares
-    if (origin.includes('findfishingdates.net') || origin.includes('lovable.app')) {
+    if (origin.includes('fishx.app') || origin.includes('lovable.app')) {
       return PRODUCTION_URL;
     }
     // For local development, use the current origin
