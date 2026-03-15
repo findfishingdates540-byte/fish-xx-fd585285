@@ -26,7 +26,7 @@ const datingFeatures = [
 
 const comboFeatures = [
   { icon: Heart, label: 'Dating + Fishing Combined' },
-  { icon: Users, label: 'Find Fishing Dates' },
+  { icon: Users, label: 'FishX Dating' },
   { icon: Star, label: 'VIP Support & Boosts' },
   { icon: Sparkles, label: 'Exclusive Events' },
 ];
