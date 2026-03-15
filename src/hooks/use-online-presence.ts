@@ -15,9 +15,9 @@ interface PresenceState {
 export function useOnlinePresence() {
   const { user } = useAuth();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
-  const idleRef = useRef<NodeJS.Timeout | null>(null);
-  const dbUpdateRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const idleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dbUpdateRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Update last_active_at in database
   const updateLastActiveInDb = useCallback(async () => {

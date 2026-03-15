@@ -18,7 +18,7 @@ export interface BuddyConversation {
 export function useBuddyConversations() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch all buddy conversations using optimized RPC
   const { data: conversations, isLoading, refetch } = useQuery({

@@ -101,7 +101,7 @@ export default function ProfileEdit() {
   const [locationSuggestions, setLocationSuggestions] = useState<Array<{place_name: string; center: [number, number]; context: any[]}>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
-  const locationSearchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const locationSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [bio, setBio] = useState("");
   const [gender, setGender] = useState<GenderType | null>(null);
