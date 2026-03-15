@@ -152,13 +152,13 @@ const Privacy = () => {
                 </div>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    Welcome to Find Fishing Dates ("we," "us," or "our"). Find Fishing Dates LLC ("Company") is the data controller responsible for your personal information. We are committed to protecting your privacy and ensuring you understand how we collect, use, and safeguard your data.
+                    Welcome to FishX ("we," "us," or "our"). FishX LLC ("Company") is the data controller responsible for your personal information. We are committed to protecting your privacy and ensuring you understand how we collect, use, and safeguard your data.
                   </p>
                   <p>
-                    Find Fishing Dates is a unique community offering three distinct account modes: <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Dating Only</span> for finding romantic connections, <span className="bg-muted px-2 py-0.5 rounded font-medium text-foreground">Fishing Only</span> for discovering fishing spots and buddies, and our signature <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Combo Mode</span> that combines both features for the complete experience.
+                    FishX is a fishing community platform open to users aged 13 and older. Our core features include catch logging, fishing spot discovery, buddy connections, trip planning, and a social feed. For users 18 and older, we offer an optional <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Dating Add-On</span> that enables romantic matching with fellow anglers.
                   </p>
                   <p>
-                    This Privacy Policy explains what information we collect, how we use it, who we share it with, and your rights regarding your personal data. By using Find Fishing Dates, you consent to the practices described in this policy.
+                    This Privacy Policy explains what information we collect, how we use it, who we share it with, and your rights regarding your personal data. By using FishX, you consent to the practices described in this policy.
                   </p>
                   <p>
                     <strong className="text-foreground">Data Protection Officer:</strong> For privacy-related inquiries, you may contact our Data Protection Officer at <a href="mailto:dpo@findfishingdates.com" className="text-primary hover:underline">dpo@findfishingdates.com</a>.
