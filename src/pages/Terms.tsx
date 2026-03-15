@@ -243,7 +243,7 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-6 text-muted-foreground">
                   <p>
-                    Find Fishing Dates offers optional verification to build trust within our community. Verification is strongly encouraged but not required for basic use.
+                    FishX offers optional verification to build trust within our community. Verification is strongly encouraged but not required for basic use.
                   </p>
 
                   <div className="grid md:grid-cols-2 gap-4">
