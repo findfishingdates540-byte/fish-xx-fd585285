@@ -563,7 +563,7 @@ const Terms = () => {
 
                   <h3 className="font-semibold text-foreground">License Grant</h3>
                   <div className="bg-muted/30 rounded-xl p-5 border border-border text-sm">
-                    <p className="mb-3">By uploading content, you grant Find Fishing Dates a:</p>
+                    <p className="mb-3">By uploading content, you grant FishX a:</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Non-exclusive, worldwide, royalty-free license</li>
                       <li>Right to use, copy, modify, display, and distribute your content</li>
