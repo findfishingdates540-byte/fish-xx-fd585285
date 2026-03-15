@@ -563,7 +563,7 @@ const Terms = () => {
 
                   <h3 className="font-semibold text-foreground">License Grant</h3>
                   <div className="bg-muted/30 rounded-xl p-5 border border-border text-sm">
-                    <p className="mb-3">By uploading content, you grant Find Fishing Dates a:</p>
+                    <p className="mb-3">By uploading content, you grant FishX a:</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Non-exclusive, worldwide, royalty-free license</li>
                       <li>Right to use, copy, modify, display, and distribute your content</li>
@@ -678,10 +678,10 @@ const Terms = () => {
                   
                   <h3 className="font-semibold text-foreground">Our Property</h3>
                   <p className="text-sm">
-                    The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of Find Fishing Dates LLC. This includes:
+                    The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of FishX LLC. This includes:
                   </p>
                   <ul className="text-sm list-disc list-inside space-y-1 mt-2">
-                    <li>Trademarks: "Find Fishing Dates," logos, and brand assets</li>
+                    <li>Trademarks: "FishX," logos, and brand assets</li>
                     <li>App design, user interface, and code</li>
                     <li>Matching algorithms and recommendation systems</li>
                     <li>Documentation, guides, and marketing materials</li>
@@ -734,7 +734,7 @@ const Terms = () => {
                   <div className="bg-muted/50 rounded-xl p-5 border border-border">
                     <h3 className="font-semibold text-foreground mb-3 uppercase text-sm">Limitation of Liability</h3>
                     <p className="text-sm text-muted-foreground uppercase">
-                      IN NO EVENT SHALL FIND FISHING DATES LLC, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR AFFILIATES BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR ACCESS TO OR USE OF (OR INABILITY TO ACCESS OR USE) THE SERVICE.
+                      IN NO EVENT SHALL FISHX LLC, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR AFFILIATES BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR ACCESS TO OR USE OF (OR INABILITY TO ACCESS OR USE) THE SERVICE.
                     </p>
                     <p className="text-sm text-muted-foreground mt-3">
                       OUR MAXIMUM LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID US IN SUBSCRIPTION FEES DURING THE 12 MONTHS PRECEDING THE CLAIM, OR $100, WHICHEVER IS GREATER.
@@ -803,7 +803,7 @@ const Terms = () => {
 
                   <div>
                     <h4 className="font-medium text-foreground">Entire Agreement</h4>
-                    <p>These Terms, along with our Privacy Policy and Community Guidelines, constitute the entire agreement between you and Find Fishing Dates.</p>
+                    <p>These Terms, along with our Privacy Policy and Community Guidelines, constitute the entire agreement between you and FishX.</p>
                   </div>
 
                   <div>

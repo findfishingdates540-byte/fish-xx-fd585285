@@ -848,7 +848,7 @@ const Privacy = () => {
 
                     <div className="mt-6 pt-6 border-t border-primary-foreground/20">
                       <p className="text-sm text-primary-foreground/70">
-                        <strong>Find Fishing Dates LLC</strong><br />
+                        <strong>FishX LLC</strong><br />
                         Registered in Florida, United States
                       </p>
                     </div>

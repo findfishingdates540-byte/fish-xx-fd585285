@@ -1,6 +1,6 @@
-# Find Fishing Dates
+# FishX
 
-A hybrid dating and fishing social platform that combines Tinder/Bumble-style dating with Fishbrain-style fishing features.
+A fishing-first social platform with optional dating features for anglers 18+.
 
 ## Features
 

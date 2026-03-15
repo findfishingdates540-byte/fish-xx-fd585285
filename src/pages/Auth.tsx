@@ -7,8 +7,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
-import authBothImage from '@/assets/auth-couple-fishing.jpg';
-import authDatingImage from '@/assets/auth-dating.jpg';
 import authFishingImage from '@/assets/auth-fishing.jpg';
 import logo from '@/assets/logo.png';
 import {
@@ -22,13 +20,6 @@ import {
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
-type AccountMode = 'dating' | 'fishing' | 'both';
-
-const accountImages: Record<AccountMode, string> = {
-  dating: authDatingImage,
-  fishing: authFishingImage,
-  both: authBothImage,
-};
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -37,7 +28,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [accountMode, setAccountMode] = useState<AccountMode>('both');
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -300,11 +291,6 @@ const Auth = () => {
     }
   };
 
-  const accountModeOptions: { value: AccountMode; label: string; icon: React.ReactNode }[] = [
-    { value: 'dating', label: 'Dating', icon: <Heart className="w-4 h-4" /> },
-    { value: 'fishing', label: 'Fishing', icon: <Fish className="w-4 h-4" /> },
-    { value: 'both', label: 'Both', icon: <><Heart className="w-3 h-3" /><Fish className="w-3 h-3" /></> },
-  ];
 
   // Recovery Mode UI
   if (isRecoveryMode) {
@@ -388,18 +374,11 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex">
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        {Object.entries(accountImages).map(([mode, src]) => (
-          <img 
-            key={mode}
-            src={src} 
-            alt={`${mode} mode`} 
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
-              accountMode === mode 
-                ? 'opacity-100 scale-100' 
-                : 'opacity-0 scale-105'
-            }`}
-          />
-        ))}
+        <img 
+          src={authFishingImage} 
+          alt="FishX" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
       </div>
 

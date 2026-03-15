@@ -801,7 +801,7 @@ export default function Onboarding() {
 
         {/* Footer */}
         <p className="text-center text-sm text-muted-foreground mt-6">
-          © {new Date().getFullYear()} Find Fishing Dates. All rights reserved.
+          © {new Date().getFullYear()} FishX. All rights reserved.
         </p>
       </div>
 
