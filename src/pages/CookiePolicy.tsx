@@ -163,7 +163,7 @@ export default function CookiePolicy() {
             {/* Introduction */}
             <section className="mb-12">
               <p className="text-lg text-muted-foreground mb-6">
-                This Cookie Policy explains how Find Fishing Date LLC ("we", "us", or "our") uses cookies 
+                This Cookie Policy explains how FishX LLC ("we", "us", or "our") uses cookies 
                 and similar tracking technologies when you visit our website and use our services. This policy 
                 should be read alongside our Privacy Policy.
               </p>
