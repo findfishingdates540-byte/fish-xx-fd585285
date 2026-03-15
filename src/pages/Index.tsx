@@ -178,8 +178,8 @@ const Index = () => {
               <p className="text-5xl md:text-6xl font-bold text-foreground">
                 <CountUp end={10} suffix="K+" duration={2} />
               </p>
-              <p className="text-muted-foreground mt-2">Matches Made</p>
-            </StaggerItem>
+               <p className="text-muted-foreground mt-2">Matches Made</p>
+             </StaggerItem>
             <StaggerItem className="text-center">
               <p className="text-5xl md:text-6xl font-bold text-foreground">
                 <CountUp end={5} suffix="K+" duration={2} />
