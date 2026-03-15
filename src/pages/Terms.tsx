@@ -698,8 +698,8 @@ const Terms = () => {
                   <div className="bg-muted/30 rounded-xl p-5 border border-border text-sm">
                     <p className="mb-3">If you believe your copyright has been infringed, submit a DMCA takedown notice to:</p>
                     <p>
-                      <strong>Email:</strong> <a href="mailto:dmca@findfishingdates.com" className="text-primary hover:underline">dmca@findfishingdates.com</a><br />
-                      <strong>Mail:</strong> Find Fishing Dates LLC, ATTN: DMCA Agent, 123 Fishing Lane, Lake City, FL 32055
+                       <strong>Email:</strong> <a href="mailto:dmca@fishx.app" className="text-primary hover:underline">dmca@fishx.app</a><br />
+                       <strong>Mail:</strong> FishX LLC, ATTN: DMCA Agent, 123 Fishing Lane, Lake City, FL 32055
                     </p>
                     <p className="mt-3">Your notice must include: identification of the copyrighted work, location of infringing material, your contact information, and a statement of good faith belief and accuracy under penalty of perjury.</p>
                   </div>
