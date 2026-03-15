@@ -21,13 +21,6 @@ import {
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
-type AccountMode = 'dating' | 'fishing' | 'both';
-
-const accountImages: Record<AccountMode, string> = {
-  dating: authDatingImage,
-  fishing: authFishingImage,
-  both: authBothImage,
-};
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
