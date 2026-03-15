@@ -699,7 +699,7 @@ const Privacy = () => {
 
                 <h3 className="font-semibold text-foreground mb-4">Other U.S. State Residents</h3>
                 <div className="bg-muted/30 rounded-xl p-5 border border-border">
-                  <p className="text-sm text-muted-foreground">Residents of Nevada, Virginia, Colorado, Connecticut, and other states with privacy laws may have similar rights. Contact us at <a href="mailto:privacy@findfishingdates.com" className="text-primary hover:underline">privacy@findfishingdates.com</a> to exercise your state-specific rights.</p>
+                  <p className="text-sm text-muted-foreground">Residents of Nevada, Virginia, Colorado, Connecticut, and other states with privacy laws may have similar rights. Contact us at <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a> to exercise your state-specific rights.</p>
                 </div>
               </section>
 
