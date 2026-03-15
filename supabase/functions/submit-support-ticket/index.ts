@@ -140,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb;">
             <p>Hi ${safeName},</p>
-            <p>Thank you for contacting Find Fishing Dates!</p>
+            <p>Thank you for contacting FishX!</p>
             <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
               <p><strong>Ticket Number:</strong> <span style="color: #0ea5e9;">${ticket.ticket_number}</span></p>
               <p><strong>Subject:</strong> ${safeSubject}</p>
