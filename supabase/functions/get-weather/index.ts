@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,12 +7,29 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Rate limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const { data: allowed } = await supabase.rpc('check_rate_limit', {
+      p_key: `weather:${ip}`,
+      p_max_requests: 30,
+      p_window_seconds: 60,
+    });
+    if (allowed === false) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { lat, lng } = await req.json();
     
     const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY');
@@ -23,9 +41,15 @@ serve(async (req) => {
       );
     }
 
-    // Default to Miami, FL if no location provided
-    const latitude = lat || 25.7617;
-    const longitude = lng || -80.1918;
+    // Validate lat/lng are numbers in valid range
+    const latitude = Number(lat) || 25.7617;
+    const longitude = Number(lng) || -80.1918;
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid coordinates' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     console.log(`Fetching weather for lat: ${latitude}, lng: ${longitude}`);
 
@@ -44,7 +68,6 @@ serve(async (req) => {
 
     const weatherData = await weatherResponse.json();
     
-    // Transform the data into a simpler format for the dashboard
     const result = {
       temperature: Math.round(weatherData.main.temp),
       condition: weatherData.weather[0]?.main || 'Unknown',
@@ -56,13 +79,11 @@ serve(async (req) => {
       },
       humidity: weatherData.main?.humidity || 0,
       pressure: weatherData.main?.pressure || 0,
-      visibility: Math.round((weatherData.visibility || 10000) / 1609.34), // Convert to miles
+      visibility: Math.round((weatherData.visibility || 10000) / 1609.34),
       sunrise: weatherData.sys?.sunrise,
       sunset: weatherData.sys?.sunset,
       location: weatherData.name || 'Unknown',
     };
-
-    console.log('Weather data fetched successfully:', result);
 
     return new Response(
       JSON.stringify(result),
