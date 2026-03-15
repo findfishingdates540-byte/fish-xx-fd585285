@@ -121,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
           <tr>
             <td style="background-color: #F9FAFB; padding: 24px 40px; border-top: 1px solid #E5E7EB;">
               <p style="margin: 0; font-size: 12px; color: #9CA3AF; text-align: center;">
-                © ${new Date().getFullYear()} Find Fishing Dates. All rights reserved.
+                © ${new Date().getFullYear()} FishX. All rights reserved.
               </p>
             </td>
           </tr>
