@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Heart, Users, Target, Award, Globe, Sparkles } from 'lucide-react';
+import { ArrowRight, Fish, Users, Target, Award, Globe, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import aboutHero from '@/assets/about-hero.jpg';
 import coupleFishing from '@/assets/couple-fishing.jpg';
@@ -25,11 +25,11 @@ const About = () => {
             >
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">About Us</span>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
-                Where Passion Meets Connection
+                Your Ultimate Fishing Community
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                We built Find Fishing Dates because we believe the best relationships start with shared passions. 
-                When you love fishing, you deserve to find someone who loves it too.
+                FishX was built by anglers, for anglers. We believe fishing is better together — whether 
+                you're discovering new spots, finding buddies, or logging your personal best.
               </p>
             </motion.div>
             <motion.div 
@@ -38,7 +38,7 @@ const About = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <img src={aboutHero} alt="Couple fishing together at sunset" className="w-full h-full object-cover" />
+              <img src={aboutHero} alt="Anglers fishing together at sunset" className="w-full h-full object-cover" />
             </motion.div>
           </div>
         </div>
@@ -54,19 +54,19 @@ const About = () => {
             </h2>
             <div className="text-lg text-muted-foreground leading-relaxed space-y-6">
               <p>
-                Find Fishing Dates was founded in 2022 by a group of avid anglers who struggled to find partners 
-                who understood their passion. Traditional dating apps didn't capture what made fishing special—the 
-                early mornings, the patience, the thrill of the catch, and the peace of being on the water.
+                FishX was founded by a group of avid anglers who wanted a better way to connect with 
+                the fishing community. Traditional social platforms didn't capture what makes fishing 
+                special — the early mornings, the patience, the thrill of the catch, and the peace of being on the water.
               </p>
               <p>
-                We realized there was a whole community of people looking for the same thing: someone to share 
-                their love of fishing with. Whether that's a romantic partner or a new fishing buddy, we wanted 
-                to create a space where those connections could happen naturally.
+                We built FishX as the ultimate fishing platform: log catches, discover spots, find 
+                fishing buddies, plan trips, and share your adventures. Whether you're a beginner 
+                learning the ropes or an expert chasing your next trophy, FishX is your home.
               </p>
               <p>
-                Today, we're proud to have helped thousands of fishing enthusiasts find love, friendship, and 
-                their next great fishing adventure. Our community spans across the country, from freshwater lakes 
-                to ocean shores, united by a shared passion for the sport.
+                For adult users (18+), we also offer an optional dating add-on — because some of the 
+                best relationships start with a shared passion for the water. But at its core, FishX 
+                is about the fishing community.
               </p>
             </div>
           </ScrollReveal>
@@ -85,79 +85,59 @@ const About = () => {
           
           <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" staggerDelay={0.1}>
             <StaggerItem>
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div className="bg-muted rounded-3xl p-8 space-y-4 h-full" whileHover={{ y: -8 }} transition={{ duration: 0.3 }}>
                 <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
-                  <Heart className="w-7 h-7 text-foreground" />
+                  <Fish className="w-7 h-7 text-foreground" />
                 </div>
-                <h3 className="text-2xl font-bold text-foreground">Authentic Connections</h3>
+                <h3 className="text-2xl font-bold text-foreground">Fishing First</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  We believe in real connections built on shared passions. No games, no gimmicks—just genuine 
-                  people looking for meaningful relationships.
+                  Everything we build starts with the angler in mind. From catch logging to spot discovery, 
+                  our platform is designed to enhance your fishing experience.
                 </p>
               </motion.div>
             </StaggerItem>
             
             <StaggerItem>
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div className="bg-muted rounded-3xl p-8 space-y-4 h-full" whileHover={{ y: -8 }} transition={{ duration: 0.3 }}>
                 <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
                   <Users className="w-7 h-7 text-foreground" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground">Inclusive Community</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Our platform welcomes everyone. We're LGBTQ+ friendly and support all forms of connection—romantic, 
-                  platonic, and everything in between.
+                  FishX welcomes everyone — all ages (13+), all experience levels, all backgrounds. 
+                  Our community is united by a love of fishing.
                 </p>
               </motion.div>
             </StaggerItem>
             
             <StaggerItem>
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div className="bg-muted rounded-3xl p-8 space-y-4 h-full" whileHover={{ y: -8 }} transition={{ duration: 0.3 }}>
                 <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
                   <Target className="w-7 h-7 text-foreground" />
                 </div>
-                <h3 className="text-2xl font-bold text-foreground">Passion-First Matching</h3>
+                <h3 className="text-2xl font-bold text-foreground">Smart Matching</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Our matching algorithm prioritizes shared fishing interests, experience levels, and preferred 
-                  fishing styles to create the most compatible connections.
+                  Find fishing buddies who match your style, experience level, and preferred species. 
+                  Connect with anglers who fish the way you do.
                 </p>
               </motion.div>
             </StaggerItem>
             
             <StaggerItem>
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div className="bg-muted rounded-3xl p-8 space-y-4 h-full" whileHover={{ y: -8 }} transition={{ duration: 0.3 }}>
                 <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
                   <Award className="w-7 h-7 text-foreground" />
                 </div>
-                <h3 className="text-2xl font-bold text-foreground">Quality Over Quantity</h3>
+                <h3 className="text-2xl font-bold text-foreground">Youth-Friendly</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  We focus on helping you find the right connections, not endless swiping. Every match is 
-                  meaningful and based on genuine compatibility.
+                  Users 13+ can join the fishing community. Age-appropriate content guidelines and 
+                  safety measures protect younger anglers. Dating features require 18+.
                 </p>
               </motion.div>
             </StaggerItem>
             
             <StaggerItem>
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div className="bg-muted rounded-3xl p-8 space-y-4 h-full" whileHover={{ y: -8 }} transition={{ duration: 0.3 }}>
                 <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
                   <Globe className="w-7 h-7 text-foreground" />
                 </div>
@@ -170,18 +150,14 @@ const About = () => {
             </StaggerItem>
             
             <StaggerItem>
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 space-y-4 h-full"
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div className="bg-muted rounded-3xl p-8 space-y-4 h-full" whileHover={{ y: -8 }} transition={{ duration: 0.3 }}>
                 <div className="w-14 h-14 rounded-2xl bg-foreground/10 flex items-center justify-center">
                   <Sparkles className="w-7 h-7 text-foreground" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground">Always Improving</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   We're constantly listening to our community and improving our platform. Your feedback 
-                  shapes the future of Find Fishing Dates.
+                  shapes the future of FishX.
                 </p>
               </motion.div>
             </StaggerItem>
@@ -189,17 +165,17 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team/Community Section */}
+      {/* Community Stats */}
       <section className="py-24 px-6 section-muted overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="grid grid-cols-2 gap-6">
-              <ScrollReveal delay={0.1} className="space-y-6">
+              <ScrollReveal delay={0.1}>
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={coupleFishing} alt="Happy couple fishing" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={coupleFishing} alt="Anglers fishing together" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
               </ScrollReveal>
-              <ScrollReveal delay={0.2} className="space-y-6 pt-12">
+              <ScrollReveal delay={0.2} className="pt-12">
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
                   <img src={fishingBuddies1} alt="Fishing friends" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
@@ -212,26 +188,26 @@ const About = () => {
                 Built by Anglers, for Anglers
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Our team is made up of passionate fishers who understand exactly what you're looking for. 
-                From bass fishing in freshwater lakes to deep-sea adventures, we've done it all—and we 
-                built Find Fishing Dates to help you find someone to share those experiences with.
+                Our team is made up of passionate fishers who understand exactly what you need. 
+                From freshwater lakes to ocean shores, we've built FishX to be the platform 
+                we always wished existed.
               </p>
               <StaggerContainer className="grid grid-cols-2 gap-8" staggerDelay={0.1}>
                 <StaggerItem>
                   <p className="text-4xl font-bold text-foreground">50K+</p>
-                  <p className="text-muted-foreground">Active members</p>
+                  <p className="text-muted-foreground">Active anglers</p>
                 </StaggerItem>
                 <StaggerItem>
-                  <p className="text-4xl font-bold text-foreground">10K+</p>
-                  <p className="text-muted-foreground">Successful matches</p>
+                  <p className="text-4xl font-bold text-foreground">25K+</p>
+                  <p className="text-muted-foreground">Catches logged</p>
+                </StaggerItem>
+                <StaggerItem>
+                  <p className="text-4xl font-bold text-foreground">5K+</p>
+                  <p className="text-muted-foreground">Fishing spots</p>
                 </StaggerItem>
                 <StaggerItem>
                   <p className="text-4xl font-bold text-foreground">50+</p>
                   <p className="text-muted-foreground">States covered</p>
-                </StaggerItem>
-                <StaggerItem>
-                  <p className="text-4xl font-bold text-foreground">500+</p>
-                  <p className="text-muted-foreground">Fishing dates daily</p>
                 </StaggerItem>
               </StaggerContainer>
             </ScrollReveal>
@@ -243,10 +219,10 @@ const About = () => {
       <section className="py-24 px-6 section-dark overflow-hidden">
         <ScrollReveal className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8">
-            Ready to join our community?
+            Ready to join the community?
           </h2>
           <p className="text-xl text-background/70 mb-10 max-w-2xl mx-auto">
-            Start your journey today and connect with thousands of fishing enthusiasts who share your passion.
+            Start your journey today and connect with thousands of anglers who share your passion.
           </p>
           <Link to="/auth?mode=signup">
             <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-12 py-6 text-lg">

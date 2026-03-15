@@ -103,6 +103,160 @@ function TicketLinkWithBadge() {
   );
 }
 
+// Dating Profile Add-on Component
+function DatingProfileAddon({ 
+  originalAccountMode, 
+  userId,
+  compact = false 
+}: { 
+  originalAccountMode: AccountMode; 
+  userId?: string;
+  compact?: boolean;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [dateOfBirth, setDateOfBirth] = useState<string | null>(null);
+  const [fetchedDob, setFetchedDob] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (userId && !fetchedDob) {
+      supabase
+        .from('profiles')
+        .select('date_of_birth')
+        .eq('id', userId)
+        .single()
+        .then(({ data }) => {
+          setDateOfBirth(data?.date_of_birth || null);
+          setFetchedDob(true);
+        });
+    }
+  }, [userId, fetchedDob]);
+
+  // Already has dating
+  if (originalAccountMode === 'both' || originalAccountMode === 'dating') {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Heart className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Dating Profile Active</h3>
+              <p className="text-sm text-muted-foreground">Your dating profile is set up and visible to matches.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const isUnder18 = (() => {
+    if (!dateOfBirth) return null; // unknown
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age < 18;
+  })();
+
+  const handleCreateDatingProfile = async () => {
+    if (!userId) return;
+    
+    if (isUnder18) {
+      toast.error("You must be 18 or older to create a dating profile.");
+      return;
+    }
+
+    if (!dateOfBirth) {
+      toast.error("Please complete your profile with your date of birth first.");
+      navigate('/app/profile/edit');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ account_mode: 'both' })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast.success("Dating profile created! Let's set up your preferences.");
+      // Navigate to onboarding for dating-specific steps
+      navigate('/onboarding?mode=dating-addon');
+    } catch {
+      toast.error("Failed to create dating profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (compact) {
+    return (
+      <Button 
+        onClick={handleCreateDatingProfile} 
+        disabled={loading || isUnder18 === true}
+        className="w-full"
+      >
+        {loading ? (
+          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Setting up...</>
+        ) : isUnder18 ? (
+          'Must be 18+ for Dating'
+        ) : (
+          <><Heart className="h-4 w-4 mr-2" /> Create Dating Profile</>
+        )}
+      </Button>
+    );
+  }
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Heart className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg mb-1">Add a Dating Profile</h3>
+            {isUnder18 ? (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 mt-2">
+                <p className="text-sm text-destructive font-medium">
+                  You must be 18 or older to create a dating profile.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  The dating feature is only available for users aged 18 and above.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Create a dating profile to discover romantic connections with fellow anglers. 
+                  Available for users 18 and older.
+                </p>
+                <Button 
+                  onClick={handleCreateDatingProfile} 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Setting up...</>
+                  ) : (
+                    <><Heart className="h-4 w-4 mr-2" /> Create Dating Profile</>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Settings() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();

@@ -312,7 +312,7 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-6 text-muted-foreground">
                   <p>
-                    Find Fishing Dates operates in three distinct modes. You must follow the rules specific to your active mode(s).
+                    FishX is primarily a fishing platform with an optional dating add-on. You must follow the rules specific to the features you use.
                   </p>
                   
                   {/* Dating Mode */}
