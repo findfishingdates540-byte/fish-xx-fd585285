@@ -777,7 +777,7 @@ const Terms = () => {
                       <strong>Exceptions:</strong> Small claims court actions and injunctive relief for IP violations may proceed in court.
                     </p>
                     <p className="mt-3 text-amber-800">
-                      <strong>Opt-Out:</strong> You may opt out of arbitration by sending written notice to legal@findfishingdates.com within 30 days of account creation.
+                      <strong>Opt-Out:</strong> You may opt out of arbitration by sending written notice to legal@fishx.app within 30 days of account creation.
                     </p>
                   </div>
 
