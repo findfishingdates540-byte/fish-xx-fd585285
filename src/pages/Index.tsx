@@ -439,7 +439,7 @@ const Index = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Ready to find your perfect fishing date?
+            Ready to join the ultimate fishing community?
           </motion.h2>
           <motion.p 
             className="text-xl text-background/70 mb-10 max-w-2xl mx-auto"
@@ -448,8 +448,8 @@ const Index = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Join thousands of fishing enthusiasts who have found love, friendship, 
-            and their next fishing adventure on our platform.
+            Join thousands of anglers who are discovering spots, logging catches, 
+            and connecting with fishing buddies on FishX.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
