@@ -816,13 +816,13 @@ const Privacy = () => {
                     
                     <div className="flex flex-wrap gap-4">
                       <a 
-                        href="mailto:privacy@findfishingdates.com"
+                       href="mailto:privacy@fishx.app"
                         className="flex items-center gap-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 rounded-full px-5 py-2.5 transition-colors"
                       >
                         <Mail className="h-4 w-4" />
                         <div className="text-left">
                           <div className="text-xs opacity-80">PRIVACY INQUIRIES</div>
-                          <div className="text-sm font-medium">privacy@findfishingdates.com</div>
+                          <div className="text-sm font-medium">privacy@fishx.app</div>
                         </div>
                       </a>
                       
