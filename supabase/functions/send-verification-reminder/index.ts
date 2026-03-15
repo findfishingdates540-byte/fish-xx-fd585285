@@ -67,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       try {
         const emailResponse = await resend.emails.send({
-          from: "FishX <team@findfishingdates.net>",
+          from: "FishX <team@fishx.app>",
           to: [user.email],
           subject: "🎣 Complete your verification to get more connections!",
           html: generateReminderEmail(user.display_name || "there"),
