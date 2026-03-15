@@ -77,7 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
               ${reopenReason ? `
               <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
                 <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px;"><strong>Reason for reopening:</strong></p>
-                <p style="margin: 0; color: #78350f; white-space: pre-wrap;">${reopenReason.replace(/\n/g, "<br>")}</p>
+                <p style="margin: 0; color: #78350f; white-space: pre-wrap;">${escapeHtml(reopenReason).replace(/\n/g, "<br>")}</p>
               </div>
               ` : ""}
               <p style="color: #374151;">Please review this ticket and respond to the user.</p>
