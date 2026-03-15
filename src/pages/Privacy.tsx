@@ -748,11 +748,11 @@ const Privacy = () => {
                 </div>
                 
                 <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-5 mb-4">
-                  <p className="text-sm text-foreground font-medium">Find Fishing Dates is strictly for users aged 18 and older.</p>
+                   <p className="text-sm text-foreground font-medium">FishX fishing features are available to users aged 13 and older. The Dating Add-On is strictly for users aged 18 and older.</p>
                 </div>
                 
                 <div className="text-muted-foreground space-y-4">
-                  <p>We do not knowingly collect personal information from anyone under the age of 18. Our service includes age verification during signup to prevent minors from creating accounts.</p>
+                  <p>We do not knowingly collect personal information from anyone under the age of 13. Our service includes age verification during signup. Users aged 13–17 may only access fishing features; they cannot create a Dating profile.</p>
                   <p>If we discover that we have collected personal information from a minor, we will:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>Immediately delete the account and all associated data</li>
