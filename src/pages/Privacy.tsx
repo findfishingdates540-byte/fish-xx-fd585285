@@ -683,7 +683,7 @@ const Privacy = () => {
                     <li><strong>Right to Opt-Out of Sale:</strong> We do not sell personal data, but you may exercise this right.</li>
                     <li><strong>Right to Non-Discrimination:</strong> We will not discriminate against you for exercising your rights.</li>
                   </ul>
-                  <p className="text-sm text-muted-foreground mt-3">To exercise these rights, email <a href="mailto:privacy@findfishingdates.com" className="text-primary hover:underline">privacy@findfishingdates.com</a> with "California Privacy Rights" in the subject line.</p>
+                  <p className="text-sm text-muted-foreground mt-3">To exercise these rights, email <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a> with "California Privacy Rights" in the subject line.</p>
                 </div>
 
                 <h3 className="font-semibold text-foreground mb-4">European Users (GDPR)</h3>
