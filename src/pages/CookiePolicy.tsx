@@ -135,10 +135,10 @@ export default function CookiePolicy() {
   return (
     <>
       <Helmet>
-        <title>Cookie Policy | Find Fishing Dates</title>
+        <title>Cookie Policy | FishX</title>
         <meta 
           name="description" 
-          content="Learn about how Find Fishing Dates uses cookies to improve your experience, including essential, analytics, and preference cookies." 
+          content="Learn about how FishX uses cookies to improve your experience, including essential, analytics, and preference cookies." 
         />
       </Helmet>
       
