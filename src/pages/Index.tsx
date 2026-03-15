@@ -480,8 +480,8 @@ const Index = () => {
                 Take the catch<br />with you
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Download our mobile app and start connecting with fishing enthusiasts 
-                wherever you are. Swipe, match, and plan your next fishing date on the go.
+                Download our mobile app and start connecting with anglers 
+                wherever you are. Discover spots, log catches, and plan trips on the go.
               </p>
               
               {/* App Features */}
