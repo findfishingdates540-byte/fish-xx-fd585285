@@ -9,15 +9,15 @@ interface OutletContext {
 export default function AppIndex() {
   const { accountMode } = useOutletContext<OutletContext>();
 
-  // Redirect to appropriate default page based on account mode
-  if (accountMode === 'fishing') {
-    return <Navigate to="/app/feed" replace />;
-  }
-
+  // Default all users to feed (fishing-first)
   if (accountMode === 'both') {
     return <Navigate to="/app/dashboard" replace />;
   }
 
-  // Dating mode defaults to discover
-  return <Navigate to="/app/discover" replace />;
+  if (accountMode === 'dating') {
+    return <Navigate to="/app/discover" replace />;
+  }
+
+  // Fishing mode (default) goes to feed
+  return <Navigate to="/app/feed" replace />;
 }

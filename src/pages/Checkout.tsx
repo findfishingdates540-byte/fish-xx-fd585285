@@ -238,8 +238,8 @@ function CheckoutForm({ planId, billing, plan, price, total, isAnnual }: Checkou
       <header className="bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Find Fishing Dates" className="h-8 w-auto" />
-            <span className="font-bold text-lg text-foreground">FindFish Date</span>
+            <img src={logo} alt="FishX" className="h-8 w-auto" />
+            <span className="font-bold text-lg text-foreground">FishX</span>
           </Link>
           <div className="flex items-center gap-2 text-sm text-muted-foreground border border-border rounded-full px-4 py-2">
             <Lock className="w-4 h-4" />
