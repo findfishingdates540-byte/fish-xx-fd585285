@@ -292,11 +292,6 @@ const Auth = () => {
     }
   };
 
-  const accountModeOptions: { value: AccountMode; label: string; icon: React.ReactNode }[] = [
-    { value: 'dating', label: 'Dating', icon: <Heart className="w-4 h-4" /> },
-    { value: 'fishing', label: 'Fishing', icon: <Fish className="w-4 h-4" /> },
-    { value: 'both', label: 'Both', icon: <><Heart className="w-3 h-3" /><Fish className="w-3 h-3" /></> },
-  ];
 
   // Recovery Mode UI
   if (isRecoveryMode) {
