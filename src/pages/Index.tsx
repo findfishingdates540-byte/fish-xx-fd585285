@@ -203,12 +203,12 @@ const Index = () => {
             <ScrollReveal direction="left" className="space-y-8">
               <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Our Mission</span>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                We exist to bring fishing lovers closer to love.
+                Built by anglers, for anglers.
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                We believe meaningful connections happen when people share genuine passions. 
-                That's why we built a platform where fishing enthusiasts can find love, 
-                friendship, and their next fishing buddy.
+                We believe the best fishing experiences happen when you share them. 
+                That's why we built a platform where anglers can discover spots, 
+                log catches, find buddies, and connect with a passionate community.
               </p>
               <Link to="/about">
                 <Button className="btn-primary group">
