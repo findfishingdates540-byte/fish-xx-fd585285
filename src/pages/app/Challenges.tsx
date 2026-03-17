@@ -9,22 +9,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Search,
   Plus,
   Trophy,
@@ -106,16 +90,6 @@ export default function Challenges() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabValue>("live");
   const [searchQuery, setSearchQuery] = useState("");
-  const [createOpen, setCreateOpen] = useState(false);
-
-  // Form state
-  const [formTitle, setFormTitle] = useState("");
-  const [formDesc, setFormDesc] = useState("");
-  const [formType, setFormType] = useState<string>("largest_fish");
-  const [formSpecies, setFormSpecies] = useState("");
-  const [formStartDate, setFormStartDate] = useState("");
-  const [formEndDate, setFormEndDate] = useState("");
-  const [formPrizePool, setFormPrizePool] = useState("");
 
   // Fetch challenges
   const { data: challenges = [], isLoading } = useQuery({
@@ -162,14 +136,6 @@ export default function Challenges() {
     enabled: participantUserIds.length > 0,
   });
 
-  // Fetch species list for create form
-  const { data: speciesList = [] } = useQuery({
-    queryKey: ["challenge-species-list"],
-    queryFn: async () => {
-      const { data } = await supabase.from("fish_species").select("id, name").order("name");
-      return data || [];
-    },
-  });
 
   // Build enriched challenge data
   const enrichedChallenges: ChallengeWithDetails[] = useMemo(() => {
@@ -259,33 +225,6 @@ export default function Challenges() {
     onError: (err) => toast.error(err.message),
   });
 
-  // Create challenge mutation
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error("Must be logged in");
-      if (!formTitle.trim() || !formStartDate || !formEndDate) throw new Error("Fill in required fields");
-      const { error } = await supabase.from("fishing_challenges").insert({
-        title: formTitle.trim(),
-        description: formDesc.trim() || null,
-        challenge_type: formType as any,
-        target_species_name: formSpecies || null,
-        species_id: speciesList.find((s) => s.name === formSpecies)?.id || null,
-        start_date: formStartDate,
-        end_date: formEndDate,
-        created_by: user.id,
-        prizes: formPrizePool ? { total: Number(formPrizePool) } : {},
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fishing-challenges"] });
-      toast.success("Challenge created!");
-      setCreateOpen(false);
-      setFormTitle(""); setFormDesc(""); setFormType("largest_fish");
-      setFormSpecies(""); setFormStartDate(""); setFormEndDate(""); setFormPrizePool("");
-    },
-    onError: (err) => toast.error(err.message),
-  });
 
   const rankLabel = (r: number) => {
     if (r === 1) return <span className="text-amber-500 font-bold text-xs">1st</span>;
@@ -314,72 +253,10 @@ export default function Challenges() {
               className="pl-9 h-9"
             />
           </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-1.5 shrink-0">
-                <Plus className="h-4 w-4" />
-                Create Challenge
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create New Challenge</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div>
-                  <Label>Title *</Label>
-                  <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Weekend Bass Blitz" />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} placeholder="Challenge details..." rows={3} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Type</Label>
-                    <Select value={formType} onValueChange={setFormType}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="largest_fish">Largest Fish</SelectItem>
-                        <SelectItem value="most_caught">Most Caught</SelectItem>
-                        <SelectItem value="total_weight">Total Weight</SelectItem>
-                        <SelectItem value="species_variety">Species Variety</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Target Species</Label>
-                    <Select value={formSpecies} onValueChange={setFormSpecies}>
-                      <SelectTrigger><SelectValue placeholder="Any" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="any">Any Species</SelectItem>
-                        {speciesList.map((s) => (
-                          <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Start Date *</Label>
-                    <Input type="date" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>End Date *</Label>
-                    <Input type="date" value={formEndDate} onChange={(e) => setFormEndDate(e.target.value)} />
-                  </div>
-                </div>
-                <div>
-                  <Label>Prize Pool ($)</Label>
-                  <Input type="number" value={formPrizePool} onChange={(e) => setFormPrizePool(e.target.value)} placeholder="0" />
-                </div>
-                <Button className="w-full" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Creating..." : "Create Challenge"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button className="gap-1.5 shrink-0" onClick={() => navigate("/app/challenges/new")}>
+            <Plus className="h-4 w-4" />
+            Create Challenge
+          </Button>
         </div>
       </div>
 
@@ -505,7 +382,7 @@ export default function Challenges() {
         <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
           Create your own private challenge for your fishing club or tournament series. Custom species, locations, and scoring rules.
         </p>
-        <Button variant="outline" size="lg" onClick={() => setCreateOpen(true)} className="gap-2">
+        <Button variant="outline" size="lg" onClick={() => navigate("/app/challenges/new")} className="gap-2">
           Host a Private Event
         </Button>
       </div>
