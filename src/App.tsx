@@ -177,6 +177,7 @@ const App = () => (
               <Route path="ad-analytics" element={<AdminAdAnalytics />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="support" element={<AdminSupportTickets />} />
+              <Route path="photo-challenges" element={<AdminPhotoChallenges />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 

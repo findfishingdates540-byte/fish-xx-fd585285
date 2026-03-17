@@ -177,10 +177,6 @@ export default function PhotoChallenges() {
             Submit your best fish photos, vote for winners, and win prizes
           </p>
         </div>
-        <Button onClick={() => navigate("/app/photo-challenges/new")} size={isMobile ? "sm" : "default"}>
-          <Plus className="h-4 w-4 mr-1" />
-          Create
-        </Button>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>

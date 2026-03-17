@@ -78,6 +78,10 @@ const navItems: NavItem[] = [{
   icon: BarChart3,
   label: 'Ad Analytics'
 }, {
+  to: '/admin/photo-challenges',
+  icon: Camera,
+  label: 'Photo Challenges'
+}, {
   to: '/admin/support',
   icon: Ticket,
   label: 'Support Tickets'
