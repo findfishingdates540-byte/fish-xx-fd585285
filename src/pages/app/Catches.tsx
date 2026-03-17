@@ -2,28 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { SpeciesCombobox } from "@/components/catches/SpeciesCombobox";
+import { LogCatchForm, type LogCatchFormData } from "@/components/catches/LogCatchForm";
 import {
   Plus,
   Fish,
@@ -31,14 +13,10 @@ import {
   Ruler,
   MapPin,
   Calendar,
-  Camera,
-  X,
-  Loader2,
   Trash2,
   MoreVertical,
   Share2,
-  ImagePlus,
-  Waves,
+  ArrowLeft,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -89,53 +67,21 @@ export default function Catches() {
   const [species, setSpecies] = useState<FishSpecies[]>([]);
   const [spots, setSpots] = useState<FishingSpot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const coverPhotoRef = useRef<HTMLInputElement>(null);
-  const measurementPhotoRef = useRef<HTMLInputElement>(null);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    species_name: "",
-    species_id: "",
-    fishing_spot_id: "",
-    custom_spot_name: "",
-    weight_lbs: "",
-    length_in: "",
-    notes: "",
-    bait_used: "",
-    caught_at: new Date().toISOString().split("T")[0],
-    catch_status: "released" as "released" | "harvested",
-    general_location: "",
-  });
-  const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
-  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
-  const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
-  const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
-  const [measurementPhoto, setMeasurementPhoto] = useState<File | null>(null);
-  const [measurementPhotoPreview, setMeasurementPhotoPreview] = useState<string | null>(null);
-
-  // Fetch catches and species
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
-
       try {
         const [catchesRes, speciesRes, spotsRes] = await Promise.all([
-          supabase
-            .from("catches")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("caught_at", { ascending: false }),
+          supabase.from("catches").select("*").eq("user_id", user.id).order("caught_at", { ascending: false }),
           supabase.from("fish_species").select("*").order("name"),
           supabase.from("fishing_spots").select("id, name, location_name").eq("is_public", true).order("name"),
         ]);
-
         if (catchesRes.error) throw catchesRes.error;
         if (speciesRes.error) throw speciesRes.error;
         if (spotsRes.error) throw spotsRes.error;
-
         setCatches((catchesRes.data as Catch[]) || []);
         setSpecies(speciesRes.data || []);
         setSpots(spotsRes.data || []);
@@ -146,51 +92,8 @@ export default function Catches() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [user]);
-
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length + selectedPhotos.length > 5) {
-      toast.error("Maximum 5 photos allowed");
-      return;
-    }
-
-    setSelectedPhotos((prev) => [...prev, ...files]);
-
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreviewUrls((prev) => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleSinglePhotoSelect = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "cover" | "measurement"
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (type === "cover") {
-        setCoverPhoto(file);
-        setCoverPhotoPreview(reader.result as string);
-      } else {
-        setMeasurementPhoto(file);
-        setMeasurementPhotoPreview(reader.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removePhoto = (index: number) => {
-    setSelectedPhotos((prev) => prev.filter((_, i) => i !== index));
-    setPhotoPreviewUrls((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const uploadSinglePhoto = async (photo: File): Promise<string | null> => {
     if (!user) return null;
@@ -202,44 +105,28 @@ export default function Catches() {
     return urlData.publicUrl;
   };
 
-  const uploadPhotos = async (): Promise<string[]> => {
-    if (!user || selectedPhotos.length === 0) return [];
-    const uploadedUrls: string[] = [];
-    for (const photo of selectedPhotos) {
-      const url = await uploadSinglePhoto(photo);
-      if (url) uploadedUrls.push(url);
-    }
-    return uploadedUrls;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: LogCatchFormData) => {
     if (!user) return;
-
-    if (!formData.species_name && !formData.species_id) {
+    if (!data.species_name && !data.species_id) {
       toast.error("Please select or enter a species");
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      // Upload all photos
-      const [photoUrls, coverUrl, measurementUrl] = await Promise.all([
-        uploadPhotos(),
-        coverPhoto ? uploadSinglePhoto(coverPhoto) : Promise.resolve(null),
-        measurementPhoto ? uploadSinglePhoto(measurementPhoto) : Promise.resolve(null),
+      const [coverUrl, measurementUrl] = await Promise.all([
+        data.coverPhoto ? uploadSinglePhoto(data.coverPhoto) : Promise.resolve(null),
+        data.measurementPhoto ? uploadSinglePhoto(data.measurementPhoto) : Promise.resolve(null),
       ]);
 
-      // Get species name and ID
-      let speciesName = formData.species_name;
-      let speciesId = formData.species_id || null;
-      
-      if (formData.species_id) {
-        const selectedSpecies = species.find((s) => s.id === formData.species_id);
-        speciesName = selectedSpecies?.name || formData.species_name;
-      } else if (formData.species_name) {
-        const trimmedName = formData.species_name.trim();
+      let speciesName = data.species_name;
+      let speciesId: string | null = data.species_id || null;
+
+      if (data.species_id) {
+        const selectedSpecies = species.find((s) => s.id === data.species_id);
+        speciesName = selectedSpecies?.name || data.species_name;
+      } else if (data.species_name) {
+        const trimmedName = data.species_name.trim();
         const existingSpecies = species.find(
           (s) => s.name.toLowerCase() === trimmedName.toLowerCase()
         );
@@ -256,72 +143,62 @@ export default function Catches() {
             speciesId = newSpecies.id;
             speciesName = newSpecies.name;
             setSpecies((prev) => [...prev, newSpecies].sort((a, b) => a.name.localeCompare(b.name)));
-            toast.success(`Added "${trimmedName}" to species database`);
           }
         }
       }
+
+      const caughtAtISO = data.caught_at ? new Date(data.caught_at).toISOString() : null;
 
       const { error } = await supabase.from("catches").insert({
         user_id: user.id,
         species_name: speciesName || null,
         species_id: speciesId,
-        fishing_spot_id: formData.fishing_spot_id || null,
-        location_name: formData.custom_spot_name || null,
-        weight_lbs: formData.weight_lbs ? parseFloat(formData.weight_lbs) : null,
-        length_in: formData.length_in ? parseFloat(formData.length_in) : null,
-        notes: formData.notes || null,
-        bait_used: formData.bait_used || null,
-        caught_at: formData.caught_at ? new Date(formData.caught_at).toISOString() : null,
-        photos: photoUrls.length > 0 ? photoUrls : null,
-        catch_status: formData.catch_status,
+        fishing_spot_id: data.fishing_spot_id || null,
+        location_name: data.custom_spot_name || null,
+        weight_lbs: data.weight_lbs ? parseFloat(data.weight_lbs) : null,
+        length_in: data.length_in ? parseFloat(data.length_in) : null,
+        notes: data.notes || null,
+        bait_used: data.bait_used || null,
+        caught_at: caughtAtISO,
+        catch_status: data.catch_status,
         cover_photo_url: coverUrl,
         measurement_photo_url: measurementUrl,
-        general_location: formData.general_location || null,
+        general_location: data.general_location || null,
       });
-
       if (error) throw error;
 
-      // Update spot species_available
-      if (formData.fishing_spot_id && speciesName) {
+      if (data.fishing_spot_id && speciesName) {
         try {
           const { data: spotData } = await supabase
             .from("fishing_spots")
             .select("species_available")
-            .eq("id", formData.fishing_spot_id)
+            .eq("id", data.fishing_spot_id)
             .single();
           const currentSpecies = spotData?.species_available || [];
           if (!currentSpecies.some((s: string) => s.toLowerCase() === speciesName!.toLowerCase())) {
             await supabase
               .from("fishing_spots")
               .update({ species_available: [...currentSpecies, speciesName] })
-              .eq("id", formData.fishing_spot_id);
+              .eq("id", data.fishing_spot_id);
           }
-        } catch (spotErr) {
-          console.error("Error updating spot species:", spotErr);
-        }
+        } catch {}
       }
 
-      // Refresh leaderboard for this species
       if (speciesId) {
         try {
           await supabase.rpc("refresh_leaderboard_entries", { p_species_id: speciesId });
           await supabase.rpc("check_and_award_badges", { p_user_id: user.id });
-        } catch (err) {
-          console.error("Error refreshing leaderboard:", err);
-        }
+        } catch {}
       }
 
       toast.success("Catch logged successfully!");
-      setIsDialogOpen(false);
-      resetForm();
+      setShowForm(false);
 
-      // Refresh catches
       const { data: newCatches } = await supabase
         .from("catches")
         .select("*")
         .eq("user_id", user.id)
         .order("caught_at", { ascending: false });
-
       if (newCatches) setCatches(newCatches as Catch[]);
     } catch (err) {
       console.error("Error logging catch:", err);
@@ -333,55 +210,23 @@ export default function Catches() {
 
   const handleDelete = async (catchId: string) => {
     if (!confirm("Are you sure you want to delete this catch?")) return;
-
     try {
-      const catchToDelete = catches.find(c => c.id === catchId);
+      const catchToDelete = catches.find((c) => c.id === catchId);
       const { error } = await supabase.from("catches").delete().eq("id", catchId);
       if (error) throw error;
       setCatches((prev) => prev.filter((c) => c.id !== catchId));
       toast.success("Catch deleted");
-
-      // Refresh leaderboard for deleted species
       if (catchToDelete?.species_id && user) {
-        try {
-          await supabase.rpc("refresh_leaderboard_entries", { p_species_id: catchToDelete.species_id });
-        } catch {}
+        try { await supabase.rpc("refresh_leaderboard_entries", { p_species_id: catchToDelete.species_id }); } catch {}
       }
     } catch (err) {
-      console.error("Error deleting catch:", err);
       toast.error("Failed to delete catch");
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      species_name: "",
-      species_id: "",
-      fishing_spot_id: "",
-      custom_spot_name: "",
-      weight_lbs: "",
-      length_in: "",
-      notes: "",
-      bait_used: "",
-      caught_at: new Date().toISOString().split("T")[0],
-      catch_status: "released",
-      general_location: "",
-    });
-    setSelectedPhotos([]);
-    setPhotoPreviewUrls([]);
-    setCoverPhoto(null);
-    setCoverPhotoPreview(null);
-    setMeasurementPhoto(null);
-    setMeasurementPhotoPreview(null);
-  };
-
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "Unknown date";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
   if (loading) {
@@ -400,6 +245,28 @@ export default function Catches() {
     );
   }
 
+  // Show full-page form
+  if (showForm) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 md:p-6">
+        <button
+          onClick={() => setShowForm(false)}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to My Catches
+        </button>
+        <LogCatchForm
+          species={species}
+          spots={spots}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+          onDiscard={() => setShowForm(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
@@ -410,267 +277,10 @@ export default function Catches() {
             {catches.length} {catches.length === 1 ? "catch" : "catches"} logged
           </p>
         </div>
-
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Log Catch
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Log a New Catch</DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-              {/* Cover Photo */}
-              <div>
-                <Label className="mb-2 block">Cover Photo</Label>
-                <p className="text-xs text-muted-foreground mb-2">Primary display photo of your catch</p>
-                {coverPhotoPreview ? (
-                  <div className="relative w-full h-40 rounded-lg overflow-hidden">
-                    <img src={coverPhotoPreview} alt="Cover" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => { setCoverPhoto(null); setCoverPhotoPreview(null); }}
-                      className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center"
-                    >
-                      <X className="h-4 w-4 text-white" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => coverPhotoRef.current?.click()}
-                    className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                  >
-                    <ImagePlus className="h-8 w-8 mb-1" />
-                    <span className="text-sm">Add cover photo</span>
-                  </button>
-                )}
-                <input ref={coverPhotoRef} type="file" accept="image/*" onChange={(e) => handleSinglePhotoSelect(e, "cover")} className="hidden" />
-              </div>
-
-              {/* Measurement Photo */}
-              <div>
-                <Label className="mb-2 block">Measurement / Weigh-in Photo</Label>
-                <p className="text-xs text-muted-foreground mb-2">Photo showing the fish being measured or weighed</p>
-                {measurementPhotoPreview ? (
-                  <div className="relative w-full h-40 rounded-lg overflow-hidden">
-                    <img src={measurementPhotoPreview} alt="Measurement" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => { setMeasurementPhoto(null); setMeasurementPhotoPreview(null); }}
-                      className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center"
-                    >
-                      <X className="h-4 w-4 text-white" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => measurementPhotoRef.current?.click()}
-                    className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                  >
-                    <Ruler className="h-8 w-8 mb-1" />
-                    <span className="text-sm">Add measurement photo</span>
-                  </button>
-                )}
-                <input ref={measurementPhotoRef} type="file" accept="image/*" onChange={(e) => handleSinglePhotoSelect(e, "measurement")} className="hidden" />
-              </div>
-
-              {/* Additional Photos */}
-              <div>
-                <Label className="mb-2 block">Additional Photos (max 5)</Label>
-                <div className="flex flex-wrap gap-2">
-                  {photoPreviewUrls.map((url, index) => (
-                    <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(index)}
-                        className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center"
-                      >
-                        <X className="h-3 w-3 text-white" />
-                      </button>
-                    </div>
-                  ))}
-                  {selectedPhotos.length < 5 && (
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                    >
-                      <Camera className="h-5 w-5" />
-                      <span className="text-xs mt-1">Add</span>
-                    </button>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoSelect}
-                  className="hidden"
-                />
-              </div>
-
-              {/* Species Selection */}
-              <div>
-                <Label htmlFor="species">Species</Label>
-                <SpeciesCombobox
-                  species={species}
-                  value={formData.species_id ? species.find(s => s.id === formData.species_id)?.name || '' : formData.species_name}
-                  onSelect={(speciesId, speciesName) => {
-                    if (speciesId) {
-                      setFormData({ ...formData, species_id: speciesId, species_name: '' });
-                    } else {
-                      setFormData({ ...formData, species_id: '', species_name: speciesName });
-                    }
-                  }}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Select from list or type a custom species name
-                </p>
-              </div>
-
-              {/* Harvest / Release Toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Catch Status</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.catch_status === "released" ? "🐟 Released back" : "🎣 Harvested"}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Released</span>
-                  <Switch
-                    checked={formData.catch_status === "harvested"}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, catch_status: checked ? "harvested" : "released" })
-                    }
-                  />
-                  <span className="text-sm text-muted-foreground">Harvested</span>
-                </div>
-              </div>
-
-              {/* General Location */}
-              <div>
-                <Label htmlFor="general_location">General Location</Label>
-                <p className="text-xs text-muted-foreground mb-1">Port, river, or lake name (shown on leaderboards)</p>
-                <Input
-                  id="general_location"
-                  placeholder="e.g., Lake Erie, Port Canaveral, Mississippi River"
-                  value={formData.general_location}
-                  onChange={(e) => setFormData({ ...formData, general_location: e.target.value })}
-                />
-              </div>
-
-              {/* Fishing Spot Selection */}
-              <div>
-                <Label htmlFor="spot">Fishing Spot (optional)</Label>
-                <Select
-                  value={formData.fishing_spot_id || "none"}
-                  onValueChange={(val) => setFormData({ ...formData, fishing_spot_id: val === "none" ? "" : val, custom_spot_name: val === "none" ? formData.custom_spot_name : "" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a spot" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No spot selected</SelectItem>
-                    {spots.map((spot) => (
-                      <SelectItem key={spot.id} value={spot.id}>
-                        {spot.name} {spot.location_name && `• ${spot.location_name}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="Custom spot name (e.g., Lake Erie, North Shore)"
-                  value={formData.custom_spot_name}
-                  onChange={(e) => setFormData({ ...formData, custom_spot_name: e.target.value, fishing_spot_id: "" })}
-                  className="mt-2"
-                />
-              </div>
-
-              {/* Weight & Length */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="weight">Weight (lbs)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.weight_lbs}
-                    onChange={(e) => setFormData({ ...formData, weight_lbs: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="length">Length (in)</Label>
-                  <Input
-                    id="length"
-                    type="number"
-                    step="0.1"
-                    placeholder="0.0"
-                    value={formData.length_in}
-                    onChange={(e) => setFormData({ ...formData, length_in: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              {/* Date */}
-              <div>
-                <Label htmlFor="date">Date Caught</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.caught_at}
-                  onChange={(e) => setFormData({ ...formData, caught_at: e.target.value })}
-                />
-              </div>
-
-              {/* Bait Used */}
-              <div>
-                <Label htmlFor="bait">Bait/Lure Used</Label>
-                <Input
-                  id="bait"
-                  placeholder="e.g., Nightcrawlers, Spinner"
-                  value={formData.bait_used}
-                  onChange={(e) => setFormData({ ...formData, bait_used: e.target.value })}
-                />
-              </div>
-
-              {/* Notes */}
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Any additional details about your catch..."
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Logging Catch...
-                  </>
-                ) : (
-                  <>
-                    <Fish className="h-4 w-4 mr-2" />
-                    Log Catch
-                  </>
-                )}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setShowForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Log Catch
+        </Button>
       </div>
 
       {/* Catches Grid */}
@@ -681,7 +291,7 @@ export default function Catches() {
           <p className="text-muted-foreground mb-4">
             Start logging your fishing catches to track your progress
           </p>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Log Your First Catch
           </Button>
@@ -718,16 +328,15 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
   const handleShareToFeed = async () => {
     setIsSharing(true);
     try {
-      const spot = spots.find(s => s.id === catchData.fishing_spot_id);
+      const spot = spots.find((s) => s.id === catchData.fishing_spot_id);
       const locationName = spot?.name || spot?.location_name || undefined;
       await createPost.mutateAsync({
         catchId: catchData.id,
         content: catchData.notes || undefined,
-        locationName
+        locationName,
       });
       toast.success("Shared to feed!");
-    } catch (error) {
-      console.error("Failed to share:", error);
+    } catch {
       toast.error("Failed to share to feed");
     } finally {
       setIsSharing(false);
@@ -738,21 +347,14 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
 
   return (
     <div className="rounded-xl border overflow-hidden bg-background">
-      {/* Image */}
       <div className="relative h-48 bg-muted">
         {displayPhoto ? (
-          <img
-            src={displayPhoto}
-            alt={catchData.species_name || "Catch"}
-            className="w-full h-full object-cover"
-          />
+          <img src={displayPhoto} alt={catchData.species_name || "Catch"} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Fish className="h-12 w-12 text-muted-foreground" />
           </div>
         )}
-
-        {/* Status badge */}
         <Badge
           className={`absolute top-2 left-2 ${
             catchData.catch_status === "released"
@@ -762,20 +364,9 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
         >
           {catchData.catch_status === "released" ? "🐟 Released" : "🎣 Harvested"}
         </Badge>
-
-        {/* Verified badge */}
         {catchData.is_verified && (
           <Badge className="absolute top-2 left-24 bg-blue-600/90 text-white border-0">✓ Verified</Badge>
         )}
-
-        {/* More photos indicator */}
-        {catchData.photos && catchData.photos.length > 1 && (
-          <Badge className="absolute bottom-2 right-2 bg-black/70 text-white border-0">
-            +{catchData.photos.length - 1} more
-          </Badge>
-        )}
-
-        {/* Actions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="absolute top-2 right-2 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background">
@@ -794,13 +385,8 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-lg mb-1">
-          {catchData.species_name || "Unknown Species"}
-        </h3>
-
+        <h3 className="font-semibold text-lg mb-1">{catchData.species_name || "Unknown Species"}</h3>
         <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
           <span className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" />
@@ -813,8 +399,6 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
             </span>
           )}
         </div>
-
-        {/* Stats */}
         <div className="flex flex-wrap gap-2 mb-3">
           {catchData.weight_lbs && (
             <Badge variant="secondary" className="flex items-center gap-1">
@@ -828,16 +412,10 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
               {catchData.length_in} in
             </Badge>
           )}
-          {catchData.bait_used && (
-            <Badge variant="outline">{catchData.bait_used}</Badge>
-          )}
+          {catchData.bait_used && <Badge variant="outline">{catchData.bait_used}</Badge>}
         </div>
-
-        {/* Notes preview */}
         {catchData.notes && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {catchData.notes}
-          </p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{catchData.notes}</p>
         )}
       </div>
     </div>
