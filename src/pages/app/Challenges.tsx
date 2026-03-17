@@ -48,6 +48,7 @@ interface ChallengeWithDetails {
   isJoined: boolean;
   speciesName: string | null;
   location: string | null;
+  bannerUrl: string | null;
 }
 
 function useCountdown(endDate: string) {
