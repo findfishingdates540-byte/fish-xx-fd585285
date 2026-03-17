@@ -173,7 +173,8 @@ export default function Challenges() {
         topEntries: top3,
         isJoined: !!user && cParticipants.some((p) => p.user_id === user.id),
         speciesName: c.target_species_name || null,
-        location: null,
+        location: typeof prizes === "object" && prizes?.location ? String(prizes.location) : null,
+        bannerUrl,
       };
     });
   }, [challenges, participants, profiles, user]);
