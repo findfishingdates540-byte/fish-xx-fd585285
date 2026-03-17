@@ -65,8 +65,7 @@ interface TeamInfo {
 export default function Leaderboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"weight" | "count">("weight");
+  const [teamSkillFilter, setTeamSkillFilter] = useState("pro");
   const [teamSkillFilter, setTeamSkillFilter] = useState("pro");
 
   // Fetch all species
