@@ -256,19 +256,19 @@ export default function Leaderboard() {
               <div className="grid grid-cols-[60px_1fr_100px_120px_100px] gap-2 px-4 py-2.5 bg-muted/50 text-xs text-muted-foreground uppercase tracking-wide font-medium">
                 <span>Rank</span><span>Team Name</span><span>Anglers</span><span>Season Points</span><span className="text-right">Last 7 Days</span>
               </div>
-              {teams.length === 0 ? (
+              {teamScores.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-sm">No teams in this skill level yet.</div>
               ) : (
-                teams.map((team, i) => (
-                  <div key={team.id} className="grid grid-cols-[60px_1fr_100px_120px_100px] gap-2 px-4 py-3 border-t border-border items-center hover:bg-muted/30 transition-colors">
+                teamScores.map((team, i) => (
+                  <div key={team.team_id} className="grid grid-cols-[60px_1fr_100px_120px_100px] gap-2 px-4 py-3 border-t border-border items-center hover:bg-muted/30 transition-colors">
                     <span className="font-bold text-primary text-sm">#{i + 1}</span>
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 text-xs font-bold text-primary">{team.name.slice(0, 2).toUpperCase()}</div>
-                      <span className="font-medium text-sm truncate">{team.name}</span>
+                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 text-xs font-bold text-primary">{team.team_name.slice(0, 2).toUpperCase()}</div>
+                      <span className="font-medium text-sm truncate">{team.team_name}</span>
                     </div>
-                    <span className="text-sm text-muted-foreground">{teamMemberCounts[team.id] || 0} Members</span>
-                    <span className="text-sm font-medium">—</span>
-                    <span className="text-sm text-muted-foreground text-right">—</span>
+                    <span className="text-sm text-muted-foreground">{team.member_count} Members</span>
+                    <span className="text-sm font-medium">{Number(team.season_points).toLocaleString()} pts</span>
+                    <span className="text-sm text-muted-foreground text-right">{team.last_7_days_catches} catches</span>
                   </div>
                 ))
               )}
