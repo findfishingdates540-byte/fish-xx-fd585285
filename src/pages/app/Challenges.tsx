@@ -480,8 +480,27 @@ export default function Challenges() {
         )}
       </div>
 
+      {/* Quick Navigation */}
+      <div className="mx-4 md:mx-6 mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <button onClick={() => navigate("/app/leaderboard")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors group">
+          <Trophy className="h-6 w-6 text-primary mb-2" />
+          <p className="font-bold text-sm">Scoreboards Hub</p>
+          <p className="text-xs text-muted-foreground mt-1">View rankings & top anglers</p>
+        </button>
+        <button onClick={() => navigate("/app/species")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors group">
+          <Fish className="h-6 w-6 text-primary mb-2" />
+          <p className="font-bold text-sm">Species Explorer</p>
+          <p className="text-xs text-muted-foreground mt-1">Browse species & records</p>
+        </button>
+        <button onClick={() => navigate("/app/catches")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors group">
+          <Award className="h-6 w-6 text-primary mb-2" />
+          <p className="font-bold text-sm">Log a Catch</p>
+          <p className="text-xs text-muted-foreground mt-1">Submit catches to climb ranks</p>
+        </button>
+      </div>
+
       {/* CTA Banner */}
-      <div className="mx-4 md:mx-6 mt-12 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-8 md:p-10 text-center">
+      <div className="mx-4 md:mx-6 mt-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-8 md:p-10 text-center">
         <h2 className="text-xl font-bold mb-2">Don't see a challenge that fits?</h2>
         <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
           Create your own private challenge for your fishing club or tournament series. Custom species, locations, and scoring rules.

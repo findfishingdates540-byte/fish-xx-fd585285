@@ -178,10 +178,10 @@ export default function Leaderboard() {
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Catches Today</p>
             <p className="text-2xl font-bold text-primary">{totalCatchesToday.toLocaleString()}</p>
           </div>
-          <div className="rounded-xl border bg-background px-5 py-3 text-center min-w-[120px]">
+          <button onClick={() => navigate("/app/challenges")} className="rounded-xl border bg-background px-5 py-3 text-center min-w-[120px] hover:bg-muted/50 transition-colors">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Active Contests</p>
             <p className="text-2xl font-bold text-primary">{activeChallenges}</p>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -340,6 +340,26 @@ export default function Leaderboard() {
             <h3 className="font-bold text-sm mb-1">Hotspots</h3>
             <p className="text-xs text-muted-foreground mb-3">See where the top catches are happening</p>
             <Button variant="default" size="sm" onClick={() => navigate("/app/spots")}>View Live Map</Button>
+          </div>
+
+          {/* Quick Links */}
+          <div className="rounded-xl border bg-card p-5 space-y-2">
+            <h3 className="font-bold text-sm mb-3">Quick Links</h3>
+            <button onClick={() => navigate("/app/challenges")} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left">
+              <div className="h-8 w-8 rounded-md bg-destructive/10 flex items-center justify-center shrink-0"><Sparkles className="h-4 w-4 text-destructive" /></div>
+              <div><p className="text-sm font-medium">Fishing Challenges</p><p className="text-[10px] text-muted-foreground">Compete in live events</p></div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+            </button>
+            <button onClick={() => navigate("/app/species")} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left">
+              <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0"><Fish className="h-4 w-4 text-primary" /></div>
+              <div><p className="text-sm font-medium">Species Explorer</p><p className="text-[10px] text-muted-foreground">Browse species & records</p></div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+            </button>
+            <button onClick={() => navigate("/app/catches")} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left">
+              <div className="h-8 w-8 rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0"><Fish className="h-4 w-4 text-emerald-500" /></div>
+              <div><p className="text-sm font-medium">Log a Catch</p><p className="text-[10px] text-muted-foreground">Submit & climb ranks</p></div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+            </button>
           </div>
         </div>
       </div>

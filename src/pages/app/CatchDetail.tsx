@@ -270,13 +270,17 @@ export default function CatchDetail() {
                 ) : "—"}
               </p>
             </div>
-            <div className="rounded-xl border bg-card p-4">
+            <button
+              onClick={() => catchData?.species_id && navigate(`/app/leaderboard/species/${catchData.species_id}`)}
+              className="rounded-xl border bg-card p-4 text-left hover:bg-muted/50 transition-colors group"
+            >
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Fish className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Species</p>
               </div>
-              <p className="text-sm font-bold leading-tight">{speciesName}</p>
-            </div>
+              <p className="text-sm font-bold leading-tight group-hover:text-primary transition-colors">{speciesName}</p>
+              {catchData?.species_id && <p className="text-[10px] text-primary mt-1">View Leaderboard →</p>}
+            </button>
             <div className="rounded-xl border bg-card p-4">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />

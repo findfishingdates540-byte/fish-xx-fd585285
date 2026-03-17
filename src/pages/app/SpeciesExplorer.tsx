@@ -430,8 +430,20 @@ export default function SpeciesExplorer() {
         )}
       </div>
 
+      {/* Cross-links */}
+      <div className="mt-10 px-4 md:px-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button onClick={() => navigate("/app/challenges")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors flex items-center gap-4">
+          <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0"><Target className="h-5 w-5 text-destructive" /></div>
+          <div><p className="font-bold text-sm">Fishing Challenges</p><p className="text-xs text-muted-foreground">Compete for prizes with these species</p></div>
+        </button>
+        <button onClick={() => navigate("/app/leaderboard")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors flex items-center gap-4">
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0"><Trophy className="h-5 w-5 text-primary" /></div>
+          <div><p className="font-bold text-sm">Scoreboards Hub</p><p className="text-xs text-muted-foreground">View overall rankings & team standings</p></div>
+        </button>
+      </div>
+
       {/* Bottom Stats Bar */}
-      <div className="mt-16 border-t pt-10 pb-6 px-4">
+      <div className="mt-10 border-t pt-10 pb-6 px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto text-center">
           <div>
             <p className="text-2xl md:text-3xl font-bold text-primary">
