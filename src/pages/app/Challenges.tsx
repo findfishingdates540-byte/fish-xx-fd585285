@@ -408,7 +408,11 @@ function LiveChallengeCard({
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       {/* Top section */}
-      <div className="relative h-32 bg-gradient-to-br from-muted to-muted/50 p-4 flex flex-col justify-end">
+      <div className="relative h-32 bg-gradient-to-br from-muted to-muted/50 p-4 flex flex-col justify-end overflow-hidden">
+        {challenge.bannerUrl && (
+          <img src={challenge.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-destructive text-destructive-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-destructive-foreground animate-pulse" />
