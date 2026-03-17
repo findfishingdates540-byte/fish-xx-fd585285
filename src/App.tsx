@@ -120,6 +120,9 @@ const App = () => (
               <Route path="leaderboard/species/:speciesId" element={<FishingRoute><SpeciesLeaderboard /></FishingRoute>} />
               <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
               <Route path="challenges" element={<FishingRoute><Challenges /></FishingRoute>} />
+              <Route path="photo-challenges" element={<FishingRoute><PhotoChallenges /></FishingRoute>} />
+              <Route path="photo-challenges/new" element={<FishingRoute><CreatePhotoChallenge /></FishingRoute>} />
+              <Route path="photo-challenges/:id" element={<FishingRoute><PhotoChallengeDetail /></FishingRoute>} />
               <Route path="challenges/new" element={<FishingRoute><CreateChallenge /></FishingRoute>} />
               <Route path="teams" element={<FishingRoute><Teams /></FishingRoute>} />
               <Route path="teams/new" element={<FishingRoute><CreateTeam /></FishingRoute>} />
