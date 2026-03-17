@@ -82,6 +82,8 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   const navItems = getNavItems(accountMode, isComboUser);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [scoreboardOpen, setScoreboardOpen] = useState(false);
 
   // Fetch pending buddy requests count
   const { data: pendingRequestsCount = 0 } = useQuery({
