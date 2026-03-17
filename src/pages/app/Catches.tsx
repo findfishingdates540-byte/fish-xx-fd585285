@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,8 @@ import {
   Trash2,
   MoreVertical,
   Share2,
+  ImagePlus,
+  Waves,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,6 +63,11 @@ interface Catch {
   location_lng: number | null;
   fishing_spot_id: string | null;
   created_at: string;
+  catch_status: string;
+  cover_photo_url: string | null;
+  measurement_photo_url: string | null;
+  general_location: string | null;
+  is_verified: boolean;
 }
 
 interface FishSpecies {
@@ -84,6 +92,8 @@ export default function Catches() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverPhotoRef = useRef<HTMLInputElement>(null);
+  const measurementPhotoRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -96,9 +106,15 @@ export default function Catches() {
     notes: "",
     bait_used: "",
     caught_at: new Date().toISOString().split("T")[0],
+    catch_status: "released" as "released" | "harvested",
+    general_location: "",
   });
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
+  const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
+  const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
+  const [measurementPhoto, setMeasurementPhoto] = useState<File | null>(null);
+  const [measurementPhotoPreview, setMeasurementPhotoPreview] = useState<string | null>(null);
 
   // Fetch catches and species
   useEffect(() => {
@@ -120,7 +136,7 @@ export default function Catches() {
         if (speciesRes.error) throw speciesRes.error;
         if (spotsRes.error) throw spotsRes.error;
 
-        setCatches(catchesRes.data || []);
+        setCatches((catchesRes.data as Catch[]) || []);
         setSpecies(speciesRes.data || []);
         setSpots(spotsRes.data || []);
       } catch (err) {
@@ -143,7 +159,6 @@ export default function Catches() {
 
     setSelectedPhotos((prev) => [...prev, ...files]);
 
-    // Create preview URLs
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -153,36 +168,47 @@ export default function Catches() {
     });
   };
 
+  const handleSinglePhotoSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "cover" | "measurement"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (type === "cover") {
+        setCoverPhoto(file);
+        setCoverPhotoPreview(reader.result as string);
+      } else {
+        setMeasurementPhoto(file);
+        setMeasurementPhotoPreview(reader.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const removePhoto = (index: number) => {
     setSelectedPhotos((prev) => prev.filter((_, i) => i !== index));
     setPhotoPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const uploadSinglePhoto = async (photo: File): Promise<string | null> => {
+    if (!user) return null;
+    const fileExt = photo.name.split(".").pop();
+    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const { data, error } = await supabase.storage.from("catch-photos").upload(fileName, photo);
+    if (error) { console.error("Upload error:", error); return null; }
+    const { data: urlData } = supabase.storage.from("catch-photos").getPublicUrl(data.path);
+    return urlData.publicUrl;
+  };
+
   const uploadPhotos = async (): Promise<string[]> => {
     if (!user || selectedPhotos.length === 0) return [];
-
     const uploadedUrls: string[] = [];
-
     for (const photo of selectedPhotos) {
-      const fileExt = photo.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from("catch-photos")
-        .upload(fileName, photo);
-
-      if (error) {
-        console.error("Upload error:", error);
-        continue;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from("catch-photos")
-        .getPublicUrl(data.path);
-
-      uploadedUrls.push(urlData.publicUrl);
+      const url = await uploadSinglePhoto(photo);
+      if (url) uploadedUrls.push(url);
     }
-
     return uploadedUrls;
   };
 
@@ -198,41 +224,37 @@ export default function Catches() {
     setIsSubmitting(true);
 
     try {
-      // Upload photos first
-      const photoUrls = await uploadPhotos();
+      // Upload all photos
+      const [photoUrls, coverUrl, measurementUrl] = await Promise.all([
+        uploadPhotos(),
+        coverPhoto ? uploadSinglePhoto(coverPhoto) : Promise.resolve(null),
+        measurementPhoto ? uploadSinglePhoto(measurementPhoto) : Promise.resolve(null),
+      ]);
 
       // Get species name and ID
       let speciesName = formData.species_name;
       let speciesId = formData.species_id || null;
       
       if (formData.species_id) {
-        // User selected from dropdown
         const selectedSpecies = species.find((s) => s.id === formData.species_id);
         speciesName = selectedSpecies?.name || formData.species_name;
       } else if (formData.species_name) {
-        // Custom species entered - add to database
         const trimmedName = formData.species_name.trim();
-        
-        // Check if species already exists (case-insensitive)
         const existingSpecies = species.find(
           (s) => s.name.toLowerCase() === trimmedName.toLowerCase()
         );
-        
         if (existingSpecies) {
           speciesId = existingSpecies.id;
           speciesName = existingSpecies.name;
         } else {
-          // Add new species to database
           const { data: newSpecies, error: speciesError } = await supabase
             .from("fish_species")
             .insert({ name: trimmedName })
             .select()
             .single();
-          
           if (!speciesError && newSpecies) {
             speciesId = newSpecies.id;
             speciesName = newSpecies.name;
-            // Update local species list
             setSpecies((prev) => [...prev, newSpecies].sort((a, b) => a.name.localeCompare(b.name)));
             toast.success(`Added "${trimmedName}" to species database`);
           }
@@ -251,24 +273,24 @@ export default function Catches() {
         bait_used: formData.bait_used || null,
         caught_at: formData.caught_at ? new Date(formData.caught_at).toISOString() : null,
         photos: photoUrls.length > 0 ? photoUrls : null,
+        catch_status: formData.catch_status,
+        cover_photo_url: coverUrl,
+        measurement_photo_url: measurementUrl,
+        general_location: formData.general_location || null,
       });
 
       if (error) throw error;
 
-      // If a spot was selected and we have a species, add it to spot's species_available
+      // Update spot species_available
       if (formData.fishing_spot_id && speciesName) {
         try {
-          // Get current spot species
           const { data: spotData } = await supabase
             .from("fishing_spots")
             .select("species_available")
             .eq("id", formData.fishing_spot_id)
             .single();
-
           const currentSpecies = spotData?.species_available || [];
-          
-          // Only add if not already present (case-insensitive check)
-          if (!currentSpecies.some((s: string) => s.toLowerCase() === speciesName.toLowerCase())) {
+          if (!currentSpecies.some((s: string) => s.toLowerCase() === speciesName!.toLowerCase())) {
             await supabase
               .from("fishing_spots")
               .update({ species_available: [...currentSpecies, speciesName] })
@@ -276,7 +298,16 @@ export default function Catches() {
           }
         } catch (spotErr) {
           console.error("Error updating spot species:", spotErr);
-          // Don't fail the catch logging if species update fails
+        }
+      }
+
+      // Refresh leaderboard for this species
+      if (speciesId) {
+        try {
+          await supabase.rpc("refresh_leaderboard_entries", { p_species_id: speciesId });
+          await supabase.rpc("check_and_award_badges", { p_user_id: user.id });
+        } catch (err) {
+          console.error("Error refreshing leaderboard:", err);
         }
       }
 
@@ -291,7 +322,7 @@ export default function Catches() {
         .eq("user_id", user.id)
         .order("caught_at", { ascending: false });
 
-      if (newCatches) setCatches(newCatches);
+      if (newCatches) setCatches(newCatches as Catch[]);
     } catch (err) {
       console.error("Error logging catch:", err);
       toast.error("Failed to log catch");
@@ -304,12 +335,18 @@ export default function Catches() {
     if (!confirm("Are you sure you want to delete this catch?")) return;
 
     try {
+      const catchToDelete = catches.find(c => c.id === catchId);
       const { error } = await supabase.from("catches").delete().eq("id", catchId);
-
       if (error) throw error;
-
       setCatches((prev) => prev.filter((c) => c.id !== catchId));
       toast.success("Catch deleted");
+
+      // Refresh leaderboard for deleted species
+      if (catchToDelete?.species_id && user) {
+        try {
+          await supabase.rpc("refresh_leaderboard_entries", { p_species_id: catchToDelete.species_id });
+        } catch {}
+      }
     } catch (err) {
       console.error("Error deleting catch:", err);
       toast.error("Failed to delete catch");
@@ -327,9 +364,15 @@ export default function Catches() {
       notes: "",
       bait_used: "",
       caught_at: new Date().toISOString().split("T")[0],
+      catch_status: "released",
+      general_location: "",
     });
     setSelectedPhotos([]);
     setPhotoPreviewUrls([]);
+    setCoverPhoto(null);
+    setCoverPhotoPreview(null);
+    setMeasurementPhoto(null);
+    setMeasurementPhotoPreview(null);
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -381,9 +424,65 @@ export default function Catches() {
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-              {/* Photo Upload */}
+              {/* Cover Photo */}
               <div>
-                <Label className="mb-2 block">Photos (max 5)</Label>
+                <Label className="mb-2 block">Cover Photo</Label>
+                <p className="text-xs text-muted-foreground mb-2">Primary display photo of your catch</p>
+                {coverPhotoPreview ? (
+                  <div className="relative w-full h-40 rounded-lg overflow-hidden">
+                    <img src={coverPhotoPreview} alt="Cover" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => { setCoverPhoto(null); setCoverPhotoPreview(null); }}
+                      className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center"
+                    >
+                      <X className="h-4 w-4 text-white" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => coverPhotoRef.current?.click()}
+                    className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <ImagePlus className="h-8 w-8 mb-1" />
+                    <span className="text-sm">Add cover photo</span>
+                  </button>
+                )}
+                <input ref={coverPhotoRef} type="file" accept="image/*" onChange={(e) => handleSinglePhotoSelect(e, "cover")} className="hidden" />
+              </div>
+
+              {/* Measurement Photo */}
+              <div>
+                <Label className="mb-2 block">Measurement / Weigh-in Photo</Label>
+                <p className="text-xs text-muted-foreground mb-2">Photo showing the fish being measured or weighed</p>
+                {measurementPhotoPreview ? (
+                  <div className="relative w-full h-40 rounded-lg overflow-hidden">
+                    <img src={measurementPhotoPreview} alt="Measurement" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => { setMeasurementPhoto(null); setMeasurementPhotoPreview(null); }}
+                      className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center"
+                    >
+                      <X className="h-4 w-4 text-white" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => measurementPhotoRef.current?.click()}
+                    className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <Ruler className="h-8 w-8 mb-1" />
+                    <span className="text-sm">Add measurement photo</span>
+                  </button>
+                )}
+                <input ref={measurementPhotoRef} type="file" accept="image/*" onChange={(e) => handleSinglePhotoSelect(e, "measurement")} className="hidden" />
+              </div>
+
+              {/* Additional Photos */}
+              <div>
+                <Label className="mb-2 block">Additional Photos (max 5)</Label>
                 <div className="flex flex-wrap gap-2">
                   {photoPreviewUrls.map((url, index) => (
                     <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden">
@@ -418,7 +517,7 @@ export default function Catches() {
                 />
               </div>
 
-              {/* Species Selection - Combobox with custom entry */}
+              {/* Species Selection */}
               <div>
                 <Label htmlFor="species">Species</Label>
                 <SpeciesCombobox
@@ -435,6 +534,38 @@ export default function Catches() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Select from list or type a custom species name
                 </p>
+              </div>
+
+              {/* Harvest / Release Toggle */}
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Catch Status</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.catch_status === "released" ? "🐟 Released back" : "🎣 Harvested"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Released</span>
+                  <Switch
+                    checked={formData.catch_status === "harvested"}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, catch_status: checked ? "harvested" : "released" })
+                    }
+                  />
+                  <span className="text-sm text-muted-foreground">Harvested</span>
+                </div>
+              </div>
+
+              {/* General Location */}
+              <div>
+                <Label htmlFor="general_location">General Location</Label>
+                <p className="text-xs text-muted-foreground mb-1">Port, river, or lake name (shown on leaderboards)</p>
+                <Input
+                  id="general_location"
+                  placeholder="e.g., Lake Erie, Port Canaveral, Mississippi River"
+                  value={formData.general_location}
+                  onChange={(e) => setFormData({ ...formData, general_location: e.target.value })}
+                />
               </div>
 
               {/* Fishing Spot Selection */}
@@ -456,9 +587,6 @@ export default function Catches() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Can't find your spot? Enter it below
-                </p>
                 <Input
                   placeholder="Custom spot name (e.g., Lake Erie, North Shore)"
                   value={formData.custom_spot_name}
@@ -590,10 +718,8 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
   const handleShareToFeed = async () => {
     setIsSharing(true);
     try {
-      // Get spot name if available
       const spot = spots.find(s => s.id === catchData.fishing_spot_id);
       const locationName = spot?.name || spot?.location_name || undefined;
-
       await createPost.mutateAsync({
         catchId: catchData.id,
         content: catchData.notes || undefined,
@@ -608,13 +734,15 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
     }
   };
 
+  const displayPhoto = catchData.cover_photo_url || catchData.photos?.[0];
+
   return (
     <div className="rounded-xl border overflow-hidden bg-background">
       {/* Image */}
       <div className="relative h-48 bg-muted">
-        {catchData.photos?.[0] ? (
+        {displayPhoto ? (
           <img
-            src={catchData.photos[0]}
+            src={displayPhoto}
             alt={catchData.species_name || "Catch"}
             className="w-full h-full object-cover"
           />
@@ -622,6 +750,22 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
           <div className="w-full h-full flex items-center justify-center">
             <Fish className="h-12 w-12 text-muted-foreground" />
           </div>
+        )}
+
+        {/* Status badge */}
+        <Badge
+          className={`absolute top-2 left-2 ${
+            catchData.catch_status === "released"
+              ? "bg-emerald-600/90 text-white border-0"
+              : "bg-amber-600/90 text-white border-0"
+          }`}
+        >
+          {catchData.catch_status === "released" ? "🐟 Released" : "🎣 Harvested"}
+        </Badge>
+
+        {/* Verified badge */}
+        {catchData.is_verified && (
+          <Badge className="absolute top-2 left-24 bg-blue-600/90 text-white border-0">✓ Verified</Badge>
         )}
 
         {/* More photos indicator */}
@@ -657,9 +801,17 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
           {catchData.species_name || "Unknown Species"}
         </h3>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-          <Calendar className="h-3.5 w-3.5" />
-          {formatDate(catchData.caught_at)}
+        <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
+          <span className="flex items-center gap-1">
+            <Calendar className="h-3.5 w-3.5" />
+            {formatDate(catchData.caught_at)}
+          </span>
+          {catchData.general_location && (
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5" />
+              {catchData.general_location}
+            </span>
+          )}
         </div>
 
         {/* Stats */}

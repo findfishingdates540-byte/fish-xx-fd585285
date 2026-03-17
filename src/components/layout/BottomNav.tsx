@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles } from 'lucide-react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles, Trophy } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,9 +47,9 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
     const items: NavItem[] = [
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
+      { to: '/app/leaderboard', icon: Trophy, label: 'Rankings' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
       { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessageBadge: true },
-      { to: '/app/trips', icon: Calendar, label: 'Trips', hasTripBadge: true },
     ];
     // Add dashboard link for combo users viewing fishing mode
     if (isComboUser) {

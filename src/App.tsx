@@ -31,7 +31,7 @@ import CommunityGuidelines from "./pages/CommunityGuidelines";
 import CookiePolicy from "./pages/CookiePolicy";
 import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen } from "./pages/app";
+import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
@@ -104,6 +104,7 @@ const App = () => (
               <Route path="spots/new" element={<FishingRoute><AddSpot /></FishingRoute>} />
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
               <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
+              <Route path="leaderboard" element={<FishingRoute><Leaderboard /></FishingRoute>} />
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
               <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>}>
                 <Route path=":buddyId" element={<BuddyChat />} />
