@@ -131,8 +131,8 @@ export default function Leaderboard() {
   const { data: teamScores = [] } = useQuery({
     queryKey: ["teams-rankings", teamSkillFilter],
     queryFn: async () => {
-      const skillMap: Record<string, string> = { pro: "advanced", intermediate: "intermediate", beginner: "beginner" };
-      const { data } = await supabase.rpc("get_team_scores", { p_skill_level: skillMap[teamSkillFilter] || "advanced" });
+      const skillMap: Record<string, "advanced" | "intermediate" | "beginner"> = { pro: "advanced", intermediate: "intermediate", beginner: "beginner" };
+      const { data } = await supabase.rpc("get_team_scores", { p_skill_level: skillMap[teamSkillFilter] || "advanced" } as any);
       return (data || []) as { team_id: string; team_name: string; logo_url: string | null; captain_id: string; member_count: number; season_points: number; last_7_days_catches: number }[];
     },
   });
