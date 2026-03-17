@@ -284,7 +284,7 @@ export default function Leaderboard() {
                 featuredSpecies.map(({ entry, species, profile }) => (
                   <button
                     key={entry.id}
-                    onClick={() => setSelectedSpeciesId(entry.species_id)}
+                    onClick={() => navigate(`/app/leaderboard/species/${entry.species_id}`)}
                     className="relative rounded-xl border overflow-hidden bg-muted/30 hover:bg-muted/50 transition-colors text-left group"
                   >
                     {/* Species image */}
