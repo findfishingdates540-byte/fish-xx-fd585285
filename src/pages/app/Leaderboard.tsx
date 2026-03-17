@@ -222,35 +222,6 @@ export default function Leaderboard() {
     },
   });
 
-  // Species leaderboard data (when drilled in)
-  const { data: leaderboardData = [], isLoading: leaderboardLoading } = useQuery({
-    queryKey: ["leaderboard-entries", selectedSpeciesId, sortBy],
-    queryFn: async () => {
-      if (!selectedSpeciesId) return [];
-      const { data } = await supabase
-        .from("leaderboard_entries")
-        .select("*")
-        .eq("species_id", selectedSpeciesId)
-        .order(sortBy === "weight" ? "rank_by_weight" : "rank_by_count", { ascending: true })
-        .limit(50);
-      return (data || []) as LeaderboardEntry[];
-    },
-    enabled: !!selectedSpeciesId,
-  });
-
-  const lbUserIds = leaderboardData.map((e) => e.user_id);
-  const { data: lbProfiles = {} } = useQuery({
-    queryKey: ["lb-profiles", lbUserIds.join(",")],
-    queryFn: async () => {
-      if (lbUserIds.length === 0) return {};
-      const { data } = await supabase.from("profiles").select("id, display_name, photos").in("id", lbUserIds);
-      const map: Record<string, ProfileInfo> = {};
-      (data || []).forEach((p) => { map[p.id] = p as ProfileInfo; });
-      return map;
-    },
-    enabled: lbUserIds.length > 0,
-  });
-
   const filteredSpecies = speciesList.filter(
     (s) => s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
