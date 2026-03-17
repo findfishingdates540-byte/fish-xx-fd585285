@@ -46,6 +46,9 @@ import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
 import DatingProfile from "./pages/app/DatingProfile";
+import PhotoChallenges from "./pages/app/PhotoChallenges";
+import PhotoChallengeDetail from "./pages/app/PhotoChallengeDetail";
+import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge";
 
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
@@ -117,6 +120,9 @@ const App = () => (
               <Route path="leaderboard/species/:speciesId" element={<FishingRoute><SpeciesLeaderboard /></FishingRoute>} />
               <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
               <Route path="challenges" element={<FishingRoute><Challenges /></FishingRoute>} />
+              <Route path="photo-challenges" element={<FishingRoute><PhotoChallenges /></FishingRoute>} />
+              <Route path="photo-challenges/new" element={<FishingRoute><CreatePhotoChallenge /></FishingRoute>} />
+              <Route path="photo-challenges/:id" element={<FishingRoute><PhotoChallengeDetail /></FishingRoute>} />
               <Route path="challenges/new" element={<FishingRoute><CreateChallenge /></FishingRoute>} />
               <Route path="teams" element={<FishingRoute><Teams /></FishingRoute>} />
               <Route path="teams/new" element={<FishingRoute><CreateTeam /></FishingRoute>} />

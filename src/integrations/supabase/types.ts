@@ -1408,6 +1408,134 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_challenge_entries: {
+        Row: {
+          caption: string | null
+          challenge_id: string
+          created_at: string
+          has_paid: boolean
+          id: string
+          photo_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          challenge_id: string
+          created_at?: string
+          has_paid?: boolean
+          id?: string
+          photo_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          challenge_id?: string
+          created_at?: string
+          has_paid?: boolean
+          id?: string
+          photo_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_challenge_entries_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_challenge_votes: {
+        Row: {
+          challenge_id: string
+          created_at: string
+          entry_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string
+          entry_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string
+          entry_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_challenge_votes_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_challenge_votes_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenge_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_challenges: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string
+          entry_fee: number
+          id: string
+          prize_description: string | null
+          prize_type: string
+          start_date: string
+          status: string
+          title: string
+          voting_end_date: string
+          winner_id: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date: string
+          entry_fee?: number
+          id?: string
+          prize_description?: string | null
+          prize_type?: string
+          start_date: string
+          status?: string
+          title: string
+          voting_end_date: string
+          winner_id?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string
+          entry_fee?: number
+          id?: string
+          prize_description?: string | null
+          prize_type?: string
+          start_date?: string
+          status?: string
+          title?: string
+          voting_end_date?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       post_bookmarks: {
         Row: {
           created_at: string
@@ -2585,6 +2713,17 @@ export type Database = {
       refresh_leaderboard_entries: {
         Args: { p_species_id?: string }
         Returns: undefined
+      }
+      tally_photo_challenge_votes: {
+        Args: { p_challenge_id: string }
+        Returns: {
+          caption: string
+          entry_id: string
+          photo_url: string
+          rank: number
+          user_id: string
+          vote_count: number
+        }[]
       }
     }
     Enums: {
