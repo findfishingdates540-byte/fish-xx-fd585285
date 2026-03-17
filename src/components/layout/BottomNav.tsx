@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles, Trophy } from 'lucide-react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles, Trophy, Camera } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
