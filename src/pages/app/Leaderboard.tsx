@@ -180,11 +180,12 @@ export default function Leaderboard() {
   const { data: teams = [] } = useQuery({
     queryKey: ["teams-rankings", teamSkillFilter],
     queryFn: async () => {
-      const skillMap: Record<string, string> = { pro: "advanced", intermediate: "intermediate", beginner: "beginner" };
+      const skillMap: Record<string, "advanced" | "intermediate" | "beginner"> = { pro: "advanced", intermediate: "intermediate", beginner: "beginner" };
+      const level = skillMap[teamSkillFilter] || "advanced";
       const { data } = await supabase
         .from("fishing_teams")
         .select("*")
-        .eq("skill_level", skillMap[teamSkillFilter] || "advanced")
+        .eq("skill_level", level)
         .limit(10);
       return (data || []) as TeamInfo[];
     },
