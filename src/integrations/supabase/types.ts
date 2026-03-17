@@ -112,6 +112,47 @@ export type Database = {
           },
         ]
       }
+      angler_badges: {
+        Row: {
+          badge_description: string | null
+          badge_name: string
+          badge_type: string
+          earned_at: string
+          id: string
+          metadata: Json | null
+          species_id: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_description?: string | null
+          badge_name: string
+          badge_type: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          species_id?: string | null
+          user_id: string
+        }
+        Update: {
+          badge_description?: string | null
+          badge_name?: string
+          badge_type?: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          species_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "angler_badges_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "fish_species"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           description: string | null
@@ -405,18 +446,55 @@ export type Database = {
           },
         ]
       }
+      catch_photos: {
+        Row: {
+          catch_id: string
+          created_at: string
+          id: string
+          photo_type: Database["public"]["Enums"]["catch_photo_type"]
+          photo_url: string
+        }
+        Insert: {
+          catch_id: string
+          created_at?: string
+          id?: string
+          photo_type?: Database["public"]["Enums"]["catch_photo_type"]
+          photo_url: string
+        }
+        Update: {
+          catch_id?: string
+          created_at?: string
+          id?: string
+          photo_type?: Database["public"]["Enums"]["catch_photo_type"]
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catch_photos_catch_id_fkey"
+            columns: ["catch_id"]
+            isOneToOne: false
+            referencedRelation: "catches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catches: {
         Row: {
           bait_used: string | null
+          catch_status: string
           caught_at: string | null
+          cover_photo_url: string | null
           created_at: string
           fishing_spot_id: string | null
           gear_used: string[] | null
+          general_location: string | null
           id: string
+          is_verified: boolean
           length_in: number | null
           location_lat: number | null
           location_lng: number | null
           location_name: string | null
+          measurement_photo_url: string | null
           notes: string | null
           photos: string[] | null
           species_id: string | null
@@ -426,15 +504,20 @@ export type Database = {
         }
         Insert: {
           bait_used?: string | null
+          catch_status?: string
           caught_at?: string | null
+          cover_photo_url?: string | null
           created_at?: string
           fishing_spot_id?: string | null
           gear_used?: string[] | null
+          general_location?: string | null
           id?: string
+          is_verified?: boolean
           length_in?: number | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
+          measurement_photo_url?: string | null
           notes?: string | null
           photos?: string[] | null
           species_id?: string | null
@@ -444,15 +527,20 @@ export type Database = {
         }
         Update: {
           bait_used?: string | null
+          catch_status?: string
           caught_at?: string | null
+          cover_photo_url?: string | null
           created_at?: string
           fishing_spot_id?: string | null
           gear_used?: string[] | null
+          general_location?: string | null
           id?: string
+          is_verified?: boolean
           length_in?: number | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
+          measurement_photo_url?: string | null
           notes?: string | null
           photos?: string[] | null
           species_id?: string | null
@@ -487,6 +575,61 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenge_participants: {
+        Row: {
+          best_catch_id: string | null
+          challenge_id: string
+          id: string
+          joined_at: string
+          rank: number | null
+          score: number
+          team_id: string | null
+          user_id: string
+        }
+        Insert: {
+          best_catch_id?: string | null
+          challenge_id: string
+          id?: string
+          joined_at?: string
+          rank?: number | null
+          score?: number
+          team_id?: string | null
+          user_id: string
+        }
+        Update: {
+          best_catch_id?: string | null
+          challenge_id?: string
+          id?: string
+          joined_at?: string
+          rank?: number | null
+          score?: number
+          team_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_best_catch_id_fkey"
+            columns: ["best_catch_id"]
+            isOneToOne: false
+            referencedRelation: "catches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
             referencedColumns: ["id"]
           },
         ]
@@ -701,6 +844,65 @@ export type Database = {
         }
         Relationships: []
       }
+      fishing_challenges: {
+        Row: {
+          challenge_type: Database["public"]["Enums"]["challenge_type"]
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string
+          id: string
+          is_official: boolean
+          prizes: Json | null
+          rules: Json | null
+          species_id: string | null
+          start_date: string
+          status: string
+          target_species_name: string | null
+          title: string
+        }
+        Insert: {
+          challenge_type?: Database["public"]["Enums"]["challenge_type"]
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date: string
+          id?: string
+          is_official?: boolean
+          prizes?: Json | null
+          rules?: Json | null
+          species_id?: string | null
+          start_date: string
+          status?: string
+          target_species_name?: string | null
+          title: string
+        }
+        Update: {
+          challenge_type?: Database["public"]["Enums"]["challenge_type"]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_official?: boolean
+          prizes?: Json | null
+          rules?: Json | null
+          species_id?: string | null
+          start_date?: string
+          status?: string
+          target_species_name?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fishing_challenges_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "fish_species"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fishing_spots: {
         Row: {
           area_type: string | null
@@ -772,6 +974,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fishing_teams: {
+        Row: {
+          captain_id: string
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          skill_level: Database["public"]["Enums"]["fishing_experience"]
+        }
+        Insert: {
+          captain_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          skill_level?: Database["public"]["Enums"]["fishing_experience"]
+        }
+        Update: {
+          captain_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          skill_level?: Database["public"]["Enums"]["fishing_experience"]
+        }
+        Relationships: []
       }
       fishing_trips: {
         Row: {
@@ -882,6 +1114,69 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaderboard_entries: {
+        Row: {
+          id: string
+          largest_catch_id: string | null
+          largest_length_in: number | null
+          largest_weight_lbs: number | null
+          rank_by_count: number | null
+          rank_by_weight: number | null
+          species_id: string | null
+          species_name: string
+          total_caught: number
+          total_harvested: number
+          total_released: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          largest_catch_id?: string | null
+          largest_length_in?: number | null
+          largest_weight_lbs?: number | null
+          rank_by_count?: number | null
+          rank_by_weight?: number | null
+          species_id?: string | null
+          species_name: string
+          total_caught?: number
+          total_harvested?: number
+          total_released?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          largest_catch_id?: string | null
+          largest_length_in?: number | null
+          largest_weight_lbs?: number | null
+          rank_by_count?: number | null
+          rank_by_weight?: number | null
+          species_id?: string | null
+          species_name?: string
+          total_caught?: number
+          total_harvested?: number
+          total_released?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_entries_largest_catch_id_fkey"
+            columns: ["largest_catch_id"]
+            isOneToOne: false
+            referencedRelation: "catches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaderboard_entries_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "fish_species"
             referencedColumns: ["id"]
           },
         ]
@@ -1788,6 +2083,38 @@ export type Database = {
           },
         ]
       }
+      team_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_participants: {
         Row: {
           created_at: string
@@ -2154,6 +2481,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_and_award_badges: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       check_rate_limit: {
         Args: {
           p_key: string
@@ -2205,6 +2536,23 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_species_leaderboard: {
+        Args: { p_limit?: number; p_sort_by?: string; p_species_id: string }
+        Returns: {
+          caught_at: string
+          display_name: string
+          general_location: string
+          largest_catch_id: string
+          largest_length_in: number
+          largest_weight_lbs: number
+          photo: string
+          rank: number
+          total_caught: number
+          total_harvested: number
+          total_released: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2220,10 +2568,20 @@ export type Database = {
         Args: { _trip_id: string; _user_id: string }
         Returns: boolean
       }
+      refresh_leaderboard_entries: {
+        Args: { p_species_id?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       account_mode: "dating" | "fishing" | "both"
       app_role: "admin" | "moderator" | "user"
+      catch_photo_type: "cover" | "measurement" | "general"
+      challenge_type:
+        | "largest_fish"
+        | "most_caught"
+        | "species_specific"
+        | "team"
       drinking_habit: "never" | "socially" | "regularly"
       fishing_experience: "beginner" | "intermediate" | "advanced" | "expert"
       gender_type:
@@ -2365,6 +2723,13 @@ export const Constants = {
     Enums: {
       account_mode: ["dating", "fishing", "both"],
       app_role: ["admin", "moderator", "user"],
+      catch_photo_type: ["cover", "measurement", "general"],
+      challenge_type: [
+        "largest_fish",
+        "most_caught",
+        "species_specific",
+        "team",
+      ],
       drinking_habit: ["never", "socially", "regularly"],
       fishing_experience: ["beginner", "intermediate", "advanced", "expert"],
       gender_type: [
