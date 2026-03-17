@@ -34,6 +34,7 @@ import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
 import SpeciesExplorer from "./pages/app/SpeciesExplorer";
+import CatchDetail from "./pages/app/CatchDetail";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
@@ -106,6 +107,7 @@ const App = () => (
               <Route path="spots/new" element={<FishingRoute><AddSpot /></FishingRoute>} />
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
               <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
+              <Route path="catches/:catchId" element={<FishingRoute><CatchDetail /></FishingRoute>} />
               <Route path="leaderboard" element={<FishingRoute><Leaderboard /></FishingRoute>} />
               <Route path="leaderboard/species/:speciesId" element={<FishingRoute><SpeciesLeaderboard /></FishingRoute>} />
               <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
