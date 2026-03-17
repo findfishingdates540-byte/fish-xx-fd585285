@@ -359,7 +359,7 @@ export default function Leaderboard() {
                     return (
                       <button
                         key={sp.id}
-                        onClick={() => setSelectedSpeciesId(sp.id)}
+                        onClick={() => navigate(`/app/leaderboard/species/${sp.id}`)}
                         className="w-full flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors text-left"
                       >
                         <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
