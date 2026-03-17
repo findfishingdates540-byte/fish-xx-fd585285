@@ -153,6 +153,7 @@ export default function Challenges() {
       const prizes = c.prizes as any;
       const prizePool = typeof prizes === "object" && prizes?.total ? Number(prizes.total) : 0;
       const maxParticipants = typeof prizes === "object" && prizes?.max_participants ? Number(prizes.max_participants) : null;
+      const bannerUrl = typeof prizes === "object" && prizes?.banner_url ? String(prizes.banner_url) : null;
 
       // Determine status
       const now = new Date();
