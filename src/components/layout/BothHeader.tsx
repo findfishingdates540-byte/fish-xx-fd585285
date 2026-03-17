@@ -19,7 +19,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Search, Settings, LogOut, User, Trophy, Fish, Swords, BarChart3, Target } from "lucide-react";
+import { Search, Settings, LogOut, User, Trophy, Fish, Swords, BarChart3, Target, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
