@@ -48,7 +48,7 @@ import UserProfile from "./pages/app/UserProfile";
 import DatingProfile from "./pages/app/DatingProfile";
 import PhotoChallenges from "./pages/app/PhotoChallenges";
 import PhotoChallengeDetail from "./pages/app/PhotoChallengeDetail";
-import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge";
+import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge"; // kept for potential future use
 
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
