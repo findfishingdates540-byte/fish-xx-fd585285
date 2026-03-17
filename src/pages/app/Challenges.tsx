@@ -136,14 +136,6 @@ export default function Challenges() {
     enabled: participantUserIds.length > 0,
   });
 
-  // Fetch species list for create form
-  const { data: speciesList = [] } = useQuery({
-    queryKey: ["challenge-species-list"],
-    queryFn: async () => {
-      const { data } = await supabase.from("fish_species").select("id, name").order("name");
-      return data || [];
-    },
-  });
 
   // Build enriched challenge data
   const enrichedChallenges: ChallengeWithDetails[] = useMemo(() => {
