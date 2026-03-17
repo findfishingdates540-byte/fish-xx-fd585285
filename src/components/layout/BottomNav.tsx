@@ -48,8 +48,8 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
       { to: '/app/leaderboard', icon: Trophy, label: 'Rankings' },
+      { to: '/app/photo-challenges', icon: Camera, label: 'Challenges' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
-      { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessageBadge: true },
     ];
     // Add dashboard link for combo users viewing fishing mode
     if (isComboUser) {

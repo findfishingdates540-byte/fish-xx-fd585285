@@ -46,15 +46,21 @@ serve(async (req) => {
     if (challengeError || !challenge) throw new Error("Challenge not found");
     if (challenge.status !== "submissions_open") throw new Error("Challenge is not accepting submissions");
 
-    // Check user hasn't already entered
+    // Check if user has an existing entry
     const { data: existingEntry } = await supabase
       .from("photo_challenge_entries")
-      .select("id")
+      .select("id, has_paid")
       .eq("challenge_id", challengeId)
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (existingEntry) throw new Error("You have already entered this challenge");
+    // If entry exists and is already paid, reject
+    if (existingEntry?.has_paid) {
+      throw new Error("You have already paid for this challenge");
+    }
+
+    // If no entry exists at all, that's also fine — they may be paying before creating the entry
+    // The webhook or success callback will handle linking payment to the entry
 
     const amountCents = Math.round(challenge.entry_fee * 100);
 

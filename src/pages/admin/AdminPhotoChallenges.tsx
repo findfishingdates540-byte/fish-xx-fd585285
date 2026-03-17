@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign } from "lucide-react";
+import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 
 export default function AdminPhotoChallenges() {
