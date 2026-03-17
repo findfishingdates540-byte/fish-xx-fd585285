@@ -11,7 +11,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Settings, LogOut, User } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Search, Settings, LogOut, User, Trophy, Fish, Swords, BarChart3, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -22,7 +30,13 @@ const bothNavItems = [
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/catches", label: "Catches" },
   { to: "/app/messages", label: "Messages" },
-  { to: "/app/profile", label: "Profile" },
+];
+
+const scoreboardLinks = [
+  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
+  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
+  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
+  { to: "/app/leaderboard", label: "General Leaderboard", description: "All-time rankings by species", icon: Trophy },
 ];
 
 export function BothHeader() {
