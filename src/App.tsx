@@ -53,6 +53,7 @@ import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge"; // kept for
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
 import AdminFishSpecies from "./pages/admin/AdminFishSpecies";
+import AdminPhotoChallenges from "./pages/admin/AdminPhotoChallenges";
 
 const queryClient = new QueryClient({
   defaultOptions: {
