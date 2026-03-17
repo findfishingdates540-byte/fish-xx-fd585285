@@ -57,7 +57,7 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
     const items: NavItem[] = [
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
-      { to: '/app/leaderboard', icon: Trophy, label: 'Rankings' },
+      { to: '/app/leaderboard', icon: Trophy, label: 'Rankings', isScoreboardHub: true },
       { to: '/app/photo-challenges', icon: Camera, label: 'Challenges' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
     ];
