@@ -45,13 +45,6 @@ interface ProfileInfo {
   photos: string[] | null;
 }
 
-interface TeamInfo {
-  id: string;
-  name: string;
-  skill_level: string;
-  captain_id: string;
-  logo_url: string | null;
-}
 
 export default function Leaderboard() {
   const navigate = useNavigate();
