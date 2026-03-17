@@ -370,7 +370,7 @@ export default function PhotoChallengeDetail() {
                   {/* Winner crown */}
                   {isWinner && (
                     <div className="absolute top-2 left-2">
-                      <Badge className="bg-yellow-500 text-black gap-1">
+                      <Badge className="bg-accent text-accent-foreground gap-1">
                         <Crown className="h-3 w-3" /> Winner
                       </Badge>
                     </div>
