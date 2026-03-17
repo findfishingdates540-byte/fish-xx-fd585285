@@ -225,33 +225,6 @@ export default function Challenges() {
     onError: (err) => toast.error(err.message),
   });
 
-  // Create challenge mutation
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error("Must be logged in");
-      if (!formTitle.trim() || !formStartDate || !formEndDate) throw new Error("Fill in required fields");
-      const { error } = await supabase.from("fishing_challenges").insert({
-        title: formTitle.trim(),
-        description: formDesc.trim() || null,
-        challenge_type: formType as any,
-        target_species_name: formSpecies || null,
-        species_id: speciesList.find((s) => s.name === formSpecies)?.id || null,
-        start_date: formStartDate,
-        end_date: formEndDate,
-        created_by: user.id,
-        prizes: formPrizePool ? { total: Number(formPrizePool) } : {},
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fishing-challenges"] });
-      toast.success("Challenge created!");
-      setCreateOpen(false);
-      setFormTitle(""); setFormDesc(""); setFormType("largest_fish");
-      setFormSpecies(""); setFormStartDate(""); setFormEndDate(""); setFormPrizePool("");
-    },
-    onError: (err) => toast.error(err.message),
-  });
 
   const rankLabel = (r: number) => {
     if (r === 1) return <span className="text-amber-500 font-bold text-xs">1st</span>;
