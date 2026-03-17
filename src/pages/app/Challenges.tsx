@@ -521,7 +521,11 @@ function UpcomingChallengeCard({
 
   return (
     <div className="rounded-xl border bg-card overflow-hidden group">
-      <div className="relative h-28 bg-gradient-to-br from-muted to-muted/30 p-3 flex flex-col justify-end">
+      <div className="relative h-28 bg-gradient-to-br from-muted to-muted/30 p-3 flex flex-col justify-end overflow-hidden">
+        {challenge.bannerUrl && (
+          <img src={challenge.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
         <span className="absolute top-3 left-3 inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-primary text-primary-foreground">
           {typeLabel}
         </span>
