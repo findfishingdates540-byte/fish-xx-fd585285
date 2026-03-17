@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign } from "lucide-react";
+import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 
 export default function AdminPhotoChallenges() {
@@ -20,6 +21,7 @@ export default function AdminPhotoChallenges() {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [viewingChallenge, setViewingChallenge] = useState<any>(null);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -114,6 +116,65 @@ export default function AdminPhotoChallenges() {
     onSuccess: () => {
       toast({ title: "Status updated" });
       queryClient.invalidateQueries({ queryKey: ["admin-photo-challenges"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  // Fetch entries for viewed challenge
+  const { data: viewEntries = [] } = useQuery({
+    queryKey: ["admin-challenge-entries", viewingChallenge?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("photo_challenge_entries")
+        .select("*")
+        .eq("challenge_id", viewingChallenge!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      const userIds = [...new Set((data || []).map((e: any) => e.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, photos")
+        .in("id", userIds.length > 0 ? userIds : ["none"]);
+
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => (profileMap[p.id] = p));
+
+      return (data || []).map((e: any) => ({
+        ...e,
+        profile: profileMap[e.user_id] || null,
+      }));
+    },
+    enabled: !!viewingChallenge?.id,
+  });
+
+  // Fetch tally for viewed challenge
+  const { data: viewTally = [] } = useQuery({
+    queryKey: ["admin-challenge-tally", viewingChallenge?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("tally_photo_challenge_votes", {
+        p_challenge_id: viewingChallenge!.id,
+      });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!viewingChallenge?.id,
+  });
+
+  const setWinnerMutation = useMutation({
+    mutationFn: async ({ challengeId, winnerId }: { challengeId: string; winnerId: string }) => {
+      const { error } = await supabase
+        .from("photo_challenges")
+        .update({ winner_id: winnerId, status: "completed" })
+        .eq("id", challengeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Winner set!" });
+      queryClient.invalidateQueries({ queryKey: ["admin-photo-challenges"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-challenge-tally", viewingChallenge?.id] });
     },
     onError: (err: any) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -316,7 +377,15 @@ export default function AdminPhotoChallenges() {
                       <TableCell className="text-xs text-muted-foreground">
                         {format(new Date(c.start_date), "MMM d")} – {format(new Date(c.end_date), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setViewingChallenge(c)}
+                          title="View entries"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -338,6 +407,83 @@ export default function AdminPhotoChallenges() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* View Entries Dialog */}
+      <Dialog open={!!viewingChallenge} onOpenChange={(open) => !open && setViewingChallenge(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" /> {viewingChallenge?.title} — Entries
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Tally / Winner section */}
+          {viewTally.length > 0 && (
+            <div className="space-y-2 mb-4">
+              <h3 className="text-sm font-semibold flex items-center gap-1">
+                <Trophy className="h-4 w-4" /> Vote Tally
+              </h3>
+              {viewTally.slice(0, 5).map((t: any, i: number) => {
+                const entry = viewEntries.find((e: any) => e.id === t.entry_id);
+                const isCurrentWinner = viewingChallenge?.winner_id === t.user_id;
+                return (
+                  <div key={t.entry_id} className="flex items-center gap-3 text-sm">
+                    <span className="font-bold w-6">#{t.rank}</span>
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={entry?.profile?.photos?.[0]} />
+                      <AvatarFallback className="text-xs">{entry?.profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 truncate">{entry?.profile?.display_name || "Angler"}</span>
+                    <Badge variant="secondary">{Number(t.vote_count)} votes</Badge>
+                    {isCurrentWinner ? (
+                      <Badge className="gap-1"><Crown className="h-3 w-3" /> Winner</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          if (confirm(`Set ${entry?.profile?.display_name || "this user"} as the winner?`)) {
+                            setWinnerMutation.mutate({ challengeId: viewingChallenge!.id, winnerId: t.user_id });
+                          }
+                        }}
+                        disabled={setWinnerMutation.isPending}
+                      >
+                        Set Winner
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Entries list */}
+          <div className="space-y-3">
+            {viewEntries.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">No entries yet</p>
+            ) : (
+              viewEntries.map((e: any) => (
+                <div key={e.id} className="flex items-center gap-3 border rounded-lg p-3">
+                  <img src={e.photo_url} alt="" className="h-16 w-16 rounded-md object-cover" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={e.profile?.photos?.[0]} />
+                        <AvatarFallback className="text-[10px]">{e.profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium truncate">{e.profile?.display_name || "Angler"}</span>
+                    </div>
+                    {e.caption && <p className="text-xs text-muted-foreground mt-1 truncate">{e.caption}</p>}
+                  </div>
+                  <Badge variant={e.has_paid ? "default" : "outline"}>
+                    {e.has_paid ? "Paid" : "Unpaid"}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
