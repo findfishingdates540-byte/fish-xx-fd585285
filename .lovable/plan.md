@@ -1,48 +1,31 @@
 
 
-# Seed Photo Challenges & Fishing Challenges with Sample Data
+# Fix RLS Performance on `user_roles` Table
 
-Both the `photo_challenges` and `fishing_challenges` tables are empty, and there are no `fishing_teams`. We need to insert realistic seed data so the pages display active, upcoming, and completed items.
+## Problem
+The `user_roles` table's "Users can view own roles" policy calls `auth.uid()` directly, causing PostgreSQL to re-evaluate it per row instead of once per query. This degrades performance at scale.
 
-## What will be inserted
+## Changes
 
-### 1. Fishing Teams (3 teams)
-- "Bass Busters", "Reel Legends", "Cast & Conquer" with logos from placeholder images and assigned captains from existing profiles.
+### Database Migration
+A single SQL migration to:
 
-### 2. Fishing Challenges (6 challenges)
-- 2 **active/live** (status `active`, dates spanning now)
-- 2 **upcoming** (status `upcoming`, future dates)
-- 2 **completed** (status `completed`, past dates)
-- Mixed types: `largest_fish`, `most_caught`, `total_weight`, `species_variety`
-- Linked to real species IDs from `fish_species`
-- Some marked `is_official: true`
+1. Drop the existing policy
+2. Recreate it with `(SELECT auth.uid())` wrapper for optimal performance
+3. Add an index on `user_id` if not already present
 
-### 3. Challenge Participants (seed ~8-10 entries)
-- Assign existing profile IDs as participants across the challenges with scores
+```sql
+DROP POLICY IF EXISTS "Users can view own roles" ON public.user_roles;
 
-### 4. Photo Challenges (6 challenges)
-- 2 **submissions_open** (active, accepting photos now)
-- 2 **voting** (submissions closed, voting open)
-- 1 **upcoming** (starts in the future)
-- 1 **completed** (with a winner_id set)
-- Varied entry fees ($5, $10), prize types (cash, gift_card)
-- Banner URLs using high-quality Unsplash fishing/nature images
+CREATE POLICY "Users can view own roles"
+ON public.user_roles
+FOR SELECT
+TO authenticated
+USING (user_id = (SELECT auth.uid()));
 
-### 5. Photo Challenge Entries (seed ~10-15 entries)
-- Spread across the active/voting challenges
-- Photo URLs from Unsplash fishing images
-- Mix of `has_paid: true` and `has_paid: false`
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);
+```
 
-### 6. Photo Challenge Votes (seed ~20 votes)
-- Distributed across entries in voting-phase challenges
-
-## Data sources
-- **User IDs**: Pulled from existing `profiles` table (5 IDs already confirmed)
-- **Species IDs**: Pulled from existing `fish_species` table (confirmed available)
-- **Images**: Unsplash URLs for banners and entry photos (free, no auth needed)
-
-## Technical details
-- All inserts use the Supabase insert tool (data operations, not schema changes)
-- `created_by` fields use real profile UUIDs to satisfy RLS/foreign key constraints
-- Dates calculated relative to today (2026-03-17) for realistic time labels
+### No Code Changes
+This is a database-only fix. No application code needs to change -- the `has_role()` security definer function and all existing queries continue to work as before.
 
