@@ -23,3 +23,4 @@ export { default as SocialProfile } from './SocialProfile';
 export { default as UserFeed } from './UserFeed';
 export { default as CallHistory } from './CallHistory';
 export { default as IncomingCallScreen } from './IncomingCallScreen';
+export { default as Leaderboard } from './Leaderboard';
