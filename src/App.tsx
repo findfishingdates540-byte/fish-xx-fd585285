@@ -33,6 +33,7 @@ import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
 import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
+import SpeciesExplorer from "./pages/app/SpeciesExplorer";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
