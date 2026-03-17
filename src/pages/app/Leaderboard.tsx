@@ -66,7 +66,6 @@ export default function Leaderboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [teamSkillFilter, setTeamSkillFilter] = useState("pro");
-  const [teamSkillFilter, setTeamSkillFilter] = useState("pro");
 
   // Fetch all species
   const { data: speciesList = [], isLoading: speciesLoading } = useQuery({
@@ -92,7 +91,6 @@ export default function Leaderboard() {
         .limit(20);
       return (data || []) as LeaderboardEntry[];
     },
-    enabled: !selectedSpeciesId,
   });
 
   // Fetch profiles for top entries
