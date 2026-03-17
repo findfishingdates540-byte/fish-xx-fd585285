@@ -265,19 +265,20 @@ export default function Leaderboard() {
   });
 
   if (selectedSpeciesId) {
+    const selectedSpecies = speciesList.find((s) => s.id === selectedSpeciesId);
     return (
-      <div className="max-w-5xl mx-auto p-4 md:p-6 pb-24">
-        <SpeciesLeaderboard
-          speciesName={speciesList.find((s) => s.id === selectedSpeciesId)?.name || ""}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          entries={leaderboardData}
-          profiles={lbProfiles}
-          loading={leaderboardLoading}
-          onBack={() => setSelectedSpeciesId(null)}
-          navigate={navigate}
-        />
-      </div>
+      <SpeciesLeaderboard
+        speciesId={selectedSpeciesId}
+        speciesName={selectedSpecies?.name || ""}
+        speciesImageUrl={selectedSpecies?.image_url || null}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        entries={leaderboardData}
+        profiles={lbProfiles}
+        loading={leaderboardLoading}
+        onBack={() => setSelectedSpeciesId(null)}
+        navigate={navigate}
+      />
     );
   }
 
