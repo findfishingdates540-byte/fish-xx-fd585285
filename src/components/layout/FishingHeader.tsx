@@ -162,14 +162,14 @@ export function FishingHeader() {
     <header className="sticky top-0 z-50 bg-background border-b">
       <div className="px-4 lg:px-8 h-16 flex items-center justify-between">
         {/* Left side - Logo and Nav */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 lg:gap-8 min-w-0 overflow-visible">
           {/* Logo */}
-          <Link to="/app/spots" className="flex items-center">
+          <Link to="/app/spots" className="flex items-center shrink-0">
             <img src={fishingHeaderLogo} alt="FFD" className="h-10 w-auto" />
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
             {/* Dashboard link for combo users viewing fishing mode */}
             {isComboUser && (
               <NavLink
