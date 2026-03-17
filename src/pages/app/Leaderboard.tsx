@@ -128,26 +128,13 @@ export default function Leaderboard() {
     },
   });
 
-  const { data: teams = [] } = useQuery({
+  const { data: teamScores = [] } = useQuery({
     queryKey: ["teams-rankings", teamSkillFilter],
     queryFn: async () => {
-      const skillMap: Record<string, "advanced" | "intermediate" | "beginner"> = { pro: "advanced", intermediate: "intermediate", beginner: "beginner" };
-      const { data } = await supabase.from("fishing_teams").select("*").eq("skill_level", skillMap[teamSkillFilter] || "advanced").limit(10);
-      return (data || []) as TeamInfo[];
+      const skillMap: Record<string, string> = { pro: "advanced", intermediate: "intermediate", beginner: "beginner" };
+      const { data } = await supabase.rpc("get_team_scores", { p_skill_level: skillMap[teamSkillFilter] || "advanced" });
+      return (data || []) as { team_id: string; team_name: string; logo_url: string | null; captain_id: string; member_count: number; season_points: number; last_7_days_catches: number }[];
     },
-  });
-
-  const teamIds = teams.map((t) => t.id);
-  const { data: teamMemberCounts = {} } = useQuery({
-    queryKey: ["team-member-counts", teamIds.join(",")],
-    queryFn: async () => {
-      if (teamIds.length === 0) return {};
-      const { data } = await supabase.from("team_members").select("team_id");
-      const counts: Record<string, number> = {};
-      (data || []).forEach((m) => { counts[m.team_id] = (counts[m.team_id] || 0) + 1; });
-      return counts;
-    },
-    enabled: teamIds.length > 0,
   });
 
   const { data: latestVerified } = useQuery({
