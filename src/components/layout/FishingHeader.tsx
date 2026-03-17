@@ -14,10 +14,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Settings, LogOut, User, LayoutDashboard } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Search, Settings, LogOut, User, LayoutDashboard, Trophy, Fish, Swords, BarChart3, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import fishingHeaderLogo from "@/assets/fishing-header-logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+
+const scoreboardLinks = [
+  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
+  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
+  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
+  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: Camera },
+  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: Trophy },
+];
 
 
 const fishingNavItems = [

@@ -72,7 +72,29 @@ serve(async (req) => {
         const planId = session.metadata?.plan_id;
         const billingCycle = session.metadata?.billing_cycle;
         const customerId = session.customer as string;
+        const metaType = session.metadata?.type;
         
+        // Handle photo challenge entry payment
+        if (metaType === "photo_challenge_entry") {
+          const challengeId = session.metadata?.challenge_id;
+          if (userId && challengeId) {
+            console.log(`Photo challenge entry payment for user ${userId}, challenge ${challengeId}`);
+            // Mark entry as paid
+            const { error } = await supabase
+              .from("photo_challenge_entries")
+              .update({ has_paid: true })
+              .eq("challenge_id", challengeId)
+              .eq("user_id", userId);
+            
+            if (error) {
+              console.error("Error marking photo challenge entry as paid:", error);
+            } else {
+              console.log("Marked photo challenge entry as paid");
+            }
+          }
+          break;
+        }
+
         if (userId) {
           // Calculate expiration date
           const daysToAdd = billingCycle === "annual" ? 365 : 30;

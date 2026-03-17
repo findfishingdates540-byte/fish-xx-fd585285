@@ -1,10 +1,9 @@
-import { useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -13,19 +12,33 @@ import { Lightbox } from "@/components/ui/lightbox";
 import { toast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Camera, Clock, Crown, DollarSign, Gift, Heart,
-  Trophy, Upload, Users, Vote, ImageIcon,
+  Trophy, Upload, Users, Vote, ImageIcon, CreditCard,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
 export default function PhotoChallengeDetail() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [payingEntry, setPayingEntry] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
+
+  // Show toast on payment callback
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    if (payment === "success") {
+      toast({ title: "Payment successful!", description: "Your entry fee has been paid." });
+      qc.invalidateQueries({ queryKey: ["photo-challenge-entries", id] });
+    } else if (payment === "cancelled") {
+      toast({ title: "Payment cancelled", description: "You can pay later to complete your entry.", variant: "destructive" });
+    }
+  }, [searchParams, id, qc]);
 
   // Fetch challenge
   const { data: challenge, isLoading } = useQuery({
@@ -53,7 +66,6 @@ export default function PhotoChallengeDetail() {
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Get profiles
       const userIds = [...new Set((data || []).map((e: any) => e.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
@@ -103,13 +115,12 @@ export default function PhotoChallengeDetail() {
   const paidEntries = entries.filter((e: any) => e.has_paid).length;
   const prizePool = (challenge?.entry_fee || 0) * paidEntries * 0.5;
 
-  // Vote counts per entry
   const voteCounts: Record<string, number> = {};
   votes.forEach((v: any) => {
     voteCounts[v.entry_id] = (voteCounts[v.entry_id] || 0) + 1;
   });
 
-  // Submit entry
+  // Submit entry (photo first, then pay)
   const submitEntry = useMutation({
     mutationFn: async (photoUrl: string) => {
       const { error } = await supabase.from("photo_challenge_entries").insert({
@@ -117,12 +128,12 @@ export default function PhotoChallengeDetail() {
         user_id: user!.id,
         photo_url: photoUrl,
         caption: caption || null,
-        has_paid: false, // payment wired later
+        has_paid: false,
       });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Entry submitted!", description: "Your photo has been entered." });
+      toast({ title: "Photo uploaded!", description: "Now complete your entry by paying the fee." });
       setCaption("");
       qc.invalidateQueries({ queryKey: ["photo-challenge-entries", id] });
     },
@@ -131,10 +142,50 @@ export default function PhotoChallengeDetail() {
     },
   });
 
+  // Pay entry fee via Stripe
+  const payEntryFee = async () => {
+    if (!challenge || !user) return;
+    setPayingEntry(true);
+    try {
+      const isInIframe = window.self !== window.top;
+      const pendingTab = isInIframe ? window.open("about:blank", "_blank") : null;
+
+      const { data, error } = await supabase.functions.invoke("photo-challenge-checkout", {
+        body: {
+          challengeId: id,
+          entryFee: challenge.entry_fee,
+          challengeTitle: challenge.title,
+          successUrl: `${window.location.origin}/app/photo-challenges/${id}?payment=success`,
+          cancelUrl: `${window.location.origin}/app/photo-challenges/${id}?payment=cancelled`,
+        },
+      });
+
+      if (error) {
+        if (pendingTab) pendingTab.close();
+        throw new Error(error.message || "Failed to create checkout");
+      }
+
+      const url = data?.url;
+      if (!url) {
+        if (pendingTab) pendingTab.close();
+        throw new Error("No checkout URL returned");
+      }
+
+      if (pendingTab) {
+        pendingTab.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    } catch (err: any) {
+      toast({ title: "Payment Error", description: err.message, variant: "destructive" });
+    } finally {
+      setPayingEntry(false);
+    }
+  };
+
   // Cast vote
   const castVote = useMutation({
     mutationFn: async (entryId: string) => {
-      // Remove existing vote if changing
       if (myVote) {
         await supabase.from("photo_challenge_votes").delete().eq("id", myVote.id);
       }
@@ -200,7 +251,6 @@ export default function PhotoChallengeDetail() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Back */}
       <Button variant="ghost" size="sm" onClick={() => navigate("/app/photo-challenges")}>
         <ArrowLeft className="h-4 w-4 mr-1" /> Photo Challenges
       </Button>
@@ -267,19 +317,18 @@ export default function PhotoChallengeDetail() {
         </Card>
       </div>
 
-      {/* Description */}
       {challenge.description && (
         <p className="text-muted-foreground">{challenge.description}</p>
       )}
 
-      {/* Submission form */}
+      {/* Submission form - no entry yet */}
       {isSubmissionPhase && !myEntry && user && (
         <Card className="p-6 space-y-4 border-dashed border-2">
           <h2 className="font-semibold flex items-center gap-2">
             <Camera className="h-5 w-5" /> Submit Your Entry
           </h2>
           <p className="text-sm text-muted-foreground">
-            Upload your best fish photo. Entry fee: ${challenge.entry_fee}
+            Upload your best fish photo. After uploading, you'll pay the ${challenge.entry_fee} entry fee via Stripe.
           </p>
           <Textarea
             placeholder="Add a caption (optional)"
@@ -299,15 +348,33 @@ export default function PhotoChallengeDetail() {
             disabled={uploading}
           >
             <Upload className="h-4 w-4 mr-2" />
-            {uploading ? "Uploading..." : "Upload Photo & Enter"}
+            {uploading ? "Uploading..." : "Upload Photo"}
           </Button>
         </Card>
       )}
 
-      {isSubmissionPhase && myEntry && (
+      {/* Entry submitted but not paid */}
+      {isSubmissionPhase && myEntry && !myEntry.has_paid && (
+        <Card className="p-5 border-primary/30 bg-primary/5 space-y-3">
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Complete Your Entry</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Your photo has been uploaded! Pay the ${challenge.entry_fee} entry fee to finalize your submission.
+          </p>
+          <Button onClick={payEntryFee} disabled={payingEntry}>
+            <CreditCard className="h-4 w-4 mr-2" />
+            {payingEntry ? "Redirecting to Stripe..." : `Pay $${challenge.entry_fee} Entry Fee`}
+          </Button>
+        </Card>
+      )}
+
+      {/* Entry submitted and paid */}
+      {isSubmissionPhase && myEntry && myEntry.has_paid && (
         <Card className="p-4 bg-primary/5 border-primary/20">
           <p className="text-sm font-medium text-primary">
-            ✅ You've already submitted your entry!
+            ✅ Entry submitted and paid! Good luck!
           </p>
         </Card>
       )}
@@ -352,10 +419,9 @@ export default function PhotoChallengeDetail() {
                 <div
                   key={entry.id || item.entry_id}
                   className={`group relative rounded-xl overflow-hidden border transition-all ${
-                    isWinner ? "ring-2 ring-yellow-500 shadow-lg" : ""
+                    isWinner ? "ring-2 ring-accent shadow-lg" : ""
                   } ${isMyVote ? "ring-2 ring-primary" : ""}`}
                 >
-                  {/* Photo */}
                   <div
                     className="aspect-square cursor-pointer"
                     onClick={() => setLightboxUrl(entry.photo_url || item.photo_url)}
@@ -367,7 +433,6 @@ export default function PhotoChallengeDetail() {
                     />
                   </div>
 
-                  {/* Winner crown */}
                   {isWinner && (
                     <div className="absolute top-2 left-2">
                       <Badge className="bg-accent text-accent-foreground gap-1">
@@ -376,7 +441,15 @@ export default function PhotoChallengeDetail() {
                     </div>
                   )}
 
-                  {/* Info overlay */}
+                  {/* Unpaid badge */}
+                  {!entry.has_paid && isSubmissionPhase && (
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="outline" className="bg-background/80 text-xs">
+                        Unpaid
+                      </Badge>
+                    </div>
+                  )}
+
                   <div className="p-3 space-y-2">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
@@ -421,7 +494,6 @@ export default function PhotoChallengeDetail() {
         )}
       </div>
 
-      {/* Lightbox */}
       <Lightbox
         images={lightboxUrl ? [lightboxUrl] : []}
         initialIndex={0}
