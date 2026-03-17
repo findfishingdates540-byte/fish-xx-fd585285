@@ -26,7 +26,16 @@ interface NavItem {
   hasTripBadge?: boolean;
   hasLikesBadge?: boolean;
   hasMentionsBadge?: boolean;
+  isScoreboardHub?: boolean;
 }
+
+const scoreboardLinks = [
+  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
+  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
+  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
+  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: Camera },
+  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: Trophy },
+];
 
 const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
   if (mode === 'dating') {
