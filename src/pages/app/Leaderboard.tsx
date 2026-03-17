@@ -584,7 +584,7 @@ export default function Leaderboard() {
   );
 }
 
-  speciesImageUrl: string | null;
+
   sortBy: "weight" | "count";
   setSortBy: (s: "weight" | "count") => void;
   entries: LeaderboardEntry[];
