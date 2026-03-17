@@ -377,7 +377,15 @@ export default function AdminPhotoChallenges() {
                       <TableCell className="text-xs text-muted-foreground">
                         {format(new Date(c.start_date), "MMM d")} – {format(new Date(c.end_date), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setViewingChallenge(c)}
+                          title="View entries"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -399,6 +407,83 @@ export default function AdminPhotoChallenges() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* View Entries Dialog */}
+      <Dialog open={!!viewingChallenge} onOpenChange={(open) => !open && setViewingChallenge(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" /> {viewingChallenge?.title} — Entries
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Tally / Winner section */}
+          {viewTally.length > 0 && (
+            <div className="space-y-2 mb-4">
+              <h3 className="text-sm font-semibold flex items-center gap-1">
+                <Trophy className="h-4 w-4" /> Vote Tally
+              </h3>
+              {viewTally.slice(0, 5).map((t: any, i: number) => {
+                const entry = viewEntries.find((e: any) => e.id === t.entry_id);
+                const isCurrentWinner = viewingChallenge?.winner_id === t.user_id;
+                return (
+                  <div key={t.entry_id} className="flex items-center gap-3 text-sm">
+                    <span className="font-bold w-6">#{t.rank}</span>
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={entry?.profile?.photos?.[0]} />
+                      <AvatarFallback className="text-xs">{entry?.profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 truncate">{entry?.profile?.display_name || "Angler"}</span>
+                    <Badge variant="secondary">{Number(t.vote_count)} votes</Badge>
+                    {isCurrentWinner ? (
+                      <Badge className="gap-1"><Crown className="h-3 w-3" /> Winner</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          if (confirm(`Set ${entry?.profile?.display_name || "this user"} as the winner?`)) {
+                            setWinnerMutation.mutate({ challengeId: viewingChallenge!.id, winnerId: t.user_id });
+                          }
+                        }}
+                        disabled={setWinnerMutation.isPending}
+                      >
+                        Set Winner
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Entries list */}
+          <div className="space-y-3">
+            {viewEntries.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">No entries yet</p>
+            ) : (
+              viewEntries.map((e: any) => (
+                <div key={e.id} className="flex items-center gap-3 border rounded-lg p-3">
+                  <img src={e.photo_url} alt="" className="h-16 w-16 rounded-md object-cover" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={e.profile?.photos?.[0]} />
+                        <AvatarFallback className="text-[10px]">{e.profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium truncate">{e.profile?.display_name || "Angler"}</span>
+                    </div>
+                    {e.caption && <p className="text-xs text-muted-foreground mt-1 truncate">{e.caption}</p>}
+                  </div>
+                  <Badge variant={e.has_paid ? "default" : "outline"}>
+                    {e.has_paid ? "Paid" : "Unpaid"}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
