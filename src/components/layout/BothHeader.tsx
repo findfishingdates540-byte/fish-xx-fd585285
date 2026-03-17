@@ -36,7 +36,7 @@ const scoreboardLinks = [
   { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
   { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
   { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
-  { to: "/app/leaderboard", label: "General Leaderboard", description: "All-time rankings by species", icon: Trophy },
+  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: Trophy },
 ];
 
 export function BothHeader() {
