@@ -48,6 +48,7 @@ interface ChallengeWithDetails {
   isJoined: boolean;
   speciesName: string | null;
   location: string | null;
+  bannerUrl: string | null;
 }
 
 function useCountdown(endDate: string) {
@@ -152,6 +153,7 @@ export default function Challenges() {
       const prizes = c.prizes as any;
       const prizePool = typeof prizes === "object" && prizes?.total ? Number(prizes.total) : 0;
       const maxParticipants = typeof prizes === "object" && prizes?.max_participants ? Number(prizes.max_participants) : null;
+      const bannerUrl = typeof prizes === "object" && prizes?.banner_url ? String(prizes.banner_url) : null;
 
       // Determine status
       const now = new Date();
@@ -171,7 +173,8 @@ export default function Challenges() {
         topEntries: top3,
         isJoined: !!user && cParticipants.some((p) => p.user_id === user.id),
         speciesName: c.target_species_name || null,
-        location: null,
+        location: typeof prizes === "object" && prizes?.location ? String(prizes.location) : null,
+        bannerUrl,
       };
     });
   }, [challenges, participants, profiles, user]);
@@ -405,7 +408,11 @@ function LiveChallengeCard({
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       {/* Top section */}
-      <div className="relative h-32 bg-gradient-to-br from-muted to-muted/50 p-4 flex flex-col justify-end">
+      <div className="relative h-32 bg-gradient-to-br from-muted to-muted/50 p-4 flex flex-col justify-end overflow-hidden">
+        {challenge.bannerUrl && (
+          <img src={challenge.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-destructive text-destructive-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-destructive-foreground animate-pulse" />
@@ -514,7 +521,11 @@ function UpcomingChallengeCard({
 
   return (
     <div className="rounded-xl border bg-card overflow-hidden group">
-      <div className="relative h-28 bg-gradient-to-br from-muted to-muted/30 p-3 flex flex-col justify-end">
+      <div className="relative h-28 bg-gradient-to-br from-muted to-muted/30 p-3 flex flex-col justify-end overflow-hidden">
+        {challenge.bannerUrl && (
+          <img src={challenge.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
         <span className="absolute top-3 left-3 inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-primary text-primary-foreground">
           {typeLabel}
         </span>
