@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles, Trophy, Camera } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles, Trophy, Camera, BarChart3, Swords } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 
