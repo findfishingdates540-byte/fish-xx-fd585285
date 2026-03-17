@@ -584,8 +584,6 @@ export default function Leaderboard() {
   );
 }
 
-// Species-specific leaderboard
-interface SpeciesLeaderboardProps {
   speciesId: string;
   speciesName: string;
   speciesImageUrl: string | null;
