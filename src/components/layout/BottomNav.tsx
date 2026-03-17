@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles, Trophy, Camera } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, LayoutDashboard, Calendar, Sparkles, Trophy, Camera, BarChart3, Swords } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 
@@ -25,7 +26,16 @@ interface NavItem {
   hasTripBadge?: boolean;
   hasLikesBadge?: boolean;
   hasMentionsBadge?: boolean;
+  isScoreboardHub?: boolean;
 }
+
+const scoreboardLinks = [
+  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
+  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
+  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
+  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: Camera },
+  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: Trophy },
+];
 
 const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
   if (mode === 'dating') {
@@ -47,7 +57,7 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
     const items: NavItem[] = [
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
-      { to: '/app/leaderboard', icon: Trophy, label: 'Rankings' },
+      { to: '/app/leaderboard', icon: Trophy, label: 'Rankings', isScoreboardHub: true },
       { to: '/app/photo-challenges', icon: Camera, label: 'Challenges' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
     ];
@@ -72,6 +82,8 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   const navItems = getNavItems(accountMode, isComboUser);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [scoreboardOpen, setScoreboardOpen] = useState(false);
 
   // Fetch pending buddy requests count
   const { data: pendingRequestsCount = 0 } = useQuery({
@@ -328,44 +340,93 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-pb">
-      <div className="flex items-center justify-around h-14">
-        {navItems.map((item) => {
-          const badgeCount = getBadgeCount(item);
-          
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center justify-center flex-1 h-full transition-colors relative',
-                  isActive
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                )
-              }
-            >
-              {({ isActive }) => (
-              <div className="relative">
-                  <item.icon
-                    className={cn('h-6 w-6', isActive && 'fill-current')}
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                  {badgeCount > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
-                    >
-                      {badgeCount > 9 ? "9+" : badgeCount}
-                    </Badge>
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-pb">
+        <div className="flex items-center justify-around h-14">
+          {navItems.map((item) => {
+            const badgeCount = getBadgeCount(item);
+
+            // Scoreboard hub item opens a sheet instead of navigating
+            if (item.isScoreboardHub) {
+              return (
+                <button
+                  key={item.to}
+                  onClick={() => setScoreboardOpen(true)}
+                  className={cn(
+                    'flex items-center justify-center flex-1 h-full transition-colors relative',
+                    'text-muted-foreground hover:text-foreground'
                   )}
+                >
+                  <div className="relative">
+                    <item.icon className="h-6 w-6" strokeWidth={2} />
+                  </div>
+                </button>
+              );
+            }
+
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center justify-center flex-1 h-full transition-colors relative',
+                    isActive
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <div className="relative">
+                    <item.icon
+                      className={cn('h-6 w-6', isActive && 'fill-current')}
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
+                    {badgeCount > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
+                      >
+                        {badgeCount > 9 ? "9+" : badgeCount}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Scoreboard Hub Sheet */}
+      <Sheet open={scoreboardOpen} onOpenChange={setScoreboardOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8 pt-2">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="text-center">Scoreboard Hub</SheetTitle>
+          </SheetHeader>
+          <div className="grid gap-1">
+            {scoreboardLinks.map((link) => (
+              <button
+                key={link.to}
+                onClick={() => {
+                  setScoreboardOpen(false);
+                  navigate(link.to);
+                }}
+                className="flex items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-accent"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted">
+                  <link.icon className="h-5 w-5 text-foreground" />
                 </div>
-              )}
-            </NavLink>
-          );
-        })}
-      </div>
-    </nav>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">{link.label}</p>
+                  <p className="text-xs text-muted-foreground truncate">{link.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
