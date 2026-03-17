@@ -121,7 +121,7 @@ const App = () => (
               <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
               <Route path="challenges" element={<FishingRoute><Challenges /></FishingRoute>} />
               <Route path="photo-challenges" element={<FishingRoute><PhotoChallenges /></FishingRoute>} />
-              <Route path="photo-challenges/new" element={<FishingRoute><CreatePhotoChallenge /></FishingRoute>} />
+              <Route path="photo-challenges/new" element={<FishingRoute><Navigate to="/app/photo-challenges" replace /></FishingRoute>} />
               <Route path="photo-challenges/:id" element={<FishingRoute><PhotoChallengeDetail /></FishingRoute>} />
               <Route path="challenges/new" element={<FishingRoute><CreateChallenge /></FishingRoute>} />
               <Route path="teams" element={<FishingRoute><Teams /></FishingRoute>} />
