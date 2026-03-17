@@ -76,7 +76,7 @@ export function BothHeader() {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-5">
             {bothNavItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -91,6 +91,40 @@ export function BothHeader() {
                 {item.label}
               </NavLink>
             ))}
+
+            {/* Scoreboard Hub Dropdown */}
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent h-auto p-0 data-[state=open]:text-foreground">
+                    <Trophy className="h-3.5 w-3.5 mr-1" />
+                    Scoreboard Hub
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[320px] gap-1 p-3">
+                      {scoreboardLinks.map((link) => (
+                        <li key={link.to + link.label}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              to={link.to}
+                              className="flex items-start gap-3 rounded-lg p-3 hover:bg-accent transition-colors"
+                            >
+                              <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <link.icon className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">{link.label}</p>
+                                <p className="text-xs text-muted-foreground">{link.description}</p>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           </nav>
         </div>
 
