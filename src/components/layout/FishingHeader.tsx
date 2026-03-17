@@ -14,10 +14,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Settings, LogOut, User, LayoutDashboard } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Search, Settings, LogOut, User, LayoutDashboard, Trophy, Fish, Swords, BarChart3, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import fishingHeaderLogo from "@/assets/fishing-header-logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+
+const scoreboardLinks = [
+  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
+  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
+  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
+  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: Camera },
+  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: Trophy },
+];
 
 
 const fishingNavItems = [
@@ -199,6 +215,40 @@ export function FishingHeader() {
                 )}
               </NavLink>
             ))}
+
+            {/* Scoreboard Hub Dropdown */}
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent h-auto p-0 data-[state=open]:text-foreground">
+                    <Trophy className="h-3.5 w-3.5 mr-1" />
+                    Scoreboard Hub
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[320px] gap-1 p-3">
+                      {scoreboardLinks.map((link) => (
+                        <li key={link.to + link.label}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              to={link.to}
+                              className="flex items-start gap-3 rounded-lg p-3 hover:bg-accent transition-colors"
+                            >
+                              <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <link.icon className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">{link.label}</p>
+                                <p className="text-xs text-muted-foreground">{link.description}</p>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           </nav>
         </div>
 
