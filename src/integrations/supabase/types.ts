@@ -2553,6 +2553,20 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_team_scores: {
+        Args: {
+          p_skill_level: Database["public"]["Enums"]["fishing_experience"]
+        }
+        Returns: {
+          captain_id: string
+          last_7_days_catches: number
+          logo_url: string
+          member_count: number
+          season_points: number
+          team_id: string
+          team_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
