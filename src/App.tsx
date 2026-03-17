@@ -35,6 +35,7 @@ import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessa
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
 import SpeciesExplorer from "./pages/app/SpeciesExplorer";
 import CatchDetail from "./pages/app/CatchDetail";
+import Challenges from "./pages/app/Challenges";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
