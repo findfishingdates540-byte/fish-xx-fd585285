@@ -253,72 +253,10 @@ export default function Challenges() {
               className="pl-9 h-9"
             />
           </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-1.5 shrink-0">
-                <Plus className="h-4 w-4" />
-                Create Challenge
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create New Challenge</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div>
-                  <Label>Title *</Label>
-                  <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Weekend Bass Blitz" />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} placeholder="Challenge details..." rows={3} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Type</Label>
-                    <Select value={formType} onValueChange={setFormType}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="largest_fish">Largest Fish</SelectItem>
-                        <SelectItem value="most_caught">Most Caught</SelectItem>
-                        <SelectItem value="total_weight">Total Weight</SelectItem>
-                        <SelectItem value="species_variety">Species Variety</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Target Species</Label>
-                    <Select value={formSpecies} onValueChange={setFormSpecies}>
-                      <SelectTrigger><SelectValue placeholder="Any" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="any">Any Species</SelectItem>
-                        {speciesList.map((s) => (
-                          <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Start Date *</Label>
-                    <Input type="date" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>End Date *</Label>
-                    <Input type="date" value={formEndDate} onChange={(e) => setFormEndDate(e.target.value)} />
-                  </div>
-                </div>
-                <div>
-                  <Label>Prize Pool ($)</Label>
-                  <Input type="number" value={formPrizePool} onChange={(e) => setFormPrizePool(e.target.value)} placeholder="0" />
-                </div>
-                <Button className="w-full" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Creating..." : "Create Challenge"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button className="gap-1.5 shrink-0" onClick={() => navigate("/app/challenges/new")}>
+            <Plus className="h-4 w-4" />
+            Create Challenge
+          </Button>
         </div>
       </div>
 
