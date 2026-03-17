@@ -90,16 +90,6 @@ export default function Challenges() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabValue>("live");
   const [searchQuery, setSearchQuery] = useState("");
-  const [createOpen, setCreateOpen] = useState(false);
-
-  // Form state
-  const [formTitle, setFormTitle] = useState("");
-  const [formDesc, setFormDesc] = useState("");
-  const [formType, setFormType] = useState<string>("largest_fish");
-  const [formSpecies, setFormSpecies] = useState("");
-  const [formStartDate, setFormStartDate] = useState("");
-  const [formEndDate, setFormEndDate] = useState("");
-  const [formPrizePool, setFormPrizePool] = useState("");
 
   // Fetch challenges
   const { data: challenges = [], isLoading } = useQuery({
