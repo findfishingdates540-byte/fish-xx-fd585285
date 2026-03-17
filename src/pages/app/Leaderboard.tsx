@@ -178,10 +178,10 @@ export default function Leaderboard() {
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Catches Today</p>
             <p className="text-2xl font-bold text-primary">{totalCatchesToday.toLocaleString()}</p>
           </div>
-          <div className="rounded-xl border bg-background px-5 py-3 text-center min-w-[120px]">
+          <button onClick={() => navigate("/app/challenges")} className="rounded-xl border bg-background px-5 py-3 text-center min-w-[120px] hover:bg-muted/50 transition-colors">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Active Contests</p>
             <p className="text-2xl font-bold text-primary">{activeChallenges}</p>
-          </div>
+          </button>
         </div>
       </div>
 
