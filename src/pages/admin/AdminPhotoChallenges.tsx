@@ -21,6 +21,7 @@ export default function AdminPhotoChallenges() {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [viewingChallenge, setViewingChallenge] = useState<any>(null);
 
   // Form state
   const [title, setTitle] = useState("");
