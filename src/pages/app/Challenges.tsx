@@ -382,7 +382,7 @@ export default function Challenges() {
         <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
           Create your own private challenge for your fishing club or tournament series. Custom species, locations, and scoring rules.
         </p>
-        <Button variant="outline" size="lg" onClick={() => setCreateOpen(true)} className="gap-2">
+        <Button variant="outline" size="lg" onClick={() => navigate("/app/challenges/new")} className="gap-2">
           Host a Private Event
         </Button>
       </div>
