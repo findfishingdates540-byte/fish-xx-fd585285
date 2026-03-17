@@ -37,6 +37,9 @@ import SpeciesExplorer from "./pages/app/SpeciesExplorer";
 import CatchDetail from "./pages/app/CatchDetail";
 import Challenges from "./pages/app/Challenges";
 import CreateChallenge from "./pages/app/CreateChallenge";
+import Teams from "./pages/app/Teams";
+import CreateTeam from "./pages/app/CreateTeam";
+import TeamProfile from "./pages/app/TeamProfile";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
@@ -115,6 +118,9 @@ const App = () => (
               <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
               <Route path="challenges" element={<FishingRoute><Challenges /></FishingRoute>} />
               <Route path="challenges/new" element={<FishingRoute><CreateChallenge /></FishingRoute>} />
+              <Route path="teams" element={<FishingRoute><Teams /></FishingRoute>} />
+              <Route path="teams/new" element={<FishingRoute><CreateTeam /></FishingRoute>} />
+              <Route path="teams/:teamId" element={<FishingRoute><TeamProfile /></FishingRoute>} />
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
               <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>}>
                 <Route path=":buddyId" element={<BuddyChat />} />
