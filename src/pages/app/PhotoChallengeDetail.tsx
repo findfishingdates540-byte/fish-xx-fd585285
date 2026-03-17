@@ -422,13 +422,12 @@ export default function PhotoChallengeDetail() {
       </div>
 
       {/* Lightbox */}
-      {lightboxUrl && (
-        <Lightbox
-          images={[lightboxUrl]}
-          initialIndex={0}
-          onClose={() => setLightboxUrl(null)}
-        />
-      )}
+      <Lightbox
+        images={lightboxUrl ? [lightboxUrl] : []}
+        initialIndex={0}
+        open={!!lightboxUrl}
+        onOpenChange={(open) => { if (!open) setLightboxUrl(null); }}
+      />
     </div>
   );
 }
