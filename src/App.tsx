@@ -48,11 +48,12 @@ import UserProfile from "./pages/app/UserProfile";
 import DatingProfile from "./pages/app/DatingProfile";
 import PhotoChallenges from "./pages/app/PhotoChallenges";
 import PhotoChallengeDetail from "./pages/app/PhotoChallengeDetail";
-import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge";
+import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge"; // kept for potential future use
 
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
 import AdminFishSpecies from "./pages/admin/AdminFishSpecies";
+import AdminPhotoChallenges from "./pages/admin/AdminPhotoChallenges";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -121,7 +122,7 @@ const App = () => (
               <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
               <Route path="challenges" element={<FishingRoute><Challenges /></FishingRoute>} />
               <Route path="photo-challenges" element={<FishingRoute><PhotoChallenges /></FishingRoute>} />
-              <Route path="photo-challenges/new" element={<FishingRoute><CreatePhotoChallenge /></FishingRoute>} />
+              <Route path="photo-challenges/new" element={<FishingRoute><Navigate to="/app/photo-challenges" replace /></FishingRoute>} />
               <Route path="photo-challenges/:id" element={<FishingRoute><PhotoChallengeDetail /></FishingRoute>} />
               <Route path="challenges/new" element={<FishingRoute><CreateChallenge /></FishingRoute>} />
               <Route path="teams" element={<FishingRoute><Teams /></FishingRoute>} />
@@ -176,6 +177,7 @@ const App = () => (
               <Route path="ad-analytics" element={<AdminAdAnalytics />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="support" element={<AdminSupportTickets />} />
+              <Route path="photo-challenges" element={<AdminPhotoChallenges />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
