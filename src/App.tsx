@@ -112,6 +112,7 @@ const App = () => (
               <Route path="leaderboard" element={<FishingRoute><Leaderboard /></FishingRoute>} />
               <Route path="leaderboard/species/:speciesId" element={<FishingRoute><SpeciesLeaderboard /></FishingRoute>} />
               <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
+              <Route path="challenges" element={<FishingRoute><Challenges /></FishingRoute>} />
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
               <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>}>
                 <Route path=":buddyId" element={<BuddyChat />} />
