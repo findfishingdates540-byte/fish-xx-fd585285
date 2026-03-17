@@ -122,6 +122,65 @@ export default function AdminPhotoChallenges() {
     },
   });
 
+  // Fetch entries for viewed challenge
+  const { data: viewEntries = [] } = useQuery({
+    queryKey: ["admin-challenge-entries", viewingChallenge?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("photo_challenge_entries")
+        .select("*")
+        .eq("challenge_id", viewingChallenge!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      const userIds = [...new Set((data || []).map((e: any) => e.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, photos")
+        .in("id", userIds.length > 0 ? userIds : ["none"]);
+
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => (profileMap[p.id] = p));
+
+      return (data || []).map((e: any) => ({
+        ...e,
+        profile: profileMap[e.user_id] || null,
+      }));
+    },
+    enabled: !!viewingChallenge?.id,
+  });
+
+  // Fetch tally for viewed challenge
+  const { data: viewTally = [] } = useQuery({
+    queryKey: ["admin-challenge-tally", viewingChallenge?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("tally_photo_challenge_votes", {
+        p_challenge_id: viewingChallenge!.id,
+      });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!viewingChallenge?.id,
+  });
+
+  const setWinnerMutation = useMutation({
+    mutationFn: async ({ challengeId, winnerId }: { challengeId: string; winnerId: string }) => {
+      const { error } = await supabase
+        .from("photo_challenges")
+        .update({ winner_id: winnerId, status: "completed" })
+        .eq("id", challengeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Winner set!" });
+      queryClient.invalidateQueries({ queryKey: ["admin-photo-challenges"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-challenge-tally", viewingChallenge?.id] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   const resetForm = () => {
     setTitle("");
     setDescription("");
