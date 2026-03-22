@@ -40,7 +40,7 @@ export default function CreateTeam() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [skillLevel, setSkillLevel] = useState("intermediate");
+  const [category, setCategory] = useState("teams");
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
