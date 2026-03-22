@@ -64,7 +64,7 @@ export default function Teams() {
   });
 
   const filtered = enrichedTeams.filter((t) => {
-    if (skillFilter !== "all" && t.skill_level !== skillFilter) return false;
+    if (categoryFilter !== "all" && (t as any).category !== categoryFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return t.name.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q);
