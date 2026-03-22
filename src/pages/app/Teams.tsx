@@ -139,12 +139,12 @@ export default function Teams() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
-        <Tabs value={skillFilter} onValueChange={setSkillFilter}>
+        <Tabs value={categoryFilter} onValueChange={setCategoryFilter}>
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="advanced">Pro</TabsTrigger>
-            <TabsTrigger value="intermediate">Mid</TabsTrigger>
-            <TabsTrigger value="beginner">Beginner</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+            <TabsTrigger value="women">Women</TabsTrigger>
+            <TabsTrigger value="jr_anglers">Jr. Anglers</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
