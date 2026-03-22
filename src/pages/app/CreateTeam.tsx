@@ -69,9 +69,10 @@ export default function CreateTeam() {
       const { data, error } = await supabase.from("fishing_teams").insert({
         name: name.trim(),
         description: description.trim() || null,
-        skill_level: skillLevel as any,
+        skill_level: 'beginner' as any,
         captain_id: user.id,
         logo_url: logoUrl,
+        category: category,
       }).select("id").single();
       if (error) throw error;
 
