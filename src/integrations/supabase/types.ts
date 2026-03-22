@@ -978,6 +978,7 @@ export type Database = {
       fishing_teams: {
         Row: {
           captain_id: string
+          category: string
           created_at: string
           description: string | null
           id: string
@@ -987,6 +988,7 @@ export type Database = {
         }
         Insert: {
           captain_id: string
+          category?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -996,6 +998,7 @@ export type Database = {
         }
         Update: {
           captain_id?: string
+          category?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -2681,20 +2684,35 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_team_scores: {
-        Args: {
-          p_skill_level: Database["public"]["Enums"]["fishing_experience"]
-        }
-        Returns: {
-          captain_id: string
-          last_7_days_catches: number
-          logo_url: string
-          member_count: number
-          season_points: number
-          team_id: string
-          team_name: string
-        }[]
-      }
+      get_team_scores:
+        | {
+            Args: { p_category?: string }
+            Returns: {
+              captain_id: string
+              catch_count: number
+              category: string
+              logo_url: string
+              member_count: number
+              skill_level: Database["public"]["Enums"]["fishing_experience"]
+              team_id: string
+              team_name: string
+              total_score: number
+            }[]
+          }
+        | {
+            Args: {
+              p_skill_level: Database["public"]["Enums"]["fishing_experience"]
+            }
+            Returns: {
+              captain_id: string
+              last_7_days_catches: number
+              logo_url: string
+              member_count: number
+              season_points: number
+              team_id: string
+              team_name: string
+            }[]
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

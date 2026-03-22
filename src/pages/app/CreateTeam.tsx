@@ -24,10 +24,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const SKILL_LEVELS = [
-  { value: "beginner", label: "Beginner", description: "Casual anglers and newcomers", emoji: "🌱" },
-  { value: "intermediate", label: "Intermediate", description: "Regular anglers with experience", emoji: "🎣" },
-  { value: "advanced", label: "Pro / Advanced", description: "Competitive and tournament anglers", emoji: "🏆" },
+const CATEGORIES = [
+  { value: "teams", label: "Teams", description: "General fishing team for all anglers", emoji: "🎣" },
+  { value: "women", label: "Women", description: "Women-only fishing team", emoji: "👩" },
+  { value: "jr_anglers", label: "Jr. Anglers", description: "Youth and junior anglers under 18", emoji: "🌱" },
 ];
 
 export default function CreateTeam() {
@@ -40,7 +40,7 @@ export default function CreateTeam() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [skillLevel, setSkillLevel] = useState("intermediate");
+  const [category, setCategory] = useState("teams");
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,9 +69,10 @@ export default function CreateTeam() {
       const { data, error } = await supabase.from("fishing_teams").insert({
         name: name.trim(),
         description: description.trim() || null,
-        skill_level: skillLevel as any,
+        skill_level: 'beginner' as any,
         captain_id: user.id,
         logo_url: logoUrl,
+        category: category,
       }).select("id").single();
       if (error) throw error;
 
@@ -92,7 +93,7 @@ export default function CreateTeam() {
     onError: (err) => toast.error(err.message),
   });
 
-  const selectedSkill = SKILL_LEVELS.find((s) => s.value === skillLevel);
+  const selectedCategory = CATEGORIES.find((c) => c.value === category);
 
   return (
     <div className="pb-24 min-h-screen">
@@ -152,30 +153,30 @@ export default function CreateTeam() {
           </div>
         </section>
 
-        {/* Skill Level */}
+        {/* Category */}
         <section className="rounded-xl border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Trophy className="h-5 w-5 text-primary" />
-            <h2 className="font-bold">Skill Level</h2>
+            <h2 className="font-bold">Team Category</h2>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Choose the competitive tier for your team. This determines which leaderboard you compete on.</p>
+          <p className="text-xs text-muted-foreground mb-3">Choose the category for your team. This determines which group you compete in.</p>
           <div className="space-y-2">
-            {SKILL_LEVELS.map((level) => (
+            {CATEGORIES.map((cat) => (
               <button
-                key={level.value}
-                onClick={() => setSkillLevel(level.value)}
+                key={cat.value}
+                onClick={() => setCategory(cat.value)}
                 className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${
-                  skillLevel === level.value
+                  category === cat.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground/30"
                 }`}
               >
-                <span className="text-2xl">{level.emoji}</span>
+                <span className="text-2xl">{cat.emoji}</span>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">{level.label}</p>
-                  <p className="text-xs text-muted-foreground">{level.description}</p>
+                  <p className="font-semibold text-sm">{cat.label}</p>
+                  <p className="text-xs text-muted-foreground">{cat.description}</p>
                 </div>
-                {skillLevel === level.value && (
+                {category === cat.value && (
                   <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0">
                     <Sparkles className="h-3 w-3 text-primary-foreground" />
                   </div>
@@ -202,7 +203,7 @@ export default function CreateTeam() {
               </div>
               <div>
                 <p className="font-bold">{name}</p>
-                <p className="text-xs text-muted-foreground">{selectedSkill?.label} • You as Captain</p>
+                <p className="text-xs text-muted-foreground">{selectedCategory?.label} • You as Captain</p>
               </div>
             </div>
           </section>

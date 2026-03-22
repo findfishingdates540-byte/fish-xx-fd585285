@@ -33,7 +33,7 @@ export default function Teams() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [skillFilter, setSkillFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ["all-teams"],
@@ -64,7 +64,7 @@ export default function Teams() {
   });
 
   const filtered = enrichedTeams.filter((t) => {
-    if (skillFilter !== "all" && t.skill_level !== skillFilter) return false;
+    if (categoryFilter !== "all" && (t as any).category !== categoryFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return t.name.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q);
@@ -74,16 +74,16 @@ export default function Teams() {
 
   const myTeams = enrichedTeams.filter((t) => t.isMember);
 
-  const skillLabel = (s: string) => {
-    if (s === "advanced") return "Pro";
-    if (s === "intermediate") return "Intermediate";
-    return "Beginner";
+  const categoryLabel = (c: string) => {
+    if (c === "women") return "Women";
+    if (c === "jr_anglers") return "Jr. Anglers";
+    return "Teams";
   };
 
-  const skillColor = (s: string) => {
-    if (s === "advanced") return "bg-destructive/10 text-destructive";
-    if (s === "intermediate") return "bg-primary/10 text-primary";
-    return "bg-muted text-muted-foreground";
+  const categoryColor = (c: string) => {
+    if (c === "women") return "bg-pink-500/10 text-pink-600";
+    if (c === "jr_anglers") return "bg-amber-500/10 text-amber-600";
+    return "bg-primary/10 text-primary";
   };
 
   return (
@@ -117,7 +117,7 @@ export default function Teams() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-sm truncate">{team.name}</p>
-                    <Badge className={`text-[10px] border-0 ${skillColor(team.skill_level)}`}>{skillLabel(team.skill_level)}</Badge>
+                    <Badge className={`text-[10px] border-0 ${categoryColor((team as any).category)}`}>{categoryLabel((team as any).category)}</Badge>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
@@ -139,12 +139,12 @@ export default function Teams() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search teams..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
-        <Tabs value={skillFilter} onValueChange={setSkillFilter}>
+        <Tabs value={categoryFilter} onValueChange={setCategoryFilter}>
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="advanced">Pro</TabsTrigger>
-            <TabsTrigger value="intermediate">Mid</TabsTrigger>
-            <TabsTrigger value="beginner">Beginner</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+            <TabsTrigger value="women">Women</TabsTrigger>
+            <TabsTrigger value="jr_anglers">Jr. Anglers</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -176,7 +176,7 @@ export default function Teams() {
                     team.name.slice(0, 2).toUpperCase()
                   )}
                 </div>
-                <Badge className={`text-[10px] border-0 ${skillColor(team.skill_level)}`}>{skillLabel(team.skill_level)}</Badge>
+                <Badge className={`text-[10px] border-0 ${categoryColor((team as any).category)}`}>{categoryLabel((team as any).category)}</Badge>
               </div>
               <h3 className="font-bold text-sm mb-1 group-hover:text-primary transition-colors">{team.name}</h3>
               {team.description && (
