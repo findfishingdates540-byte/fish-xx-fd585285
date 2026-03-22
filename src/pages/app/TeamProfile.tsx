@@ -95,6 +95,33 @@ export default function TeamProfile() {
   const joinMutation = useMutation({
     mutationFn: async () => {
       if (!user || !teamId) throw new Error("Must be logged in");
+
+      // Fetch user profile for eligibility checks
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("gender, date_of_birth")
+        .eq("id", user.id)
+        .single();
+
+      const teamCategory = (team as any)?.category || "teams";
+
+      // Women-only team: block non-female users
+      if (teamCategory === "women" && profile?.gender !== "female") {
+        throw new Error("This team is for women only");
+      }
+
+      // Jr. Anglers: must be under 18
+      if (teamCategory === "jr_anglers") {
+        if (!profile?.date_of_birth) {
+          throw new Error("Your date of birth is required to join a Jr. Anglers team");
+        }
+        const dob = new Date(profile.date_of_birth);
+        const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+        if (age >= 18) {
+          throw new Error("Jr. Anglers teams are for members under 18");
+        }
+      }
+
       const { error } = await supabase.from("team_members").insert({
         team_id: teamId,
         user_id: user.id,
@@ -107,7 +134,7 @@ export default function TeamProfile() {
       queryClient.invalidateQueries({ queryKey: ["all-teams"] });
       toast.success("You joined the team! 🎉");
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err: any) => toast.error(err.message),
   });
 
   const leaveMutation = useMutation({
