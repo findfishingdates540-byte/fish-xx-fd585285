@@ -203,7 +203,7 @@ export default function CreateTeam() {
               </div>
               <div>
                 <p className="font-bold">{name}</p>
-                <p className="text-xs text-muted-foreground">{selectedSkill?.label} • You as Captain</p>
+                <p className="text-xs text-muted-foreground">{selectedCategory?.label} • You as Captain</p>
               </div>
             </div>
           </section>

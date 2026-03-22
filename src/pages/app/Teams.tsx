@@ -176,7 +176,7 @@ export default function Teams() {
                     team.name.slice(0, 2).toUpperCase()
                   )}
                 </div>
-                <Badge className={`text-[10px] border-0 ${skillColor(team.skill_level)}`}>{skillLabel(team.skill_level)}</Badge>
+                <Badge className={`text-[10px] border-0 ${categoryColor((team as any).category)}`}>{categoryLabel((team as any).category)}</Badge>
               </div>
               <h3 className="font-bold text-sm mb-1 group-hover:text-primary transition-colors">{team.name}</h3>
               {team.description && (
