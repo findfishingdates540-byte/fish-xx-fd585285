@@ -33,7 +33,7 @@ export default function Teams() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [skillFilter, setSkillFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ["all-teams"],
