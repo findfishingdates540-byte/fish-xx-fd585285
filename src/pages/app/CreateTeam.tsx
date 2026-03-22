@@ -24,10 +24,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const SKILL_LEVELS = [
-  { value: "beginner", label: "Beginner", description: "Casual anglers and newcomers", emoji: "🌱" },
-  { value: "intermediate", label: "Intermediate", description: "Regular anglers with experience", emoji: "🎣" },
-  { value: "advanced", label: "Pro / Advanced", description: "Competitive and tournament anglers", emoji: "🏆" },
+const CATEGORIES = [
+  { value: "teams", label: "Teams", description: "General fishing team for all anglers", emoji: "🎣" },
+  { value: "women", label: "Women", description: "Women-only fishing team", emoji: "👩" },
+  { value: "jr_anglers", label: "Jr. Anglers", description: "Youth and junior anglers under 18", emoji: "🌱" },
 ];
 
 export default function CreateTeam() {
