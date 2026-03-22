@@ -153,30 +153,30 @@ export default function CreateTeam() {
           </div>
         </section>
 
-        {/* Skill Level */}
+        {/* Category */}
         <section className="rounded-xl border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Trophy className="h-5 w-5 text-primary" />
-            <h2 className="font-bold">Skill Level</h2>
+            <h2 className="font-bold">Team Category</h2>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Choose the competitive tier for your team. This determines which leaderboard you compete on.</p>
+          <p className="text-xs text-muted-foreground mb-3">Choose the category for your team. This determines which group you compete in.</p>
           <div className="space-y-2">
-            {SKILL_LEVELS.map((level) => (
+            {CATEGORIES.map((cat) => (
               <button
-                key={level.value}
-                onClick={() => setSkillLevel(level.value)}
+                key={cat.value}
+                onClick={() => setCategory(cat.value)}
                 className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${
-                  skillLevel === level.value
+                  category === cat.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground/30"
                 }`}
               >
-                <span className="text-2xl">{level.emoji}</span>
+                <span className="text-2xl">{cat.emoji}</span>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">{level.label}</p>
-                  <p className="text-xs text-muted-foreground">{level.description}</p>
+                  <p className="font-semibold text-sm">{cat.label}</p>
+                  <p className="text-xs text-muted-foreground">{cat.description}</p>
                 </div>
-                {skillLevel === level.value && (
+                {category === cat.value && (
                   <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0">
                     <Sparkles className="h-3 w-3 text-primary-foreground" />
                   </div>
