@@ -93,7 +93,7 @@ export default function CreateTeam() {
     onError: (err) => toast.error(err.message),
   });
 
-  const selectedSkill = SKILL_LEVELS.find((s) => s.value === skillLevel);
+  const selectedCategory = CATEGORIES.find((c) => c.value === category);
 
   return (
     <div className="pb-24 min-h-screen">
