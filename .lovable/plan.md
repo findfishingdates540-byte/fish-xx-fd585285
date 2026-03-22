@@ -1,31 +1,37 @@
 
 
-# Fix RLS Performance on `user_roles` Table
+# Change Team Filters to Category-Based
 
-## Problem
-The `user_roles` table's "Users can view own roles" policy calls `auth.uid()` directly, causing PostgreSQL to re-evaluate it per row instead of once per query. This degrades performance at scale.
+Replace the current skill-level filters (All / Pro / Mid / Beginner) with category-based filters matching the image: **All / Teams / Women / Jr. Anglers**.
 
-## Changes
+## Database Changes
 
-### Database Migration
-A single SQL migration to:
-
-1. Drop the existing policy
-2. Recreate it with `(SELECT auth.uid())` wrapper for optimal performance
-3. Add an index on `user_id` if not already present
-
+**Migration**: Add a `category` column to `fishing_teams`:
 ```sql
-DROP POLICY IF EXISTS "Users can view own roles" ON public.user_roles;
-
-CREATE POLICY "Users can view own roles"
-ON public.user_roles
-FOR SELECT
-TO authenticated
-USING (user_id = (SELECT auth.uid()));
-
-CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);
+ALTER TABLE fishing_teams ADD COLUMN category text NOT NULL DEFAULT 'teams';
 ```
+Valid values: `'teams'`, `'women'`, `'jr_anglers'`. No enum needed -- simple text column with sensible default.
 
-### No Code Changes
-This is a database-only fix. No application code needs to change -- the `has_role()` security definer function and all existing queries continue to work as before.
+Update existing seed data to spread across categories.
+
+## Frontend Changes
+
+**`src/pages/app/Teams.tsx`**:
+- Replace `skillFilter` state with `categoryFilter` (`'all' | 'teams' | 'women' | 'jr_anglers'`)
+- Update tab triggers: All / Teams / Women / Jr. Anglers
+- Filter logic: match `t.category` instead of `t.skill_level`
+- Remove `skillLabel` and `skillColor` helpers (or repurpose them for category badges)
+- Update category badge display on cards (e.g. "Women", "Jr. Anglers", "Teams")
+
+**`src/pages/app/CreateTeam.tsx`**: Replace the skill level selector with a category selector (Teams / Women / Jr. Anglers).
+
+**`src/components/layout/BottomNav.tsx`**: No changes needed -- Teams is already accessible via the Scoreboard Hub sheet.
+
+**`get_team_scores` function**: Currently accepts `p_skill_level fishing_experience`. Will be updated to accept a `p_category text` parameter and filter by `ft.category` instead of `ft.skill_level`.
+
+## Files to Edit
+1. New migration SQL -- add `category` column, update `get_team_scores`
+2. `src/pages/app/Teams.tsx` -- swap filter logic and labels
+3. `src/pages/app/CreateTeam.tsx` -- swap skill selector for category selector
+4. Seed migration update -- set categories on existing teams
 
