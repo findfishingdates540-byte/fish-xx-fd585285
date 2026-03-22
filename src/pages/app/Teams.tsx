@@ -117,7 +117,7 @@ export default function Teams() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-sm truncate">{team.name}</p>
-                    <Badge className={`text-[10px] border-0 ${skillColor(team.skill_level)}`}>{skillLabel(team.skill_level)}</Badge>
+                    <Badge className={`text-[10px] border-0 ${categoryColor((team as any).category)}`}>{categoryLabel((team as any).category)}</Badge>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
