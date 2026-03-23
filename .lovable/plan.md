@@ -1,37 +1,67 @@
 
 
-# Change Team Filters to Category-Based
+# Migrate from Natively to Capacitor
 
-Replace the current skill-level filters (All / Pro / Mid / Beginner) with category-based filters matching the image: **All / Teams / Women / Jr. Anglers**.
+## Overview
+Replace the Natively SDK wrapper with Capacitor to build native Android and iOS apps. This involves installing Capacitor, configuring it, updating push notification handling, and providing steps to build in Android Studio.
 
-## Database Changes
+## Step 1: Install Capacitor Dependencies
 
-**Migration**: Add a `category` column to `fishing_teams`:
-```sql
-ALTER TABLE fishing_teams ADD COLUMN category text NOT NULL DEFAULT 'teams';
-```
-Valid values: `'teams'`, `'women'`, `'jr_anglers'`. No enum needed -- simple text column with sensible default.
+Add the following packages:
+- `@capacitor/core`
+- `@capacitor/cli` (dev dependency)
+- `@capacitor/ios`
+- `@capacitor/android`
+- `@capacitor/push-notifications` (replaces Natively Firebase push)
 
-Update existing seed data to spread across categories.
+## Step 2: Initialize Capacitor
 
-## Frontend Changes
+Run `npx cap init` and configure `capacitor.config.ts`:
+- **appId**: `app.lovable.df5847982ad9482a9cd6d5a123462cf6`
+- **appName**: `FishX`
+- **webDir**: `dist`
+- **Server config** for dev hot-reload pointing to the sandbox preview URL
 
-**`src/pages/app/Teams.tsx`**:
-- Replace `skillFilter` state with `categoryFilter` (`'all' | 'teams' | 'women' | 'jr_anglers'`)
-- Update tab triggers: All / Teams / Women / Jr. Anglers
-- Filter logic: match `t.category` instead of `t.skill_level`
-- Remove `skillLabel` and `skillColor` helpers (or repurpose them for category badges)
-- Update category badge display on cards (e.g. "Women", "Jr. Anglers", "Teams")
+## Step 3: Update Push Notifications
 
-**`src/pages/app/CreateTeam.tsx`**: Replace the skill level selector with a category selector (Teams / Women / Jr. Anglers).
+Replace `use-natively-push.ts` with a Capacitor-based implementation using `@capacitor/push-notifications`:
+- `PushNotifications.requestPermissions()`
+- `PushNotifications.register()`
+- Listen for `registration` event to get the FCM token
+- Save token to `push_subscriptions` table (same DB schema, just different source)
 
-**`src/components/layout/BottomNav.tsx`**: No changes needed -- Teams is already accessible via the Scoreboard Hub sheet.
+Update `use-push-notifications-unified.ts` to detect Capacitor native instead of Natively:
+- Check `Capacitor.isNativePlatform()` from `@capacitor/core`
 
-**`get_team_scores` function**: Currently accepts `p_skill_level fishing_experience`. Will be updated to accept a `p_category text` parameter and filter by `ft.category` instead of `ft.skill_level`.
+## Step 4: Clean Up Natively References
 
-## Files to Edit
-1. New migration SQL -- add `category` column, update `get_team_scores`
-2. `src/pages/app/Teams.tsx` -- swap filter logic and labels
-3. `src/pages/app/CreateTeam.tsx` -- swap skill selector for category selector
-4. Seed migration update -- set categories on existing teams
+Remove or update:
+- `src/hooks/use-natively-push.ts` -- replace with Capacitor version
+- `src/vite-env.d.ts` -- remove Natively type declarations
+- Any `window.natively` or `window.NativelyFirebaseNotifications` checks throughout the codebase
+
+## Step 5: Build & Run Instructions
+
+After the code changes, you will need to do the following on your local machine:
+
+1. Export to GitHub via Settings → GitHub
+2. `git clone` and `cd` into the project
+3. `npm install`
+4. `npm run build`
+5. `npx cap add android` (and/or `npx cap add ios`)
+6. `npx cap sync`
+7. `npx cap open android` -- opens the project in Android Studio
+8. Build and run from Android Studio onto a device or emulator
+
+For subsequent code changes pulled from Lovable, just run `npm run build && npx cap sync`.
+
+## Files to Create/Edit
+1. `capacitor.config.ts` -- new Capacitor config
+2. `src/hooks/use-capacitor-push.ts` -- new push hook using Capacitor API
+3. `src/hooks/use-push-notifications-unified.ts` -- swap Natively detection for Capacitor
+4. `src/hooks/use-natively-push.ts` -- delete or gut
+5. `src/vite-env.d.ts` -- remove Natively types
+6. `package.json` -- add Capacitor dependencies
+
+Read more about using Capacitor with Lovable: https://docs.lovable.dev/tips-tricks/native-mobile-apps
 
