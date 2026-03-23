@@ -1,26 +1,26 @@
 import { usePushNotifications } from './use-push-notifications';
-import { useNativelyPush } from './use-natively-push';
+import { useCapacitorPush } from './use-capacitor-push';
 
 /**
  * Unified push notifications hook that automatically detects the platform
- * and uses the appropriate implementation (Natively SDK for native apps,
+ * and uses the appropriate implementation (Capacitor for native apps,
  * Web Push for browsers).
  */
 export function usePushNotificationsUnified() {
   const webPush = usePushNotifications();
-  const nativelyPush = useNativelyPush();
+  const capacitorPush = useCapacitorPush();
 
-  // If running in Natively app, use native push
-  if (nativelyPush.isNativeApp) {
+  // If running in Capacitor native app, use native push
+  if (capacitorPush.isNativePlatform) {
     return {
-      isSupported: nativelyPush.isSupported,
-      isSubscribed: nativelyPush.isSubscribed,
-      isLoading: nativelyPush.isLoading,
-      permission: nativelyPush.permission,
-      subscribe: nativelyPush.subscribe,
-      unsubscribe: nativelyPush.unsubscribe,
+      isSupported: capacitorPush.isSupported,
+      isSubscribed: capacitorPush.isSubscribed,
+      isLoading: capacitorPush.isLoading,
+      permission: capacitorPush.permission,
+      subscribe: capacitorPush.subscribe,
+      unsubscribe: capacitorPush.unsubscribe,
       platform: 'native' as const,
-      debugInfo: nativelyPush.debugInfo,
+      debugInfo: capacitorPush.debugInfo,
     };
   }
 
