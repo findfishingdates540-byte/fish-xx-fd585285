@@ -1,0 +1,1 @@
+UPDATE fishing_teams SET category = 'lady_angler' WHERE category = 'women';
