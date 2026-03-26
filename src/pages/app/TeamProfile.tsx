@@ -105,20 +105,30 @@ export default function TeamProfile() {
 
       const teamCategory = (team as any)?.category || "teams";
 
-      // Women-only team: block non-female users
-      if (teamCategory === "women" && profile?.gender !== "female") {
-        throw new Error("This team is for women only");
+      // Lady Angler: women 18+ only
+      if (teamCategory === "lady_angler") {
+        if (profile?.gender !== "female") {
+          throw new Error("Lady Angler teams are for women only");
+        }
+        if (!profile?.date_of_birth) {
+          throw new Error("Your date of birth is required to join a Lady Angler team");
+        }
+        const dob = new Date(profile.date_of_birth);
+        const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+        if (age < 18) {
+          throw new Error("Lady Angler teams are for members 18 and older");
+        }
       }
 
-      // Jr. Anglers: must be under 18
+      // Junior Angler: 17 and under only
       if (teamCategory === "jr_anglers") {
         if (!profile?.date_of_birth) {
-          throw new Error("Your date of birth is required to join a Jr. Anglers team");
+          throw new Error("Your date of birth is required to join a Junior Angler team");
         }
         const dob = new Date(profile.date_of_birth);
         const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
         if (age >= 18) {
-          throw new Error("Jr. Anglers teams are for members under 18");
+          throw new Error("Junior Angler teams are for members 17 and under");
         }
       }
 

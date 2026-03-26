@@ -25,9 +25,10 @@ import {
 import { toast } from "sonner";
 
 const CATEGORIES = [
-  { value: "teams", label: "Teams", description: "General fishing team for all anglers", emoji: "🎣" },
-  { value: "women", label: "Women", description: "Women-only fishing team", emoji: "👩" },
-  { value: "jr_anglers", label: "Jr. Anglers", description: "Youth and junior anglers under 18", emoji: "🌱" },
+  { value: "jr_anglers", label: "Junior Angler", description: "Boys & girls 17 and under", emoji: "🌱" },
+  { value: "lady_angler", label: "Lady Angler", description: "Women anglers 18 and up", emoji: "👩" },
+  { value: "all_anglers", label: "All Anglers", description: "Open to all anglers, any age or gender", emoji: "🎣" },
+  { value: "teams", label: "Teams", description: "General fishing team", emoji: "🏆" },
 ];
 
 export default function CreateTeam() {

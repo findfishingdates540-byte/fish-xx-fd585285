@@ -75,14 +75,16 @@ export default function Teams() {
   const myTeams = enrichedTeams.filter((t) => t.isMember);
 
   const categoryLabel = (c: string) => {
-    if (c === "women") return "Women";
-    if (c === "jr_anglers") return "Jr. Anglers";
+    if (c === "jr_anglers") return "Junior Angler";
+    if (c === "lady_angler") return "Lady Angler";
+    if (c === "all_anglers") return "All Anglers";
     return "Teams";
   };
 
   const categoryColor = (c: string) => {
-    if (c === "women") return "bg-pink-500/10 text-pink-600";
     if (c === "jr_anglers") return "bg-amber-500/10 text-amber-600";
+    if (c === "lady_angler") return "bg-pink-500/10 text-pink-600";
+    if (c === "all_anglers") return "bg-emerald-500/10 text-emerald-600";
     return "bg-primary/10 text-primary";
   };
 
@@ -142,9 +144,10 @@ export default function Teams() {
         <Tabs value={categoryFilter} onValueChange={setCategoryFilter}>
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="jr_anglers">Junior Angler</TabsTrigger>
+            <TabsTrigger value="lady_angler">Lady Angler</TabsTrigger>
+            <TabsTrigger value="all_anglers">All Anglers</TabsTrigger>
             <TabsTrigger value="teams">Teams</TabsTrigger>
-            <TabsTrigger value="women">Women</TabsTrigger>
-            <TabsTrigger value="jr_anglers">Jr. Anglers</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
