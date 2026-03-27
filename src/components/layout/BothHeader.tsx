@@ -25,7 +25,7 @@ import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const bothNavItems = [
-  { to: "/app/dashboard", label: "Dashboard" },
+  { to: "/app/feed", label: "Feed" },
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/catches", label: "Catches" },
@@ -72,7 +72,7 @@ export function BothHeader() {
         {/* Left side - Logo and Nav */}
         <div className="flex items-center gap-8">
           {/* Logo */}
-          <Link to="/app/dashboard" className="flex items-center">
+          <Link to="/app/feed" className="flex items-center">
             <img src={logo} alt="FFD" className="h-10 w-auto" />
           </Link>
 

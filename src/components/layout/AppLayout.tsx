@@ -8,7 +8,7 @@ import { BottomNav } from './BottomNav';
 import { FishingHeader } from './FishingHeader';
 import { BothHeader } from './BothHeader';
 import { ComboSharedHeader } from './ComboSharedHeader';
-import { MobileModeSwitcher } from './MobileModeSwitcher';
+
 import { PageTransition } from './PageTransition';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
@@ -223,8 +223,6 @@ function AppLayoutContent() {
           <BottomNav accountMode={effectiveMode} />
         </div>
 
-        {/* Mobile Mode Switcher FAB */}
-        <MobileModeSwitcher />
       </div>
     );
   }
@@ -256,8 +254,6 @@ function AppLayoutContent() {
         </div>
       )}
 
-      {/* Mobile Mode Switcher FAB */}
-      <MobileModeSwitcher />
     </div>
   );
 }
