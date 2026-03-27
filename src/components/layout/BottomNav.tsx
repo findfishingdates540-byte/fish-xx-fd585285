@@ -45,10 +45,6 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
       { to: '/app/matches', icon: Heart, label: 'Matches', hasMatchBadge: true },
       { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     ];
-    // Add dashboard link for combo users viewing dating mode
-    if (isComboUser) {
-      items.push({ to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
-    }
     items.push({ to: '/app/profile', icon: User, label: 'Profile' });
     return items;
   }
@@ -61,10 +57,6 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
       { to: '/app/photo-challenges', icon: Camera, label: 'Challenges' },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
     ];
-    // Add dashboard link for combo users viewing fishing mode
-    if (isComboUser) {
-      items.push({ to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
-    }
     return items;
   }
 
