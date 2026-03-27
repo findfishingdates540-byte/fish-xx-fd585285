@@ -11,7 +11,7 @@ export default function AppIndex() {
 
   // Default all users to feed (fishing-first)
   if (accountMode === 'both') {
-    return <Navigate to="/app/dashboard" replace />;
+    return <Navigate to="/app/feed" replace />;
   }
 
   if (accountMode === 'dating') {
