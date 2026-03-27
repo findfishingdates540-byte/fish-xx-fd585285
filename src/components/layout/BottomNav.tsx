@@ -60,8 +60,6 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
     return items;
   }
 
-  // Both mode - dashboard-centric navigation
-  return [
   // Both mode - feed-centric navigation
   return [
     { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
