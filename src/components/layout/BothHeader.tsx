@@ -25,7 +25,7 @@ import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const bothNavItems = [
-  { to: "/app/dashboard", label: "Dashboard" },
+  { to: "/app/feed", label: "Feed" },
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/catches", label: "Catches" },
