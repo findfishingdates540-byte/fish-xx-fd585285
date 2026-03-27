@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Heart, LayoutDashboard, Anchor, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationCenter, NotificationMode } from '@/components/notifications/NotificationCenter';
+import { AccountSwitcherSheet } from '@/components/layout/AccountSwitcherSheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
 import { useAccountModeSwitcher } from '@/hooks/use-account-mode-switcher';
@@ -312,14 +313,20 @@ export function AppHeader() {
 
           <NotificationCenter mode={notificationMode} />
 
-          <Link to="/app/profile">
-            <Avatar className="h-8 w-8 border border-border">
-              <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
-              <AvatarFallback className="bg-muted text-muted-foreground text-sm">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
+          {/* Account Switcher (combo users) or plain avatar link */}
+          <AccountSwitcherSheet avatarUrl={avatarUrl} displayName={profile?.display_name || ''} />
+          
+          {/* Plain avatar for non-combo users */}
+          {!isComboUser && (
+            <Link to="/app/profile">
+              <Avatar className="h-8 w-8 border border-border">
+                <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
+                <AvatarFallback className="bg-muted text-muted-foreground text-sm">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          )}
         </div>
       </div>
     </header>
