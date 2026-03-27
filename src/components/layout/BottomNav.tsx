@@ -62,8 +62,10 @@ const getNavItems = (mode: AccountMode, isComboUser: boolean): NavItem[] => {
 
   // Both mode - dashboard-centric navigation
   return [
-    { to: '/app/dashboard', icon: Home, label: 'Home' },
+  // Both mode - feed-centric navigation
+  return [
     { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
+    { to: '/app/spots', icon: MapPin, label: 'Spots' },
     { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     { to: '/app/profile', icon: User, label: 'Profile' },
   ];
