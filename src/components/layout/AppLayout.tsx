@@ -223,8 +223,6 @@ function AppLayoutContent() {
           <BottomNav accountMode={effectiveMode} />
         </div>
 
-        {/* Mobile Mode Switcher FAB */}
-        <MobileModeSwitcher />
       </div>
     );
   }
@@ -256,8 +254,6 @@ function AppLayoutContent() {
         </div>
       )}
 
-      {/* Mobile Mode Switcher FAB */}
-      <MobileModeSwitcher />
     </div>
   );
 }
