@@ -224,8 +224,8 @@ export function BottomNav({ accountMode }: BottomNavProps) {
       >
         {({ isActive }) => (
           <div className="relative flex flex-col items-center gap-0.5">
-            <item.icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
-            <span className={cn("text-[10px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
+            <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 1.8} />
+            <span className={cn("text-[9px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
             {badgeCount > 0 && (
               <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
                 {badgeCount > 9 ? "9+" : badgeCount}
