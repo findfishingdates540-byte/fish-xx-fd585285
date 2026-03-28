@@ -116,7 +116,7 @@ const App = () => (
               
               {/* Fishing-only routes */}
               <Route path="spots" element={<FishingRoute><Spots /></FishingRoute>} />
-              <Route path="spots/new" element={<FishingRoute><AddSpot /></FishingRoute>} />
+              <Route path="spots/new" element={<FishingRoute><Navigate to="/app/spots" replace /></FishingRoute>} />
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
               <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
               <Route path="catches/:catchId" element={<FishingRoute><CatchDetail /></FishingRoute>} />
