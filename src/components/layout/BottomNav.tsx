@@ -205,8 +205,8 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           onClick={() => setScoreboardOpen(true)}
           className="flex flex-col items-center justify-center py-2 px-3 transition-colors text-muted-foreground hover:text-foreground"
         >
-          <item.icon className="h-[22px] w-[22px]" strokeWidth={1.8} />
-          <span className="text-[10px] leading-tight mt-0.5">{item.label}</span>
+          <item.icon className="h-5 w-5" strokeWidth={1.8} />
+          <span className="text-[9px] leading-tight mt-0.5">{item.label}</span>
         </button>
       );
     }
