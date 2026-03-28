@@ -282,8 +282,8 @@ export function AppHeader() {
       <div className="flex items-center justify-between h-14 pl-2 pr-4">
         <Link to="/app" className="flex items-center">
           <img 
-            src={effectiveMode === 'dating' ? datingLogo : fishingHeaderLogo} 
-            alt={effectiveMode === 'dating' ? 'FishX Dating' : 'FishX'} 
+            src={logo} 
+            alt="FishX" 
             className="h-7 w-auto" 
           />
         </Link>
