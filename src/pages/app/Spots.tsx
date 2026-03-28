@@ -64,7 +64,7 @@ export default function Spots() {
       }
 
       // Fetch profiles for all unique user IDs
-      const userIds = [...new Set((data || []).map(c => c.user_id))];
+      const userIds = [...new Set((data || []).map((c: any) => c.user_id))] as string[];
       let profileMap = new Map<string, { display_name: string | null; photos: string[] | null }>();
       
       if (userIds.length > 0) {
