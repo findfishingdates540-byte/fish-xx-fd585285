@@ -33,7 +33,7 @@ export const FeedComposerBar: FC<FeedComposerBarProps> = ({ onOpenCreatePost }) 
 
   return (
     <div 
-      className="bg-card rounded-xl border shadow-sm p-3 flex items-center gap-3 cursor-pointer hover:bg-accent/50"
+      className="bg-card rounded-xl border shadow-sm p-3 mx-3 md:mx-0 flex items-center gap-3 cursor-pointer hover:bg-accent/50"
       onClick={onOpenCreatePost}
     >
       <Avatar className="h-9 w-9 flex-shrink-0">
