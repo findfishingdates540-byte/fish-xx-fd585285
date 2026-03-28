@@ -6,9 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import logo from '@/assets/logo.png';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
+
 // Request browser notification permission
 const requestNotificationPermission = async () => {
   if ('Notification' in window && Notification.permission === 'default') {
@@ -51,17 +49,6 @@ export function AppHeader() {
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
-  
-  // Get active mode context for combo users
-  const { activeMode, setActiveMode, isComboUser, baseAccountMode, effectiveMode } = useActiveMode();
-  
-  // For combo users, this just switches their view preference (not account type)
-  const handleModeSwitch = (mode: 'unified' | 'dating' | 'fishing') => {
-    setActiveMode(mode);
-  };
-  
-  // Map effectiveMode to NotificationMode
-  const notificationMode: NotificationMode = effectiveMode;
 
   // Request notification permission on mount
   useEffect(() => {
@@ -160,29 +147,19 @@ export function AppHeader() {
     enabled: !!user?.id,
   });
 
-
-
   // Real-time subscriptions for notifications
   useEffect(() => {
     if (!user?.id) return;
-
-    console.log('Setting up real-time notification subscriptions');
 
     const channel = supabase
       .channel('notifications-realtime')
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'matches',
-        },
+        { event: 'UPDATE', schema: 'public', table: 'matches' },
         (payload) => {
-          console.log('Match update received:', payload);
           const match = payload.new as any;
           if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
             queryClient.invalidateQueries({ queryKey: ['recent-matches', user.id] });
-            // Play sound and show notification
             playNotificationSound();
             showBrowserNotification('New Match!', 'You have a new match on FishX!');
           }
@@ -190,17 +167,11 @@ export function AppHeader() {
       )
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-        },
+        { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
-          console.log('New message received:', payload);
           const message = payload.new as any;
           if (message.sender_id !== user.id) {
             queryClient.invalidateQueries({ queryKey: ['unread-messages', user.id] });
-            // Play sound and show notification
             playNotificationSound();
             showBrowserNotification('New Message', 'You have a new message!');
           }
@@ -208,17 +179,11 @@ export function AppHeader() {
       )
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'trip_participants',
-        },
+        { event: 'INSERT', schema: 'public', table: 'trip_participants' },
         (payload) => {
-          console.log('Trip invitation received:', payload);
           const invite = payload.new as any;
           if (invite.user_id === user.id) {
             queryClient.invalidateQueries({ queryKey: ['trip-invites', user.id] });
-            // Play sound and show notification
             playNotificationSound();
             showBrowserNotification('Trip Invitation', 'You have been invited to a fishing trip!');
           }
@@ -226,27 +191,18 @@ export function AppHeader() {
       )
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'buddy_messages',
-        },
+        { event: 'INSERT', schema: 'public', table: 'buddy_messages' },
         (payload) => {
-          console.log('New buddy message received:', payload);
           const message = payload.new as any;
           if (message.sender_id !== user.id) {
-            // Play sound and show notification for buddy messages
             playNotificationSound();
             showBrowserNotification('New Buddy Message', 'You have a new message from a fishing buddy!');
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Notification subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('Cleaning up notification subscriptions');
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);
@@ -262,17 +218,10 @@ export function AppHeader() {
   // Detect new notifications and trigger alerts
   useEffect(() => {
     if (totalNotifications > previousCountRef.current && previousCountRef.current > 0) {
-      // New notification arrived
       playNotificationSound();
     }
     previousCountRef.current = totalNotifications;
   }, [totalNotifications]);
-
-  const modeOptions: { value: ActiveMode; icon: React.ElementType; label: string }[] = [
-    { value: 'unified', icon: LayoutDashboard, label: 'All' },
-    { value: 'dating', icon: Heart, label: 'Dating' },
-    { value: 'fishing', icon: Anchor, label: 'Fishing' },
-  ];
 
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
@@ -286,43 +235,16 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
-          {/* Mode Switcher for Combo Users */}
-          {isComboUser && (
-            <div className="hidden sm:flex bg-muted rounded-full p-0.5 gap-0.5">
-              {modeOptions.map((mode) => (
-                <button
-                  key={mode.value}
-                  onClick={() => handleModeSwitch(mode.value)}
-                  className={cn(
-                    "flex items-center justify-center p-1.5 rounded-full transition-colors",
-                    activeMode === mode.value
-                      ? "bg-background text-primary shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                  title={mode.label}
-                >
-                  <mode.icon className="h-4 w-4" />
-                </button>
-              ))}
-            </div>
-          )}
+          <NotificationCenter mode="fishing" />
 
-          <NotificationCenter mode={notificationMode} />
-
-          {/* Account Switcher (combo users) or plain avatar link */}
-          <AccountSwitcherSheet avatarUrl={avatarUrl} displayName={profile?.display_name || ''} />
-          
-          {/* Plain avatar for non-combo users */}
-          {!isComboUser && (
-            <Link to="/app/profile">
-              <Avatar className="h-8 w-8 border border-border">
-                <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
-                <AvatarFallback className="bg-muted text-muted-foreground text-sm">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-          )}
+          <Link to="/app/profile">
+            <Avatar className="h-8 w-8 border border-border">
+              <AvatarImage src={avatarUrl} alt={profile?.display_name || 'Profile'} />
+              <AvatarFallback className="bg-muted text-muted-foreground text-sm">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
         </div>
       </div>
     </header>
