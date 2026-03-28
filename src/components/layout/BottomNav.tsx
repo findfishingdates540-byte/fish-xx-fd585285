@@ -58,35 +58,57 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
 /* ---- Pill background with smooth notch ---- */
 function PillBackground() {
   return (
-    <svg
-      className="absolute inset-0 w-full h-full drop-shadow-sm"
-      viewBox="0 0 360 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="none"
-    >
-      <path
-        d={[
-          'M 0 32',
-          'C 0 14.327 14.327 0 32 0',
-          'L 136 0',
-          'C 141 0 144 1 146 5',
-          'Q 152 18 160 28',
-          'Q 168 38 180 38',
-          'Q 192 38 200 28',
-          'Q 208 18 214 5',
-          'C 216 1 219 0 224 0',
-          'L 328 0',
-          'C 345.673 0 360 14.327 360 32',
-          'C 360 49.673 345.673 64 328 64',
-          'L 32 64',
-          'C 14.327 64 0 49.673 0 32',
-          'Z',
-        ].join(' ')}
-        className="fill-background stroke-border"
-        strokeWidth="0.8"
-      />
-    </svg>
+    <div className="absolute inset-0 w-full h-full drop-shadow-sm">
+      {/* Left rounded end */}
+      <div className="absolute left-0 top-0 bottom-0 w-8">
+        <svg className="w-full h-full" viewBox="0 0 32 64" fill="none" preserveAspectRatio="none">
+          <path d="M 0 32 C 0 14.327 14.327 0 32 0 L 32 64 L 32 64 C 14.327 64 0 49.673 0 32 Z" className="fill-background stroke-border" strokeWidth="0.8" />
+        </svg>
+      </div>
+      {/* Left flat bar */}
+      <div className="absolute left-8 top-0 bottom-0 right-[calc(50%+44px)]">
+        <svg className="w-full h-full" viewBox="0 0 1 64" fill="none" preserveAspectRatio="none">
+          <rect x="0" y="0" width="1" height="64" className="fill-background" />
+          <line x1="0" y1="0" x2="1" y2="0" className="stroke-border" strokeWidth="0.8" />
+          <line x1="0" y1="64" x2="1" y2="64" className="stroke-border" strokeWidth="0.8" />
+        </svg>
+      </div>
+      {/* Center notch — fixed width */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[88px]">
+        <svg className="w-full h-full" viewBox="0 0 88 64" fill="none" preserveAspectRatio="xMidYMin meet">
+          <path
+            d={[
+              'M 0 0',
+              'C 5 0 8 1 10 5',
+              'Q 16 18 24 28',
+              'Q 32 38 44 38',
+              'Q 56 38 64 28',
+              'Q 72 18 78 5',
+              'C 80 1 83 0 88 0',
+              'L 88 64',
+              'L 0 64',
+              'Z',
+            ].join(' ')}
+            className="fill-background stroke-border"
+            strokeWidth="0.8"
+          />
+        </svg>
+      </div>
+      {/* Right flat bar */}
+      <div className="absolute right-8 top-0 bottom-0 left-[calc(50%+44px)]">
+        <svg className="w-full h-full" viewBox="0 0 1 64" fill="none" preserveAspectRatio="none">
+          <rect x="0" y="0" width="1" height="64" className="fill-background" />
+          <line x1="0" y1="0" x2="1" y2="0" className="stroke-border" strokeWidth="0.8" />
+          <line x1="0" y1="64" x2="1" y2="64" className="stroke-border" strokeWidth="0.8" />
+        </svg>
+      </div>
+      {/* Right rounded end */}
+      <div className="absolute right-0 top-0 bottom-0 w-8">
+        <svg className="w-full h-full" viewBox="0 0 32 64" fill="none" preserveAspectRatio="none">
+          <path d="M 0 0 L 0 0 C 17.673 0 32 14.327 32 32 C 32 49.673 17.673 64 0 64 L 0 64 Z" className="fill-background stroke-border" strokeWidth="0.8" />
+        </svg>
+      </div>
+    </div>
   );
 }
 
