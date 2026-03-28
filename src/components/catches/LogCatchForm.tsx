@@ -352,22 +352,29 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             />
           </div>
 
-          {/* GPS Privacy Card */}
+          {/* Share Location Toggle */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-start gap-3 mb-3">
-              <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="font-semibold text-sm text-primary">GPS Privacy Protected</p>
+              <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-primary">Share on Spots Map?</p>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Exact GPS coordinates are used for verification and aggregate scientific data
-                  but are <span className="font-semibold text-foreground">never</span> shared with other users.
-                  Your honey holes remain yours.
+                  Let other anglers see your catch location on the community map.
+                  Your exact GPS will show as a general area marker.
                 </p>
               </div>
             </div>
-            <div className="rounded-lg bg-muted/60 p-3 flex items-center justify-center">
-              <span className="text-xs text-muted-foreground font-medium">🔒 GPS Locked Locally</span>
-            </div>
+            <label className="flex items-center gap-3 cursor-pointer rounded-lg bg-muted/60 p-3">
+              <input
+                type="checkbox"
+                checked={formData.share_location}
+                onChange={(e) => setFormData({ ...formData, share_location: e.target.checked })}
+                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              />
+              <span className="text-sm font-medium">
+                {formData.share_location ? '📍 Location will be shared' : '🔒 Location stays private'}
+              </span>
+            </label>
           </div>
         </div>
       </div>
