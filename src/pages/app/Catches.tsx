@@ -164,7 +164,8 @@ export default function Catches() {
         cover_photo_url: coverUrl,
         measurement_photo_url: measurementUrl,
         general_location: data.general_location || null,
-      });
+        share_location: data.share_location,
+      } as any);
       if (error) throw error;
 
       if (data.fishing_spot_id && speciesName) {
