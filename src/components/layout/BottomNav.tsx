@@ -182,16 +182,18 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   }, [user?.id, queryClient]);
 
   const getBadgeCount = (item: NavItem): number => {
-    if (item.hasBuddyBadge) return pendingRequestsCount + unreadBuddyMessagesCount;
+    if (item.hasBuddyBadge) return pendingRequestsCount;
     if (item.hasMessageBadge) return unreadMessagesCount;
     if (item.hasMatchBadge) return newMatchesCount;
     if (item.hasLikesBadge) return pendingLikesCount;
     if (item.hasMentionsBadge) return unreadMentionsCount;
+    if (item.hasBuddyMessagesBadge) return unreadBuddyMessagesCount;
     return 0;
   };
 
-  const leftItems = navItems.slice(0, 2);
-  const rightItems = navItems.slice(3);
+  const centerIndex = navItems.findIndex(i => i.isCenterAction);
+  const leftItems = navItems.slice(0, centerIndex);
+  const rightItems = navItems.slice(centerIndex + 1);
 
   const renderNavItem = (item: NavItem) => {
     const badgeCount = getBadgeCount(item);
