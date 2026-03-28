@@ -1,17 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Heart, LayoutDashboard, Anchor, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { NotificationCenter, NotificationMode } from '@/components/notifications/NotificationCenter';
-import { AccountSwitcherSheet } from '@/components/layout/AccountSwitcherSheet';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useAuth } from '@/contexts/AuthContext';
-import { useActiveMode, ActiveMode } from '@/contexts/ActiveModeContext';
-import { useAccountModeSwitcher } from '@/hooks/use-account-mode-switcher';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import type { Database } from '@/integrations/supabase/types';
 import logo from '@/assets/logo.png';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 // Request browser notification permission
 const requestNotificationPermission = async () => {
   if ('Notification' in window && Notification.permission === 'default') {
