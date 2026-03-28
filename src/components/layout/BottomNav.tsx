@@ -57,11 +57,8 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
   ];
 };
 
-/* ---- Pill background with smooth notch (inline SVG, viewBox-based) ---- */
+/* ---- Pill background with smooth notch ---- */
 function PillBackground() {
-  // viewBox is 360x64. The notch is a smooth curve centered at x=180.
-  // The plus button (56px) sits above with a 6px gap, so the notch radius ≈ 34px
-  // to create a smooth U-shaped curve that doesn't touch the button.
   return (
     <svg
       className="absolute inset-0 w-full h-full drop-shadow-sm"
@@ -72,42 +69,15 @@ function PillBackground() {
     >
       <path
         d={[
-          // Start top-left with rounded corner
           'M 0 32',
           'C 0 14.327 14.327 0 32 0',
-          // Top edge to left of notch
-          'L 144 0',
-          // Smooth curve down into notch
-          'C 150 0 155 2 158 8',
-          'C 162 16 170 22 180 22',
-          // Mirror curve back up
-          'C 190 22 198 16 202 8',
-          'C 205 2 210 0 216 0',
-          // Top edge continues to right
-          'L 328 0',
-          // Top-right rounded corner
-          'C 345.673 0 360 14.327 360 32',
-          // Bottom-right rounded corner
-          'L 360 32',
-          'C 360 49.673 345.673 64 328 64',
-          // Bottom edge
-          'L 32 64',
-          // Bottom-left rounded corner
-          'C 14.327 64 0 49.673 0 32',
-          'Z',
-        ].join(' ')}
-        className="fill-background"
-      />
-      {/* Border stroke on top only for the pill outline */}
-      <path
-        d={[
-          'M 0 32',
-          'C 0 14.327 14.327 0 32 0',
-          'L 144 0',
-          'C 150 0 155 2 158 8',
-          'C 162 16 170 22 180 22',
-          'C 190 22 198 16 202 8',
-          'C 205 2 210 0 216 0',
+          'L 140 0',
+          'C 145 0 148 1 150 4',
+          'Q 156 16 164 24',
+          'Q 170 30 180 30',
+          'Q 190 30 196 24',
+          'Q 204 16 210 4',
+          'C 212 1 215 0 220 0',
           'L 328 0',
           'C 345.673 0 360 14.327 360 32',
           'C 360 49.673 345.673 64 328 64',
@@ -115,7 +85,7 @@ function PillBackground() {
           'C 14.327 64 0 49.673 0 32',
           'Z',
         ].join(' ')}
-        className="stroke-border"
+        className="fill-background stroke-border"
         strokeWidth="0.8"
       />
     </svg>
