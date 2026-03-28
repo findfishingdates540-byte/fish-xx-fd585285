@@ -112,11 +112,10 @@ export default function Teams() {
   const getCategoryConfig = (c: string) => categoryConfig[c] || categoryConfig.teams;
 
   const categories = [
-    { key: "all", label: "All" },
+    { key: "all", label: "All Anglers" },
     { key: "teams", label: "Teams" },
     { key: "lady_angler", label: "Women" },
     { key: "jr_anglers", label: "Jr. Anglers" },
-    { key: "all_anglers", label: "All Anglers" },
   ];
 
   return (
