@@ -809,8 +809,8 @@ export default function Profile() {
                   </CardContent>
                 </Card>
 
-                {/* Fishing Style */}
-                {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
+                {/* Fishing Style - only in fishing view */}
+                {profileView === 'fishing' && (profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
                   <Card className="border-blue-200 dark:border-blue-900/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
                       <div className="flex items-center gap-2">
@@ -824,7 +824,6 @@ export default function Profile() {
                       </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Favorite species hidden for now */}
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Skill Level</p>
                         <div className="space-y-2">
