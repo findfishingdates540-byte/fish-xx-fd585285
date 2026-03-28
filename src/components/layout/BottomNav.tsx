@@ -66,13 +66,7 @@ function PillBackground() {
         </svg>
       </div>
       {/* Left flat bar */}
-      <div className="absolute left-8 top-0 bottom-0 right-[calc(50%+44px)]">
-        <svg className="w-full h-full" viewBox="0 0 1 64" fill="none" preserveAspectRatio="none">
-          <rect x="0" y="0" width="1" height="64" className="fill-background" />
-          <line x1="0" y1="0" x2="1" y2="0" className="stroke-border" strokeWidth="0.8" />
-          <line x1="0" y1="64" x2="1" y2="64" className="stroke-border" strokeWidth="0.8" />
-        </svg>
-      </div>
+      <div className="absolute left-[31px] top-0 bottom-0 right-[calc(50%+43px)] bg-background border-t border-b border-border" />
       {/* Center notch — fixed width */}
       <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[88px]">
         <svg className="w-full h-full" viewBox="0 0 88 64" fill="none" preserveAspectRatio="xMidYMin meet">
@@ -95,13 +89,7 @@ function PillBackground() {
         </svg>
       </div>
       {/* Right flat bar */}
-      <div className="absolute right-8 top-0 bottom-0 left-[calc(50%+44px)]">
-        <svg className="w-full h-full" viewBox="0 0 1 64" fill="none" preserveAspectRatio="none">
-          <rect x="0" y="0" width="1" height="64" className="fill-background" />
-          <line x1="0" y1="0" x2="1" y2="0" className="stroke-border" strokeWidth="0.8" />
-          <line x1="0" y1="64" x2="1" y2="64" className="stroke-border" strokeWidth="0.8" />
-        </svg>
-      </div>
+      <div className="absolute right-[31px] top-0 bottom-0 left-[calc(50%+43px)] bg-background border-t border-b border-border" />
       {/* Right rounded end */}
       <div className="absolute right-0 top-0 bottom-0 w-8">
         <svg className="w-full h-full" viewBox="0 0 32 64" fill="none" preserveAspectRatio="none">
