@@ -247,19 +247,19 @@ export default function Challenges() {
             Competing with {participantUserIds.length.toLocaleString()} anglers worldwide
           </p>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search challenges, species..."
+              placeholder="Search challenges..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-9"
             />
           </div>
-          <Button className="gap-1.5 shrink-0" onClick={() => navigate("/app/challenges/new")}>
+          <Button className="gap-1.5 shrink-0 h-9" size="sm" onClick={() => navigate("/app/challenges/new")}>
             <Plus className="h-4 w-4" />
-            Create Challenge
+            <span className="sm:inline">Create</span>
           </Button>
         </div>
       </div>
@@ -281,32 +281,33 @@ export default function Challenges() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 px-4 md:px-6 mb-6">
-        <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Trophy className="h-5 w-5 text-primary" />
+      {/* My Stats */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 px-4 md:px-6 mb-6">
+        <div className="rounded-xl border bg-card p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
+          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">My Active</p>
-            <p className="text-lg font-bold">{myStats.activeChallenges} Challenges</p>
-          </div>
-        </div>
-        <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <DollarSign className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total Purses</p>
-            <p className="text-lg font-bold">${myStats.totalPurses.toLocaleString()}</p>
+          <div className="text-center sm:text-left">
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Active</p>
+            <p className="text-sm sm:text-lg font-bold">{myStats.activeChallenges}</p>
           </div>
         </div>
-        <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Award className="h-5 w-5 text-primary" />
+        <div className="rounded-xl border bg-card p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
+          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Current Rank</p>
-            <p className="text-lg font-bold">{myStats.bestRank ? `#${myStats.bestRank}` : "—"}</p>
+          <div className="text-center sm:text-left">
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Purses</p>
+            <p className="text-sm sm:text-lg font-bold">${myStats.totalPurses.toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="rounded-xl border bg-card p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
+          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Award className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          </div>
+          <div className="text-center sm:text-left">
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Rank</p>
+            <p className="text-sm sm:text-lg font-bold">{myStats.bestRank ? `#${myStats.bestRank}` : "—"}</p>
           </div>
         </div>
       </div>
@@ -397,12 +398,12 @@ export default function Challenges() {
       </div>
 
       {/* CTA Banner */}
-      <div className="mx-4 md:mx-6 mt-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-8 md:p-10 text-center">
-        <h2 className="text-xl font-bold mb-2">Don't see a challenge that fits?</h2>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
-          Create your own private challenge for your fishing club or tournament series. Custom species, locations, and scoring rules.
+      <div className="mx-4 md:mx-6 mt-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-6 sm:p-8 md:p-10 text-center">
+        <h2 className="text-lg sm:text-xl font-bold mb-2">Don't see a challenge that fits?</h2>
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto mb-4 sm:mb-5">
+          Create your own private challenge for your fishing club or tournament series.
         </p>
-        <Button variant="outline" size="lg" onClick={() => navigate("/app/challenges/new")} className="gap-2">
+        <Button variant="outline" size="default" onClick={() => navigate("/app/challenges/new")} className="gap-2">
           Host a Private Event
         </Button>
       </div>
@@ -459,8 +460,8 @@ function LiveChallengeCard({
 
       {/* Bottom section */}
       <div className="p-4">
-        <div className="flex items-start justify-between gap-4">
-          {/* Left: Leaderboard */}
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+          {/* Leaderboard */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Top Leaderboard</p>
@@ -485,22 +486,22 @@ function LiveChallengeCard({
             </div>
           </div>
 
-          {/* Right: Stats */}
-          <div className="text-right shrink-0 space-y-3">
+          {/* Stats */}
+          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 shrink-0">
             {challenge.prizePool > 0 && (
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total Prize Pool</p>
-                <p className="text-xl font-bold text-primary">${challenge.prizePool.toLocaleString()}</p>
+              <div className="text-left sm:text-right">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Prize Pool</p>
+                <p className="text-lg sm:text-xl font-bold text-primary">${challenge.prizePool.toLocaleString()}</p>
               </div>
             )}
-            <div>
+            <div className="text-left sm:text-right">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Participants</p>
               <p className="text-sm font-bold">
                 {challenge.participantCount}
                 {challenge.maxParticipants && <span className="text-muted-foreground font-normal">/{challenge.maxParticipants}</span>}
               </p>
               {challenge.maxParticipants && (
-                <div className="w-20 h-1 bg-muted rounded-full mt-1 ml-auto">
+                <div className="w-20 h-1 bg-muted rounded-full mt-1">
                   <div
                     className="h-full bg-primary rounded-full"
                     style={{ width: `${Math.min(100, (challenge.participantCount / challenge.maxParticipants) * 100)}%` }}
@@ -510,11 +511,10 @@ function LiveChallengeCard({
             </div>
             <Button
               size="sm"
-              className="w-full"
               onClick={onJoin}
               disabled={challenge.isJoined || joining}
             >
-              {challenge.isJoined ? "Joined" : "Join Challenge"}
+              {challenge.isJoined ? "Joined" : "Join"}
             </Button>
           </div>
         </div>
