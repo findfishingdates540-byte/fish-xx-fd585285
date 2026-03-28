@@ -227,11 +227,9 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 pl-2 pr-4">
         <Link to="/app" className="flex items-center">
-          <img 
-            src={logo} 
-            alt="FishX" 
-            className="h-7 w-auto" 
-          />
+          <span className="text-xl font-black tracking-tight">
+            FISH<span className="text-primary">-X</span>
+          </span>
         </Link>
 
         <div className="flex items-center gap-2">
