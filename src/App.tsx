@@ -31,7 +31,7 @@ import CommunityGuidelines from "./pages/CommunityGuidelines";
 import CookiePolicy from "./pages/CookiePolicy";
 import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
 import SpeciesExplorer from "./pages/app/SpeciesExplorer";
 import CatchDetail from "./pages/app/CatchDetail";
