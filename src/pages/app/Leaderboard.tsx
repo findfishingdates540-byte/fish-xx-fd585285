@@ -49,7 +49,7 @@ interface ProfileInfo {
 export default function Leaderboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [teamSkillFilter, setTeamSkillFilter] = useState("pro");
+  const [teamCategoryFilter, setTeamCategoryFilter] = useState("all");
 
   const { data: speciesList = [], isLoading: speciesLoading } = useQuery({
     queryKey: ["leaderboard-species"],
@@ -122,10 +122,9 @@ export default function Leaderboard() {
   });
 
   const { data: teamScores = [] } = useQuery({
-    queryKey: ["teams-rankings", teamSkillFilter],
+    queryKey: ["teams-rankings", teamCategoryFilter],
     queryFn: async () => {
-      const skillMap: Record<string, "advanced" | "intermediate" | "beginner"> = { pro: "advanced", intermediate: "intermediate", beginner: "beginner" };
-      const { data } = await supabase.rpc("get_team_scores", { p_skill_level: skillMap[teamSkillFilter] || "advanced" } as any);
+      const { data } = await supabase.rpc("get_team_scores", { p_category: teamCategoryFilter === "all" ? undefined : teamCategoryFilter } as any);
       return (data || []) as { team_id: string; team_name: string; logo_url: string | null; captain_id: string; member_count: number; season_points: number; last_7_days_catches: number }[];
     },
   });
@@ -235,33 +234,55 @@ export default function Leaderboard() {
 
           {/* Team Rankings */}
           <section>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <h2 className="text-lg font-bold flex items-center gap-2"><Users className="h-5 w-5 text-muted-foreground" />Team Rankings</h2>
               <div className="flex rounded-lg overflow-hidden border border-border">
-                {["pro", "intermediate", "beginner"].map((level) => (
-                  <button key={level} onClick={() => setTeamSkillFilter(level)} className={`px-3 py-1.5 text-xs font-medium transition-colors capitalize ${teamSkillFilter === level ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}>
-                    {level === "pro" ? "Pro" : level === "intermediate" ? "Intermediate" : "Beginner"}
+                {[
+                  { key: "all", label: "All" },
+                  { key: "teams", label: "Teams" },
+                  { key: "lady_angler", label: "Women" },
+                  { key: "junior_angler", label: "Jr. Anglers" },
+                ].map(({ key, label }) => (
+                  <button key={key} onClick={() => setTeamCategoryFilter(key)} className={`px-3 py-1.5 text-xs font-medium transition-colors ${teamCategoryFilter === key ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}>
+                    {label}
                   </button>
                 ))}
               </div>
             </div>
             <div className="rounded-xl border overflow-hidden">
-              <div className="grid grid-cols-[60px_1fr_100px_120px_100px] gap-2 px-4 py-2.5 bg-muted/50 text-xs text-muted-foreground uppercase tracking-wide font-medium">
+              {/* Desktop header */}
+              <div className="hidden sm:grid grid-cols-[60px_1fr_100px_120px_100px] gap-2 px-4 py-2.5 bg-muted/50 text-xs text-muted-foreground uppercase tracking-wide font-medium">
                 <span>Rank</span><span>Team Name</span><span>Anglers</span><span>Season Points</span><span className="text-right">Last 7 Days</span>
               </div>
               {teamScores.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground text-sm">No teams in this skill level yet.</div>
+                <div className="p-8 text-center text-muted-foreground text-sm">No teams in this category yet.</div>
               ) : (
                 teamScores.map((team, i) => (
-                  <div key={team.team_id} className="grid grid-cols-[60px_1fr_100px_120px_100px] gap-2 px-4 py-3 border-t border-border items-center hover:bg-muted/30 transition-colors">
-                    <span className="font-bold text-primary text-sm">#{i + 1}</span>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 text-xs font-bold text-primary">{team.team_name.slice(0, 2).toUpperCase()}</div>
-                      <span className="font-medium text-sm truncate">{team.team_name}</span>
+                  <div key={team.team_id} className="border-t border-border hover:bg-muted/30 transition-colors">
+                    {/* Desktop row */}
+                    <div className="hidden sm:grid grid-cols-[60px_1fr_100px_120px_100px] gap-2 px-4 py-3 items-center">
+                      <span className="font-bold text-primary text-sm">#{i + 1}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 text-xs font-bold text-primary">{team.team_name.slice(0, 2).toUpperCase()}</div>
+                        <span className="font-medium text-sm truncate">{team.team_name}</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">{team.member_count} Members</span>
+                      <span className="text-sm font-medium">{Number(team.season_points).toLocaleString()} pts</span>
+                      <span className="text-sm text-muted-foreground text-right">{team.last_7_days_catches} catches</span>
                     </div>
-                    <span className="text-sm text-muted-foreground">{team.member_count} Members</span>
-                    <span className="text-sm font-medium">{Number(team.season_points).toLocaleString()} pts</span>
-                    <span className="text-sm text-muted-foreground text-right">{team.last_7_days_catches} catches</span>
+                    {/* Mobile row */}
+                    <div className="flex sm:hidden items-center gap-3 px-4 py-3">
+                      <span className="font-bold text-primary text-sm w-7 shrink-0">#{i + 1}</span>
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0 text-xs font-bold text-primary">{team.team_name.slice(0, 2).toUpperCase()}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{team.team_name}</p>
+                        <p className="text-xs text-muted-foreground">{team.member_count} Members · {team.last_7_days_catches} catches</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold">{Number(team.season_points).toLocaleString()}</p>
+                        <p className="text-[10px] text-muted-foreground">pts</p>
+                      </div>
+                    </div>
                   </div>
                 ))
               )}
