@@ -1,42 +1,47 @@
+# Add 3 Tabs per Side on Bottom Nav Pill
+
+## Layout
+
+### Dating Mode (leave as 4 tabs + center)
 
 
-# Remove Combo Mode from Bottom Nav
+| &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; |
 
-## Summary
-Remove the "both" mode entirely from `BottomNav`. The pill nav will only serve two account types: **Dating** or **Fishing**, each with 4 unique tabs + the center Create button.
 
-## Navigation Layout
+No extra tab for dating -- user said "none." Keep it at 2 left + 2 right (unchanged).
 
-### Dating Mode (4 tabs + center)
-| Left 1 | Left 2 | CENTER | Right 1 | Right 2 |
-|---------|--------|--------|---------|---------|
-| Discover | Likes | **+** | Matches | Messages |
+### Fishing Mode (6 tabs + center)
 
-### Fishing Mode (4 tabs + center)
-| Left 1 | Left 2 | CENTER | Right 1 | Right 2 |
-|---------|--------|--------|---------|---------|
-| Feed | Spots | **+** | Rankings | Buddies |
 
-No changes to the tabs themselves -- these already exist. We just delete the `both` fallback branch.
+| Left 1 | Left 2 | Left 3 | CENTER | Right 1  | Right 2 | Right 3  |
+| ------ | ------ | ------ | ------ | -------- | ------- | -------- |
+| Feed   | Spots  | Trips  | **+**  | Rankings | Buddies | Messages |
+
+
+Two new tabs added:
+
+- **Trips** (Calendar icon) → `/app/trips`
+- **Messages** (MessageCircle icon) → `/app/buddy-messages` with unread badge
 
 ## Changes
 
 ### `src/components/layout/BottomNav.tsx`
-- Remove the `both` return block (lines 51-57) from `getNavItems`
-- Remove the `AccountMode` union member `'both'` -- type becomes `'dating' | 'fishing'`
-- Remove any `accountMode === 'both'` checks in badge queries (keep fishing badges enabled for fishing, dating badges for dating)
 
-### `src/components/layout/BottomNav.tsx` (type)
-- Update `AccountMode` type to `'dating' | 'fishing'`
+- Add `Trips` and `Messages` to the fishing `getNavItems` array (3 left, 3 right of center)
+- Import `Calendar` icon from lucide-react
+- Update `leftItems` / `rightItems` slicing: left = first 3, right = last 3
+- Add unread buddy messages badge to the new Messages tab
+- Widen the SVG notch slightly and shift curve control points to accommodate 6 items cleanly
+- Reduce icon/text sizing slightly so 6 tabs fit comfortably in 390px width
 
-### Upstream callers
-- Any component passing `accountMode` to `BottomNav` that could pass `'both'` needs to map it to either `'dating'` or `'fishing'` based on the user's `effectiveMode` or `activeMode`. This ensures combo users who haven't fully migrated still get a valid nav.
+### SVG pill adjustment
 
-### `src/contexts/ActiveModeContext.tsx`
-- No changes needed -- `effectiveMode` already resolves to `'dating'` or `'fishing'` for combo users in a specific mode.
+- The notch position stays centered; left/right halves each get 3 evenly spaced items instead of 2
 
-## Technical detail
-- The `getNavItems` function's `both` branch is the only code removed
-- Badge query `enabled` flags already gate on `accountMode === 'dating'` or `accountMode === 'fishing'` -- they'll continue working
-- The `ScoreboardSheet` and `CreateActionSheet` will need their `accountMode` prop updated to exclude `'both'` as well
+## What stays the same
 
+- Dating mode: unchanged (2 + 2)
+- Create action sheet, Scoreboard hub -- no changes
+- All badge logic remains intact
