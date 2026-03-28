@@ -73,9 +73,13 @@ export default function Profile() {
   );
   const [showDatingSheet, setShowDatingSheet] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('social');
   
   // Determine if social features should be shown (not in dating view)
   const showSocialFeatures = profileView !== 'dating';
+  
+  // When switching profile view, force the tab to 'detailed' for dating
+  const effectiveTab = showSocialFeatures ? activeTab : 'detailed';
   
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile-full', user?.id],
@@ -306,7 +310,7 @@ export default function Profile() {
 
       {/* View Type Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
-        <Tabs defaultValue={showSocialFeatures ? "social" : "detailed"} className="w-full">
+        <Tabs value={effectiveTab} onValueChange={setActiveTab} className="w-full">
           {showSocialFeatures && (
             <div className="border-b border-border mb-6">
               <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 bg-transparent h-12">
