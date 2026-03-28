@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { CreateActionSheet } from './CreateActionSheet';
 import { ScoreboardSheet } from './ScoreboardSheet';
 
-type AccountMode = 'dating' | 'fishing' | 'both';
+type AccountMode = 'dating' | 'fishing';
 
 interface BottomNavProps {
   accountMode: AccountMode;
@@ -48,13 +48,8 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
     ];
   }
-  return [
-    { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
-    { to: '/app/spots', icon: MapPin, label: 'Spots' },
-    { to: '#create', icon: Plus, label: 'Create', isCenterAction: true },
-    { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
-    { to: '/app/profile', icon: User, label: 'Profile' },
-  ];
+  // No 'both' mode — upstream always resolves to 'dating' or 'fishing'
+  return [];
 };
 
 /* ---- Pill background with smooth notch ---- */
@@ -108,7 +103,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
       const { count } = await supabase.from("fishing_buddies").select("*", { count: "exact", head: true }).eq("recipient_id", user.id).eq("status", "pending");
       return count || 0;
     },
-    enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
+    enabled: !!user?.id && accountMode === 'fishing',
   });
 
   const { data: unreadMessagesCount = 0 } = useQuery({
@@ -120,7 +115,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
       const { count } = await supabase.from("messages").select("*", { count: "exact", head: true }).in("match_id", matches.map(m => m.id)).neq("sender_id", user.id).eq("is_read", false);
       return count || 0;
     },
-    enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
+    enabled: !!user?.id && accountMode === 'dating',
   });
 
   const { data: newMatchesCount = 0 } = useQuery({
@@ -135,7 +130,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
         return m.matched_at && new Date(m.matched_at) > new Date(viewedAt);
       }).length;
     },
-    enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
+    enabled: !!user?.id && accountMode === 'dating',
   });
 
   const { data: pendingLikesCount = 0 } = useQuery({
@@ -145,7 +140,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
       const { count } = await supabase.from("matches").select("*", { count: "exact", head: true }).eq("user2_id", user.id).eq("user1_liked", true).eq("user2_liked", false).eq("is_match", false);
       return count || 0;
     },
-    enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
+    enabled: !!user?.id && accountMode === 'dating',
   });
 
   const { data: unreadBuddyMessagesCount = 0 } = useQuery({
@@ -157,7 +152,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
       const { count } = await supabase.from("buddy_messages").select("*", { count: "exact", head: true }).in("buddy_id", buddies.map(b => b.id)).neq("sender_id", user.id).eq("is_read", false);
       return count || 0;
     },
-    enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
+    enabled: !!user?.id && accountMode === 'fishing',
   });
 
   const { data: unreadMentionsCount = 0 } = useQuery({
@@ -167,7 +162,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
       const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "comment_mention").eq("is_read", false);
       return count || 0;
     },
-    enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
+    enabled: !!user?.id && accountMode === 'fishing',
   });
 
   useEffect(() => {
