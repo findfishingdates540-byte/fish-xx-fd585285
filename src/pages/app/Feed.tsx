@@ -84,6 +84,22 @@ export default function Feed() {
   // Fetch targeted ads based on user profile
   const { data: ads = [] } = useActiveAds(userProfile);
 
+  // Weather data from user's location
+  const { data: weather, isLoading: weatherLoading } = useWeather(
+    userProfile?.location_lat,
+    userProfile?.location_lng
+  );
+
+  const getWeatherIcon = (condition: string) => {
+    const c = condition.toLowerCase();
+    if (c.includes('clear') || c.includes('sun')) return Sun;
+    if (c.includes('rain') || c.includes('drizzle')) return CloudRain;
+    if (c.includes('snow')) return CloudSnow;
+    if (c.includes('thunder') || c.includes('storm')) return CloudLightning;
+    if (c.includes('fog') || c.includes('mist') || c.includes('haze')) return CloudFog;
+    return Cloud;
+  };
+
   // Intersperse ads with posts (every 5th position)
   const feedItems = useMemo((): FeedItem[] => {
     if (posts.length === 0) return [];
