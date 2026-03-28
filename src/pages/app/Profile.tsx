@@ -194,14 +194,7 @@ export default function Profile() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => {
-            const mode = profile?.account_mode;
-            if (mode === 'fishing') {
-              navigate('/app/spots');
-            } else {
-              navigate('/app/discover');
-            }
-          }}
+          onClick={() => navigate('/app/feed')}
           className="gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
