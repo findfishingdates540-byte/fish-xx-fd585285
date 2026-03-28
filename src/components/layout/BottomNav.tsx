@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, Plus, Sparkles, Trophy } from 'lucide-react';
+import { Home, Heart, MessageCircle, Fish, MapPin, Rss, Plus, Sparkles, Trophy } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
