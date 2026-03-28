@@ -600,8 +600,8 @@ export default function Profile() {
                   </Card>
                 )}
 
-                {/* Activity Stats - Only show for fishing/combo modes */}
-                {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
+                {/* Activity Stats - Only show in fishing view */}
+                {profileView === 'fishing' && (profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
                   <Card className="border-blue-200 dark:border-blue-900/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
                       <div className="flex items-center gap-2">
