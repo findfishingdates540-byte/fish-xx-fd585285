@@ -57,6 +57,71 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
   ];
 };
 
+/* ---- Pill background with smooth notch (inline SVG, viewBox-based) ---- */
+function PillBackground() {
+  // viewBox is 360x64. The notch is a smooth curve centered at x=180.
+  // The plus button (56px) sits above with a 6px gap, so the notch radius ≈ 34px
+  // to create a smooth U-shaped curve that doesn't touch the button.
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full drop-shadow-sm"
+      viewBox="0 0 360 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="none"
+    >
+      <path
+        d={[
+          // Start top-left with rounded corner
+          'M 0 32',
+          'C 0 14.327 14.327 0 32 0',
+          // Top edge to left of notch
+          'L 144 0',
+          // Smooth curve down into notch
+          'C 150 0 155 2 158 8',
+          'C 162 16 170 22 180 22',
+          // Mirror curve back up
+          'C 190 22 198 16 202 8',
+          'C 205 2 210 0 216 0',
+          // Top edge continues to right
+          'L 328 0',
+          // Top-right rounded corner
+          'C 345.673 0 360 14.327 360 32',
+          // Bottom-right rounded corner
+          'L 360 32',
+          'C 360 49.673 345.673 64 328 64',
+          // Bottom edge
+          'L 32 64',
+          // Bottom-left rounded corner
+          'C 14.327 64 0 49.673 0 32',
+          'Z',
+        ].join(' ')}
+        className="fill-background"
+      />
+      {/* Border stroke on top only for the pill outline */}
+      <path
+        d={[
+          'M 0 32',
+          'C 0 14.327 14.327 0 32 0',
+          'L 144 0',
+          'C 150 0 155 2 158 8',
+          'C 162 16 170 22 180 22',
+          'C 190 22 198 16 202 8',
+          'C 205 2 210 0 216 0',
+          'L 328 0',
+          'C 345.673 0 360 14.327 360 32',
+          'C 360 49.673 345.673 64 328 64',
+          'L 32 64',
+          'C 14.327 64 0 49.673 0 32',
+          'Z',
+        ].join(' ')}
+        className="stroke-border"
+        strokeWidth="0.8"
+      />
+    </svg>
+  );
+}
+
 export function BottomNav({ accountMode }: BottomNavProps) {
   const { isComboUser } = useActiveMode();
   const navItems = getNavItems(accountMode);
@@ -158,119 +223,80 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   };
 
   const leftItems = navItems.slice(0, 2);
-  const centerItem = navItems[2];
   const rightItems = navItems.slice(3);
+
+  const renderNavItem = (item: NavItem) => {
+    const badgeCount = getBadgeCount(item);
+
+    if (item.isScoreboardHub) {
+      return (
+        <button
+          key={item.to}
+          onClick={() => setScoreboardOpen(true)}
+          className="flex flex-col items-center justify-center py-2 px-3 transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <item.icon className="h-[22px] w-[22px]" strokeWidth={1.8} />
+          <span className="text-[10px] leading-tight mt-0.5">{item.label}</span>
+        </button>
+      );
+    }
+
+    return (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        className={({ isActive }) =>
+          cn(
+            'flex flex-col items-center justify-center py-2 px-3 transition-colors',
+            isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+          )
+        }
+      >
+        {({ isActive }) => (
+          <div className="relative flex flex-col items-center gap-0.5">
+            <item.icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+            <span className={cn("text-[10px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
+            {badgeCount > 0 && (
+              <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
+                {badgeCount > 9 ? "9+" : badgeCount}
+              </Badge>
+            )}
+          </div>
+        )}
+      </NavLink>
+    );
+  };
 
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-pb pointer-events-none">
-        <div className="flex items-end justify-center px-4 pb-3">
-          {/* Floating plus button - positioned above the pill */}
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-[52px] pointer-events-auto z-10">
+        <div className="relative flex items-end justify-center px-3 pb-2">
+          {/* Floating plus button — sits above pill with gap */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[58px] pointer-events-auto z-10">
             <button
               onClick={() => setCreateOpen(true)}
-              className="h-[56px] w-[56px] rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/25 active:scale-90 transition-transform"
+              className="h-[52px] w-[52px] rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/25 active:scale-90 transition-transform"
             >
-              <Plus className="h-7 w-7 text-primary-foreground" strokeWidth={2.5} />
+              <Plus className="h-6 w-6 text-primary-foreground" strokeWidth={2.5} />
             </button>
           </div>
 
-          {/* Pill container */}
-          <div className="relative w-full pointer-events-auto">
-            {/* SVG pill shape with center notch */}
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 390 64"
-              preserveAspectRatio="none"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M32 0 H163 C163 0 165 0 168 3 C174 12 182 20 195 20 C208 20 216 12 222 3 C225 0 227 0 227 0 H358 C375.673 0 390 14.327 390 32 C390 49.673 375.673 64 358 64 H32 C14.327 64 0 49.673 0 32 C0 14.327 14.327 0 32 0 Z"
-                className="fill-background stroke-border"
-                strokeWidth="1"
-              />
-            </svg>
+          {/* Pill with notch */}
+          <div className="relative w-full h-16 pointer-events-auto">
+            <PillBackground />
 
-            {/* Nav items overlay */}
-            <div className="relative flex items-center h-16">
-              {/* Left section */}
+            <div className="relative flex items-center h-full">
+              {/* Left nav items */}
               <div className="flex flex-1 items-center justify-evenly">
-                {leftItems.map((item) => {
-                  const badgeCount = getBadgeCount(item);
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex flex-col items-center justify-center py-2 px-3 transition-colors',
-                          isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                        )
-                      }
-                    >
-                      {({ isActive }) => (
-                        <div className="relative flex flex-col items-center gap-0.5">
-                          <item.icon className={cn('h-[22px] w-[22px]')} strokeWidth={isActive ? 2.5 : 1.8} />
-                          <span className={cn("text-[10px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
-                          {badgeCount > 0 && (
-                            <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
-                              {badgeCount > 9 ? "9+" : badgeCount}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </NavLink>
-                  );
-                })}
+                {leftItems.map(renderNavItem)}
               </div>
 
-              {/* Center spacer for the notch */}
-              <div className="w-[72px] shrink-0" />
+              {/* Center spacer (notch area) */}
+              <div className="w-[68px] shrink-0" />
 
-              {/* Right section */}
+              {/* Right nav items */}
               <div className="flex flex-1 items-center justify-evenly">
-                {rightItems.map((item) => {
-                  const badgeCount = getBadgeCount(item);
-
-                  if (item.isScoreboardHub) {
-                    return (
-                      <button
-                        key={item.to}
-                        onClick={() => setScoreboardOpen(true)}
-                        className="flex flex-col items-center justify-center py-2 px-3 transition-colors text-muted-foreground hover:text-foreground"
-                      >
-                        <item.icon className="h-[22px] w-[22px]" strokeWidth={1.8} />
-                        <span className="text-[10px] leading-tight mt-0.5">{item.label}</span>
-                      </button>
-                    );
-                  }
-
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex flex-col items-center justify-center py-2 px-3 transition-colors',
-                          isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                        )
-                      }
-                    >
-                      {({ isActive }) => (
-                        <div className="relative flex flex-col items-center gap-0.5">
-                          <item.icon className={cn('h-[22px] w-[22px]')} strokeWidth={isActive ? 2.5 : 1.8} />
-                          <span className={cn("text-[10px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
-                          {badgeCount > 0 && (
-                            <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
-                              {badgeCount > 9 ? "9+" : badgeCount}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </NavLink>
-                  );
-                })}
+                {rightItems.map(renderNavItem)}
               </div>
             </div>
           </div>
