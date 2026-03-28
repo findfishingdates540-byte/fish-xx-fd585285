@@ -11,8 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
-import fishingHeaderLogo from '@/assets/fishing-header-logo.png';
-import datingLogo from '@/assets/dating-logo.png';
+import logo from '@/assets/logo.png';
 // Request browser notification permission
 const requestNotificationPermission = async () => {
   if ('Notification' in window && Notification.permission === 'default') {
