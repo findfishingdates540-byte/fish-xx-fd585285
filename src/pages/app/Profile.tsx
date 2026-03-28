@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode } from '@/contexts/ActiveModeContext';
@@ -8,7 +8,8 @@ import {
   MapPin, Share2, Pencil, Heart, Fish, Layers, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
-  ArrowLeft, Settings, Grid3X3, AtSign, FileText, User, Bookmark, Repeat2
+  ArrowLeft, Settings, Grid3X3, AtSign, FileText, User, Bookmark, Repeat2,
+  ShieldCheck
 } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +28,13 @@ import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-
 import { useBookmarkedPosts } from '@/hooks/use-bookmarks';
 import { useRepostedPosts } from '@/hooks/use-reposts';
 import { cn } from '@/lib/utils';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const accountModes = [{
   id: 'dating',

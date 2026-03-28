@@ -163,6 +163,7 @@ const App = () => (
               <Route path="profile/edit" element={<ProfileEdit />} />
               <Route path="profile/:userId" element={<UserProfile />} />
               <Route path="dating-profile/:userId" element={<DatingProfile />} />
+              <Route path="dating-setup" element={<DatingSetup />} />
               <Route path="user/:userId" element={<Navigate to="/app/u/:userId" replace />} />
               <Route path="settings" element={<Settings />} />
             </Route>
