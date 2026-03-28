@@ -217,7 +217,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
         to={item.to}
         className={({ isActive }) =>
           cn(
-            'flex flex-col items-center justify-center py-2 px-3 transition-colors',
+            'flex flex-col items-center justify-center py-2 px-1.5 transition-colors',
             isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
           )
         }
