@@ -20,6 +20,7 @@ import {
   Fish,
   ArrowRight,
   Flame,
+  Swords,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -263,7 +264,23 @@ export default function Challenges() {
         </div>
       </div>
 
-      {/* My Stats */}
+      {/* Tournaments Banner */}
+      <div className="px-4 md:px-6 mb-6">
+        <button
+          onClick={() => navigate("/app/tournaments")}
+          className="w-full rounded-xl border bg-primary/5 hover:bg-primary/10 transition-colors p-4 flex items-center gap-3 text-left"
+        >
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Swords className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm">Tournaments</p>
+            <p className="text-xs text-muted-foreground">Brackets, seeding &amp; elimination rounds</p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+        </button>
+      </div>
+
       <div className="grid grid-cols-3 gap-3 px-4 md:px-6 mb-6">
         <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

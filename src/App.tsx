@@ -49,6 +49,9 @@ import DatingProfile from "./pages/app/DatingProfile";
 import PhotoChallenges from "./pages/app/PhotoChallenges";
 import PhotoChallengeDetail from "./pages/app/PhotoChallengeDetail";
 import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge"; // kept for potential future use
+import Tournaments from "./pages/app/Tournaments";
+import TournamentDetail from "./pages/app/TournamentDetail";
+import CreateTournament from "./pages/app/CreateTournament";
 
 import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
@@ -128,6 +131,9 @@ const App = () => (
               <Route path="teams" element={<FishingRoute><Teams /></FishingRoute>} />
               <Route path="teams/new" element={<FishingRoute><CreateTeam /></FishingRoute>} />
               <Route path="teams/:teamId" element={<FishingRoute><TeamProfile /></FishingRoute>} />
+              <Route path="tournaments" element={<FishingRoute><Tournaments /></FishingRoute>} />
+              <Route path="tournaments/new" element={<FishingRoute><CreateTournament /></FishingRoute>} />
+              <Route path="tournaments/:id" element={<FishingRoute><TournamentDetail /></FishingRoute>} />
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
               <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>}>
                 <Route path=":buddyId" element={<BuddyChat />} />

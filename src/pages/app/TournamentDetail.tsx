@@ -1,0 +1,427 @@
+import { useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  ArrowLeft,
+  Trophy,
+  Users,
+  DollarSign,
+  Swords,
+  CalendarDays,
+  Clock,
+  Target,
+} from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+
+const TournamentDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: tournament, isLoading } = useQuery({
+    queryKey: ["tournament", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("*")
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: participants = [] } = useQuery({
+    queryKey: ["tournament-participants", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_participants")
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("seed_number", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: profiles = {} } = useQuery({
+    queryKey: ["tournament-participant-profiles", id],
+    queryFn: async () => {
+      if (participants.length === 0) return {};
+      const ids = participants.map((p: any) => p.user_id);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, display_name, photos")
+        .in("id", ids);
+      if (error) throw error;
+      const map: Record<string, any> = {};
+      data.forEach((p: any) => (map[p.id] = p));
+      return map;
+    },
+    enabled: participants.length > 0,
+  });
+
+  const { data: rounds = [] } = useQuery({
+    queryKey: ["tournament-rounds", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_rounds")
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("round_number", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: matchups = [] } = useQuery({
+    queryKey: ["tournament-matchups", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_matchups")
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("matchup_number", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const isJoined = participants.some((p: any) => p.user_id === user?.id);
+  const canJoin = tournament?.status === "registration" && !isJoined;
+
+  const joinMutation = useMutation({
+    mutationFn: async () => {
+      if (!user || !id) throw new Error("Not logged in");
+      const { error } = await supabase
+        .from("tournament_participants")
+        .insert({ tournament_id: id, user_id: user.id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Registered successfully!");
+      queryClient.invalidateQueries({ queryKey: ["tournament-participants", id] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const formatLabel = (f: string) =>
+    f === "single_elimination" ? "Single Elimination" : "Double Elimination";
+
+  const scoringLabel = (s: string) => {
+    switch (s) {
+      case "biggest_catch": return "Biggest Catch";
+      case "total_weight": return "Total Weight";
+      case "most_catches": return "Most Catches";
+      default: return s;
+    }
+  };
+
+  const seedingLabel = (s: string) => {
+    switch (s) {
+      case "random": return "Random";
+      case "ranked": return "Ranked";
+      case "manual": return "Manual";
+      default: return s;
+    }
+  };
+
+  // Group matchups by round
+  const roundMatchups = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    matchups.forEach((m: any) => {
+      if (!map[m.round_id]) map[m.round_id] = [];
+      map[m.round_id].push(m);
+    });
+    return map;
+  }, [matchups]);
+
+  const getPlayerName = (userId: string | null) => {
+    if (!userId) return "TBD";
+    const p = profiles[userId];
+    return p?.display_name || "Angler";
+  };
+
+  const getPlayerPhoto = (userId: string | null) => {
+    if (!userId) return null;
+    const p = profiles[userId];
+    return p?.photos?.[0] || null;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-40 rounded-xl" />
+        <Skeleton className="h-64 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (!tournament) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-muted-foreground">
+        Tournament not found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 pb-32">
+      {/* Header */}
+      <div className="flex items-center gap-3 py-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-bold truncate">{tournament.title}</h1>
+          <Badge
+            variant="outline"
+            className="text-[10px] capitalize mt-0.5"
+          >
+            {(tournament.status as string).replace("_", " ")}
+          </Badge>
+        </div>
+        {canJoin && (
+          <Button
+            size="sm"
+            onClick={() => joinMutation.mutate()}
+            disabled={joinMutation.isPending}
+          >
+            Register
+          </Button>
+        )}
+        {isJoined && (
+          <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+            Registered
+          </Badge>
+        )}
+      </div>
+
+      {/* Info cards */}
+      <div className="rounded-xl border bg-card p-4 mb-4 space-y-3">
+        {tournament.description && (
+          <p className="text-sm text-muted-foreground">{tournament.description}</p>
+        )}
+        <div className="grid grid-cols-2 gap-3">
+          <InfoItem icon={<Swords className="h-4 w-4" />} label="Format" value={formatLabel(tournament.format as string)} />
+          <InfoItem icon={<Target className="h-4 w-4" />} label="Scoring" value={scoringLabel(tournament.scoring_method as string)} />
+          <InfoItem icon={<Users className="h-4 w-4" />} label="Players" value={`${participants.length}/${tournament.max_participants}`} />
+          <InfoItem icon={<Clock className="h-4 w-4" />} label="Seeding" value={seedingLabel(tournament.seeding_method as string)} />
+          <InfoItem icon={<CalendarDays className="h-4 w-4" />} label="Starts" value={format(new Date(tournament.start_date), "MMM d, yyyy")} />
+          {tournament.entry_fee > 0 && (
+            <InfoItem icon={<DollarSign className="h-4 w-4" />} label="Entry Fee" value={`$${tournament.entry_fee}`} />
+          )}
+        </div>
+        {tournament.prize_description && (
+          <div className="pt-2 border-t">
+            <p className="text-xs text-muted-foreground">Prize</p>
+            <p className="text-sm font-medium">{tournament.prize_description}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Participants */}
+      <div className="rounded-xl border bg-card p-4 mb-4">
+        <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          Participants ({participants.length})
+        </h2>
+        {participants.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">No participants yet.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {participants.map((p: any) => (
+              <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={getPlayerPhoto(p.user_id)} />
+                  <AvatarFallback className="text-[10px]">
+                    {getPlayerName(p.user_id).charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate">{getPlayerName(p.user_id)}</p>
+                  {p.seed_number && (
+                    <p className="text-[10px] text-muted-foreground">Seed #{p.seed_number}</p>
+                  )}
+                </div>
+                {p.eliminated && (
+                  <Badge variant="outline" className="text-[9px] text-destructive border-destructive/30">
+                    Out
+                  </Badge>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Bracket */}
+      {rounds.length > 0 && (
+        <div className="rounded-xl border bg-card p-4">
+          <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-primary" />
+            Bracket
+          </h2>
+
+          {/* Horizontal scrollable bracket */}
+          <div className="overflow-x-auto -mx-4 px-4">
+            <div className="flex gap-6 min-w-max">
+              {rounds
+                .filter((r: any) => r.bracket_type === "winners")
+                .map((round: any) => {
+                  const rMatchups = roundMatchups[round.id] || [];
+                  return (
+                    <div key={round.id} className="flex flex-col gap-3 min-w-[180px]">
+                      <div className="text-center">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          {round.round_name}
+                        </p>
+                      </div>
+                      <div className="flex flex-col justify-around flex-1 gap-3">
+                        {rMatchups.map((m: any) => (
+                          <MatchupCard
+                            key={m.id}
+                            matchup={m}
+                            getPlayerName={getPlayerName}
+                            getPlayerPhoto={getPlayerPhoto}
+                          />
+                        ))}
+                        {rMatchups.length === 0 && (
+                          <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">
+                            Matchups TBD
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Losers bracket */}
+          {rounds.some((r: any) => r.bracket_type === "losers") && (
+            <div className="mt-6 pt-4 border-t">
+              <p className="text-xs font-semibold text-muted-foreground mb-3">Losers Bracket</p>
+              <div className="overflow-x-auto -mx-4 px-4">
+                <div className="flex gap-6 min-w-max">
+                  {rounds
+                    .filter((r: any) => r.bracket_type === "losers")
+                    .map((round: any) => {
+                      const rMatchups = roundMatchups[round.id] || [];
+                      return (
+                        <div key={round.id} className="flex flex-col gap-3 min-w-[180px]">
+                          <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">
+                            {round.round_name}
+                          </p>
+                          <div className="flex flex-col justify-around flex-1 gap-3">
+                            {rMatchups.map((m: any) => (
+                              <MatchupCard
+                                key={m.id}
+                                matchup={m}
+                                getPlayerName={getPlayerName}
+                                getPlayerPhoto={getPlayerPhoto}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
+  <div className="flex items-center gap-2">
+    <div className="text-muted-foreground">{icon}</div>
+    <div>
+      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-xs font-medium">{value}</p>
+    </div>
+  </div>
+);
+
+const MatchupCard = ({
+  matchup,
+  getPlayerName,
+  getPlayerPhoto,
+}: {
+  matchup: any;
+  getPlayerName: (id: string | null) => string;
+  getPlayerPhoto: (id: string | null) => string | null;
+}) => {
+  const isComplete = matchup.status === "completed";
+
+  return (
+    <div className="rounded-lg border bg-background overflow-hidden">
+      <PlayerRow
+        userId={matchup.player1_id}
+        score={matchup.player1_score}
+        isWinner={matchup.winner_id === matchup.player1_id && isComplete}
+        getPlayerName={getPlayerName}
+        getPlayerPhoto={getPlayerPhoto}
+      />
+      <div className="h-px bg-border" />
+      <PlayerRow
+        userId={matchup.player2_id}
+        score={matchup.player2_score}
+        isWinner={matchup.winner_id === matchup.player2_id && isComplete}
+        getPlayerName={getPlayerName}
+        getPlayerPhoto={getPlayerPhoto}
+      />
+    </div>
+  );
+};
+
+const PlayerRow = ({
+  userId,
+  score,
+  isWinner,
+  getPlayerName,
+  getPlayerPhoto,
+}: {
+  userId: string | null;
+  score: number;
+  isWinner: boolean;
+  getPlayerName: (id: string | null) => string;
+  getPlayerPhoto: (id: string | null) => string | null;
+}) => (
+  <div
+    className={`flex items-center gap-2 px-3 py-2 ${
+      isWinner ? "bg-emerald-500/10" : ""
+    }`}
+  >
+    <Avatar className="h-5 w-5">
+      <AvatarImage src={getPlayerPhoto(userId) || undefined} />
+      <AvatarFallback className="text-[8px]">
+        {getPlayerName(userId).charAt(0)}
+      </AvatarFallback>
+    </Avatar>
+    <span className={`text-xs flex-1 truncate ${isWinner ? "font-semibold" : ""}`}>
+      {getPlayerName(userId)}
+    </span>
+    <span className={`text-xs tabular-nums ${isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"}`}>
+      {score}
+    </span>
+  </div>
+);
+
+export default TournamentDetail;
