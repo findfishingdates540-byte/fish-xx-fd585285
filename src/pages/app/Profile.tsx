@@ -720,8 +720,8 @@ export default function Profile() {
 
               {/* Right Column */}
               <div className="lg:col-span-4 space-y-6">
-                {/* Dating Preferences */}
-                <Card className="border-pink-200 dark:border-pink-900/30">
+                {/* Dating Preferences - only in dating view */}
+                {profileView === 'dating' && (
                   <CardHeader className="flex flex-row items-center justify-between pb-3">
                     <div className="flex items-center gap-2">
                       <Heart className="h-5 w-5 text-pink-500" />
