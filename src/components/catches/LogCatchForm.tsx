@@ -55,6 +55,7 @@ export interface LogCatchFormData {
   caught_at: string;
   catch_status: "released" | "harvested";
   general_location: string;
+  share_location: boolean;
   coverPhoto: File | null;
   measurementPhoto: File | null;
   additionalPhotos: File[];
@@ -73,9 +74,10 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     length_in: "",
     notes: "",
     bait_used: "",
-    caught_at: new Date().toISOString().slice(0, 16), // datetime-local format
+    caught_at: new Date().toISOString().slice(0, 16),
     catch_status: "released" as "released" | "harvested",
     general_location: "",
+    share_location: false,
   });
 
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
