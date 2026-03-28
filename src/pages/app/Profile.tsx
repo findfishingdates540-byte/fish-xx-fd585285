@@ -310,7 +310,7 @@ export default function Profile() {
 
       {/* View Type Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
-        <Tabs defaultValue={showSocialFeatures ? "social" : "detailed"} className="w-full">
+        <Tabs value={effectiveTab} onValueChange={setActiveTab} className="w-full">
           {showSocialFeatures && (
             <div className="border-b border-border mb-6">
               <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 bg-transparent h-12">
