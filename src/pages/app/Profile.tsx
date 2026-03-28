@@ -548,8 +548,26 @@ export default function Profile() {
 
               {/* Center Column */}
               <div className="lg:col-span-5 space-y-6">
-                {/* Dating Stats - Only show for dating/combo modes */}
-                {(profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
+                {/* Dating action buttons - only in dating view */}
+                {profileView === 'dating' && (profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
+                  <div className="flex gap-3">
+                    <Button className="flex-1" asChild>
+                      <Link to="/app/discover">
+                        <Heart className="h-4 w-4 mr-2" />
+                        View Dating App
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link to="/app/profile/edit">
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Dating Profile
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+
+                {/* Dating Stats - Only show in dating view */}
+                {profileView === 'dating' && (profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
                   <Card className="border-pink-200 dark:border-pink-900/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
                       <div className="flex items-center gap-2">
