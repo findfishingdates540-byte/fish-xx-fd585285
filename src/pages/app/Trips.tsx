@@ -58,7 +58,7 @@ export default function Trips() {
             onClick={() => navigate("/app/trips/new")}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Plan New Date
+            Plan New Trip
           </Button>
         </div>
 
