@@ -210,7 +210,7 @@ export default function Feed() {
                 <div className="space-y-4">
                   {/* Weather Strip */}
                   {weather && !weatherLoading && (
-                    <div className="bg-card rounded-xl border px-4 py-3 flex items-center justify-between gap-3">
+                    <div className="bg-card rounded-xl border px-4 py-3 mx-3 md:mx-0 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         {(() => {
                           const WeatherIcon = getWeatherIcon(weather.condition);
