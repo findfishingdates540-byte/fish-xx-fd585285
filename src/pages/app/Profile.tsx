@@ -264,7 +264,46 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* View Type Tabs - Only show tabs when social features are available */}
+      {/* Profile View Switcher: Fishing / Dating */}
+      <div className="max-w-6xl mx-auto px-4 pt-5">
+        <div className="flex justify-center">
+          <div className="inline-flex bg-muted rounded-full p-1 gap-1">
+            <button
+              onClick={() => setProfileView('fishing')}
+              className={cn(
+                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
+                profileView === 'fishing'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Fish className="h-4 w-4" />
+              Fishing Profile
+            </button>
+            <button
+              onClick={() => {
+                const hasDating = profile?.account_mode === 'dating' || profile?.account_mode === 'both';
+                if (hasDating) {
+                  setProfileView('dating');
+                } else {
+                  setShowDatingSheet(true);
+                }
+              }}
+              className={cn(
+                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
+                profileView === 'dating'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Heart className="h-4 w-4" />
+              Dating Profile
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* View Type Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
         <Tabs defaultValue={showSocialFeatures ? "social" : "detailed"} className="w-full">
           {showSocialFeatures && (
