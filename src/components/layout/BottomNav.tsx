@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, MessageCircle, Fish, MapPin, Rss, Plus, Sparkles, Trophy } from 'lucide-react';
+import { Home, Heart, MessageCircle, Fish, MapPin, Rss, Plus, Sparkles, Trophy, Calendar } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +25,7 @@ interface NavItem {
   hasMatchBadge?: boolean;
   hasLikesBadge?: boolean;
   hasMentionsBadge?: boolean;
+  hasBuddyMessagesBadge?: boolean;
   isScoreboardHub?: boolean;
   isCenterAction?: boolean;
 }
@@ -43,9 +44,11 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
     return [
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
+      { to: '/app/trips', icon: Calendar, label: 'Trips' },
       { to: '#create', icon: Plus, label: 'Create', isCenterAction: true },
       { to: '/app/leaderboard', icon: Trophy, label: 'Rankings', isScoreboardHub: true },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
+      { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessagesBadge: true },
     ];
   }
   // No 'both' mode — upstream always resolves to 'dating' or 'fishing'
@@ -179,16 +182,18 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   }, [user?.id, queryClient]);
 
   const getBadgeCount = (item: NavItem): number => {
-    if (item.hasBuddyBadge) return pendingRequestsCount + unreadBuddyMessagesCount;
+    if (item.hasBuddyBadge) return pendingRequestsCount;
     if (item.hasMessageBadge) return unreadMessagesCount;
     if (item.hasMatchBadge) return newMatchesCount;
     if (item.hasLikesBadge) return pendingLikesCount;
     if (item.hasMentionsBadge) return unreadMentionsCount;
+    if (item.hasBuddyMessagesBadge) return unreadBuddyMessagesCount;
     return 0;
   };
 
-  const leftItems = navItems.slice(0, 2);
-  const rightItems = navItems.slice(3);
+  const centerIndex = navItems.findIndex(i => i.isCenterAction);
+  const leftItems = navItems.slice(0, centerIndex);
+  const rightItems = navItems.slice(centerIndex + 1);
 
   const renderNavItem = (item: NavItem) => {
     const badgeCount = getBadgeCount(item);
@@ -198,10 +203,10 @@ export function BottomNav({ accountMode }: BottomNavProps) {
         <button
           key={item.to}
           onClick={() => setScoreboardOpen(true)}
-          className="flex flex-col items-center justify-center py-2 px-3 transition-colors text-muted-foreground hover:text-foreground"
+          className="flex flex-col items-center justify-center py-2 px-1.5 transition-colors text-muted-foreground hover:text-foreground"
         >
-          <item.icon className="h-[22px] w-[22px]" strokeWidth={1.8} />
-          <span className="text-[10px] leading-tight mt-0.5">{item.label}</span>
+          <item.icon className="h-5 w-5" strokeWidth={1.8} />
+          <span className="text-[9px] leading-tight mt-0.5">{item.label}</span>
         </button>
       );
     }
@@ -212,15 +217,15 @@ export function BottomNav({ accountMode }: BottomNavProps) {
         to={item.to}
         className={({ isActive }) =>
           cn(
-            'flex flex-col items-center justify-center py-2 px-3 transition-colors',
+            'flex flex-col items-center justify-center py-2 px-1.5 transition-colors',
             isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
           )
         }
       >
         {({ isActive }) => (
           <div className="relative flex flex-col items-center gap-0.5">
-            <item.icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
-            <span className={cn("text-[10px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
+            <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 1.8} />
+            <span className={cn("text-[9px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
             {badgeCount > 0 && (
               <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
                 {badgeCount > 9 ? "9+" : badgeCount}
