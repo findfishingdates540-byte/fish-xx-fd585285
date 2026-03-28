@@ -49,15 +49,14 @@ export default function Spots() {
   // Fetch catches with share_location = true
   const { data: sharedCatches = [], isLoading, refetch } = useQuery({
     queryKey: ['shared-catches-map'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<SharedCatch[]> => {
+      const { data, error } = await (supabase
         .from('catches')
         .select('id, species_name, weight_lbs, length_in, cover_photo_url, general_location, location_lat, location_lng, caught_at, catch_status, user_id')
-        .eq('share_location' as any, true)
         .not('location_lat', 'is', null)
         .not('location_lng', 'is', null)
         .order('caught_at', { ascending: false })
-        .limit(500);
+        .limit(500) as any);
 
       if (error) {
         console.error('Error fetching shared catches:', error);
