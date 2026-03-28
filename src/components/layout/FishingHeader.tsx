@@ -164,8 +164,8 @@ export function FishingHeader() {
         {/* Left side - Logo and Nav */}
         <div className="flex items-center gap-4 lg:gap-8 min-w-0 overflow-visible">
           {/* Logo */}
-          <Link to="/app/spots" className="flex items-center shrink-0">
-            <img src={fishingHeaderLogo} alt="FFD" className="h-10 w-auto" />
+          <Link to="/app/feed" className="flex items-center shrink-0">
+            <img src={logo} alt="FishX" className="h-10 w-auto" />
           </Link>
 
           {/* Navigation */}
