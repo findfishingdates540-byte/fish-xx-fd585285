@@ -1,6 +1,6 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ActiveModeProvider } from '@/contexts/ActiveModeContext';
+import { ActiveModeProvider, useActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppHeader } from './AppHeader';
@@ -16,6 +16,7 @@ import { useMentionNotifications } from '@/hooks/use-mention-notifications';
 import { useEffect } from 'react';
 
 function AppLayoutContent() {
+  const { effectiveMode } = useActiveMode();
   const location = useLocation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -140,6 +141,7 @@ function AppLayoutContent() {
   
   // Chat pages hide the bottom nav for Instagram-like experience
   const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/messages/');
+  const resolvedMode = effectiveMode === 'dating' ? 'dating' : 'fishing';
 
   // Dating routes use their own sidebar layout (no FishingHeader)
   const datingRoutes = ['/app/discover', '/app/matches', '/app/likes', '/app/messages'];
@@ -147,9 +149,9 @@ function AppLayoutContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop Header - show FishingHeader for non-dating routes */}
+      {/* Desktop Header - only show fishing header while in fishing mode */}
       <div className="hidden lg:block">
-        {!isDatingRoute && <FishingHeader />}
+        {!isDatingRoute && resolvedMode === 'fishing' && <FishingHeader />}
       </div>
 
       {/* Mobile Header - hide on chat pages which have their own header */}
@@ -161,14 +163,14 @@ function AppLayoutContent() {
       
       <main className={`${isChatPage ? 'pb-0' : 'pb-16'} lg:pb-0`}>
         <PageTransition>
-          <Outlet context={{ accountMode: 'fishing' }} />
+          <Outlet context={{ accountMode: resolvedMode }} />
         </PageTransition>
       </main>
 
       {/* Mobile Bottom Nav - hide on chat pages */}
       {!isChatPage && (
         <div className="lg:hidden">
-          <BottomNav accountMode="fishing" />
+          <BottomNav accountMode={resolvedMode} />
         </div>
       )}
     </div>
@@ -259,12 +261,11 @@ export function AppLayout() {
     return <Navigate to="/admin" replace />;
   }
 
-  // Always treat as fishing mode — dating is a separate add-on
   const baseAccountMode = profile?.account_mode || 'fishing';
 
   return (
     <ActiveModeProvider 
-      baseAccountMode={baseAccountMode === 'both' ? 'fishing' : baseAccountMode}
+      baseAccountMode={baseAccountMode}
       isPremium={profile?.is_premium || false}
       premiumExpiresAt={profile?.premium_expires_at || null}
     >
