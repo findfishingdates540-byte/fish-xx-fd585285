@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
-import logo from '@/assets/logo.png';
 
 // Request browser notification permission
 const requestNotificationPermission = async () => {
@@ -46,6 +46,7 @@ const playNotificationSound = () => {
 
 export function AppHeader() {
   const { user } = useAuth();
+  const { effectiveMode } = useActiveMode();
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
@@ -233,7 +234,7 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <NotificationCenter mode="fishing" />
+          <NotificationCenter mode={effectiveMode === 'dating' ? 'dating' : 'fishing'} />
 
           <Link to="/app/profile">
             <Avatar className="h-8 w-8 border border-border">
