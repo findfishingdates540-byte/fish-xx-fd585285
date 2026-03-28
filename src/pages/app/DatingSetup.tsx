@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Check, Heart } from 'lucide-react';
 import { StepDatingPreference } from '@/components/onboarding/StepDatingPreference';
 import { StepLifestyle } from '@/components/onboarding/StepLifestyle';
-import { StepPhotoUpload } from '@/components/onboarding/StepPhotos';
+import { StepPhotos } from '@/components/onboarding/StepPhotos';
 import { StepBio } from '@/components/onboarding/StepBio';
 import { toast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
@@ -78,17 +78,17 @@ export default function DatingSetup() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          account_mode: 'both',
-          interested_in: interestedIn,
-          looking_for: lookingFor,
+          account_mode: 'both' as any,
+          interested_in: interestedIn as any,
+          looking_for: lookingFor as any,
           min_age_preference: ageRange[0],
           max_age_preference: ageRange[1],
           max_distance_miles: maxDistance,
           bio: datingBio || bio,
           occupation,
           height_cm: heightCm,
-          smoking,
-          drinking,
+          smoking: smoking as any,
+          drinking: drinking as any,
           zodiac_sign: zodiacSign,
           ...(photos.length > 0 ? { photos } : {}),
         })
@@ -181,10 +181,11 @@ export default function DatingSetup() {
           />
         )}
 
-        {step === 'photos' && (
-          <StepPhotoUpload
+        {step === 'photos' && user?.id && (
+          <StepPhotos
             photos={photos}
             setPhotos={setPhotos}
+            userId={user.id}
           />
         )}
 
@@ -192,6 +193,9 @@ export default function DatingSetup() {
           <StepBio
             bio={datingBio}
             setBio={setDatingBio}
+            lookingFor={lookingFor}
+            setLookingFor={setLookingFor}
+            showLookingFor={false}
           />
         )}
 
