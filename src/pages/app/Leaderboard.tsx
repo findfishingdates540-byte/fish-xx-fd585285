@@ -49,7 +49,7 @@ interface ProfileInfo {
 export default function Leaderboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [teamSkillFilter, setTeamSkillFilter] = useState("pro");
+  const [teamCategoryFilter, setTeamCategoryFilter] = useState("all");
 
   const { data: speciesList = [], isLoading: speciesLoading } = useQuery({
     queryKey: ["leaderboard-species"],
