@@ -31,7 +31,7 @@ import CommunityGuidelines from "./pages/CommunityGuidelines";
 import CookiePolicy from "./pages/CookiePolicy";
 import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
-import { Discover, Messages, Likes, Spots, AddSpot, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, ComboDashboard, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
+import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
 import SpeciesExplorer from "./pages/app/SpeciesExplorer";
 import CatchDetail from "./pages/app/CatchDetail";
@@ -116,7 +116,7 @@ const App = () => (
               
               {/* Fishing-only routes */}
               <Route path="spots" element={<FishingRoute><Spots /></FishingRoute>} />
-              <Route path="spots/new" element={<FishingRoute><AddSpot /></FishingRoute>} />
+              <Route path="spots/new" element={<FishingRoute><Navigate to="/app/spots" replace /></FishingRoute>} />
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
               <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
               <Route path="catches/:catchId" element={<FishingRoute><CatchDetail /></FishingRoute>} />
@@ -145,8 +145,8 @@ const App = () => (
               <Route path="trips/:id" element={<FishingRoute><TripDetail /></FishingRoute>} />
               <Route path="trips/:id/edit" element={<FishingRoute><TripPlanner /></FishingRoute>} />
               
-              {/* Combo mode dashboard */}
-              <Route path="dashboard" element={<ComboDashboard />} />
+              
+              {/* Shared routes (all account types) */}
               
               {/* Shared routes (all account types) */}
               <Route path="feed" element={<Feed />} />

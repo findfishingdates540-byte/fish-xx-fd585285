@@ -10,8 +10,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
-import { Fish, Loader2 } from 'lucide-react';
+import { Fish, Loader2, Cloud, Wind, Droplets, Sun, CloudRain, CloudSnow, CloudLightning, CloudFog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useWeather, getWindDirection, getFishingConditions } from '@/hooks/use-weather';
 
 type FeedItem = 
   | { type: 'post'; data: FeedPostType }
@@ -82,6 +83,22 @@ export default function Feed() {
 
   // Fetch targeted ads based on user profile
   const { data: ads = [] } = useActiveAds(userProfile);
+
+  // Weather data from user's location
+  const { data: weather, isLoading: weatherLoading } = useWeather(
+    userProfile?.location_lat,
+    userProfile?.location_lng
+  );
+
+  const getWeatherIcon = (condition: string) => {
+    const c = condition.toLowerCase();
+    if (c.includes('clear') || c.includes('sun')) return Sun;
+    if (c.includes('rain') || c.includes('drizzle')) return CloudRain;
+    if (c.includes('snow')) return CloudSnow;
+    if (c.includes('thunder') || c.includes('storm')) return CloudLightning;
+    if (c.includes('fog') || c.includes('mist') || c.includes('haze')) return CloudFog;
+    return Cloud;
+  };
 
   // Intersperse ads with posts (every 5th position)
   const feedItems = useMemo((): FeedItem[] => {
@@ -191,6 +208,47 @@ export default function Feed() {
             <main className="lg:col-span-6">
               <PullToRefresh onRefresh={handleRefresh}>
                 <div className="space-y-4">
+                  {/* Weather Strip */}
+                  {weather && !weatherLoading && (
+                    <div className="bg-card rounded-xl border px-4 py-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {(() => {
+                          const WeatherIcon = getWeatherIcon(weather.condition);
+                          return <WeatherIcon className="h-6 w-6 text-primary shrink-0" />;
+                        })()}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold">{Math.round(weather.temperature)}°F</span>
+                            <span className="text-sm text-muted-foreground">{weather.description}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Wind className="h-3 w-3" />
+                              {Math.round(weather.wind.speed)} mph {getWindDirection(weather.wind.direction)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Droplets className="h-3 w-3" />
+                              {weather.humidity}%
+                            </span>
+                            {weather.location && (
+                              <span className="hidden sm:inline truncate max-w-[120px]">{weather.location}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {(() => {
+                          const conditions = getFishingConditions(weather);
+                          return (
+                            <div className={`text-xs font-semibold ${conditions.color}`}>
+                              🎣 {conditions.rating}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Composer Bar */}
                   {user && (
                     <FeedComposerBar onOpenCreatePost={() => setShowCreatePost(true)} />

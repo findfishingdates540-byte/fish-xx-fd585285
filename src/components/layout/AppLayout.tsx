@@ -1,13 +1,11 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ActiveModeProvider, useActiveMode } from '@/contexts/ActiveModeContext';
+import { ActiveModeProvider } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
 import { FishingHeader } from './FishingHeader';
-import { BothHeader } from './BothHeader';
-import { ComboSharedHeader } from './ComboSharedHeader';
 
 import { PageTransition } from './PageTransition';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,7 +17,6 @@ import { useEffect } from 'react';
 
 function AppLayoutContent() {
   const location = useLocation();
-  const { effectiveMode, isComboUser } = useActiveMode();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
@@ -44,7 +41,6 @@ function AppLayoutContent() {
       queryKey: ['feed-posts', user.id],
       initialPageParam: 0 as number,
       queryFn: async ({ pageParam = 0 }) => {
-        // Get posts
         const { data: posts } = await supabase
           .from('feed_posts')
           .select('*')
@@ -53,17 +49,14 @@ function AppLayoutContent() {
 
         if (!posts || posts.length === 0) return { posts: [], nextPage: undefined };
 
-        // Get unique user IDs and catch IDs
         const userIds = [...new Set(posts.map(p => p.user_id))];
         const catchIds = posts.map(p => p.catch_id).filter(Boolean) as string[];
 
-        // Fetch profiles
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, display_name, photos, id_verified, live_verified')
           .in('id', userIds);
 
-        // Fetch catches if any
         let catches: any[] = [];
         if (catchIds.length > 0) {
           const { data: catchData } = await supabase
@@ -73,7 +66,6 @@ function AppLayoutContent() {
           catches = catchData || [];
         }
 
-        // Get user's likes
         const { data: likes } = await supabase
           .from('feed_likes')
           .select('post_id')
@@ -81,7 +73,6 @@ function AppLayoutContent() {
         
         const userLikes = likes?.map(l => l.post_id) || [];
 
-        // Map profiles and catches to posts
         const profileMap = new Map(
           profiles?.filter(p => p.id !== null).map(p => [p.id, p]) || []
         );
@@ -113,17 +104,7 @@ function AppLayoutContent() {
       staleTime: 30 * 1000,
     });
 
-    // Prefetch dating conversations
-    queryClient.prefetchQuery({
-      queryKey: ['dating-conversations', user.id],
-      queryFn: async () => {
-        const { data } = await supabase.rpc('get_dating_conversations', { p_user_id: user.id });
-        return data || [];
-      },
-      staleTime: 30 * 1000,
-    });
-
-    // Prefetch buddy conversations with same transform as useBuddyConversations
+    // Prefetch buddy conversations
     queryClient.prefetchQuery({
       queryKey: ['buddy-conversations', user.id],
       queryFn: async () => {
@@ -157,81 +138,18 @@ function AppLayoutContent() {
     });
   }, [user?.id, queryClient]);
   
-  // Check if we're on the combo dashboard - it has its own layout
-  const isComboDashboard = location.pathname === '/app/dashboard';
-  
-  // Routes that have their own sidebars (dating pages) or special layouts
-  const datingRoutes = ['/app/discover', '/app/matches', '/app/likes', '/app/messages'];
-  const sharedRoutes = ['/app/settings', '/app/profile'];
-  const fishingRoutes = ['/app/feed', '/app/spots', '/app/catches', '/app/trips', '/app/buddies', '/app/buddy-messages'];
-  const isDatingRoute = datingRoutes.some(route => location.pathname.startsWith(route));
-  const isSharedRoute = sharedRoutes.some(route => location.pathname.startsWith(route));
-  const isFishingRoute = fishingRoutes.some(route => location.pathname.startsWith(route));
-
-  // Discover should be a fixed, non-scroll viewport between header and bottom nav on mobile
-  const isDiscoverNoScroll = location.pathname.startsWith('/app/discover');
-
   // Chat pages hide the bottom nav for Instagram-like experience
   const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/messages/');
 
-  // Determine which desktop header to show based on effective mode
-  const renderDesktopHeader = () => {
-    // Dating mode (or combo user in dating-only mode) - no header, pages have sidebar
-    if (effectiveMode === 'dating') {
-      return null;
-    }
-    
-    // Fishing mode - always show FishingHeader
-    if (effectiveMode === 'fishing') {
-      return <FishingHeader />;
-    }
-    
-    // Combo mode (unified view)
-    if (effectiveMode === 'both') {
-      // On dating routes, pages have their own sidebar (DiscoverSidebar)
-      if (isDatingRoute) {
-        return null;
-      }
-      // On shared routes, show ComboSharedHeader
-      if (isSharedRoute) {
-        return <ComboSharedHeader />;
-      }
-      // On fishing routes (including feed) and combo dashboard, show BothHeader
-      return <BothHeader />;
-    }
-    
-    return null;
-  };
-
-  // Combo dashboard has its own full layout with sidebar on desktop, but uses mobile components
-  if (isComboDashboard) {
-    return (
-      <div className="min-h-screen bg-background">
-        {/* Mobile Header for Dashboard */}
-        <div className="lg:hidden">
-          <AppHeader />
-        </div>
-        
-        <main className="pb-16 lg:pb-0">
-          <PageTransition>
-            <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
-          </PageTransition>
-        </main>
-
-        {/* Mobile Bottom Nav for Dashboard */}
-        <div className="lg:hidden">
-          <BottomNav accountMode={effectiveMode === 'both' ? 'fishing' : effectiveMode} />
-        </div>
-
-      </div>
-    );
-  }
+  // Dating routes use their own sidebar layout (no FishingHeader)
+  const datingRoutes = ['/app/discover', '/app/matches', '/app/likes', '/app/messages'];
+  const isDatingRoute = datingRoutes.some(route => location.pathname.startsWith(route));
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop Header */}
+      {/* Desktop Header - show FishingHeader for non-dating routes */}
       <div className="hidden lg:block">
-        {renderDesktopHeader()}
+        {!isDatingRoute && <FishingHeader />}
       </div>
 
       {/* Mobile Header - hide on chat pages which have their own header */}
@@ -241,19 +159,18 @@ function AppLayoutContent() {
         </div>
       )}
       
-      <main className={`${isDiscoverNoScroll || isChatPage ? 'pb-0' : 'pb-16'} lg:pb-0`}>
+      <main className={`${isChatPage ? 'pb-0' : 'pb-16'} lg:pb-0`}>
         <PageTransition>
-          <Outlet context={{ accountMode: effectiveMode, isComboUser }} />
+          <Outlet context={{ accountMode: 'fishing' }} />
         </PageTransition>
       </main>
 
-      {/* Mobile Bottom Nav - hide on chat pages for Instagram-like experience */}
+      {/* Mobile Bottom Nav - hide on chat pages */}
       {!isChatPage && (
         <div className="lg:hidden">
-          <BottomNav accountMode={effectiveMode === 'both' ? 'fishing' : effectiveMode} />
+          <BottomNav accountMode="fishing" />
         </div>
       )}
-
     </div>
   );
 }
@@ -278,7 +195,7 @@ export function AppLayout() {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
     retry: 2,
   });
 
@@ -295,7 +212,7 @@ export function AppLayout() {
       return data?.role ?? null;
     },
     enabled: !!user?.id,
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
     retry: 2,
   });
 
@@ -324,11 +241,10 @@ export function AppLayout() {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Check if fishing/both users have valid premium access (with 3-day grace period after expiration)
-  // NOTE: admins/moderators are exempt from premium gating.
+  // Check premium access for fishing/both users (admins exempt)
   const isAdmin = !!adminRole;
   const requiresPremium = profile?.account_mode === 'fishing' || profile?.account_mode === 'both';
-  const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+  const gracePeriodMs = 3 * 24 * 60 * 60 * 1000;
   const isPremiumExpired =
     profile?.premium_expires_at &&
     new Date(profile.premium_expires_at).getTime() + gracePeriodMs < Date.now();
@@ -343,11 +259,12 @@ export function AppLayout() {
     return <Navigate to="/admin" replace />;
   }
 
-  const baseAccountMode = profile?.account_mode || 'both';
+  // Always treat as fishing mode — dating is a separate add-on
+  const baseAccountMode = profile?.account_mode || 'fishing';
 
   return (
     <ActiveModeProvider 
-      baseAccountMode={baseAccountMode}
+      baseAccountMode={baseAccountMode === 'both' ? 'fishing' : baseAccountMode}
       isPremium={profile?.is_premium || false}
       premiumExpiresAt={profile?.premium_expires_at || null}
     >
