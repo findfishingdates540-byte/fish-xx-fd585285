@@ -49,9 +49,9 @@ export default function Trips() {
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Your Fishing Dates</h1>
+            <h1 className="text-3xl font-bold mb-1">Your Trips</h1>
             <p className="text-muted-foreground">
-              Upcoming adventures with your matches in Combo Mode
+              Plan and manage your upcoming fishing adventures
             </p>
           </div>
           <Button 
