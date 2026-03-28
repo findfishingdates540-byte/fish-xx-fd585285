@@ -1,67 +1,42 @@
 
 
-# Migrate from Natively to Capacitor
+# Remove Combo Mode from Bottom Nav
 
-## Overview
-Replace the Natively SDK wrapper with Capacitor to build native Android and iOS apps. This involves installing Capacitor, configuring it, updating push notification handling, and providing steps to build in Android Studio.
+## Summary
+Remove the "both" mode entirely from `BottomNav`. The pill nav will only serve two account types: **Dating** or **Fishing**, each with 4 unique tabs + the center Create button.
 
-## Step 1: Install Capacitor Dependencies
+## Navigation Layout
 
-Add the following packages:
-- `@capacitor/core`
-- `@capacitor/cli` (dev dependency)
-- `@capacitor/ios`
-- `@capacitor/android`
-- `@capacitor/push-notifications` (replaces Natively Firebase push)
+### Dating Mode (4 tabs + center)
+| Left 1 | Left 2 | CENTER | Right 1 | Right 2 |
+|---------|--------|--------|---------|---------|
+| Discover | Likes | **+** | Matches | Messages |
 
-## Step 2: Initialize Capacitor
+### Fishing Mode (4 tabs + center)
+| Left 1 | Left 2 | CENTER | Right 1 | Right 2 |
+|---------|--------|--------|---------|---------|
+| Feed | Spots | **+** | Rankings | Buddies |
 
-Run `npx cap init` and configure `capacitor.config.ts`:
-- **appId**: `app.lovable.df5847982ad9482a9cd6d5a123462cf6`
-- **appName**: `FishX`
-- **webDir**: `dist`
-- **Server config** for dev hot-reload pointing to the sandbox preview URL
+No changes to the tabs themselves -- these already exist. We just delete the `both` fallback branch.
 
-## Step 3: Update Push Notifications
+## Changes
 
-Replace `use-natively-push.ts` with a Capacitor-based implementation using `@capacitor/push-notifications`:
-- `PushNotifications.requestPermissions()`
-- `PushNotifications.register()`
-- Listen for `registration` event to get the FCM token
-- Save token to `push_subscriptions` table (same DB schema, just different source)
+### `src/components/layout/BottomNav.tsx`
+- Remove the `both` return block (lines 51-57) from `getNavItems`
+- Remove the `AccountMode` union member `'both'` -- type becomes `'dating' | 'fishing'`
+- Remove any `accountMode === 'both'` checks in badge queries (keep fishing badges enabled for fishing, dating badges for dating)
 
-Update `use-push-notifications-unified.ts` to detect Capacitor native instead of Natively:
-- Check `Capacitor.isNativePlatform()` from `@capacitor/core`
+### `src/components/layout/BottomNav.tsx` (type)
+- Update `AccountMode` type to `'dating' | 'fishing'`
 
-## Step 4: Clean Up Natively References
+### Upstream callers
+- Any component passing `accountMode` to `BottomNav` that could pass `'both'` needs to map it to either `'dating'` or `'fishing'` based on the user's `effectiveMode` or `activeMode`. This ensures combo users who haven't fully migrated still get a valid nav.
 
-Remove or update:
-- `src/hooks/use-natively-push.ts` -- replace with Capacitor version
-- `src/vite-env.d.ts` -- remove Natively type declarations
-- Any `window.natively` or `window.NativelyFirebaseNotifications` checks throughout the codebase
+### `src/contexts/ActiveModeContext.tsx`
+- No changes needed -- `effectiveMode` already resolves to `'dating'` or `'fishing'` for combo users in a specific mode.
 
-## Step 5: Build & Run Instructions
-
-After the code changes, you will need to do the following on your local machine:
-
-1. Export to GitHub via Settings → GitHub
-2. `git clone` and `cd` into the project
-3. `npm install`
-4. `npm run build`
-5. `npx cap add android` (and/or `npx cap add ios`)
-6. `npx cap sync`
-7. `npx cap open android` -- opens the project in Android Studio
-8. Build and run from Android Studio onto a device or emulator
-
-For subsequent code changes pulled from Lovable, just run `npm run build && npx cap sync`.
-
-## Files to Create/Edit
-1. `capacitor.config.ts` -- new Capacitor config
-2. `src/hooks/use-capacitor-push.ts` -- new push hook using Capacitor API
-3. `src/hooks/use-push-notifications-unified.ts` -- swap Natively detection for Capacitor
-4. `src/hooks/use-natively-push.ts` -- delete or gut
-5. `src/vite-env.d.ts` -- remove Natively types
-6. `package.json` -- add Capacitor dependencies
-
-Read more about using Capacitor with Lovable: https://docs.lovable.dev/tips-tricks/native-mobile-apps
+## Technical detail
+- The `getNavItems` function's `both` branch is the only code removed
+- Badge query `enabled` flags already gate on `accountMode === 'dating'` or `accountMode === 'fishing'` -- they'll continue working
+- The `ScoreboardSheet` and `CreateActionSheet` will need their `accountMode` prop updated to exclude `'both'` as well
 
