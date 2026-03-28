@@ -25,6 +25,7 @@ interface NavItem {
   hasMatchBadge?: boolean;
   hasLikesBadge?: boolean;
   hasMentionsBadge?: boolean;
+  hasBuddyMessagesBadge?: boolean;
   isScoreboardHub?: boolean;
   isCenterAction?: boolean;
 }
