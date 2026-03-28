@@ -49,7 +49,7 @@ export function AccountSwitcherSheet({ avatarUrl, displayName }: AccountSwitcher
 
   return (
     <>
-      <div className="flex items-center gap-0">
+      <div className="flex items-center gap-1.5">
         {/* Avatar links to profile */}
         <Link to="/app/profile" className="rounded-full focus:outline-none">
           <Avatar className="h-8 w-8 border border-border">
