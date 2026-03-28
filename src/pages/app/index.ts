@@ -16,7 +16,7 @@ export { default as Settings } from './Settings';
 export { default as Trips } from './Trips';
 export { default as TripPlanner } from './TripPlanner';
 export { default as TripDetail } from './TripDetail';
-export { default as ComboDashboard } from './ComboDashboard';
+export { default as Feed } from './Feed';
 export { default as Feed } from './Feed';
 export { default as MyTickets } from './MyTickets';
 export { default as SocialProfile } from './SocialProfile';
