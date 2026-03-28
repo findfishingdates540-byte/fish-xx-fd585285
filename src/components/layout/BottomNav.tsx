@@ -43,9 +43,11 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
     return [
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
+      { to: '/app/trips', icon: Calendar, label: 'Trips' },
       { to: '#create', icon: Plus, label: 'Create', isCenterAction: true },
       { to: '/app/leaderboard', icon: Trophy, label: 'Rankings', isScoreboardHub: true },
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
+      { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessagesBadge: true },
     ];
   }
   // No 'both' mode — upstream always resolves to 'dating' or 'fishing'
