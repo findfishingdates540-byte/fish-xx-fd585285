@@ -141,7 +141,7 @@ export default function Teams() {
       </div>
 
       {/* Category Filter */}
-      <div className="grid grid-cols-5 rounded-lg overflow-hidden border border-border mb-5">
+      <div className="grid grid-cols-4 rounded-lg overflow-hidden border border-border mb-5">
         {categories.map(({ key, label }) => (
           <button
             key={key}
