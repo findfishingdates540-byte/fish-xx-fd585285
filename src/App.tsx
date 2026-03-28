@@ -46,6 +46,7 @@ import SpotDetail from "./pages/app/SpotDetail";
 import AppIndex from "./pages/app/AppIndex";
 import UserProfile from "./pages/app/UserProfile";
 import DatingProfile from "./pages/app/DatingProfile";
+import DatingSetup from "./pages/app/DatingSetup";
 import PhotoChallenges from "./pages/app/PhotoChallenges";
 import PhotoChallengeDetail from "./pages/app/PhotoChallengeDetail";
 import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge"; // kept for potential future use
@@ -162,6 +163,7 @@ const App = () => (
               <Route path="profile/edit" element={<ProfileEdit />} />
               <Route path="profile/:userId" element={<UserProfile />} />
               <Route path="dating-profile/:userId" element={<DatingProfile />} />
+              <Route path="dating-setup" element={<DatingSetup />} />
               <Route path="user/:userId" element={<Navigate to="/app/u/:userId" replace />} />
               <Route path="settings" element={<Settings />} />
             </Route>

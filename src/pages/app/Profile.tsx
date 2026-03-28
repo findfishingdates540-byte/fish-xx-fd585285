@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode } from '@/contexts/ActiveModeContext';
@@ -8,7 +8,8 @@ import {
   MapPin, Share2, Pencil, Heart, Fish, Layers, 
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
-  ArrowLeft, Settings, Grid3X3, AtSign, FileText, User, Bookmark, Repeat2
+  ArrowLeft, Settings, Grid3X3, AtSign, FileText, User, Bookmark, Repeat2,
+  ShieldCheck
 } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +28,13 @@ import { useUserPosts, useMentionedPosts, useUserPostsCount } from '@/hooks/use-
 import { useBookmarkedPosts } from '@/hooks/use-bookmarks';
 import { useRepostedPosts } from '@/hooks/use-reposts';
 import { cn } from '@/lib/utils';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const accountModes = [{
   id: 'dating',
@@ -57,9 +65,17 @@ export default function Profile() {
   const { effectiveMode } = useActiveMode();
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // Determine if social features should be shown (not in dating-only mode)
-  const showSocialFeatures = effectiveMode !== 'dating';
+  // Profile view: 'fishing' or 'dating'
+  const [profileView, setProfileView] = useState<'fishing' | 'dating'>(
+    (location.state as any)?.showDating ? 'dating' : 'fishing'
+  );
+  const [showDatingSheet, setShowDatingSheet] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  
+  // Determine if social features should be shown (not in dating view)
+  const showSocialFeatures = profileView !== 'dating';
   
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile-full', user?.id],
@@ -248,7 +264,46 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* View Type Tabs - Only show tabs when social features are available */}
+      {/* Profile View Switcher: Fishing / Dating */}
+      <div className="max-w-6xl mx-auto px-4 pt-5">
+        <div className="flex justify-center">
+          <div className="inline-flex bg-muted rounded-full p-1 gap-1">
+            <button
+              onClick={() => setProfileView('fishing')}
+              className={cn(
+                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
+                profileView === 'fishing'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Fish className="h-4 w-4" />
+              Fishing Profile
+            </button>
+            <button
+              onClick={() => {
+                const hasDating = profile?.account_mode === 'dating' || profile?.account_mode === 'both';
+                if (hasDating) {
+                  setProfileView('dating');
+                } else {
+                  setShowDatingSheet(true);
+                }
+              }}
+              className={cn(
+                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
+                profileView === 'dating'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Heart className="h-4 w-4" />
+              Dating Profile
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* View Type Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
         <Tabs defaultValue={showSocialFeatures ? "social" : "detailed"} className="w-full">
           {showSocialFeatures && (
@@ -493,8 +548,26 @@ export default function Profile() {
 
               {/* Center Column */}
               <div className="lg:col-span-5 space-y-6">
-                {/* Dating Stats - Only show for dating/combo modes */}
-                {(profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
+                {/* Dating action buttons - only in dating view */}
+                {profileView === 'dating' && (profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
+                  <div className="flex gap-3">
+                    <Button className="flex-1" asChild>
+                      <Link to="/app/discover">
+                        <Heart className="h-4 w-4 mr-2" />
+                        View Dating App
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link to="/app/profile/edit">
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Dating Profile
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+
+                {/* Dating Stats - Only show in dating view */}
+                {profileView === 'dating' && (profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
                   <Card className="border-pink-200 dark:border-pink-900/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
                       <div className="flex items-center gap-2">
@@ -527,8 +600,8 @@ export default function Profile() {
                   </Card>
                 )}
 
-                {/* Activity Stats - Only show for fishing/combo modes */}
-                {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
+                {/* Activity Stats - Only show in fishing view */}
+                {profileView === 'fishing' && (profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
                   <Card className="border-blue-200 dark:border-blue-900/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
                       <div className="flex items-center gap-2">
@@ -647,54 +720,56 @@ export default function Profile() {
 
               {/* Right Column */}
               <div className="lg:col-span-4 space-y-6">
-                {/* Dating Preferences */}
-                <Card className="border-pink-200 dark:border-pink-900/30">
-                  <CardHeader className="flex flex-row items-center justify-between pb-3">
-                    <div className="flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-pink-500" />
-                      <CardTitle className="text-lg font-semibold text-pink-600 dark:text-pink-400">
-                        Dating Preferences
-                      </CardTitle>
-                    </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/app/profile/edit">Edit</Link>
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Looking For</p>
-                      <p className="text-sm font-medium">
-                        {profile?.looking_for?.map(l => {
-                          const labels: Record<string, string> = {
-                            relationship: 'Relationship',
-                            casual: 'Something Casual',
-                            friends: 'Friends',
-                            fishing_buddy: 'Fishing Buddy',
-                          };
-                          return labels[l] || l;
-                        }).join(', ') || 'Not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Age Range</p>
-                      <p className="text-sm font-medium">
-                        {profile?.min_age_preference || 18} - {profile?.max_age_preference || 99}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Distance</p>
-                      <p className="text-sm font-medium">
-                        {(profile?.max_distance_miles || 50) >= 500 ? 'Unlimited' : `Within ${profile?.max_distance_miles || 50} miles`}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Interested In</p>
-                      <p className="text-sm font-medium">
-                        {profile?.interested_in?.map(g => g === 'male' ? 'Men' : g === 'female' ? 'Women' : g).join(', ') || 'Not specified'}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Dating Preferences - only in dating view */}
+                {profileView === 'dating' && (
+                  <Card className="border-pink-200 dark:border-pink-900/30">
+                    <CardHeader className="flex flex-row items-center justify-between pb-3">
+                      <div className="flex items-center gap-2">
+                        <Heart className="h-5 w-5 text-pink-500" />
+                        <CardTitle className="text-lg font-semibold text-pink-600 dark:text-pink-400">
+                          Dating Preferences
+                        </CardTitle>
+                      </div>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/app/profile/edit">Edit</Link>
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Looking For</p>
+                        <p className="text-sm font-medium">
+                          {profile?.looking_for?.map(l => {
+                            const labels: Record<string, string> = {
+                              relationship: 'Relationship',
+                              casual: 'Something Casual',
+                              friends: 'Friends',
+                              fishing_buddy: 'Fishing Buddy',
+                            };
+                            return labels[l] || l;
+                          }).join(', ') || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Age Range</p>
+                        <p className="text-sm font-medium">
+                          {profile?.min_age_preference || 18} - {profile?.max_age_preference || 99}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Distance</p>
+                        <p className="text-sm font-medium">
+                          {(profile?.max_distance_miles || 50) >= 500 ? 'Unlimited' : `Within ${profile?.max_distance_miles || 50} miles`}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Interested In</p>
+                        <p className="text-sm font-medium">
+                          {profile?.interested_in?.map(g => g === 'male' ? 'Men' : g === 'female' ? 'Women' : g).join(', ') || 'Not specified'}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Current Mode */}
                 <Card>
@@ -734,8 +809,8 @@ export default function Profile() {
                   </CardContent>
                 </Card>
 
-                {/* Fishing Style */}
-                {(profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
+                {/* Fishing Style - only in fishing view */}
+                {profileView === 'fishing' && (profile?.account_mode === 'fishing' || profile?.account_mode === 'both') && (
                   <Card className="border-blue-200 dark:border-blue-900/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
                       <div className="flex items-center gap-2">
@@ -749,7 +824,6 @@ export default function Profile() {
                       </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Favorite species hidden for now */}
                       <div>
                         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Skill Level</p>
                         <div className="space-y-2">
@@ -798,6 +872,53 @@ export default function Profile() {
           onClose={() => setSelectedPostId(null)}
         />
       )}
+
+      {/* Dating Setup Bottom Sheet */}
+      <Sheet open={showDatingSheet} onOpenChange={setShowDatingSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader className="text-left">
+            <SheetTitle className="flex items-center gap-2 text-xl">
+              <Heart className="h-5 w-5 text-pink-500" />
+              Explore Dating on FISH-X
+            </SheetTitle>
+          </SheetHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Set up your dating profile to discover matches who share your love for fishing and the outdoors.
+            </p>
+            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+              <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium">18+ Only</p>
+                <p className="text-xs text-muted-foreground">
+                  The dating feature is for adults aged 18 and over.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox 
+                id="age-confirm" 
+                checked={ageConfirmed}
+                onCheckedChange={(checked) => setAgeConfirmed(checked === true)}
+              />
+              <label htmlFor="age-confirm" className="text-sm font-medium cursor-pointer">
+                I confirm I am 18 years or older
+              </label>
+            </div>
+            <Button 
+              className="w-full" 
+              disabled={!ageConfirmed}
+              onClick={() => {
+                setShowDatingSheet(false);
+                navigate('/app/dating-setup');
+              }}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              Set Up Dating Profile
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
