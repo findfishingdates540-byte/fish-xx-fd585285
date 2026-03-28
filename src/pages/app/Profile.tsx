@@ -872,6 +872,53 @@ export default function Profile() {
           onClose={() => setSelectedPostId(null)}
         />
       )}
+
+      {/* Dating Setup Bottom Sheet */}
+      <Sheet open={showDatingSheet} onOpenChange={setShowDatingSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader className="text-left">
+            <SheetTitle className="flex items-center gap-2 text-xl">
+              <Heart className="h-5 w-5 text-pink-500" />
+              Explore Dating on FISH-X
+            </SheetTitle>
+          </SheetHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Set up your dating profile to discover matches who share your love for fishing and the outdoors.
+            </p>
+            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+              <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium">18+ Only</p>
+                <p className="text-xs text-muted-foreground">
+                  The dating feature is for adults aged 18 and over.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox 
+                id="age-confirm" 
+                checked={ageConfirmed}
+                onCheckedChange={(checked) => setAgeConfirmed(checked === true)}
+              />
+              <label htmlFor="age-confirm" className="text-sm font-medium cursor-pointer">
+                I confirm I am 18 years or older
+              </label>
+            </div>
+            <Button 
+              className="w-full" 
+              disabled={!ageConfirmed}
+              onClick={() => {
+                setShowDatingSheet(false);
+                navigate('/app/dating-setup');
+              }}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              Set Up Dating Profile
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
