@@ -722,52 +722,54 @@ export default function Profile() {
               <div className="lg:col-span-4 space-y-6">
                 {/* Dating Preferences - only in dating view */}
                 {profileView === 'dating' && (
-                  <CardHeader className="flex flex-row items-center justify-between pb-3">
-                    <div className="flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-pink-500" />
-                      <CardTitle className="text-lg font-semibold text-pink-600 dark:text-pink-400">
-                        Dating Preferences
-                      </CardTitle>
-                    </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/app/profile/edit">Edit</Link>
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Looking For</p>
-                      <p className="text-sm font-medium">
-                        {profile?.looking_for?.map(l => {
-                          const labels: Record<string, string> = {
-                            relationship: 'Relationship',
-                            casual: 'Something Casual',
-                            friends: 'Friends',
-                            fishing_buddy: 'Fishing Buddy',
-                          };
-                          return labels[l] || l;
-                        }).join(', ') || 'Not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Age Range</p>
-                      <p className="text-sm font-medium">
-                        {profile?.min_age_preference || 18} - {profile?.max_age_preference || 99}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Distance</p>
-                      <p className="text-sm font-medium">
-                        {(profile?.max_distance_miles || 50) >= 500 ? 'Unlimited' : `Within ${profile?.max_distance_miles || 50} miles`}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Interested In</p>
-                      <p className="text-sm font-medium">
-                        {profile?.interested_in?.map(g => g === 'male' ? 'Men' : g === 'female' ? 'Women' : g).join(', ') || 'Not specified'}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <Card className="border-pink-200 dark:border-pink-900/30">
+                    <CardHeader className="flex flex-row items-center justify-between pb-3">
+                      <div className="flex items-center gap-2">
+                        <Heart className="h-5 w-5 text-pink-500" />
+                        <CardTitle className="text-lg font-semibold text-pink-600 dark:text-pink-400">
+                          Dating Preferences
+                        </CardTitle>
+                      </div>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/app/profile/edit">Edit</Link>
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Looking For</p>
+                        <p className="text-sm font-medium">
+                          {profile?.looking_for?.map(l => {
+                            const labels: Record<string, string> = {
+                              relationship: 'Relationship',
+                              casual: 'Something Casual',
+                              friends: 'Friends',
+                              fishing_buddy: 'Fishing Buddy',
+                            };
+                            return labels[l] || l;
+                          }).join(', ') || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Age Range</p>
+                        <p className="text-sm font-medium">
+                          {profile?.min_age_preference || 18} - {profile?.max_age_preference || 99}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Distance</p>
+                        <p className="text-sm font-medium">
+                          {(profile?.max_distance_miles || 50) >= 500 ? 'Unlimited' : `Within ${profile?.max_distance_miles || 50} miles`}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Interested In</p>
+                        <p className="text-sm font-medium">
+                          {profile?.interested_in?.map(g => g === 'male' ? 'Men' : g === 'female' ? 'Women' : g).join(', ') || 'Not specified'}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Current Mode */}
                 <Card>
