@@ -241,8 +241,8 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-pb pointer-events-none">
         <div className="relative flex items-end justify-center px-3 pb-2">
-          {/* Floating plus button — sits above pill with gap */}
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-[58px] pointer-events-auto z-10">
+          {/* Floating plus button — nestled into the notch with gap */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[38px] pointer-events-auto z-10">
             <button
               onClick={() => setCreateOpen(true)}
               className="h-[52px] w-[52px] rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/25 active:scale-90 transition-transform"
