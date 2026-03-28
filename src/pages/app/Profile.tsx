@@ -282,8 +282,9 @@ export default function Profile() {
             </button>
             <button
               onClick={() => {
-                const hasDating = profile?.account_mode === 'dating' || profile?.account_mode === 'both';
-                if (hasDating) {
+                const mode = profile?.account_mode;
+                const hasDating = mode === 'dating' || mode === 'both';
+                if (hasDating || isLoading) {
                   setProfileView('dating');
                 } else {
                   setShowDatingSheet(true);
@@ -549,7 +550,7 @@ export default function Profile() {
               {/* Center Column */}
               <div className="lg:col-span-5 space-y-6">
                 {/* Dating action buttons - only in dating view */}
-                {profileView === 'dating' && (profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
+                {profileView === 'dating' && (
                   <div className="flex gap-3">
                     <Button className="flex-1" asChild>
                       <Link to="/app/discover">
@@ -567,7 +568,7 @@ export default function Profile() {
                 )}
 
                 {/* Dating Stats - Only show in dating view */}
-                {profileView === 'dating' && (profile?.account_mode === 'dating' || profile?.account_mode === 'both') && (
+                {profileView === 'dating' && (
                   <Card className="border-pink-200 dark:border-pink-900/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-3">
                       <div className="flex items-center gap-2">
