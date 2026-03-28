@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Fish, Users, Target, ChevronRight,
-  Calendar, MapPin
+  Calendar, MapPin, Trophy, Camera, Swords
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -109,6 +109,9 @@ export function FeedLeftSidebar() {
     { to: '/app/catches', icon: Target, label: 'My Catches' },
     { to: '/app/trips', icon: Calendar, label: 'Trips' },
     { to: '/app/spots', icon: MapPin, label: 'Saved Spots' },
+    { to: '/app/challenges', icon: Trophy, label: 'Challenges' },
+    { to: '/app/photo-challenges', icon: Camera, label: 'Photo Challenges' },
+    { to: '/app/tournaments', icon: Swords, label: 'Tournaments' },
   ];
 
   return (
