@@ -14,7 +14,7 @@ const allActions = [
   { key: 'story', to: '/app/feed', icon: BookImage, label: 'Add Story', description: 'Share a moment that disappears in 24h', modes: ['fishing', 'both'] },
   { key: 'catch', to: '/app/catches', icon: Fish, label: 'Log a Catch', description: 'Record your latest catch', modes: ['fishing', 'both'] },
   { key: 'spot', to: '/app/spots/new', icon: MapPin, label: 'Add a Spot', description: 'Pin a new fishing spot', modes: ['fishing', 'both'] },
-  { key: 'trip', to: '/app/trips/plan', icon: Calendar, label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
+  { key: 'trip', to: '/app/trips/', icon: Calendar, label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
   { key: 'photo-challenge', to: '/app/photo-challenges', icon: Camera, label: 'Enter Photo Challenge', description: 'Submit a photo to an active challenge', modes: ['fishing', 'both'] },
 ];
 
