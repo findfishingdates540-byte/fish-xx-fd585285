@@ -1,47 +1,32 @@
-# Add 3 Tabs per Side on Bottom Nav Pill
-
-## Layout
-
-### Dating Mode (leave as 4 tabs + center)
 
 
-| &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; |
-| ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp; |
+# Beautify the Bottom Pill Nav
 
+## What changes
 
-No extra tab for dating -- user said "none." Keep it at 2 left + 2 right (unchanged).
+### 1. Frosted glass effect
+Replace the solid white `bg-background` with a glassmorphic backdrop blur. The pill becomes semi-transparent with `backdrop-blur-xl` and a subtle white/dark overlay, giving it a modern floating feel.
 
-### Fishing Mode (6 tabs + center)
+### 2. Subtle inner shadow and refined border
+Drop the flat `border-border` stroke on SVG paths and CSS bars. Instead, apply a soft `shadow-lg` on the outer container and use a thinner, semi-transparent border (`border-white/20` in light, `border-white/10` in dark) for depth.
 
+### 3. Active tab indicator dot
+Instead of just bolding the active icon/label, add a small colored dot (4px) below the label for the active tab. This gives a clear, elegant active state without visual clutter.
 
-| Left 1 | Left 2 | Left 3 | CENTER | Right 1  | Right 2 | Right 3  |
-| ------ | ------ | ------ | ------ | -------- | ------- | -------- |
-| Feed   | Spots  | Trips  | **+**  | Rankings | Buddies | Messages |
+### 4. Plus button glow ring
+Add a subtle pulsing ring around the center Create button using `ring-4 ring-primary/10` and an `animate-pulse` on the ring only, drawing attention without being distracting.
 
+### 5. Smoother notch curve
+Refine the SVG notch path to use a wider, shallower arc (increase width from 88px to 96px, adjust control points) so the curve feels more organic and less pinched.
 
-Two new tabs added:
+## Technical details
 
-- **Trips** (Calendar icon) → `/app/trips`
-- **Messages** (MessageCircle icon) → `/app/buddy-messages` with unread badge
+**File**: `src/components/layout/BottomNav.tsx`
 
-## Changes
+- `PillBackground`: Update SVG `fill` classes to use `fill-background/80` (semi-transparent). Add `backdrop-blur-xl` to the outer container. Replace `stroke-border` with `stroke-white/15`. Widen notch SVG from 88px to 96px and adjust flat bar calc offsets.
+- Active dot: In `renderNavItem`, add a `<div>` with `h-1 w-1 rounded-full bg-primary` below the label when `isActive`.
+- Plus button: Add `ring-4 ring-primary/10` class. Remove the heavy `shadow-xl` in favor of `shadow-lg`.
+- Adjust center spacer from `w-[68px]` to `w-[76px]` to match wider notch.
 
-### `src/components/layout/BottomNav.tsx`
+No new dependencies. All changes are CSS/SVG-only in a single file.
 
-- Add `Trips` and `Messages` to the fishing `getNavItems` array (3 left, 3 right of center)
-- Import `Calendar` icon from lucide-react
-- Update `leftItems` / `rightItems` slicing: left = first 3, right = last 3
-- Add unread buddy messages badge to the new Messages tab
-- Widen the SVG notch slightly and shift curve control points to accommodate 6 items cleanly
-- Reduce icon/text sizing slightly so 6 tabs fit comfortably in 390px width
-
-### SVG pill adjustment
-
-- The notch position stays centered; left/right halves each get 3 evenly spaced items instead of 2
-
-## What stays the same
-
-- Dating mode: unchanged (2 + 2)
-- Create action sheet, Scoreboard hub -- no changes
-- All badge logic remains intact
