@@ -62,15 +62,18 @@ const experienceLevelMap: Record<string, number> = {
 
 export default function Profile() {
   const { user } = useAuth();
-  const { effectiveMode } = useActiveMode();
+  const { effectiveMode, setActiveMode, isComboUser } = useActiveMode();
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Profile view: 'fishing' or 'dating'
-  const [profileView, setProfileView] = useState<'fishing' | 'dating'>(
-    (location.state as any)?.showDating ? 'dating' : 'fishing'
-  );
+  // Profile view synced with app-wide active mode
+  const profileView = effectiveMode === 'dating' ? 'dating' : 'fishing';
+  const setProfileView = (view: 'fishing' | 'dating') => {
+    if (isComboUser) {
+      setActiveMode(view === 'dating' ? 'dating' : 'fishing');
+    }
+  };
   const [showDatingSheet, setShowDatingSheet] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('social');
