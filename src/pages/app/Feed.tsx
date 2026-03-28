@@ -10,8 +10,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
-import { Fish, Loader2 } from 'lucide-react';
+import { Fish, Loader2, Cloud, Wind, Droplets, Sun, CloudRain, CloudSnow, CloudLightning, CloudFog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useWeather, getWindDirection, getFishingConditions } from '@/hooks/use-weather';
 
 type FeedItem = 
   | { type: 'post'; data: FeedPostType }
