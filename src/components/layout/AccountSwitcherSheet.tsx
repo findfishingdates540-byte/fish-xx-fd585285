@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Heart, Anchor, LayoutDashboard, ChevronDown, Check } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -49,20 +49,25 @@ export function AccountSwitcherSheet({ avatarUrl, displayName }: AccountSwitcher
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-1 rounded-full focus:outline-none"
-      >
-        <Avatar className="h-8 w-8 border border-border">
-          <AvatarImage src={avatarUrl} alt={displayName || 'Profile'} />
-          <AvatarFallback className="bg-muted text-muted-foreground text-sm">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center -ml-1.5 border-2 border-background">
+      <div className="flex items-center gap-0">
+        {/* Avatar links to profile */}
+        <Link to="/app/profile" className="rounded-full focus:outline-none">
+          <Avatar className="h-8 w-8 border border-border">
+            <AvatarImage src={avatarUrl} alt={displayName || 'Profile'} />
+            <AvatarFallback className="bg-muted text-muted-foreground text-sm">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
+        {/* Chevron opens mode switcher */}
+        <button
+          onClick={() => setOpen(true)}
+          className="h-5 w-5 rounded-full bg-muted flex items-center justify-center -ml-1.5 border-2 border-background focus:outline-none"
+          aria-label="Switch mode"
+        >
           <ChevronDown className="h-3 w-3 text-foreground" />
-        </div>
-      </button>
+        </button>
+      </div>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8 pt-2">
