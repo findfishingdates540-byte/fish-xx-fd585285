@@ -236,14 +236,14 @@ export default function Leaderboard() {
           <section>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <h2 className="text-lg font-bold flex items-center gap-2"><Users className="h-5 w-5 text-muted-foreground" />Team Rankings</h2>
-              <div className="flex rounded-lg overflow-hidden border border-border">
+              <div className="grid grid-cols-4 rounded-lg overflow-hidden border border-border">
                 {[
                   { key: "all", label: "All" },
                   { key: "teams", label: "Teams" },
                   { key: "lady_angler", label: "Women" },
                   { key: "junior_angler", label: "Jr. Anglers" },
                 ].map(({ key, label }) => (
-                  <button key={key} onClick={() => setTeamCategoryFilter(key)} className={`px-3 py-1.5 text-xs font-medium transition-colors ${teamCategoryFilter === key ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}>
+                  <button key={key} onClick={() => setTeamCategoryFilter(key)} className={`py-1.5 text-xs font-medium text-center transition-colors ${teamCategoryFilter === key ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}>
                     {label}
                   </button>
                 ))}
