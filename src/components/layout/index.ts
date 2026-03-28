@@ -6,5 +6,4 @@ export { PublicFooter } from './PublicFooter';
 export { RouteGuard, DatingRoute, FishingRoute } from './RouteGuard';
 export { FishingHeader } from './FishingHeader';
 export { PageTransition } from './PageTransition';
-export { PageTransition } from './PageTransition';
 export { ForceLightTheme } from './ForceLightTheme';
