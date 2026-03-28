@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, Plus, Sparkles, Trophy, Camera } from 'lucide-react';
+import { Home, Heart, MessageCircle, User, Fish, MapPin, Rss, Plus, Sparkles, Trophy } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,8 +23,6 @@ interface NavItem {
   hasBuddyBadge?: boolean;
   hasMessageBadge?: boolean;
   hasMatchBadge?: boolean;
-  hasBuddyMessageBadge?: boolean;
-  hasTripBadge?: boolean;
   hasLikesBadge?: boolean;
   hasMentionsBadge?: boolean;
   isScoreboardHub?: boolean;
@@ -41,7 +39,6 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
       { to: '/app/messages', icon: MessageCircle, label: 'Messages', hasMessageBadge: true },
     ];
   }
-
   if (mode === 'fishing') {
     return [
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
@@ -51,8 +48,6 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
       { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
     ];
   }
-
-  // Both mode
   return [
     { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
     { to: '/app/spots', icon: MapPin, label: 'Spots' },
@@ -71,16 +66,11 @@ export function BottomNav({ accountMode }: BottomNavProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [scoreboardOpen, setScoreboardOpen] = useState(false);
 
-  // Fetch pending buddy requests count
   const { data: pendingRequestsCount = 0 } = useQuery({
     queryKey: ["pending-buddy-requests", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
-      const { count } = await supabase
-        .from("fishing_buddies")
-        .select("*", { count: "exact", head: true })
-        .eq("recipient_id", user.id)
-        .eq("status", "pending");
+      const { count } = await supabase.from("fishing_buddies").select("*", { count: "exact", head: true }).eq("recipient_id", user.id).eq("status", "pending");
       return count || 0;
     },
     enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
@@ -90,19 +80,9 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     queryKey: ["unread-messages-count", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
-      const { data: matches } = await supabase
-        .from("matches")
-        .select("id")
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .eq("is_match", true);
+      const { data: matches } = await supabase.from("matches").select("id").or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`).eq("is_match", true);
       if (!matches || matches.length === 0) return 0;
-      const matchIds = matches.map(m => m.id);
-      const { count } = await supabase
-        .from("messages")
-        .select("*", { count: "exact", head: true })
-        .in("match_id", matchIds)
-        .neq("sender_id", user.id)
-        .eq("is_read", false);
+      const { count } = await supabase.from("messages").select("*", { count: "exact", head: true }).in("match_id", matches.map(m => m.id)).neq("sender_id", user.id).eq("is_read", false);
       return count || 0;
     },
     enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
@@ -112,15 +92,10 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     queryKey: ["new-matches-count", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
-      const { data: matches } = await supabase
-        .from("matches")
-        .select("id, user1_id, user2_id, matched_at, user1_viewed_at, user2_viewed_at")
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .eq("is_match", true);
+      const { data: matches } = await supabase.from("matches").select("id, user1_id, user2_id, matched_at, user1_viewed_at, user2_viewed_at").or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`).eq("is_match", true);
       if (!matches) return 0;
       return matches.filter(m => {
-        const isUser1 = m.user1_id === user.id;
-        const viewedAt = isUser1 ? m.user1_viewed_at : m.user2_viewed_at;
+        const viewedAt = m.user1_id === user.id ? m.user1_viewed_at : m.user2_viewed_at;
         if (!viewedAt) return true;
         return m.matched_at && new Date(m.matched_at) > new Date(viewedAt);
       }).length;
@@ -132,13 +107,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     queryKey: ["pending-likes-count", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
-      const { count } = await supabase
-        .from("matches")
-        .select("*", { count: "exact", head: true })
-        .eq("user2_id", user.id)
-        .eq("user1_liked", true)
-        .eq("user2_liked", false)
-        .eq("is_match", false);
+      const { count } = await supabase.from("matches").select("*", { count: "exact", head: true }).eq("user2_id", user.id).eq("user1_liked", true).eq("user2_liked", false).eq("is_match", false);
       return count || 0;
     },
     enabled: !!user?.id && (accountMode === 'dating' || accountMode === 'both'),
@@ -148,19 +117,9 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     queryKey: ["unread-buddy-messages-count", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
-      const { data: buddies } = await supabase
-        .from("fishing_buddies")
-        .select("id")
-        .eq("status", "accepted")
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+      const { data: buddies } = await supabase.from("fishing_buddies").select("id").eq("status", "accepted").or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
       if (!buddies || buddies.length === 0) return 0;
-      const buddyIds = buddies.map(b => b.id);
-      const { count } = await supabase
-        .from("buddy_messages")
-        .select("*", { count: "exact", head: true })
-        .in("buddy_id", buddyIds)
-        .neq("sender_id", user.id)
-        .eq("is_read", false);
+      const { count } = await supabase.from("buddy_messages").select("*", { count: "exact", head: true }).in("buddy_id", buddies.map(b => b.id)).neq("sender_id", user.id).eq("is_read", false);
       return count || 0;
     },
     enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
@@ -170,37 +129,21 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     queryKey: ["unread-mentions-count", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
-      const { count } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("type", "comment_mention")
-        .eq("is_read", false);
+      const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "comment_mention").eq("is_read", false);
       return count || 0;
     },
     enabled: !!user?.id && (accountMode === 'fishing' || accountMode === 'both'),
   });
 
-  // Real-time subscriptions
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
       .channel("mobile-nav-updates")
-      .on("postgres_changes", { event: "*", schema: "public", table: "fishing_buddies", filter: `recipient_id=eq.${user.id}` }, () => {
-        queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["unread-messages-count", user.id] });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["new-matches-count", user.id] });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "buddy_messages" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["unread-buddy-messages-count", user.id] });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => {
-        queryClient.invalidateQueries({ queryKey: ["unread-mentions-count", user.id] });
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "fishing_buddies", filter: `recipient_id=eq.${user.id}` }, () => queryClient.invalidateQueries({ queryKey: ["pending-buddy-requests", user.id] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => queryClient.invalidateQueries({ queryKey: ["unread-messages-count", user.id] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => queryClient.invalidateQueries({ queryKey: ["new-matches-count", user.id] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "buddy_messages" }, () => queryClient.invalidateQueries({ queryKey: ["unread-buddy-messages-count", user.id] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => queryClient.invalidateQueries({ queryKey: ["unread-mentions-count", user.id] }))
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user?.id, queryClient]);
@@ -214,79 +157,122 @@ export function BottomNav({ accountMode }: BottomNavProps) {
     return 0;
   };
 
+  const leftItems = navItems.slice(0, 2);
+  const centerItem = navItems[2];
+  const rightItems = navItems.slice(3);
+
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-pb">
-        {/* Background shape with notch */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-background border-t border-border" />
-          
-          <div className="relative flex items-end justify-around h-16 px-1">
-            {navItems.map((item, index) => {
-              const badgeCount = getBadgeCount(item);
+      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-pb pointer-events-none">
+        <div className="flex items-end justify-center px-4 pb-3">
+          {/* Floating plus button - positioned above the pill */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[52px] pointer-events-auto z-10">
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="h-[56px] w-[56px] rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/25 active:scale-90 transition-transform"
+            >
+              <Plus className="h-7 w-7 text-primary-foreground" strokeWidth={2.5} />
+            </button>
+          </div>
 
-              // Center raised plus button
-              if (item.isCenterAction) {
-                return (
-                  <div key="center-action" className="flex items-center justify-center flex-1 relative -mt-5">
-                    <button
-                      onClick={() => setCreateOpen(true)}
-                      className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+          {/* Pill container */}
+          <div className="relative w-full pointer-events-auto">
+            {/* SVG pill shape with center notch */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 390 64"
+              preserveAspectRatio="none"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M32 0 H163 C163 0 165 0 168 3 C174 12 182 20 195 20 C208 20 216 12 222 3 C225 0 227 0 227 0 H358 C375.673 0 390 14.327 390 32 C390 49.673 375.673 64 358 64 H32 C14.327 64 0 49.673 0 32 C0 14.327 14.327 0 32 0 Z"
+                className="fill-background stroke-border"
+                strokeWidth="1"
+              />
+            </svg>
+
+            {/* Nav items overlay */}
+            <div className="relative flex items-center h-16">
+              {/* Left section */}
+              <div className="flex flex-1 items-center justify-evenly">
+                {leftItems.map((item) => {
+                  const badgeCount = getBadgeCount(item);
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex flex-col items-center justify-center py-2 px-3 transition-colors',
+                          isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                        )
+                      }
                     >
-                      <Plus className="h-7 w-7 text-primary-foreground" strokeWidth={2.5} />
-                    </button>
-                  </div>
-                );
-              }
-
-              // Scoreboard hub
-              if (item.isScoreboardHub) {
-                return (
-                  <button
-                    key={item.to}
-                    onClick={() => setScoreboardOpen(true)}
-                    className={cn(
-                      'flex flex-col items-center justify-center flex-1 h-full pt-2 transition-colors',
-                      'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    <item.icon className="h-6 w-6" strokeWidth={2} />
-                    <span className="text-[10px] mt-0.5">{item.label}</span>
-                  </button>
-                );
-              }
-
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex flex-col items-center justify-center flex-1 h-full pt-2 transition-colors',
-                      isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                    )
-                  }
-                >
-                  {({ isActive }) => (
-                    <div className="relative flex flex-col items-center">
-                      <item.icon
-                        className={cn('h-6 w-6', isActive && 'fill-current')}
-                        strokeWidth={isActive ? 2.5 : 2}
-                      />
-                      <span className={cn("text-[10px] mt-0.5", isActive && "font-medium")}>{item.label}</span>
-                      {badgeCount > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] px-1"
-                        >
-                          {badgeCount > 9 ? "9+" : badgeCount}
-                        </Badge>
+                      {({ isActive }) => (
+                        <div className="relative flex flex-col items-center gap-0.5">
+                          <item.icon className={cn('h-[22px] w-[22px]')} strokeWidth={isActive ? 2.5 : 1.8} />
+                          <span className={cn("text-[10px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
+                          {badgeCount > 0 && (
+                            <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
+                              {badgeCount > 9 ? "9+" : badgeCount}
+                            </Badge>
+                          )}
+                        </div>
                       )}
-                    </div>
-                  )}
-                </NavLink>
-              );
-            })}
+                    </NavLink>
+                  );
+                })}
+              </div>
+
+              {/* Center spacer for the notch */}
+              <div className="w-[72px] shrink-0" />
+
+              {/* Right section */}
+              <div className="flex flex-1 items-center justify-evenly">
+                {rightItems.map((item) => {
+                  const badgeCount = getBadgeCount(item);
+
+                  if (item.isScoreboardHub) {
+                    return (
+                      <button
+                        key={item.to}
+                        onClick={() => setScoreboardOpen(true)}
+                        className="flex flex-col items-center justify-center py-2 px-3 transition-colors text-muted-foreground hover:text-foreground"
+                      >
+                        <item.icon className="h-[22px] w-[22px]" strokeWidth={1.8} />
+                        <span className="text-[10px] leading-tight mt-0.5">{item.label}</span>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex flex-col items-center justify-center py-2 px-3 transition-colors',
+                          isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                        )
+                      }
+                    >
+                      {({ isActive }) => (
+                        <div className="relative flex flex-col items-center gap-0.5">
+                          <item.icon className={cn('h-[22px] w-[22px]')} strokeWidth={isActive ? 2.5 : 1.8} />
+                          <span className={cn("text-[10px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
+                          {badgeCount > 0 && (
+                            <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
+                              {badgeCount > 9 ? "9+" : badgeCount}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </nav>
