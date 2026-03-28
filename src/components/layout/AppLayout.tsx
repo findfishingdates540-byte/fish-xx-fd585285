@@ -220,7 +220,7 @@ function AppLayoutContent() {
 
         {/* Mobile Bottom Nav for Dashboard */}
         <div className="lg:hidden">
-          <BottomNav accountMode={effectiveMode} />
+          <BottomNav accountMode={effectiveMode === 'both' ? 'fishing' : effectiveMode} />
         </div>
 
       </div>
@@ -250,7 +250,7 @@ function AppLayoutContent() {
       {/* Mobile Bottom Nav - hide on chat pages for Instagram-like experience */}
       {!isChatPage && (
         <div className="lg:hidden">
-          <BottomNav accountMode={effectiveMode} />
+          <BottomNav accountMode={effectiveMode === 'both' ? 'fishing' : effectiveMode} />
         </div>
       )}
 

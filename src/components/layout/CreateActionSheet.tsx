@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface CreateActionSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  accountMode: 'dating' | 'fishing' | 'both';
+  accountMode: 'dating' | 'fishing';
 }
 
 const allActions = [

@@ -221,7 +221,7 @@ export default function Matches() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      {isMobile && <BottomNav accountMode={accountMode} />}
+      {isMobile && <BottomNav accountMode={accountMode === 'both' ? 'dating' : accountMode} />}
     </div>
   );
 }
