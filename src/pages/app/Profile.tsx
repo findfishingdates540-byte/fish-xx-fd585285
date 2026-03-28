@@ -65,9 +65,17 @@ export default function Profile() {
   const { effectiveMode } = useActiveMode();
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // Determine if social features should be shown (not in dating-only mode)
-  const showSocialFeatures = effectiveMode !== 'dating';
+  // Profile view: 'fishing' or 'dating'
+  const [profileView, setProfileView] = useState<'fishing' | 'dating'>(
+    (location.state as any)?.showDating ? 'dating' : 'fishing'
+  );
+  const [showDatingSheet, setShowDatingSheet] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  
+  // Determine if social features should be shown (not in dating view)
+  const showSocialFeatures = profileView !== 'dating';
   
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile-full', user?.id],
