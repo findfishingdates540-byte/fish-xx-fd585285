@@ -58,42 +58,44 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
 /* ---- Pill background with smooth notch ---- */
 function PillBackground() {
   return (
-    <div className="absolute inset-0 w-full h-full drop-shadow-sm">
+    <div className="absolute inset-0 w-full h-full">
       {/* Left rounded end */}
       <div className="absolute left-0 top-0 bottom-0 w-8">
         <svg className="w-full h-full" viewBox="0 0 32 64" fill="none" preserveAspectRatio="none">
-          <path d="M 0 32 C 0 14.327 14.327 0 32 0 L 32 64 L 32 64 C 14.327 64 0 49.673 0 32 Z" className="fill-background stroke-border" strokeWidth="0.8" />
+          <path d="M 0 32 C 0 14.327 14.327 0 32 0 L 32 64 L 32 64 C 14.327 64 0 49.673 0 32 Z" className="fill-background/80" stroke="white" strokeOpacity="0.15" strokeWidth="0.8" />
         </svg>
       </div>
       {/* Left flat bar */}
-      <div className="absolute left-[31px] top-0 bottom-0 right-[calc(50%+43px)] bg-background border-t border-b border-border" />
-      {/* Center notch — fixed width */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[88px]">
-        <svg className="w-full h-full" viewBox="0 0 88 64" fill="none" preserveAspectRatio="xMidYMin meet">
+      <div className="absolute left-[31px] top-0 bottom-0 right-[calc(50%+47px)] bg-background/80 border-t border-b border-white/15" />
+      {/* Center notch — wider, shallower */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[96px]">
+        <svg className="w-full h-full" viewBox="0 0 96 64" fill="none" preserveAspectRatio="xMidYMin meet">
           <path
             d={[
               'M 0 0',
-              'C 5 0 8 1 10 5',
-              'Q 16 18 24 28',
-              'Q 32 38 44 38',
-              'Q 56 38 64 28',
-              'Q 72 18 78 5',
-              'C 80 1 83 0 88 0',
-              'L 88 64',
+              'C 6 0 9 1 12 6',
+              'Q 18 18 28 28',
+              'Q 36 36 48 36',
+              'Q 60 36 68 28',
+              'Q 78 18 84 6',
+              'C 87 1 90 0 96 0',
+              'L 96 64',
               'L 0 64',
               'Z',
             ].join(' ')}
-            className="fill-background stroke-border"
+            className="fill-background/80"
+            stroke="white"
+            strokeOpacity="0.15"
             strokeWidth="0.8"
           />
         </svg>
       </div>
       {/* Right flat bar */}
-      <div className="absolute right-[31px] top-0 bottom-0 left-[calc(50%+43px)] bg-background border-t border-b border-border" />
+      <div className="absolute right-[31px] top-0 bottom-0 left-[calc(50%+47px)] bg-background/80 border-t border-b border-white/15" />
       {/* Right rounded end */}
       <div className="absolute right-0 top-0 bottom-0 w-8">
         <svg className="w-full h-full" viewBox="0 0 32 64" fill="none" preserveAspectRatio="none">
-          <path d="M 0 0 L 0 0 C 17.673 0 32 14.327 32 32 C 32 49.673 17.673 64 0 64 L 0 64 Z" className="fill-background stroke-border" strokeWidth="0.8" />
+          <path d="M 0 0 L 0 0 C 17.673 0 32 14.327 32 32 C 32 49.673 17.673 64 0 64 L 0 64 Z" className="fill-background/80" stroke="white" strokeOpacity="0.15" strokeWidth="0.8" />
         </svg>
       </div>
     </div>
@@ -255,14 +257,14 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           <div className="absolute left-1/2 -translate-x-1/2 bottom-[38px] pointer-events-auto z-10">
             <button
               onClick={() => setCreateOpen(true)}
-              className="h-[52px] w-[52px] rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/25 active:scale-90 transition-transform"
+              className="h-[52px] w-[52px] rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25 ring-4 ring-primary/10 active:scale-90 transition-transform"
             >
               <Plus className="h-6 w-6 text-primary-foreground" strokeWidth={2.5} />
             </button>
           </div>
 
           {/* Pill with notch */}
-          <div className="relative w-full h-16 pointer-events-auto">
+          <div className="relative w-full h-16 pointer-events-auto backdrop-blur-xl shadow-lg rounded-full">
             <PillBackground />
 
             <div className="relative flex items-center h-full">
@@ -272,7 +274,7 @@ export function BottomNav({ accountMode }: BottomNavProps) {
               </div>
 
               {/* Center spacer (notch area) */}
-              <div className="w-[68px] shrink-0" />
+              <div className="w-[76px] shrink-0" />
 
               {/* Right nav items */}
               <div className="flex flex-1 items-center justify-evenly">
