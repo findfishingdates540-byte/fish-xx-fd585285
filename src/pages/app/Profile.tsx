@@ -282,8 +282,9 @@ export default function Profile() {
             </button>
             <button
               onClick={() => {
-                const hasDating = profile?.account_mode === 'dating' || profile?.account_mode === 'both';
-                if (hasDating) {
+                const mode = profile?.account_mode;
+                const hasDating = mode === 'dating' || mode === 'both';
+                if (hasDating || isLoading) {
                   setProfileView('dating');
                 } else {
                   setShowDatingSheet(true);
