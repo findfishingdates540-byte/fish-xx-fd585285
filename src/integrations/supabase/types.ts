@@ -497,6 +497,7 @@ export type Database = {
           measurement_photo_url: string | null
           notes: string | null
           photos: string[] | null
+          share_location: boolean | null
           species_id: string | null
           species_name: string | null
           user_id: string
@@ -520,6 +521,7 @@ export type Database = {
           measurement_photo_url?: string | null
           notes?: string | null
           photos?: string[] | null
+          share_location?: boolean | null
           species_id?: string | null
           species_name?: string | null
           user_id: string
@@ -543,6 +545,7 @@ export type Database = {
           measurement_photo_url?: string | null
           notes?: string | null
           photos?: string[] | null
+          share_location?: boolean | null
           species_id?: string | null
           species_name?: string | null
           user_id?: string

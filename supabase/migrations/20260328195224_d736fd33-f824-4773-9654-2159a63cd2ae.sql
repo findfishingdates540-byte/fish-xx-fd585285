@@ -1,0 +1,1 @@
+ALTER TABLE catches ADD COLUMN IF NOT EXISTS share_location boolean DEFAULT false;
