@@ -80,7 +80,7 @@ export function DiscoverSidebar({
         break;
       case 'unified':
       default:
-        navigate('/app/dashboard');
+        navigate('/app/feed');
         break;
     }
   };
@@ -268,9 +268,9 @@ export function DiscoverSidebar({
       {isComboUser && (
         <div className="mb-4">
           <Button variant="ghost" size="sm" asChild className="gap-2 justify-start -ml-2 mb-2">
-            <Link to="/app/dashboard">
+            <Link to="/app/feed">
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              Back to Feed
             </Link>
           </Button>
           <div className="flex bg-muted rounded-lg p-1 gap-1">

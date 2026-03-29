@@ -46,7 +46,7 @@ interface DiscoverLeftSidebarProps {
 }
 
 const modeOptions = [
-  { value: 'unified' as ActiveMode, icon: LayoutDashboard, label: 'Dashboard', route: '/app/dashboard' },
+  { value: 'unified' as ActiveMode, icon: LayoutDashboard, label: 'Home', route: '/app/feed' },
   { value: 'dating' as ActiveMode, icon: Heart, label: 'Dating', route: '/app/discover' },
   { value: 'fishing' as ActiveMode, icon: Anchor, label: 'Fishing', route: '/app/feed' },
 ];

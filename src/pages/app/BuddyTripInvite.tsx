@@ -249,7 +249,7 @@ export default function BuddyTripInvite() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link to="/app" className="hover:text-foreground">Home</Link>
             <span>/</span>
-            <Link to="/app/dashboard" className="hover:text-foreground">Combo Mode</Link>
+            <Link to="/app/feed" className="hover:text-foreground">Home</Link>
             <span>/</span>
             <span className="text-foreground">Planner</span>
           </div>
