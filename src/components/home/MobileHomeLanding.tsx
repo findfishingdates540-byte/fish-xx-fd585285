@@ -47,7 +47,7 @@ const MobileHomeLanding = () => {
     } else if (accountMode === 'fishing') {
       return <Navigate to="/app/feed" replace />;
     } else {
-      return <Navigate to="/app/dashboard" replace />;
+      return <Navigate to="/app/feed" replace />;
     }
   }
 

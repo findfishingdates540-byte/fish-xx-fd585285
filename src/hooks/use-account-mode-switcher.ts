@@ -14,7 +14,7 @@ const modeLabels: Record<AccountMode, string> = {
 };
 
 const modeRedirects: Record<AccountMode, string> = {
-  both: '/app/dashboard',
+  both: '/app/feed',
   dating: '/app/discover',
   fishing: '/app/feed',
 };

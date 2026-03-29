@@ -170,21 +170,6 @@ export function FishingHeader() {
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
-            {/* Dashboard link for combo users viewing fishing mode */}
-            {isComboUser && (
-              <NavLink
-                to="/app/dashboard"
-                className={({ isActive }) =>
-                  cn(
-                    "text-sm font-medium transition-colors hover:text-foreground flex items-center gap-1.5",
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  )
-                }
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </NavLink>
-            )}
             {fishingNavItems.map((item) => (
               <NavLink
                 key={item.to}

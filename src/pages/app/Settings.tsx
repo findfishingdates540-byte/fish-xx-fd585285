@@ -1046,7 +1046,7 @@ export default function Settings() {
                       <button
                         onClick={() => {
                           setAccountMode("both");
-                          navigate('/app/dashboard');
+                          navigate('/app/feed');
                         }}
                         className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-sm font-medium transition-colors ${
                           accountMode === "both"
