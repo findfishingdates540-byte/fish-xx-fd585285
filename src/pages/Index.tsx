@@ -61,14 +61,11 @@ const Index = () => {
     );
   }
 
-  // Redirect authenticated users to their dashboard
   if (user && accountMode) {
     if (accountMode === 'dating') {
       return <Navigate to="/app/discover" replace />;
-    } else if (accountMode === 'fishing') {
-      return <Navigate to="/app/feed" replace />;
     } else {
-      return <Navigate to="/app/dashboard" replace />;
+      return <Navigate to="/app/feed" replace />;
     }
   }
 
