@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,14 +69,25 @@ export default function Profile() {
   
   // Profile view synced with app-wide active mode
   const profileView = effectiveMode === 'dating' ? 'dating' : 'fishing';
+
   const setProfileView = (view: 'fishing' | 'dating') => {
-    if (isComboUser) {
-      setActiveMode(view === 'dating' ? 'dating' : 'fishing');
-    }
+    if (!isComboUser) return;
+
+    const nextMode = view === 'dating' ? 'dating' : 'fishing';
+    const nextRoute = nextMode === 'dating' ? '/app/discover' : '/app/feed';
+
+    setActiveMode(nextMode);
+    navigate(nextRoute);
   };
   const [showDatingSheet, setShowDatingSheet] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('social');
+
+  useEffect(() => {
+    if (profileView === 'dating' && activeTab === 'social') {
+      setActiveTab('detailed');
+    }
+  }, [profileView, activeTab]);
   
   // Determine if social features should be shown (not in dating view)
   const showSocialFeatures = profileView !== 'dating';
