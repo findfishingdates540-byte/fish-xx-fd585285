@@ -70,12 +70,6 @@ export default function Profile() {
   // Profile view synced with app-wide active mode
   const profileView = effectiveMode === 'dating' ? 'dating' : 'fishing';
 
-  useEffect(() => {
-    if (profileView === 'dating' && activeTab === 'social') {
-      setActiveTab('detailed');
-    }
-  }, [profileView, activeTab]);
-
   const setProfileView = (view: 'fishing' | 'dating') => {
     if (!isComboUser) return;
 
@@ -88,6 +82,12 @@ export default function Profile() {
   const [showDatingSheet, setShowDatingSheet] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('social');
+
+  useEffect(() => {
+    if (profileView === 'dating' && activeTab === 'social') {
+      setActiveTab('detailed');
+    }
+  }, [profileView, activeTab]);
   
   // Determine if social features should be shown (not in dating view)
   const showSocialFeatures = profileView !== 'dating';
