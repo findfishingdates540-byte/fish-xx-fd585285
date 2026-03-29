@@ -6,6 +6,7 @@ import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import datingLogoImage from '@/assets/dating-logo.png';
 
 // Request browser notification permission
 const requestNotificationPermission = async () => {
@@ -210,6 +211,8 @@ export function AppHeader() {
 
   const avatarUrl = profile?.photos?.[0] || '';
   const initials = profile?.display_name?.charAt(0)?.toUpperCase() || 'U';
+  const isDatingMode = effectiveMode === 'dating';
+  const homeHref = isDatingMode ? '/app/discover' : '/app/feed';
 
   const totalNotifications = 
     (recentMatches?.length || 0) + 
@@ -227,10 +230,14 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 pl-4 pr-4">
-        <Link to="/app" className="flex items-center">
-          <span className="text-xl font-black tracking-tight">
-            FISH<span className="text-primary">-X</span>
-          </span>
+        <Link to={homeHref} className="flex items-center">
+          {isDatingMode ? (
+            <img src={datingLogoImage} alt="Find Fishing Dates" className="h-8 w-auto" />
+          ) : (
+            <span className="text-xl font-black tracking-tight">
+              FISH<span className="text-primary">-X</span>
+            </span>
+          )}
         </Link>
 
         <div className="flex items-center gap-2">
