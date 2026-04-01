@@ -65,7 +65,7 @@ export default function CreatePhotoChallenge() {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `photo-challenge-banners/${user.id}-${Date.now()}.${ext}`;
+      const path = `${user.id}/photo-challenge-banners/${Date.now()}.${ext}`;
       const { error } = await supabase.storage
         .from("catch-photos")
         .upload(path, file, { upsert: true });
