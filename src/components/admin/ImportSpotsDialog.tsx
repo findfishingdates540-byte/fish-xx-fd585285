@@ -182,11 +182,18 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   };
 
   const parseExcel = async (selectedFile: File): Promise<string[][]> => {
-    const buffer = await selectedFile.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'array' });
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json<string[]>(firstSheet, { header: 1, defval: '' });
-    return jsonData.map(row => row.map(cell => String(cell ?? '').trim()));
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(await selectedFile.arrayBuffer());
+    const worksheet = workbook.worksheets[0];
+    const rows: string[][] = [];
+    worksheet.eachRow((row) => {
+      const cells: string[] = [];
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cells.push(String(cell.value ?? '').trim());
+      });
+      rows.push(cells);
+    });
+    return rows;
   };
 
   const processRows = (rows: string[][], headers: string[]): ParsedSpot[] => {
