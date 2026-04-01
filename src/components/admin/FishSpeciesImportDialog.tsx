@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -61,11 +61,25 @@ export function FishSpeciesImportDialog({ open, onOpenChange }: FishSpeciesImpor
     if (!file) return;
 
     try {
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(await file.arrayBuffer());
+      const worksheet = workbook.worksheets[0];
+      const jsonData: Record<string, unknown>[] = [];
+      const headerRow = worksheet.getRow(1);
+      const headers: string[] = [];
+      headerRow.eachCell((cell, colNumber) => {
+        headers[colNumber] = cell.value?.toString() || '';
+      });
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const rowObj: Record<string, unknown> = {};
+        row.eachCell((cell, colNumber) => {
+          if (headers[colNumber]) {
+            rowObj[headers[colNumber]] = cell.value;
+          }
+        });
+        jsonData.push(rowObj);
+      });
 
       const existingNames = new Set(
         existingSpecies?.map(s => s.name.toLowerCase().trim()) || []
