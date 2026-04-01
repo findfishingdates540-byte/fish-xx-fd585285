@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Search, Settings, LogOut, User, LayoutDashboard, Trophy, Fish, Swords, BarChart3, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const scoreboardLinks = [
@@ -164,8 +163,10 @@ export function FishingHeader() {
         {/* Left side - Logo and Nav */}
         <div className="flex items-center gap-4 lg:gap-8 min-w-0 overflow-visible">
           {/* Logo */}
-          <Link to="/app/feed" className="flex items-center shrink-0">
-            <img src={logo} alt="FishX" className="h-10 w-auto" />
+          <Link to="/app/feed" className="flex items-center shrink-0 pl-4">
+            <span className="text-xl font-black tracking-tight">
+              FISH<span className="text-primary">-X</span>
+            </span>
           </Link>
 
           {/* Navigation */}
