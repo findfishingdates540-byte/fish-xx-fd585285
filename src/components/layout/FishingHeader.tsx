@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Search, Settings, LogOut, User, LayoutDashboard, Trophy, Fish, Swords, BarChart3, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const scoreboardLinks = [
