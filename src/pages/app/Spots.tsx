@@ -94,7 +94,7 @@ export default function Spots() {
       if (!catches || catches.length === 0) return [];
 
       const userIds = [...new Set(catches.map(c => c.user_id))];
-      const profileMap = new Map<string, { display_name: string | null; photos: string[] | null }>();
+      const profileMap = new window.Map<string, { display_name: string | null; photos: string[] | null }>();
 
       for (let i = 0; i < userIds.length; i += 50) {
         const batch = userIds.slice(i, i + 50);
