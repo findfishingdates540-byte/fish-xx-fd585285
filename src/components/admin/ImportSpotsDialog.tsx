@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuditAction } from '@/hooks/use-audit-logs';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface ImportSpotsDialogProps {
   open: boolean;
