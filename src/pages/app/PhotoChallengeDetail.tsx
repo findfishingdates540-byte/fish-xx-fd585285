@@ -211,7 +211,7 @@ export default function PhotoChallengeDetail() {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `photo-challenges/${id}/${user.id}-${Date.now()}.${ext}`;
+      const path = `${user.id}/photo-challenges/${id}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("catch-photos")
         .upload(path, file, { upsert: true });
