@@ -56,18 +56,20 @@ serve(async (req) => {
 
     if (toComplete?.length) {
       for (const challenge of toComplete) {
-        // Tally votes and set winner
-        const { error: tallyErr } = await supabase.rpc("tally_photo_challenge_votes", {
+        // Tally votes and find winner (rank 1)
+        const { data: results, error: tallyErr } = await supabase.rpc("tally_photo_challenge_votes", {
           p_challenge_id: challenge.id,
         });
         if (tallyErr) {
           console.error(`Error tallying votes for ${challenge.title}:`, tallyErr);
         }
 
-        // Mark as completed
+        const winnerId = results?.[0]?.user_id ?? null;
+
+        // Mark as completed with winner
         const { error: completeErr } = await supabase
           .from("photo_challenges")
-          .update({ status: "completed" })
+          .update({ status: "completed", winner_id: winnerId })
           .eq("id", challenge.id);
 
         if (completeErr) {
