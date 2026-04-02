@@ -29,16 +29,31 @@ export default function PhotoChallengeDetail() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
 
-  // Show toast on payment callback
+  // Handle payment callback — mark entry as paid client-side as a fallback
+  // in case the Stripe webhook is delayed or fails
   useEffect(() => {
     const payment = searchParams.get("payment");
+    if (!payment || !user || !id) return;
+
     if (payment === "success") {
+      // Optimistically mark the entry as paid to handle webhook race condition
+      const markPaid = async () => {
+        const { error } = await supabase
+          .from("photo_challenge_entries")
+          .update({ has_paid: true })
+          .eq("challenge_id", id)
+          .eq("user_id", user.id);
+        if (error) {
+          console.error("Fallback payment update failed:", error);
+        }
+        qc.invalidateQueries({ queryKey: ["photo-challenge-entries", id] });
+      };
+      markPaid();
       toast({ title: "Payment successful!", description: "Your entry fee has been paid." });
-      qc.invalidateQueries({ queryKey: ["photo-challenge-entries", id] });
     } else if (payment === "cancelled") {
       toast({ title: "Payment cancelled", description: "You can pay later to complete your entry.", variant: "destructive" });
     }
-  }, [searchParams, id, qc]);
+  }, [searchParams, id, qc, user]);
 
   // Fetch challenge
   const { data: challenge, isLoading } = useQuery({
