@@ -9,7 +9,7 @@ import {
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
   ArrowLeft, Settings, Grid3X3, AtSign, FileText, User, Bookmark, Repeat2,
-  ShieldCheck
+  ShieldCheck, ChevronDown
 } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,6 +20,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
+import { AccountSwitcherSheet } from '@/components/profile/AccountSwitcherSheet';
 import { InviteFriendsCard } from '@/components/feed';
 import { ProfileStatsBar } from '@/components/social/ProfileStatsBar';
 import { PostViewerOverlay } from '@/components/social/PostViewerOverlay';
@@ -80,6 +81,7 @@ export default function Profile() {
     navigate(nextRoute);
   };
   const [showDatingSheet, setShowDatingSheet] = useState(false);
+  const [showSwitcher, setShowSwitcher] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('social');
 
@@ -238,7 +240,21 @@ export default function Profile() {
                     liveVerified={profile?.live_verified} 
                     size="md" 
                   />
+                  <button
+                    onClick={() => setShowSwitcher(true)}
+                    className="ml-1 rounded-full bg-white/20 p-1 backdrop-blur-sm transition-colors hover:bg-white/30"
+                    aria-label="Switch account type"
+                  >
+                    <ChevronDown className="h-4 w-4 text-white" />
+                  </button>
                 </h1>
+                <p className="text-xs text-white/70 mt-0.5 flex items-center gap-1 justify-center md:justify-start">
+                  {profileView === 'dating' ? (
+                    <><Heart className="h-3 w-3" /> Dating Profile</>
+                  ) : (
+                    <><Fish className="h-3 w-3" /> Fishing Profile</>
+                  )}
+                </p>
                 {profile?.location_name && (
                   <div className="flex items-center justify-center md:justify-start gap-1 text-white/90 mt-0.5">
                     <MapPin className="h-4 w-4" />
@@ -275,45 +291,15 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Profile View Switcher: Fishing / Dating */}
-      <div className="max-w-6xl mx-auto px-4 pt-5">
-        <div className="flex justify-center">
-          <div className="inline-flex bg-muted rounded-full p-1 gap-1">
-            <button
-              onClick={() => setProfileView('fishing')}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
-                profileView === 'fishing'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Fish className="h-4 w-4" />
-              Fishing Profile
-            </button>
-            <button
-              onClick={() => {
-                const mode = profile?.account_mode;
-                const hasDating = mode === 'dating' || mode === 'both';
-                if (hasDating || isLoading) {
-                  setProfileView('dating');
-                } else {
-                  setShowDatingSheet(true);
-                }
-              }}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
-                profileView === 'dating'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Heart className="h-4 w-4" />
-              Dating Profile
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Account Switcher Sheet */}
+      <AccountSwitcherSheet
+        open={showSwitcher}
+        onOpenChange={setShowSwitcher}
+        displayName={profile?.display_name || 'User'}
+        avatarUrl={avatarUrl}
+        accountMode={profile?.account_mode || null}
+        onCreateDating={() => setShowDatingSheet(true)}
+      />
 
       {/* View Type Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
