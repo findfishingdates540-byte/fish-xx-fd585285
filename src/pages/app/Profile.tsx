@@ -291,45 +291,15 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Profile View Switcher: Fishing / Dating */}
-      <div className="max-w-6xl mx-auto px-4 pt-5">
-        <div className="flex justify-center">
-          <div className="inline-flex bg-muted rounded-full p-1 gap-1">
-            <button
-              onClick={() => setProfileView('fishing')}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
-                profileView === 'fishing'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Fish className="h-4 w-4" />
-              Fishing Profile
-            </button>
-            <button
-              onClick={() => {
-                const mode = profile?.account_mode;
-                const hasDating = mode === 'dating' || mode === 'both';
-                if (hasDating || isLoading) {
-                  setProfileView('dating');
-                } else {
-                  setShowDatingSheet(true);
-                }
-              }}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
-                profileView === 'dating'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Heart className="h-4 w-4" />
-              Dating Profile
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Account Switcher Sheet */}
+      <AccountSwitcherSheet
+        open={showSwitcher}
+        onOpenChange={setShowSwitcher}
+        displayName={profile?.display_name || 'User'}
+        avatarUrl={avatarUrl}
+        accountMode={profile?.account_mode || null}
+        onCreateDating={() => setShowDatingSheet(true)}
+      />
 
       {/* View Type Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
