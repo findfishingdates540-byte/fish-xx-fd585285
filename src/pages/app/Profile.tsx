@@ -240,7 +240,21 @@ export default function Profile() {
                     liveVerified={profile?.live_verified} 
                     size="md" 
                   />
+                  <button
+                    onClick={() => setShowSwitcher(true)}
+                    className="ml-1 rounded-full bg-white/20 p-1 backdrop-blur-sm transition-colors hover:bg-white/30"
+                    aria-label="Switch account type"
+                  >
+                    <ChevronDown className="h-4 w-4 text-white" />
+                  </button>
                 </h1>
+                <p className="text-xs text-white/70 mt-0.5 flex items-center gap-1 justify-center md:justify-start">
+                  {profileView === 'dating' ? (
+                    <><Heart className="h-3 w-3" /> Dating Profile</>
+                  ) : (
+                    <><Fish className="h-3 w-3" /> Fishing Profile</>
+                  )}
+                </p>
                 {profile?.location_name && (
                   <div className="flex items-center justify-center md:justify-start gap-1 text-white/90 mt-0.5">
                     <MapPin className="h-4 w-4" />
