@@ -9,7 +9,7 @@ import {
   Instagram, Globe, Camera, Star, Ruler, Wine, Cigarette, 
   GraduationCap, Briefcase, Brain, MessageCircle, Sparkles, Users,
   ArrowLeft, Settings, Grid3X3, AtSign, FileText, User, Bookmark, Repeat2,
-  ShieldCheck
+  ShieldCheck, ChevronDown
 } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/verification-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
