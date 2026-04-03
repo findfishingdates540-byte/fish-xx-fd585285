@@ -1,59 +1,55 @@
-
-
-# Dating Access from Profile Page
+# Facebook-Style Account Switcher on Profile Page
 
 ## Overview
-Add a profile view switcher so users can toggle between their Fishing Profile and Dating Profile directly on the Profile page. Users who haven't set up dating yet get routed through a dating onboarding mini-flow.
 
----
+Replace the current segmented pill switcher with a Facebook-style dropdown account switcher. The user taps a downward chevron next to their name, and a bottom sheet (mobile) or dropdown modal slides up showing their available account types with an option to create a missing one.
 
-## 1. Profile View Switcher
+## Current State
 
-**Location**: Below the hero section on `/app/profile`, next to the existing Social/Detailed tabs.
+- A segmented pill ("Fishing Profile" / "Dating Profile") sits below the hero section
+- Clicking switches the profile view and redirects to the mode's home page
+- Users without dating can open a setup sheet
+- The switcher is functional but doesn't match the Facebook UX pattern
 
-**Design**: A segmented pill with two options — **Fishing Profile** (default, Fish icon) and **Dating Profile** (Heart icon). Sits above the existing tabs.
+## Design Changes
 
-- If the user's `account_mode` is `dating` or `both`, tapping "Dating Profile" shows their dating-specific content (dating stats, dating prompts, lifestyle cards).
-- If the user's `account_mode` is `fishing` (no dating set up), tapping "Dating Profile" opens a bottom sheet prompting them to set up dating with an 18+ age gate and CTA to start the dating onboarding.
+### 1. Profile Hero Redesign (minor)
 
----
+- Remove the segmented pill switcher entirely
+- Add a small downward chevron (ChevronDown icon) next to the user's display name in the hero
+- Show a subtle label under the name indicating current mode (e.g., "Fishing Account" or "Dating Account")
+- Tapping the name area or chevron opens the account switcher sheet
 
-## 2. Dating Profile View
+### 2. Account Switcher Bottom Sheet (new component)
 
-When "Dating Profile" is selected, the profile page shows:
-- Dating stats card (matches, likes received, conversations) — already exists in code at line ~497
-- Lifestyle cards (drinking, smoking, zodiac, personality) — already exists
-- Dating prompts — already exists
-- A "View Dating App" button linking to `/app/discover`
-- An "Edit Dating Profile" button linking to `/app/profile/edit` with a dating tab focus
+A bottom sheet (`Sheet` from shadcn) that slides up, containing:
 
-The existing Detailed tab content already has most of this. The switcher simply controls which sections are visible.
+- **Current account** — highlighted row with avatar, name, mode label, and a checkmark
+- **Other available account** — row with icon, label (e.g., "Switch to Dating"), tap to switch
+- **Create account option** — if user is fishing-only, show "Create Dating Profile" row with a plus icon; if dating-only, show "Create Fishing Profile" (routes to appropriate setup flow)
+- Divider + "Manage Accounts" link to settings (optional)
 
----
+Each row shows: mode icon (Heart/Fish), account type label, and status indicator.
 
-## 3. Dating Onboarding for New Users
+### 3. Switching Behavior
 
-When a fishing-only user taps the Dating Profile pill:
-1. **Bottom sheet** appears: "Explore Dating on FISH-X" with 18+ confirmation checkbox
-2. On confirm, navigate to a **dating onboarding mini-flow** at `/app/dating-setup`
-3. The mini-flow reuses existing onboarding step components:
-   - `StepDatingPreference` (gender preferences)
-   - `StepLifestyle` (drinking, smoking, etc.)
-   - `StepPhotoUpload` (ensure dating-quality photos)
-   - `StepBio` (dating bio)
-4. On completion, update `account_mode` to `both` in the database
-5. Redirect back to Profile with the Dating Profile view active
+- Tapping an account type updates `ActiveModeContext` via `setActiveMode`
+- Redirects to the mode's home page (`/app/feed` for fishing, `/app/discover` for dating)
+- Sheet closes automatically after selection
+- "Create Dating Profile" navigates to `/app/dating-setup`
 
----
+## Technical Details
 
-## 4. Technical Details
+### Files to modify
 
-**Files modified:**
-- `src/pages/app/Profile.tsx` — Add the Fishing/Dating segmented pill above existing tabs. Conditionally render dating sections vs fishing sections based on selected view. Add bottom sheet for fishing-only users.
-- `src/App.tsx` — Add route `/app/dating-setup` for the dating onboarding mini-flow.
+- `**src/pages/app/Profile.tsx**` — Remove the segmented pill. Add chevron trigger next to user name. Import and render the new `AccountSwitcherSheet` component.
+- `**src/components/profile/AccountSwitcherSheet.tsx**` (new) — Bottom sheet component with account rows, switch logic, and create-account option. Uses `useActiveMode` context and `useAccountModeSwitcher` hook.
 
-**New file:**
-- `src/pages/app/DatingSetup.tsx` — Mini onboarding page that reuses `StepDatingPreference`, `StepLifestyle`, `StepPhotoUpload`, and `StepBio`. On completion, updates `account_mode` to `both` via Supabase and navigates back to profile.
+### Files unchanged
 
-**No database changes needed** — `account_mode` enum already supports `both`, and all dating fields already exist on the `profiles` table.
+- `ActiveModeContext.tsx`, `use-account-mode-switcher.ts` — existing switching infrastructure is reused as-is.
+- `DatingSetup.tsx` — existing dating onboarding flow remains the target for "Create Dating Profile".
 
+### No database changes needed
+
+All account mode values (`dating`, `fishing`, `both`) already exist in the enum.
