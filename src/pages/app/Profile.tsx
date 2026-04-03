@@ -81,6 +81,7 @@ export default function Profile() {
     navigate(nextRoute);
   };
   const [showDatingSheet, setShowDatingSheet] = useState(false);
+  const [showSwitcher, setShowSwitcher] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('social');
 
