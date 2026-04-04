@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
 import authFishingImage from '@/assets/auth-fishing.jpg';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/fishx-logo.png';
 import {
   Dialog,
   DialogContent,
