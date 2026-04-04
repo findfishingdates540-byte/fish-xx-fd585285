@@ -235,9 +235,7 @@ export function AppHeader() {
           {isDatingMode ? (
             <img src={datingLogoImage} alt="Find Fishing Dates" className="h-8 w-auto" />
           ) : (
-            <span className="text-xl font-black tracking-tight">
-              FISH<span className="text-primary">-X</span>
-            </span>
+            <img src={fishxLogo} alt="Fish-X" className="h-10 w-auto" />
           )}
         </Link>
 
