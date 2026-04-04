@@ -19,17 +19,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 8%;
 
-    /* Primary - black */
-    --primary: 0 0% 8%;
+    /* Primary - Royal Blue */
+    --primary: 215 79% 38%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - dark gray */
-    --secondary: 0 0% 15%;
+    /* Secondary - Dark Navy */
+    --secondary: 221 85% 18%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Accent - light gray */
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 8%;
+    /* Accent - Ice Blue */
+    --accent: 192 49% 85%;
+    --accent-foreground: 219 86% 9%;
 
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
