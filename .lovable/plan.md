@@ -1,55 +1,95 @@
-# Facebook-Style Account Switcher on Profile Page
 
-## Overview
 
-Replace the current segmented pill switcher with a Facebook-style dropdown account switcher. The user taps a downward chevron next to their name, and a bottom sheet (mobile) or dropdown modal slides up showing their available account types with an option to create a missing one.
+# Apply Fish-X Brand Guide Colors App-Wide + Dating Logo Fix
+
+## Brand Palette (from style guide)
+
+The brand guide specifies 5 official colors in a deep navy-to-ice-blue range:
+
+```text
+#031029  (Deep Navy)    → HSL: 219 86% 9%   — darkest, backgrounds
+#072057  (Dark Navy)    → HSL: 221 85% 18%  — dark accents
+#1454ae  (Royal Blue)   → HSL: 215 79% 38%  — primary brand blue
+#6a8fab  (Steel Blue)   → HSL: 206 28% 54%  — secondary/muted
+#c8e5ec  (Ice Blue)     → HSL: 192 49% 85%  — light accent
+```
+
+Typography: **Outfit** (Light, Medium, Extra-Bold, Black) — already configured.
 
 ## Current State
 
-- A segmented pill ("Fishing Profile" / "Dating Profile") sits below the hero section
-- Clicking switches the profile view and redirects to the mode's home page
-- Users without dating can open a setup sheet
-- The switcher is functional but doesn't match the Facebook UX pattern
+- The app uses a **pure black-and-white** color scheme (`--primary: 0 0% 8%`, i.e. near-black).
+- No brand blues anywhere in the CSS variables.
+- The FISH-X text logo renders as black text with `text-primary` on "-X" (which is also black).
+- Dating mode correctly shows the "Find Fishing Dates" logo image in `AppHeader.tsx`, but the header text still says "FISH-X" in some places.
 
-## Design Changes
+## Plan
 
-### 1. Profile Hero Redesign (minor)
+### 1. Update CSS Variables to Brand Colors (`src/index.css`)
 
-- Remove the segmented pill switcher entirely
-- Add a small downward chevron (ChevronDown icon) next to the user's display name in the hero
-- Show a subtle label under the name indicating current mode (e.g., "Fishing Account" or "Dating Account")
-- Tapping the name area or chevron opens the account switcher sheet
+Replace the monochrome primary/accent tokens with the brand blues:
 
-### 2. Account Switcher Bottom Sheet (new component)
+**Light mode (`:root`)**:
+- `--primary`: `215 79% 38%` (Royal Blue `#1454ae`) — buttons, links, active states
+- `--primary-foreground`: `0 0% 100%` (white, unchanged)
+- `--ring`: `215 79% 38%` (match primary)
+- `--accent`: `192 49% 85%` (Ice Blue `#c8e5ec`) — subtle highlights
+- `--accent-foreground`: `219 86% 9%` (Deep Navy)
 
-A bottom sheet (`Sheet` from shadcn) that slides up, containing:
+Keep `--foreground`, `--background`, `--card`, `--muted`, `--border` etc. as-is (black/white/gray) so text and layouts stay clean. The brand blues are applied as the **accent/primary** layer.
 
-- **Current account** — highlighted row with avatar, name, mode label, and a checkmark
-- **Other available account** — row with icon, label (e.g., "Switch to Dating"), tap to switch
-- **Create account option** — if user is fishing-only, show "Create Dating Profile" row with a plus icon; if dating-only, show "Create Fishing Profile" (routes to appropriate setup flow)
-- Divider + "Manage Accounts" link to settings (optional)
+**Dark mode (`.dark`)**:
+- `--primary`: `206 28% 54%` (Steel Blue `#6a8fab`) — softer for dark backgrounds
+- `--primary-foreground`: `219 86% 9%` (Deep Navy)
+- `--ring`: `206 28% 54%`
+- `--accent`: `221 85% 18%` (Dark Navy `#072057`)
+- `--accent-foreground`: `192 49% 85%` (Ice Blue)
 
-Each row shows: mode icon (Heart/Fish), account type label, and status indicator.
+### 2. Add Brand Color Utilities (`tailwind.config.ts`)
 
-### 3. Switching Behavior
+Add custom `brand` color tokens so components can use explicit brand shades beyond primary:
 
-- Tapping an account type updates `ActiveModeContext` via `setActiveMode`
-- Redirects to the mode's home page (`/app/feed` for fishing, `/app/discover` for dating)
-- Sheet closes automatically after selection
-- "Create Dating Profile" navigates to `/app/dating-setup`
+```
+brand: {
+  deep:  '#031029',
+  navy:  '#072057',
+  blue:  '#1454ae',
+  steel: '#6a8fab',
+  ice:   '#c8e5ec',
+}
+```
 
-## Technical Details
+### 3. Update FISH-X Text Logo Styling
 
-### Files to modify
+In `AppHeader.tsx` and `FishingHeader.tsx`, the "-X" span uses `text-primary` which will now render as **Royal Blue** instead of black — this aligns with the brand logo where the X is a prominent blue element. No markup change needed, just the CSS variable swap handles it.
 
-- `**src/pages/app/Profile.tsx**` — Remove the segmented pill. Add chevron trigger next to user name. Import and render the new `AccountSwitcherSheet` component.
-- `**src/components/profile/AccountSwitcherSheet.tsx**` (new) — Bottom sheet component with account rows, switch logic, and create-account option. Uses `useActiveMode` context and `useAccountModeSwitcher` hook.
+### 4. Copy the Fish-X Logo Image to Assets
 
-### Files unchanged
+Copy `user-uploads://Fish_X_logo.png` → `src/assets/fishx-logo.png`. Use this in `PublicHeader.tsx` and `PublicFooter.tsx` to replace the current `logo.png` reference (the old generic logo).
 
-- `ActiveModeContext.tsx`, `use-account-mode-switcher.ts` — existing switching infrastructure is reused as-is.
-- `DatingSetup.tsx` — existing dating onboarding flow remains the target for "Create Dating Profile".
+### 5. Dating Mode: Keep "Find Fishing Dates" Logo
 
-### No database changes needed
+The dating logo (`src/assets/dating-logo.png`) is already correctly used in `AppHeader.tsx` for dating mode. No change needed here — the requirement is confirmed working.
 
-All account mode values (`dating`, `fishing`, `both`) already exist in the enum.
+### 6. Admin Sidebar Brand Alignment
+
+The admin sidebar uses hardcoded slate/emerald colors. Update accent colors in admin components to use `brand-blue` / `brand-steel` instead of emerald where appropriate (e.g., the Fish Species page icon accent).
+
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/index.css` | Update `--primary`, `--ring`, `--accent` CSS vars to brand blues for both light and dark modes |
+| `tailwind.config.ts` | Add `brand` color palette under `extend.colors` |
+| `src/assets/fishx-logo.png` | Copy from uploaded logo file |
+| `src/components/layout/PublicHeader.tsx` | Use new `fishx-logo.png` |
+| `src/components/layout/PublicFooter.tsx` | Use new `fishx-logo.png` |
+
+## No Changes Needed
+
+- Typography (Outfit already configured)
+- Dating logo in AppHeader (already shows "Find Fishing Dates")
+- FishingHeader.tsx / AppHeader.tsx text logo (the `text-primary` class will auto-update to blue via CSS variable change)
+
