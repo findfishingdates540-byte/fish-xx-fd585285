@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/fishx-logo.png';
 
 export function PublicHeader() {
   const location = useLocation();

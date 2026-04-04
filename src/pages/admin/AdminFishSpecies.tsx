@@ -15,8 +15,8 @@ export default function AdminFishSpecies() {
       <div className="max-w-4xl">
         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-emerald-500/20">
-              <Fish className="w-5 h-5 text-emerald-400" />
+            <div className="p-2 rounded-lg bg-brand-blue/20">
+              <Fish className="w-5 h-5 text-brand-steel" />
             </div>
             <h2 className="text-lg font-semibold text-white">Species Database</h2>
           </div>
