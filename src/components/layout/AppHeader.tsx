@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import datingLogoImage from '@/assets/dating-logo.png';
+import fishxLogo from '@/assets/fishx-logo.png';
 
 // Request browser notification permission
 const requestNotificationPermission = async () => {
@@ -234,9 +235,7 @@ export function AppHeader() {
           {isDatingMode ? (
             <img src={datingLogoImage} alt="Find Fishing Dates" className="h-8 w-auto" />
           ) : (
-            <span className="text-xl font-black tracking-tight">
-              FISH<span className="text-primary">-X</span>
-            </span>
+            <img src={fishxLogo} alt="Fish-X" className="h-10 w-auto" />
           )}
         </Link>
 
