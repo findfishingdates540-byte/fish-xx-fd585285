@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import fishxLogo from "@/assets/fishx-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveMode } from "@/contexts/ActiveModeContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -164,9 +165,7 @@ export function FishingHeader() {
         <div className="flex items-center gap-4 lg:gap-8 min-w-0 overflow-visible">
           {/* Logo */}
           <Link to="/app/feed" className="flex items-center shrink-0 pl-4">
-            <span className="text-xl font-black tracking-tight">
-              FISH<span className="text-primary">-X</span>
-            </span>
+            <img src={fishxLogo} alt="Fish-X" className="h-10 w-auto" />
           </Link>
 
           {/* Navigation */}
