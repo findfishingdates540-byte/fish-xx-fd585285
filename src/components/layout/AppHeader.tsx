@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import datingLogoImage from '@/assets/dating-logo.png';
+import fishxLogo from '@/assets/fishx-logo.png';
 
 // Request browser notification permission
 const requestNotificationPermission = async () => {
