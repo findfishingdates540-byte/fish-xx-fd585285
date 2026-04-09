@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SpeciesCombobox } from "@/components/catches/SpeciesCombobox";
+import { LiveCameraCapture, type CaptureMetadata } from "@/components/ui/live-camera-capture";
 import {
   Select,
   SelectContent,
