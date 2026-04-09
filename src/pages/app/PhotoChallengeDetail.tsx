@@ -355,27 +355,29 @@ export default function PhotoChallengeDetail() {
             <Camera className="h-5 w-5" /> Submit Your Entry
           </h2>
           <p className="text-sm text-muted-foreground">
-            Upload your best fish photo. After uploading, you'll pay the ${challenge.entry_fee} entry fee via Stripe.
+            Take a live photo of your catch. Date, time, and GPS location are recorded automatically.
+            After capturing, you'll pay the ${challenge.entry_fee} entry fee via Stripe.
           </p>
+          <LiveCameraCapture
+            onCapture={handleLiveCapture}
+            preview={capturePreview}
+            onClear={() => { setCapturePreview(null); setPendingCapture(null); }}
+            label="Take a Live Photo"
+            sublabel="Camera only — no gallery uploads"
+            aspectRatio="aspect-square"
+          />
           <Textarea
             placeholder="Add a caption (optional)"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             rows={2}
           />
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileUpload}
-          />
           <Button
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
+            onClick={handleSubmitCapture}
+            disabled={uploading || !pendingCapture}
           >
-            <Upload className="h-4 w-4 mr-2" />
-            {uploading ? "Uploading..." : "Upload Photo"}
+            <Camera className="h-4 w-4 mr-2" />
+            {uploading ? "Uploading..." : "Submit Photo"}
           </Button>
         </Card>
       )}
