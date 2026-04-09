@@ -1508,6 +1508,7 @@ export type Database = {
           description: string | null
           end_date: string
           entry_fee: number
+          gift_card_code: string | null
           id: string
           prize_description: string | null
           prize_type: string
@@ -1524,6 +1525,7 @@ export type Database = {
           description?: string | null
           end_date: string
           entry_fee?: number
+          gift_card_code?: string | null
           id?: string
           prize_description?: string | null
           prize_type?: string
@@ -1540,6 +1542,7 @@ export type Database = {
           description?: string | null
           end_date?: string
           entry_fee?: number
+          gift_card_code?: string | null
           id?: string
           prize_description?: string | null
           prize_type?: string
@@ -1605,6 +1608,83 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prize_payouts: {
+        Row: {
+          admin_notes: string | null
+          challenge_id: string | null
+          created_at: string
+          gift_card_code: string | null
+          id: string
+          notified_at: string | null
+          prize_amount: number | null
+          prize_description: string | null
+          prize_type: string
+          sent_at: string | null
+          status: string
+          tournament_id: string | null
+          winner_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          challenge_id?: string | null
+          created_at?: string
+          gift_card_code?: string | null
+          id?: string
+          notified_at?: string | null
+          prize_amount?: number | null
+          prize_description?: string | null
+          prize_type?: string
+          sent_at?: string | null
+          status?: string
+          tournament_id?: string | null
+          winner_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          challenge_id?: string | null
+          created_at?: string
+          gift_card_code?: string | null
+          id?: string
+          notified_at?: string | null
+          prize_amount?: number | null
+          prize_description?: string | null
+          prize_type?: string
+          sent_at?: string | null
+          status?: string
+          tournament_id?: string | null
+          winner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prize_payouts_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prize_payouts_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prize_payouts_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prize_payouts_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
