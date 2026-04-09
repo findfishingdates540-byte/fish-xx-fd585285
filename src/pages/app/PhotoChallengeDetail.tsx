@@ -126,6 +126,29 @@ export default function PhotoChallengeDetail() {
     enabled: !!id && challenge?.status === "completed",
   });
 
+  // Fetch prize payout for current user (winner check)
+  const { data: myPayout } = useQuery({
+    queryKey: ["my-prize-payout", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("prize_payouts")
+        .select("*")
+        .eq("challenge_id", id!)
+        .eq("winner_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      // Mark as claimed when winner views it
+      if (data && data.status === "pending") {
+        await supabase
+          .from("prize_payouts")
+          .update({ status: "claimed" } as any)
+          .eq("id", data.id);
+      }
+      return data;
+    },
+    enabled: !!id && !!user && challenge?.status === "completed" && challenge?.winner_id === user?.id,
+  });
+
   const myEntry = entries.find((e: any) => e.user_id === user?.id);
   const myVote = votes.find((v: any) => v.user_id === user?.id);
   const paidEntries = entries.filter((e: any) => e.has_paid).length;
