@@ -277,41 +277,13 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             <Label className="text-sm font-semibold mb-2 block">
               Verification Photo (Scale/Ruler)
             </Label>
-            <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted/50 border border-dashed border-border">
-              {measurementPhotoPreview ? (
-                <>
-                  <img
-                    src={measurementPhotoPreview}
-                    alt="Verification"
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setMeasurementPhoto(null); setMeasurementPhotoPreview(null); }}
-                    className="absolute top-2 right-2 w-6 h-6 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-colors"
-                  >
-                    <X className="h-3 w-3 text-white" />
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => measurementPhotoRef.current?.click()}
-                  className="w-full h-full flex flex-col items-center justify-center text-muted-foreground hover:text-primary transition-colors p-4"
-                >
-                  <Ruler className="h-8 w-8 mb-3" />
-                  <span className="text-sm text-center leading-snug">
-                    Upload photo showing length against a ruler for scoreboard validation
-                  </span>
-                </button>
-              )}
-            </div>
-            <input
-              ref={measurementPhotoRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleSinglePhotoSelect(e, "measurement")}
-              className="hidden"
+            <LiveCameraCapture
+              onCapture={handleMeasurementCapture}
+              preview={measurementPhotoPreview}
+              onClear={() => { setMeasurementPhoto(null); setMeasurementPhotoPreview(null); }}
+              label="Take Measurement Photo"
+              sublabel="Show catch against ruler/scale"
+              aspectRatio="aspect-[4/3]"
             />
           </div>
 
