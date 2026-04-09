@@ -570,6 +570,95 @@ export default function AdminPhotoChallenges() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Prize Payouts Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Trophy className="h-5 w-5" /> Prize Payouts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Winner</TableHead>
+                <TableHead>Challenge</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Amount / Prize</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {payouts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No payouts yet</TableCell>
+                </TableRow>
+              ) : (
+                payouts.map((p: any) => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={p.winner_profile?.photos?.[0]} />
+                          <AvatarFallback className="text-[10px]">{p.winner_profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm truncate">{p.winner_profile?.display_name || "Unknown"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm truncate max-w-[150px]">{p.challenge_title}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize text-xs">{p.prize_type === "gift_card" ? "Gift Card" : "Cash"}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {p.prize_type === "cash" ? `$${Number(p.prize_amount || 0).toFixed(0)}` : (p.prize_description || "Gift Card")}
+                      {p.prize_type === "gift_card" && p.gift_card_code && (
+                        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{p.gift_card_code}</p>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={p.status === "claimed" ? "default" : p.status === "sent" ? "secondary" : "outline"}
+                        className="capitalize text-xs"
+                      >
+                        {p.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {p.status === "pending" && (
+                        <div className="flex items-center gap-1 justify-end">
+                          <Input
+                            placeholder="Notes (optional)"
+                            className="h-7 text-xs w-32"
+                            value={payoutNotes}
+                            onChange={(e) => setPayoutNotes(e.target.value)}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              markSentMutation.mutate({ payoutId: p.id, notes: payoutNotes });
+                              setPayoutNotes("");
+                            }}
+                            disabled={markSentMutation.isPending}
+                          >
+                            Mark Sent
+                          </Button>
+                        </div>
+                      )}
+                      {p.admin_notes && (
+                        <p className="text-[10px] text-muted-foreground mt-1">{p.admin_notes}</p>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
