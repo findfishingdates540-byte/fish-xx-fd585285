@@ -102,6 +102,28 @@ const TournamentDetail = () => {
     enabled: !!id,
   });
 
+  // Fetch prize payout for current user
+  const { data: myPayout } = useQuery({
+    queryKey: ["my-tournament-payout", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("prize_payouts")
+        .select("*")
+        .eq("tournament_id", id!)
+        .eq("winner_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data && data.status === "pending") {
+        await supabase
+          .from("prize_payouts")
+          .update({ status: "claimed" } as any)
+          .eq("id", data.id);
+      }
+      return data;
+    },
+    enabled: !!id && !!user && tournament?.status === "completed",
+  });
+
   const isJoined = participants.some((p: any) => p.user_id === user?.id);
   const canJoin = tournament?.status === "registration" && !isJoined;
 
