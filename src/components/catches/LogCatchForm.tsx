@@ -13,13 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Camera,
-  X,
   Loader2,
-  Fish,
-  Ruler,
   MapPin,
-  Shield,
   Save,
 } from "lucide-react";
 
