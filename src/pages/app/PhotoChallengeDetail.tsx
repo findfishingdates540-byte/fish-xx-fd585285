@@ -371,6 +371,49 @@ export default function PhotoChallengeDetail() {
         <p className="text-muted-foreground">{challenge.description}</p>
       )}
 
+      {/* Winner Prize Card */}
+      {isCompleted && myPayout && challenge.winner_id === user?.id && (
+        <Card className="p-5 border-accent bg-accent/5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-accent" />
+            <h3 className="font-bold text-lg">🎉 You Won!</h3>
+          </div>
+          {myPayout.prize_type === "gift_card" && myPayout.gift_card_code ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{myPayout.prize_description || "Your gift card prize:"}</p>
+              <div className="flex items-center gap-2 bg-muted rounded-lg p-3">
+                <code className="flex-1 font-mono text-sm font-bold tracking-wider">{myPayout.gift_card_code}</code>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    navigator.clipboard.writeText(myPayout.gift_card_code);
+                    toast({ title: "Code copied!" });
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">
+                Your prize: ${Number(myPayout.prize_amount || 0).toFixed(0)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {myPayout.status === "sent" ? (
+                  <span className="flex items-center gap-1 text-primary">
+                    <CheckCircle className="h-3 w-3" /> Payment has been sent!
+                  </span>
+                ) : (
+                  "Your prize is being processed. The organizer will contact you."
+                )}
+              </p>
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* Submission form - no entry yet */}
       {isSubmissionPhase && !myEntry && user && (
         <Card className="p-6 space-y-4 border-dashed border-2">
