@@ -138,19 +138,24 @@ export default function PhotoChallengeDetail() {
 
   // Submit entry (photo first, then pay)
   const submitEntry = useMutation({
-    mutationFn: async (photoUrl: string) => {
+    mutationFn: async ({ photoUrl, metadata }: { photoUrl: string; metadata: CaptureMetadata }) => {
       const { error } = await supabase.from("photo_challenge_entries").insert({
         challenge_id: id!,
         user_id: user!.id,
         photo_url: photoUrl,
         caption: caption || null,
         has_paid: false,
-      });
+        captured_at: metadata.capturedAt,
+        location_lat: metadata.locationLat,
+        location_lng: metadata.locationLng,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Photo uploaded!", description: "Now complete your entry by paying the fee." });
+      toast({ title: "Photo captured!", description: "Now complete your entry by paying the fee." });
       setCaption("");
+      setCapturePreview(null);
+      setPendingCapture(null);
       qc.invalidateQueries({ queryKey: ["photo-challenge-entries", id] });
     },
     onError: (err: any) => {
