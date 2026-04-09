@@ -226,19 +226,25 @@ export default function PhotoChallengeDetail() {
     },
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const handleLiveCapture = (metadata: CaptureMetadata) => {
+    const reader = new FileReader();
+    reader.onloadend = () => setCapturePreview(reader.result as string);
+    reader.readAsDataURL(metadata.file);
+    setPendingCapture(metadata);
+  };
+
+  const handleSubmitCapture = async () => {
+    if (!pendingCapture || !user) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const ext = pendingCapture.file.name.split(".").pop() || "jpg";
       const path = `${user.id}/photo-challenges/${id}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("catch-photos")
-        .upload(path, file, { upsert: true });
+        .upload(path, pendingCapture.file, { upsert: true });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("catch-photos").getPublicUrl(path);
-      await submitEntry.mutateAsync(urlData.publicUrl);
+      await submitEntry.mutateAsync({ photoUrl: urlData.publicUrl, metadata: pendingCapture });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
