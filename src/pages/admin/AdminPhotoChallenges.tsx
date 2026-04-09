@@ -30,10 +30,12 @@ export default function AdminPhotoChallenges() {
   const [entryFee, setEntryFee] = useState("5");
   const [prizeType, setPrizeType] = useState("cash");
   const [prizeDescription, setPrizeDescription] = useState("");
+  const [giftCardCode, setGiftCardCode] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [votingEndDate, setVotingEndDate] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [payoutNotes, setPayoutNotes] = useState("");
 
   const { data: challenges = [], isLoading } = useQuery({
     queryKey: ["admin-photo-challenges"],
@@ -75,12 +77,13 @@ export default function AdminPhotoChallenges() {
         entry_fee: parseFloat(entryFee) || 5,
         prize_type: prizeType,
         prize_description: prizeDescription || null,
+        gift_card_code: prizeType === "gift_card" ? (giftCardCode || null) : null,
         start_date: new Date(startDate).toISOString(),
         end_date: new Date(endDate).toISOString(),
         voting_end_date: new Date(votingEndDate).toISOString(),
         status: "upcoming",
         created_by: user.id,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -170,11 +173,40 @@ export default function AdminPhotoChallenges() {
         .update({ winner_id: winnerId, status: "completed" })
         .eq("id", challengeId);
       if (error) throw error;
+
+      // Auto-create prize payout record
+      const challenge = challenges.find((c: any) => c.id === challengeId);
+      if (challenge) {
+        const prizeAmount = challenge.prize_type === "cash"
+          ? challenge.entry_fee * (challenge.entry_count || 0) * 0.5
+          : 0;
+
+        await supabase.from("prize_payouts").insert({
+          winner_id: winnerId,
+          challenge_id: challengeId,
+          prize_type: challenge.prize_type || "cash",
+          prize_amount: prizeAmount,
+          prize_description: challenge.prize_description || (prizeAmount > 0 ? `$${prizeAmount.toFixed(0)} cash prize` : null),
+          gift_card_code: (challenge as any).gift_card_code || null,
+          status: "pending",
+          notified_at: new Date().toISOString(),
+        } as any);
+
+        // Notify winner
+        await supabase.from("notifications").insert({
+          user_id: winnerId,
+          type: "prize_won",
+          title: "🏆 You Won!",
+          body: `Congratulations! You won "${challenge.title}"!`,
+          data: { challenge_id: challengeId, prize_type: challenge.prize_type },
+        });
+      }
     },
     onSuccess: () => {
       toast({ title: "Winner set!" });
       queryClient.invalidateQueries({ queryKey: ["admin-photo-challenges"] });
       queryClient.invalidateQueries({ queryKey: ["admin-challenge-tally", viewingChallenge?.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-prize-payouts"] });
     },
     onError: (err: any) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -188,10 +220,57 @@ export default function AdminPhotoChallenges() {
     setEntryFee("5");
     setPrizeType("cash");
     setPrizeDescription("");
+    setGiftCardCode("");
     setStartDate("");
     setEndDate("");
     setVotingEndDate("");
   };
+
+  // Prize payouts query
+  const { data: payouts = [] } = useQuery({
+    queryKey: ["admin-prize-payouts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("prize_payouts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      const winnerIds = [...new Set((data || []).map((p: any) => p.winner_id))];
+      const challengeIds = [...new Set((data || []).filter((p: any) => p.challenge_id).map((p: any) => p.challenge_id))];
+
+      const [{ data: profiles }, { data: challengeNames }] = await Promise.all([
+        supabase.from("profiles").select("id, display_name, photos").in("id", winnerIds.length > 0 ? winnerIds : ["none"]),
+        supabase.from("photo_challenges").select("id, title").in("id", challengeIds.length > 0 ? challengeIds : ["none"]),
+      ]);
+
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => (profileMap[p.id] = p));
+      const challengeMap: Record<string, string> = {};
+      (challengeNames || []).forEach((c: any) => (challengeMap[c.id] = c.title));
+
+      return (data || []).map((p: any) => ({
+        ...p,
+        winner_profile: profileMap[p.winner_id] || null,
+        challenge_title: p.challenge_id ? challengeMap[p.challenge_id] : "Tournament",
+      }));
+    },
+  });
+
+  const markSentMutation = useMutation({
+    mutationFn: async ({ payoutId, notes }: { payoutId: string; notes: string }) => {
+      const { error } = await supabase
+        .from("prize_payouts")
+        .update({ status: "sent", sent_at: new Date().toISOString(), admin_notes: notes || null } as any)
+        .eq("id", payoutId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Marked as sent" });
+      queryClient.invalidateQueries({ queryKey: ["admin-prize-payouts"] });
+    },
+    onError: (err: any) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -290,9 +369,16 @@ export default function AdminPhotoChallenges() {
               </div>
 
               {prizeType === "gift_card" && (
-                <div className="space-y-2">
-                  <Label>Prize Description</Label>
-                  <Input placeholder="e.g. $50 Bass Pro Gift Card" value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} />
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label>Prize Description</Label>
+                    <Input placeholder="e.g. $50 Bass Pro Gift Card" value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gift Card Code</Label>
+                    <Input placeholder="Enter the gift card code" value={giftCardCode} onChange={(e) => setGiftCardCode(e.target.value)} />
+                    <p className="text-[10px] text-muted-foreground">This code will be revealed to the winner when declared.</p>
+                  </div>
                 </div>
               )}
 
@@ -484,6 +570,95 @@ export default function AdminPhotoChallenges() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Prize Payouts Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Trophy className="h-5 w-5" /> Prize Payouts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Winner</TableHead>
+                <TableHead>Challenge</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Amount / Prize</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {payouts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No payouts yet</TableCell>
+                </TableRow>
+              ) : (
+                payouts.map((p: any) => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={p.winner_profile?.photos?.[0]} />
+                          <AvatarFallback className="text-[10px]">{p.winner_profile?.display_name?.charAt(0) || "?"}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm truncate">{p.winner_profile?.display_name || "Unknown"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm truncate max-w-[150px]">{p.challenge_title}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize text-xs">{p.prize_type === "gift_card" ? "Gift Card" : "Cash"}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {p.prize_type === "cash" ? `$${Number(p.prize_amount || 0).toFixed(0)}` : (p.prize_description || "Gift Card")}
+                      {p.prize_type === "gift_card" && p.gift_card_code && (
+                        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{p.gift_card_code}</p>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={p.status === "claimed" ? "default" : p.status === "sent" ? "secondary" : "outline"}
+                        className="capitalize text-xs"
+                      >
+                        {p.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {p.status === "pending" && (
+                        <div className="flex items-center gap-1 justify-end">
+                          <Input
+                            placeholder="Notes (optional)"
+                            className="h-7 text-xs w-32"
+                            value={payoutNotes}
+                            onChange={(e) => setPayoutNotes(e.target.value)}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              markSentMutation.mutate({ payoutId: p.id, notes: payoutNotes });
+                              setPayoutNotes("");
+                            }}
+                            disabled={markSentMutation.isPending}
+                          >
+                            Mark Sent
+                          </Button>
+                        </div>
+                      )}
+                      {p.admin_notes && (
+                        <p className="text-[10px] text-muted-foreground mt-1">{p.admin_notes}</p>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

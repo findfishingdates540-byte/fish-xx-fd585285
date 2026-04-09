@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
@@ -16,6 +17,8 @@ import {
   CalendarDays,
   Clock,
   Target,
+  Copy,
+  CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -97,6 +100,28 @@ const TournamentDetail = () => {
       return data;
     },
     enabled: !!id,
+  });
+
+  // Fetch prize payout for current user
+  const { data: myPayout } = useQuery({
+    queryKey: ["my-tournament-payout", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("prize_payouts")
+        .select("*")
+        .eq("tournament_id", id!)
+        .eq("winner_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data && data.status === "pending") {
+        await supabase
+          .from("prize_payouts")
+          .update({ status: "claimed" } as any)
+          .eq("id", data.id);
+      }
+      return data;
+    },
+    enabled: !!id && !!user && tournament?.status === "completed",
   });
 
   const isJoined = participants.some((p: any) => p.user_id === user?.id);
@@ -232,6 +257,36 @@ const TournamentDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Winner Prize Card */}
+      {myPayout && (
+        <Card className="p-5 border-accent bg-accent/5 space-y-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-accent" />
+            <h3 className="font-bold text-lg">🎉 You Won!</h3>
+          </div>
+          {myPayout.prize_type === "gift_card" && myPayout.gift_card_code ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{myPayout.prize_description || "Your gift card prize:"}</p>
+              <div className="flex items-center gap-2 bg-muted rounded-lg p-3">
+                <code className="flex-1 font-mono text-sm font-bold tracking-wider">{myPayout.gift_card_code}</code>
+                <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(myPayout.gift_card_code); toast.success("Code copied!"); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Your prize: ${Number(myPayout.prize_amount || 0).toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground">
+                {myPayout.status === "sent" ? (
+                  <span className="flex items-center gap-1 text-primary"><CheckCircle className="h-3 w-3" /> Payment has been sent!</span>
+                ) : "Your prize is being processed. The organizer will contact you."}
+              </p>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Participants */}
       <div className="rounded-xl border bg-card p-4 mb-4">
