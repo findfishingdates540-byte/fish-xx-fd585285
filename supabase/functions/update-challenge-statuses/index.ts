@@ -45,10 +45,10 @@ serve(async (req) => {
       transitions.push(`voting: ${toVoting.map(c => c.title).join(", ")}`);
     }
 
-    // 3. voting → completed (when now >= voting_end_date) + tally votes
+    // 3. voting → completed (when now >= voting_end_date) + tally votes + create payout
     const { data: toComplete, error: e3 } = await supabase
       .from("photo_challenges")
-      .select("id, title")
+      .select("id, title, entry_fee, prize_type, prize_description, gift_card_code")
       .eq("status", "voting")
       .lte("voting_end_date", now);
 
@@ -74,6 +74,52 @@ serve(async (req) => {
 
         if (completeErr) {
           console.error(`Error completing ${challenge.title}:`, completeErr);
+        }
+
+        // Create prize payout record if there's a winner
+        if (winnerId) {
+          // Count paid entries for prize pool calculation
+          const { count: paidCount } = await supabase
+            .from("photo_challenge_entries")
+            .select("id", { count: "exact", head: true })
+            .eq("challenge_id", challenge.id)
+            .eq("has_paid", true);
+
+          const prizeAmount = challenge.prize_type === "cash"
+            ? (challenge.entry_fee || 0) * (paidCount || 0) * 0.5
+            : 0;
+
+          const { error: payoutErr } = await supabase
+            .from("prize_payouts")
+            .insert({
+              winner_id: winnerId,
+              challenge_id: challenge.id,
+              prize_type: challenge.prize_type || "cash",
+              prize_amount: prizeAmount,
+              prize_description: challenge.prize_description || (prizeAmount > 0 ? `$${prizeAmount.toFixed(0)} cash prize` : null),
+              gift_card_code: challenge.gift_card_code || null,
+              status: "pending",
+              notified_at: now,
+            });
+
+          if (payoutErr) {
+            console.error(`Error creating payout for ${challenge.title}:`, payoutErr);
+          }
+
+          // Create notification for winner
+          const { error: notifErr } = await supabase
+            .from("notifications")
+            .insert({
+              user_id: winnerId,
+              type: "prize_won",
+              title: "🏆 You Won!",
+              body: `Congratulations! You won "${challenge.title}"!`,
+              data: { challenge_id: challenge.id, prize_type: challenge.prize_type },
+            });
+
+          if (notifErr) {
+            console.error(`Error notifying winner for ${challenge.title}:`, notifErr);
+          }
         }
       }
       transitions.push(`completed: ${toComplete.map(c => c.title).join(", ")}`);

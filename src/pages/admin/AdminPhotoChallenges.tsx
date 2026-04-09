@@ -30,10 +30,12 @@ export default function AdminPhotoChallenges() {
   const [entryFee, setEntryFee] = useState("5");
   const [prizeType, setPrizeType] = useState("cash");
   const [prizeDescription, setPrizeDescription] = useState("");
+  const [giftCardCode, setGiftCardCode] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [votingEndDate, setVotingEndDate] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [payoutNotes, setPayoutNotes] = useState("");
 
   const { data: challenges = [], isLoading } = useQuery({
     queryKey: ["admin-photo-challenges"],
