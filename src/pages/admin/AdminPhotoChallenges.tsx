@@ -369,9 +369,16 @@ export default function AdminPhotoChallenges() {
               </div>
 
               {prizeType === "gift_card" && (
-                <div className="space-y-2">
-                  <Label>Prize Description</Label>
-                  <Input placeholder="e.g. $50 Bass Pro Gift Card" value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} />
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label>Prize Description</Label>
+                    <Input placeholder="e.g. $50 Bass Pro Gift Card" value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gift Card Code</Label>
+                    <Input placeholder="Enter the gift card code" value={giftCardCode} onChange={(e) => setGiftCardCode(e.target.value)} />
+                    <p className="text-[10px] text-muted-foreground">This code will be revealed to the winner when declared.</p>
+                  </div>
                 </div>
               )}
 
