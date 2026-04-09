@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Lightbox } from "@/components/ui/lightbox";
+import { LiveCameraCapture, type CaptureMetadata } from "@/components/ui/live-camera-capture";
 import { toast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Camera, Clock, Crown, DollarSign, Gift, Heart,
