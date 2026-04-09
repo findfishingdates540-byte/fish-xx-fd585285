@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
@@ -16,6 +17,8 @@ import {
   CalendarDays,
   Clock,
   Target,
+  Copy,
+  CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
