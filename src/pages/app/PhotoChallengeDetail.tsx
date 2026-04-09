@@ -23,12 +23,12 @@ export default function PhotoChallengeDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [payingEntry, setPayingEntry] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
+  const [capturePreview, setCapturePreview] = useState<string | null>(null);
+  const [pendingCapture, setPendingCapture] = useState<CaptureMetadata | null>(null);
 
   // Handle payment callback — mark entry as paid client-side as a fallback
   // in case the Stripe webhook is delayed or fails
