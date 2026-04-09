@@ -63,7 +63,6 @@ export interface LogCatchFormData {
 }
 
 export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
-  const measurementPhotoRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     species_name: "",
