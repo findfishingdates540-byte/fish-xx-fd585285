@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Lightbox } from "@/components/ui/lightbox";
+import { LiveCameraCapture, type CaptureMetadata } from "@/components/ui/live-camera-capture";
 import { toast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Camera, Clock, Crown, DollarSign, Gift, Heart,
@@ -22,12 +23,12 @@ export default function PhotoChallengeDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [payingEntry, setPayingEntry] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
+  const [capturePreview, setCapturePreview] = useState<string | null>(null);
+  const [pendingCapture, setPendingCapture] = useState<CaptureMetadata | null>(null);
 
   // Handle payment callback — mark entry as paid client-side as a fallback
   // in case the Stripe webhook is delayed or fails
@@ -137,19 +138,24 @@ export default function PhotoChallengeDetail() {
 
   // Submit entry (photo first, then pay)
   const submitEntry = useMutation({
-    mutationFn: async (photoUrl: string) => {
+    mutationFn: async ({ photoUrl, metadata }: { photoUrl: string; metadata: CaptureMetadata }) => {
       const { error } = await supabase.from("photo_challenge_entries").insert({
         challenge_id: id!,
         user_id: user!.id,
         photo_url: photoUrl,
         caption: caption || null,
         has_paid: false,
-      });
+        captured_at: metadata.capturedAt,
+        location_lat: metadata.locationLat,
+        location_lng: metadata.locationLng,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Photo uploaded!", description: "Now complete your entry by paying the fee." });
+      toast({ title: "Photo captured!", description: "Now complete your entry by paying the fee." });
       setCaption("");
+      setCapturePreview(null);
+      setPendingCapture(null);
       qc.invalidateQueries({ queryKey: ["photo-challenge-entries", id] });
     },
     onError: (err: any) => {
@@ -220,19 +226,25 @@ export default function PhotoChallengeDetail() {
     },
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const handleLiveCapture = (metadata: CaptureMetadata) => {
+    const reader = new FileReader();
+    reader.onloadend = () => setCapturePreview(reader.result as string);
+    reader.readAsDataURL(metadata.file);
+    setPendingCapture(metadata);
+  };
+
+  const handleSubmitCapture = async () => {
+    if (!pendingCapture || !user) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const ext = pendingCapture.file.name.split(".").pop() || "jpg";
       const path = `${user.id}/photo-challenges/${id}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("catch-photos")
-        .upload(path, file, { upsert: true });
+        .upload(path, pendingCapture.file, { upsert: true });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("catch-photos").getPublicUrl(path);
-      await submitEntry.mutateAsync(urlData.publicUrl);
+      await submitEntry.mutateAsync({ photoUrl: urlData.publicUrl, metadata: pendingCapture });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
@@ -343,27 +355,29 @@ export default function PhotoChallengeDetail() {
             <Camera className="h-5 w-5" /> Submit Your Entry
           </h2>
           <p className="text-sm text-muted-foreground">
-            Upload your best fish photo. After uploading, you'll pay the ${challenge.entry_fee} entry fee via Stripe.
+            Take a live photo of your catch. Date, time, and GPS location are recorded automatically.
+            After capturing, you'll pay the ${challenge.entry_fee} entry fee via Stripe.
           </p>
+          <LiveCameraCapture
+            onCapture={handleLiveCapture}
+            preview={capturePreview}
+            onClear={() => { setCapturePreview(null); setPendingCapture(null); }}
+            label="Take a Live Photo"
+            sublabel="Camera only — no gallery uploads"
+            aspectRatio="aspect-square"
+          />
           <Textarea
             placeholder="Add a caption (optional)"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             rows={2}
           />
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileUpload}
-          />
           <Button
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
+            onClick={handleSubmitCapture}
+            disabled={uploading || !pendingCapture}
           >
-            <Upload className="h-4 w-4 mr-2" />
-            {uploading ? "Uploading..." : "Upload Photo"}
+            <Camera className="h-4 w-4 mr-2" />
+            {uploading ? "Uploading..." : "Submit Photo"}
           </Button>
         </Card>
       )}

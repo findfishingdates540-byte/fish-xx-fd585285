@@ -1417,28 +1417,37 @@ export type Database = {
       photo_challenge_entries: {
         Row: {
           caption: string | null
+          captured_at: string | null
           challenge_id: string
           created_at: string
           has_paid: boolean
           id: string
+          location_lat: number | null
+          location_lng: number | null
           photo_url: string
           user_id: string
         }
         Insert: {
           caption?: string | null
+          captured_at?: string | null
           challenge_id: string
           created_at?: string
           has_paid?: boolean
           id?: string
+          location_lat?: number | null
+          location_lng?: number | null
           photo_url: string
           user_id: string
         }
         Update: {
           caption?: string | null
+          captured_at?: string | null
           challenge_id?: string
           created_at?: string
           has_paid?: boolean
           id?: string
+          location_lat?: number | null
+          location_lng?: number | null
           photo_url?: string
           user_id?: string
         }
