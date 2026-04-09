@@ -13,7 +13,7 @@ import { LiveCameraCapture, type CaptureMetadata } from "@/components/ui/live-ca
 import { toast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Camera, Clock, Crown, DollarSign, Gift, Heart,
-  Trophy, Upload, Users, Vote, ImageIcon, CreditCard,
+  Trophy, Upload, Users, Vote, ImageIcon, CreditCard, Copy, CheckCircle,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
