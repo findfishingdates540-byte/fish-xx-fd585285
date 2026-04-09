@@ -63,7 +63,6 @@ export interface LogCatchFormData {
 }
 
 export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
-  const coverPhotoRef = useRef<HTMLInputElement>(null);
   const measurementPhotoRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -86,24 +85,25 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
   const [measurementPhoto, setMeasurementPhoto] = useState<File | null>(null);
   const [measurementPhotoPreview, setMeasurementPhotoPreview] = useState<string | null>(null);
 
-  const handleSinglePhotoSelect = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "cover" | "measurement"
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle live camera capture for trophy photo — auto-fill time & location
+  const handleTrophyCapture = useCallback((data: CaptureMetadata) => {
+    setCoverPhoto(data.file);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      if (type === "cover") {
-        setCoverPhoto(file);
-        setCoverPhotoPreview(reader.result as string);
-      } else {
-        setMeasurementPhoto(file);
-        setMeasurementPhotoPreview(reader.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
+    reader.onloadend = () => setCoverPhotoPreview(reader.result as string);
+    reader.readAsDataURL(data.file);
+
+    // Auto-fill caught_at from capture timestamp
+    const localTime = new Date(data.capturedAt).toISOString().slice(0, 16);
+    setFormData((prev) => ({ ...prev, caught_at: localTime }));
+  }, []);
+
+  // Handle live camera capture for measurement photo
+  const handleMeasurementCapture = useCallback((data: CaptureMetadata) => {
+    setMeasurementPhoto(data.file);
+    const reader = new FileReader();
+    reader.onloadend = () => setMeasurementPhotoPreview(reader.result as string);
+    reader.readAsDataURL(data.file);
+  }, []);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,59 +121,21 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold mb-1">Log New Catch</h1>
         <p className="text-sm text-muted-foreground">
-          Add your latest trophy to the competitive scoreboard.
+          Take a live photo — date, time and GPS are recorded automatically.
         </p>
       </div>
 
-      {/* Trophy Photo - Full width hero */}
+      {/* Trophy Photo - Live Camera Only */}
       <div className="mb-8">
         <Label className="text-sm font-semibold mb-3 block">
           Catch Showcase (Trophy Shot)
         </Label>
-        <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden bg-muted border border-border">
-          {coverPhotoPreview ? (
-            <>
-              <img
-                src={coverPhotoPreview}
-                alt="Trophy shot"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
-                <button
-                  type="button"
-                  onClick={() => coverPhotoRef.current?.click()}
-                  className="flex flex-col items-center gap-1 text-white hover:text-white/80 transition-colors"
-                >
-                  <Camera className="h-5 w-5" />
-                  <span className="text-sm font-medium">Change Trophy Photo</span>
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setCoverPhoto(null); setCoverPhotoPreview(null); }}
-                className="absolute top-3 right-3 w-7 h-7 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-colors"
-              >
-                <X className="h-4 w-4 text-white" />
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => coverPhotoRef.current?.click()}
-              className="w-full h-full flex flex-col items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Camera className="h-10 w-10 mb-2" />
-              <span className="text-sm font-medium">Upload your trophy photo</span>
-              <span className="text-xs text-muted-foreground mt-1">This is the hero image for your catch</span>
-            </button>
-          )}
-        </div>
-        <input
-          ref={coverPhotoRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleSinglePhotoSelect(e, "cover")}
-          className="hidden"
+        <LiveCameraCapture
+          onCapture={handleTrophyCapture}
+          preview={coverPhotoPreview}
+          onClear={() => { setCoverPhoto(null); setCoverPhotoPreview(null); }}
+          label="Take Trophy Photo"
+          sublabel="Camera only — no gallery uploads allowed"
         />
       </div>
 
