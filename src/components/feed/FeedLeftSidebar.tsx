@@ -230,7 +230,7 @@ export function FeedLeftSidebar() {
           <h3 className="font-semibold text-sm mb-3">Quick Links</h3>
           <div className="space-y-1">
             <Link
-              to="/app/catches/log"
+              to="/app/catches"
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Fish className="h-4 w-4" />
