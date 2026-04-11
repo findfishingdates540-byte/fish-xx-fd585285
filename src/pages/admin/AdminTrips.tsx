@@ -132,40 +132,40 @@ export default function AdminTrips() {
 
       {/* Trips Table */}
       <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-700 text-left text-xs text-slate-400 uppercase">
-              <th className="px-6 py-4">Trip</th>
-              <th className="px-6 py-4">Organizer</th>
-              <th className="px-6 py-4">Date</th>
-              <th className="px-6 py-4">Type</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-700">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-slate-700 hover:bg-transparent">
+              <TableHead className="text-slate-400">Trip</TableHead>
+              <TableHead className="text-slate-400">Organizer</TableHead>
+              <TableHead className="text-slate-400">Date</TableHead>
+              <TableHead className="text-slate-400">Type</TableHead>
+              <TableHead className="text-slate-400">Status</TableHead>
+              <TableHead className="text-slate-400">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {isLoading ? (
               Array.from({ length: 10 }).map((_, i) => (
-                <tr key={i}>
-                  <td className="px-6 py-4"><Skeleton className="h-12 w-48 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-10 w-32 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-4 w-24 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-6 w-16 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-6 w-20 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-8 w-8 bg-slate-700" /></td>
-                </tr>
+                <TableRow key={i} className="border-slate-700">
+                  <TableCell><Skeleton className="h-12 w-48 bg-slate-700" /></TableCell>
+                  <TableCell><Skeleton className="h-10 w-32 bg-slate-700" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24 bg-slate-700" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-16 bg-slate-700" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-20 bg-slate-700" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-8 bg-slate-700" /></TableCell>
+                </TableRow>
               ))
             ) : trips?.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+              <TableRow className="border-slate-700">
+                <TableCell colSpan={6} className="text-center text-slate-400 py-12">
                   <Anchor className="w-10 h-10 mx-auto mb-3 text-slate-500" />
                   No trips found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               trips?.map((trip) => (
-                <tr key={trip.id} className="hover:bg-slate-800/50 transition-colors">
-                  <td className="px-6 py-4">
+                <TableRow key={trip.id} className="border-slate-700 hover:bg-slate-800/50">
+                  <TableCell>
                     <div>
                       <p className="font-medium text-white">{trip.title}</p>
                       <p className="text-sm text-slate-400 flex items-center gap-1">
@@ -173,8 +173,8 @@ export default function AdminTrips() {
                         {trip.location_name || trip.spot?.name || 'No location'}
                       </p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     {trip.user && (
                       <div className="flex items-center gap-2">
                         <Avatar className="w-8 h-8">
@@ -186,16 +186,16 @@ export default function AdminTrips() {
                         <span className="text-slate-300 text-sm">{trip.user.display_name}</span>
                       </div>
                     )}
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <div className="text-sm">
                       <p className="text-white">{format(new Date(trip.trip_date), 'MMM d, yyyy')}</p>
                       {trip.start_time && (
                         <p className="text-slate-400">{trip.start_time.slice(0, 5)}</p>
                       )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 border-0 capitalize">
                       {trip.trip_type === 'solo' ? (
                         <span className="flex items-center gap-1">Solo</span>
@@ -206,13 +206,13 @@ export default function AdminTrips() {
                         </span>
                       )}
                     </Badge>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <Badge className={`${getStatusColor(trip.status)} border-0 capitalize`}>
                       {trip.status.replace('_', ' ')}
                     </Badge>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
@@ -237,12 +237,12 @@ export default function AdminTrips() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Details Modal */}
