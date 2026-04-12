@@ -14,6 +14,7 @@ export function PublicHeader() {
     { to: '/about', label: 'About' },
     { to: '/dating', label: 'Dating' },
     { to: '/fishing', label: 'Fishing' },
+    { to: '/challenges', label: 'Challenges' },
     { to: '/pricing', label: 'Pricing' },
     { to: '/safety', label: 'Safety' },
   ];
