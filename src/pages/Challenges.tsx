@@ -33,7 +33,7 @@ const Challenges = () => {
                 gift cards, and bragging rights.
               </p>
               <Link to="/auth?mode=signup">
-                <Button size="lg" className="btn-primary text-lg px-10 py-6">
+                <Button size="lg" className="btn-primary text-lg px-10 py-6 mt-[30px]">
                   Join a Challenge
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
