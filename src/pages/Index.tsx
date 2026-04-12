@@ -292,12 +292,61 @@ const Index = () => {
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
-                icon={<Trophy className="w-8 h-8" />}
-                title="Compete & Win"
-                description="Enter photo challenges and tournaments for just $5. Win cash prizes, gift cards, and bragging rights."
+                icon={<Star className="w-8 h-8" />}
+                title="Premium Features"
+                description="Unlock unlimited connections, priority discovery, and exclusive fishing spot data."
               />
             </StaggerItem>
           </StaggerContainer>
+        </div>
+      </section>
+
+      {/* Compete & Win Section */}
+      <section className="py-24 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <ScrollReveal>
+            <div className="bg-foreground text-background rounded-3xl p-12 md:p-16">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-6 h-6" />
+                    <span className="text-sm font-medium tracking-widest uppercase">Competitions</span>
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-bold">
+                    Compete & Win Real Prizes
+                  </h2>
+                  <p className="text-xl text-background/70 leading-relaxed">
+                    Enter photo challenges and fishing tournaments for as little as $5. 
+                    Compete against anglers nationwide and win cash prizes, gift cards, and bragging rights.
+                  </p>
+                  <Link to="/auth?mode=signup">
+                    <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-10 py-6">
+                      Join a Challenge
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
+                    <Check className="w-6 h-6 flex-shrink-0" />
+                    <span className="text-lg">Photo challenges — community votes pick the winner</span>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
+                    <Check className="w-6 h-6 flex-shrink-0" />
+                    <span className="text-lg">Fishing tournaments — bracket-style competitions</span>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
+                    <Check className="w-6 h-6 flex-shrink-0" />
+                    <span className="text-lg">Team competitions — form a crew and dominate</span>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-background/10">
+                    <Check className="w-6 h-6 flex-shrink-0" />
+                    <span className="text-lg">Entry from just $5 — winner takes the pot</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
