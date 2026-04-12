@@ -392,7 +392,7 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left" className="order-2 lg:order-1">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img src={coupleFishing} alt="Happy anglers on FishX" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                <img src={fishingPhoto2} alt="Happy anglers on FishX" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
             </ScrollReveal>
             
@@ -584,7 +584,7 @@ const Index = () => {
                       {/* Profile card preview */}
                       <div className="flex-1 p-4">
                         <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg relative">
-                          <img src={heroFishing1} alt="Profile preview" className="w-full h-full object-cover" />
+                          <img src={fishingPhoto1} alt="Profile preview" className="w-full h-full object-cover" />
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/90 to-transparent p-4">
                             <p className="text-background font-bold text-xl">Sarah, 28</p>
                             <p className="text-background/80 text-sm">Bass fishing enthusiast</p>
