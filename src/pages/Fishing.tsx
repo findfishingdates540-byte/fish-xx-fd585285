@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Fish, MapPin, Camera, Users, Trophy, Compass, Anchor, Check, Star } from 'lucide-react';
+import { ArrowRight, Fish, MapPin, Camera, Users, Trophy, Compass, Anchor, Check, Star, Award, Medal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import fishingHero from '@/assets/fishing-hero.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
@@ -31,7 +31,7 @@ const Fishing = () => {
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
                 FishX is your complete fishing platform. Log catches, discover spots, 
-                find fishing buddies, plan trips, and track your angling journey.
+                find fishing buddies, enter competitions for as little as $5, and win real prizes.
               </p>
               <Link to="/auth?mode=signup">
                 <Button size="lg" className="btn-primary text-lg px-10 py-6">
@@ -98,23 +98,23 @@ const Fishing = () => {
             
             <div className="bg-background rounded-3xl p-8 space-y-4 border border-border hover:shadow-lg transition-shadow">
               <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Camera className="w-7 h-7 text-foreground" />
+                <Trophy className="w-7 h-7 text-foreground" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Photo Gallery</h3>
+              <h3 className="text-2xl font-bold text-foreground">Challenges & Contests</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Show off your best catches with high-quality photos. Share your fishing stories 
-                and inspire the community.
+                Enter photo challenges and tournaments for as little as $5. Compete against anglers 
+                from across the country and win cash prizes, gift cards, and bragging rights.
               </p>
             </div>
             
             <div className="bg-background rounded-3xl p-8 space-y-4 border border-border hover:shadow-lg transition-shadow">
               <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Trophy className="w-7 h-7 text-foreground" />
+                <Medal className="w-7 h-7 text-foreground" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground">Personal Stats</h3>
+              <h3 className="text-2xl font-bold text-foreground">Leaderboards & Rankings</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Track your fishing statistics over time. See your biggest catches, favorite species, 
-                and most productive spots.
+                Climb the global rankings. Track your standing against other anglers 
+                by species, region, and season.
               </p>
             </div>
             
@@ -290,8 +290,68 @@ const Fishing = () => {
         </div>
       </section>
 
-      {/* Premium Features */}
+      {/* Compete & Win Section */}
       <section className="py-24 px-6 section-muted">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Competitions</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
+              Compete & Win Real Prizes
+            </h2>
+            <p className="text-xl text-muted-foreground mt-6 max-w-2xl mx-auto leading-relaxed">
+              Enter challenges and tournaments for as little as $5. Compete against anglers 
+              nationwide and win cash prizes, gift cards from top fishing brands, and ultimate bragging rights.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border hover:shadow-lg transition-shadow text-center">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto">
+                <Camera className="w-7 h-7 text-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">Photo Challenges</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Submit your best catch photos and let the community vote. The winner takes the prize pool — 
+                it's that simple.
+              </p>
+            </div>
+            
+            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border hover:shadow-lg transition-shadow text-center">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto">
+                <Trophy className="w-7 h-7 text-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">Fishing Tournaments</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Bracket-style competitions scored by biggest catch or total weight. 
+                Single and double elimination formats available.
+              </p>
+            </div>
+            
+            <div className="bg-background rounded-3xl p-8 space-y-4 border border-border hover:shadow-lg transition-shadow text-center">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto">
+                <Users className="w-7 h-7 text-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">Team Competitions</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Form a team, climb the leaderboard together, and compete by category. 
+                Strength in numbers.
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link to="/auth?mode=signup">
+              <Button size="lg" className="btn-primary text-lg px-10 py-6">
+                Join a Challenge
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Premium Features */}
+      <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="bg-foreground text-background rounded-3xl p-12 md:p-16">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
