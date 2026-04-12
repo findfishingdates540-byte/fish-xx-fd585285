@@ -12,6 +12,13 @@ import datingCouple1 from '@/assets/dating-couple-1.jpg';
 import datingCouple2 from '@/assets/dating-couple-2.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
 import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
+import fishingPhoto1 from '@/assets/fishing-photo-1.jpg';
+import fishingPhoto2 from '@/assets/fishing-photo-2.jpg';
+import fishingPhoto3 from '@/assets/fishing-photo-3.jpg';
+import fishingPhoto4 from '@/assets/fishing-photo-4.jpg';
+import fishingPhoto5 from '@/assets/fishing-photo-5.jpg';
+import fishingPhoto6 from '@/assets/fishing-photo-6.jpg';
+import fishingPhoto7 from '@/assets/fishing-photo-7.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 import { CountUp } from '@/components/ui/count-up';
@@ -136,7 +143,7 @@ const Index = () => {
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                 whileHover={{ scale: 1.05, zIndex: 40 }}
               >
-                <img src={heroFishing1} alt="Person fishing at sunset" className="w-full h-full object-cover" />
+                <img src={fishingPhoto1} alt="Woman with snook catch" className="w-full h-full object-cover" />
               </motion.div>
               <motion.div 
                 className="absolute right-64 top-20 w-56 h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-background"
@@ -145,7 +152,7 @@ const Index = () => {
                 transition={{ duration: 0.8, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
                 whileHover={{ scale: 1.05, zIndex: 40 }}
               >
-                <img src={heroFishing2} alt="Woman with caught fish" className="w-full h-full object-cover" />
+                <img src={fishingPhoto2} alt="Woman with permit catch" className="w-full h-full object-cover" />
               </motion.div>
               <motion.div 
                 className="absolute right-20 bottom-0 w-64 h-80 rounded-3xl overflow-hidden shadow-xl"
@@ -154,7 +161,7 @@ const Index = () => {
                 transition={{ duration: 0.8, delay: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                 whileHover={{ scale: 1.05, zIndex: 40 }}
               >
-                <img src={heroFishing3} alt="Friends fishing together" className="w-full h-full object-cover" />
+                <img src={fishingPhoto3} alt="Woman with largemouth bass" className="w-full h-full object-cover" />
               </motion.div>
             </div>
           </div>
@@ -218,18 +225,18 @@ const Index = () => {
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-6">
                 <ScrollReveal delay={0.1} className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={heroFishing1} alt="Fishing at sunset" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={fishingPhoto4} alt="Man with salmon catch" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </ScrollReveal>
                 <ScrollReveal delay={0.3} className="aspect-square rounded-3xl overflow-hidden shadow-lg">
-                  <img src={heroFishing2} alt="Proud angler" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={fishingPhoto5} alt="Night fishing with trout" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </ScrollReveal>
               </div>
               <div className="space-y-6 pt-12">
                 <ScrollReveal delay={0.2} className="aspect-square rounded-3xl overflow-hidden shadow-lg">
-                  <img src={heroFishing3} alt="Friends fishing" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={fishingPhoto6} alt="Father and son with mahi-mahi" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </ScrollReveal>
                 <ScrollReveal delay={0.4} className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={coupleFishing} alt="Couple fishing together" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={fishingPhoto7} alt="Marlin release" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </ScrollReveal>
               </div>
             </div>
@@ -298,8 +305,47 @@ const Index = () => {
       <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Dating Card */}
+            {/* Fishing Buddies Card - First */}
             <ScrollReveal delay={0} direction="up">
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
+                whileHover={{ scale: 1.02, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="relative h-80 mb-8">
+                  <motion.div 
+                    className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
+                    whileHover={{ y: -4 }}
+                  >
+                    <img src={fishingPhoto4} alt="Man with salmon catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
+                    whileHover={{ y: -6 }}
+                  >
+                    <img src={fishingPhoto6} alt="Father and son fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
+                    whileHover={{ y: -8 }}
+                  >
+                    <img src={fishingPhoto5} alt="Night fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
+                <p className="text-muted-foreground text-lg mb-6">
+                  Not looking for romance? Find local fishing companions for your next adventure. 
+                  Connect with anglers in your area who share your fishing style.
+                </p>
+                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
+                  Find your crew
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Link>
+              </motion.div>
+            </ScrollReveal>
+
+            {/* Dating Card - Second */}
+            <ScrollReveal delay={0.2} direction="up">
               <motion.div 
                 className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
                 whileHover={{ scale: 1.02, y: -8 }}
@@ -336,45 +382,6 @@ const Index = () => {
                 </Link>
               </motion.div>
             </ScrollReveal>
-
-            {/* Fishing Buddies Card */}
-            <ScrollReveal delay={0.2} direction="up">
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
-                whileHover={{ scale: 1.02, y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="relative h-80 mb-8">
-                  <motion.div 
-                    className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
-                    whileHover={{ y: -4 }}
-                  >
-                    <img src={fishingBuddies1} alt="Group of friends fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
-                    whileHover={{ y: -6 }}
-                  >
-                    <img src={fishingBuddies2} alt="Friends celebrating a catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
-                    whileHover={{ y: -8 }}
-                  >
-                    <img src={heroFishing3} alt="Fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                </div>
-                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
-                <p className="text-muted-foreground text-lg mb-6">
-                  Not looking for romance? Find local fishing companions for your next adventure. 
-                  Connect with anglers in your area who share your fishing style.
-                </p>
-                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
-                  Find your crew
-                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </Link>
-              </motion.div>
-            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -385,7 +392,7 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left" className="order-2 lg:order-1">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img src={coupleFishing} alt="Happy anglers on FishX" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                <img src={fishingPhoto2} alt="Happy anglers on FishX" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
             </ScrollReveal>
             
@@ -577,7 +584,7 @@ const Index = () => {
                       {/* Profile card preview */}
                       <div className="flex-1 p-4">
                         <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg relative">
-                          <img src={heroFishing1} alt="Profile preview" className="w-full h-full object-cover" />
+                          <img src={fishingPhoto1} alt="Profile preview" className="w-full h-full object-cover" />
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/90 to-transparent p-4">
                             <p className="text-background font-bold text-xl">Sarah, 28</p>
                             <p className="text-background/80 text-sm">Bass fishing enthusiast</p>
