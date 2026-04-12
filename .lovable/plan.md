@@ -1,86 +1,47 @@
 
 
-# Prize Distribution System for Tournaments & Challenges
+# Add Challenges & Tournaments Content to Public Pages
 
-## Overview
+## Current State
 
-Build a prize tracking and distribution system where:
-- **Cash prizes**: Admin manually sends payment outside the app; the app tracks payout status and notifies winners
-- **Gift cards**: Admin uploads gift card codes in advance; codes are automatically revealed to winners when declared
+The **Fishing landing page** (`/fishing`) has zero mention of challenges, contests, or tournaments. It covers: Catch Logging, Fishing Spots, Fishing Buddies, Photo Gallery, Personal Stats, Gear Tracking, and Premium. The **home page** (`/`) also has no challenges/prizes content.
 
-## Database Changes
+The app already has a full Photo Challenges system and Tournaments system built out -- but visitors to the public site would never know about them.
 
-### New table: `prize_payouts`
+## Plan
 
-Tracks prize status for every winner across photo challenges, fishing challenges, and tournaments.
+### 1. Add "Compete & Win" Section to the Fishing Page
 
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| winner_id | uuid | The winning user |
-| challenge_id | uuid | nullable, for photo/fishing challenges |
-| tournament_id | uuid | nullable, for tournaments |
-| prize_type | text | 'cash' or 'gift_card' |
-| prize_amount | numeric | Cash amount (calculated from entry fees x entries) |
-| prize_description | text | e.g. "$50 Bass Pro Gift Card" |
-| gift_card_code | text | The actual code, revealed only to winner |
-| status | text | 'pending', 'sent', 'claimed', 'failed' |
-| admin_notes | text | Admin can add notes (tracking number, payment method used) |
-| notified_at | timestamptz | When winner was notified |
-| sent_at | timestamptz | When admin marked as sent |
-| created_at | timestamptz | |
+Insert a new prominent section between "Fishing Buddies" and "Premium Features" in `src/pages/Fishing.tsx`. Content will include:
 
-RLS: Winners can SELECT their own rows. Admins have full access.
+- **Headline**: "Compete & Win Real Prizes"
+- **Subtext**: AI-written compelling copy about entering challenges for as little as $5, competing against anglers nationwide, and winning cash prizes and gift cards from fishing brands
+- **Three pillars**:
+  - **Photo Challenges** -- Submit your best catch photos, community votes, winner takes the pot
+  - **Fishing Tournaments** -- Single/double elimination brackets, scored by biggest catch or total weight
+  - **Team Competitions** -- Form teams, climb the leaderboard, compete by category
+- **Call-to-action**: "Enter for just $5" / "Join a Challenge" linking to signup
+- Visual: Use existing fishing photos from assets
 
-### Add `gift_card_code` column to `photo_challenges`
+### 2. Add "Challenges & Prizes" Feature Card to Features Grid
 
-Optional -- admin can pre-load the gift card code when creating the challenge. When winner is declared, it gets copied to the `prize_payouts` row.
+Replace the generic "Photo Gallery" and "Personal Stats" cards in the Fishing page features grid with:
+- **Challenges & Contests** (Trophy icon) -- "Enter photo challenges and tournaments for as little as $5. Compete against anglers from across the country and win cash prizes, gift cards, and bragging rights."
+- **Leaderboards & Rankings** (Trophy icon) -- "Climb the global rankings. Track your standing against other anglers by species, region, and season."
 
-## Implementation
+### 3. Add Challenges Mention to Home Page
 
-### 1. Auto-create payout record when winner is declared
+Add a brief "Compete & Win" card or section in the Features grid on `src/pages/Index.tsx` so visitors see challenges mentioned on the main landing page too. A single feature card with Trophy icon highlighting "$5 entry, real prizes."
 
-When admin sets a winner (via `setWinnerMutation` in AdminPhotoChallenges or via the `update-challenge-statuses` edge function), automatically insert a `prize_payouts` row with:
-- For cash: `prize_amount` = `entry_fee * entry_count` (the pot), status = 'pending'
-- For gift_card: copy the `gift_card_code` from the challenge, status = 'pending'
+### 4. Update Fishing Page Hero Subtitle
 
-Also create an in-app notification for the winner.
+Update the hero paragraph in Fishing.tsx to mention competitions:
+> "FishX is your complete fishing platform. Log catches, discover spots, find fishing buddies, **enter competitions for as little as $5**, and win real prizes."
 
-### 2. Admin Prize Management UI
-
-Add a **"Prize Payouts"** section in the admin dashboard (new page or tab in AdminPhotoChallenges):
-- List all pending/sent payouts with winner name, prize type, amount
-- For cash: Show winner's display name + a "Mark as Sent" button with optional notes field
-- For gift cards: Show the code and auto-delivery status
-- Status badges: Pending (yellow), Sent (blue), Claimed (green)
-
-### 3. Winner Notification & Prize Reveal
-
-- When payout is created, send an in-app notification: "Congratulations! You won [challenge name]!"
-- On the challenge detail page, show a prize card to the winner:
-  - Cash: "Your prize of $X is being processed. You'll be contacted by the organizer."
-  - Gift card: Show the actual gift card code with a copy button
-- Mark as 'claimed' when winner views the prize
-
-### 4. Gift Card Code Input in Challenge Creation
-
-Add an optional "Gift Card Code" field in the admin create-challenge dialog when `prize_type` is `gift_card`. This gets stored and auto-delivered when the winner is declared.
-
-### 5. Tournament Prize Integration
-
-Same `prize_payouts` table is used. When a tournament final match has a winner, create the payout record. Tournament `prize_description` text is used as the prize details.
-
-## Files to Modify/Create
+## Files to Modify
 
 | File | Change |
 |------|--------|
-| Migration SQL | Create `prize_payouts` table + add `gift_card_code` to `photo_challenges` |
-| `src/pages/admin/AdminPhotoChallenges.tsx` | Add gift card code field in create form; auto-create payout on set winner; add payout management UI |
-| `src/pages/app/PhotoChallengeDetail.tsx` | Show prize card to winner (cash status or gift card code) |
-| `supabase/functions/update-challenge-statuses/index.ts` | Create payout record + notification when auto-completing challenges |
-| `src/pages/app/TournamentDetail.tsx` | Show prize info to tournament winner |
-
-## No Changes Needed
-- Stripe Connect or external payout APIs (manual process)
-- Entry fee collection flow (already working)
+| `src/pages/Fishing.tsx` | Add "Compete & Win" section, update feature cards, update hero text |
+| `src/pages/Index.tsx` | Add challenges/prizes feature card to the features grid |
 
