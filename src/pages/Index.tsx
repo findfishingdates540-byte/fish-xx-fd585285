@@ -305,8 +305,47 @@ const Index = () => {
       <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Dating Card */}
+            {/* Fishing Buddies Card - First */}
             <ScrollReveal delay={0} direction="up">
+              <motion.div 
+                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
+                whileHover={{ scale: 1.02, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="relative h-80 mb-8">
+                  <motion.div 
+                    className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
+                    whileHover={{ y: -4 }}
+                  >
+                    <img src={fishingPhoto4} alt="Man with salmon catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
+                    whileHover={{ y: -6 }}
+                  >
+                    <img src={fishingPhoto6} alt="Father and son fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
+                    whileHover={{ y: -8 }}
+                  >
+                    <img src={fishingPhoto5} alt="Night fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </motion.div>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
+                <p className="text-muted-foreground text-lg mb-6">
+                  Not looking for romance? Find local fishing companions for your next adventure. 
+                  Connect with anglers in your area who share your fishing style.
+                </p>
+                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
+                  Find your crew
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Link>
+              </motion.div>
+            </ScrollReveal>
+
+            {/* Dating Card - Second */}
+            <ScrollReveal delay={0.2} direction="up">
               <motion.div 
                 className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
                 whileHover={{ scale: 1.02, y: -8 }}
@@ -339,45 +378,6 @@ const Index = () => {
                 </p>
                 <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
                   Find your person
-                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </Link>
-              </motion.div>
-            </ScrollReveal>
-
-            {/* Fishing Buddies Card */}
-            <ScrollReveal delay={0.2} direction="up">
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
-                whileHover={{ scale: 1.02, y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="relative h-80 mb-8">
-                  <motion.div 
-                    className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
-                    whileHover={{ y: -4 }}
-                  >
-                    <img src={fishingBuddies1} alt="Group of friends fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
-                    whileHover={{ y: -6 }}
-                  >
-                    <img src={fishingBuddies2} alt="Friends celebrating a catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
-                    whileHover={{ y: -8 }}
-                  >
-                    <img src={heroFishing3} alt="Fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                </div>
-                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
-                <p className="text-muted-foreground text-lg mb-6">
-                  Not looking for romance? Find local fishing companions for your next adventure. 
-                  Connect with anglers in your area who share your fishing style.
-                </p>
-                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
-                  Find your crew
                   <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </motion.div>
