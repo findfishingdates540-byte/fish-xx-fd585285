@@ -32,6 +32,7 @@ import CookiePolicy from "./pages/CookiePolicy";
 import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
 import Stories from "./pages/Stories";
+import PublicChallenges from "./pages/Challenges";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
 import SpeciesExplorer from "./pages/app/SpeciesExplorer";
@@ -104,6 +105,7 @@ const App = () => (
             <Route path="/cookies" element={<ForceLightTheme><CookiePolicy /></ForceLightTheme>} />
             <Route path="/accessibility" element={<ForceLightTheme><Accessibility /></ForceLightTheme>} />
             <Route path="/stories" element={<ForceLightTheme><Stories /></ForceLightTheme>} />
+            <Route path="/challenges" element={<ForceLightTheme><PublicChallenges /></ForceLightTheme>} />
             
             {/* Logged-in app routes */}
             <Route path="/app" element={<AppLayout />}>
