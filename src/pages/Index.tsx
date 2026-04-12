@@ -320,7 +320,7 @@ const Index = () => {
                     Compete against anglers nationwide and win cash prizes, gift cards, and bragging rights.
                   </p>
                   <Link to="/auth?mode=signup">
-                    <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-10 py-6">
+                    <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-10 py-6 mt-[30px]">
                       Join a Challenge
                       <ArrowRight className="ml-2 w-5 h-5" />
                     </Button>
