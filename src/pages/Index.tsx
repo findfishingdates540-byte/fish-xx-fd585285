@@ -1,6 +1,6 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star, Apple, Smartphone, Check } from 'lucide-react';
+import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star, Apple, Smartphone, Check, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import logo from '@/assets/logo.png';
@@ -292,9 +292,9 @@ const Index = () => {
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
-                icon={<Star className="w-8 h-8" />}
-                title="Premium Features"
-                description="Unlock unlimited connections, priority discovery, and exclusive fishing spot data."
+                icon={<Trophy className="w-8 h-8" />}
+                title="Compete & Win"
+                description="Enter photo challenges and tournaments for just $5. Win cash prizes, gift cards, and bragging rights."
               />
             </StaggerItem>
           </StaggerContainer>
