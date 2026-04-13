@@ -1,20 +1,17 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Fish, Heart, Globe, Smartphone, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-import heroFishing1 from '@/assets/hero-fishing-1.jpg';
-import heroFishing2 from '@/assets/hero-fishing-2.jpg';
-import heroFishing3 from '@/assets/hero-fishing-3.jpg';
 import fishingPhoto1 from '@/assets/fishing-photo-1.jpg';
 import fishingPhoto2 from '@/assets/fishing-photo-2.jpg';
 import fishingPhoto3 from '@/assets/fishing-photo-3.jpg';
 import fishingPhoto4 from '@/assets/fishing-photo-4.jpg';
 
-const heroImages = [heroFishing1, heroFishing2, heroFishing3];
+const heroImages = [fishingPhoto1, fishingPhoto2, fishingPhoto3, fishingPhoto4];
 
 const MobileHomeLanding = () => {
   const { user, loading } = useAuth();
@@ -37,7 +34,6 @@ const MobileHomeLanding = () => {
     }
   }, [user]);
 
-  // Auto-rotate hero images
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
@@ -139,7 +135,6 @@ const MobileHomeLanding = () => {
 
       {/* Content */}
       <div className="flex-1 px-6 pt-6 pb-8 flex flex-col">
-        {/* Headline */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -154,7 +149,6 @@ const MobileHomeLanding = () => {
           </h1>
         </motion.div>
 
-        {/* Subtitle */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -164,35 +158,15 @@ const MobileHomeLanding = () => {
           <p className="text-muted-foreground text-sm">The #1 App for Anglers.</p>
         </motion.div>
 
-        {/* Features */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="text-center mb-5"
+          className="text-center mb-6"
         >
           <p className="text-muted-foreground text-sm">
             Spots • Buddies • Catches • Feed
           </p>
-        </motion.div>
-
-        {/* Community Photos Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.38 }}
-          className="grid grid-cols-4 gap-1.5 mb-5 rounded-xl overflow-hidden"
-        >
-          {[fishingPhoto1, fishingPhoto2, fishingPhoto3, fishingPhoto4].map((photo, i) => (
-            <div key={i} className="aspect-square overflow-hidden rounded-lg">
-              <img
-                src={photo}
-                alt={`Fishing community ${i + 1}`}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </div>
-          ))}
         </motion.div>
 
         {/* Buttons */}
@@ -217,7 +191,6 @@ const MobileHomeLanding = () => {
           </Link>
         </motion.div>
 
-        {/* Divider */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -229,7 +202,6 @@ const MobileHomeLanding = () => {
           <div className="flex-1 h-px bg-border" />
         </motion.div>
 
-        {/* Social Login */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -247,7 +219,6 @@ const MobileHomeLanding = () => {
           </button>
         </motion.div>
 
-        {/* Terms */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
