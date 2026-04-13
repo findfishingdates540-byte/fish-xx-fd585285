@@ -44,8 +44,10 @@ const getNavItems = (mode: AccountMode): NavItem[] => {
     return [
       { to: '/app/feed', icon: Rss, label: 'Feed', hasMentionsBadge: true },
       { to: '/app/spots', icon: MapPin, label: 'Spots' },
+      { to: '/app/trips', icon: Calendar, label: 'Trips' },
       { to: '#create', icon: Plus, label: 'Create', isCenterAction: true },
-      { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true, hasBuddyMessagesBadge: true },
+      { to: '/app/leaderboard', icon: Trophy, label: 'Rankings', isScoreboardHub: true },
+      { to: '/app/buddies', icon: Fish, label: 'Buddies', hasBuddyBadge: true },
       { to: '/app/buddy-messages', icon: MessageCircle, label: 'Messages', hasBuddyMessagesBadge: true },
     ];
   }
@@ -215,8 +217,8 @@ export function BottomNav({ accountMode }: BottomNavProps) {
           onClick={() => setScoreboardOpen(true)}
           className="flex flex-col items-center justify-center py-2 px-1.5 transition-colors text-muted-foreground hover:text-foreground"
         >
-          <item.icon className="h-5 w-5" strokeWidth={1.8} />
-          <span className="text-[9px] leading-tight mt-0.5">{item.label}</span>
+          <item.icon className="h-4 w-4" strokeWidth={1.8} />
+          <span className="text-[7px] leading-tight mt-0.5">{item.label}</span>
         </button>
       );
     }
@@ -234,9 +236,9 @@ export function BottomNav({ accountMode }: BottomNavProps) {
       >
         {({ isActive }) => (
           <div className="relative flex flex-col items-center gap-0.5">
-            <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 1.8} />
-            <span className={cn("text-[9px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
-            {isActive && <div className="h-1 w-1 rounded-full bg-primary mt-0.5" />}
+            <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 1.8} />
+            <span className={cn("text-[7px] leading-tight", isActive && "font-semibold")}>{item.label}</span>
+            {isActive && <div className="h-0.5 w-0.5 rounded-full bg-primary mt-0.5" />}
             {badgeCount > 0 && (
               <Badge variant="destructive" className="absolute -top-1.5 -right-2.5 h-3.5 min-w-3.5 flex items-center justify-center text-[9px] px-0.5 rounded-full">
                 {badgeCount > 9 ? "9+" : badgeCount}
