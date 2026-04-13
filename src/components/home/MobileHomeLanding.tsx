@@ -1,16 +1,26 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState, useCallback } from 'react';
 import { Fish, Heart, Globe, Smartphone, Mail } from 'lucide-react';
-import mobileHeroCouple from '@/assets/mobile-hero-couple.jpg';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+
+import heroFishing1 from '@/assets/hero-fishing-1.jpg';
+import heroFishing2 from '@/assets/hero-fishing-2.jpg';
+import heroFishing3 from '@/assets/hero-fishing-3.jpg';
+import fishingPhoto1 from '@/assets/fishing-photo-1.jpg';
+import fishingPhoto2 from '@/assets/fishing-photo-2.jpg';
+import fishingPhoto3 from '@/assets/fishing-photo-3.jpg';
+import fishingPhoto4 from '@/assets/fishing-photo-4.jpg';
+
+const heroImages = [heroFishing1, heroFishing2, heroFishing3];
 
 const MobileHomeLanding = () => {
   const { user, loading } = useAuth();
   const [accountMode, setAccountMode] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [currentHero, setCurrentHero] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -26,6 +36,14 @@ const MobileHomeLanding = () => {
         });
     }
   }, [user]);
+
+  // Auto-rotate hero images
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentHero((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   if (loading || profileLoading) {
     return (
@@ -44,8 +62,6 @@ const MobileHomeLanding = () => {
   if (user && accountMode) {
     if (accountMode === 'dating') {
       return <Navigate to="/app/discover" replace />;
-    } else if (accountMode === 'fishing') {
-      return <Navigate to="/app/feed" replace />;
     } else {
       return <Navigate to="/app/feed" replace />;
     }
@@ -53,33 +69,50 @@ const MobileHomeLanding = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Hero Image */}
+      {/* Hero Carousel */}
       <div className="relative">
-        <div className="aspect-[4/3] overflow-hidden">
-          <img 
-            src={mobileHeroCouple} 
-            alt="Couple fishing together at sunset" 
-            className="w-full h-full object-cover block"
-          />
+        <div className="aspect-[4/3] overflow-hidden relative">
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentHero}
+              src={heroImages[currentHero]}
+              alt="Fishing adventure"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              className="w-full h-full object-cover block absolute inset-0"
+            />
+          </AnimatePresence>
         </div>
         {/* Gradient overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
-        
+
         {/* Brand Badge */}
         <div className="absolute top-4 left-4 bg-foreground text-background px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
           <Fish className="w-4 h-4" />
           <span className="text-sm font-bold tracking-wide">FishX</span>
         </div>
-        
+
+        {/* Carousel Dots */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {heroImages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentHero(i)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                i === currentHero ? 'w-4 bg-foreground' : 'w-1.5 bg-foreground/40'
+              }`}
+              aria-label={`Go to slide ${i + 1}`}
+            />
+          ))}
+        </div>
+
         {/* Floating Fish Icon */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ 
-            opacity: 1, 
-            scale: 1,
-            y: [0, -8, 0]
-          }}
-          transition={{ 
+          animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
+          transition={{
             opacity: { delay: 0.3, duration: 0.3 },
             scale: { delay: 0.3, type: "spring", stiffness: 200 },
             y: { delay: 0.6, duration: 1.5, repeat: Infinity, ease: "easeInOut" }
@@ -88,16 +121,12 @@ const MobileHomeLanding = () => {
         >
           <Fish className="w-5 h-5 text-foreground" />
         </motion.div>
-        
+
         {/* Floating Heart Icon */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ 
-            opacity: 1, 
-            scale: 1,
-            y: [0, -8, 0]
-          }}
-          transition={{ 
+          animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
+          transition={{
             opacity: { delay: 0.4, duration: 0.3 },
             scale: { delay: 0.4, type: "spring", stiffness: 200 },
             y: { delay: 0.8, duration: 1.5, repeat: Infinity, ease: "easeInOut" }
@@ -111,7 +140,7 @@ const MobileHomeLanding = () => {
       {/* Content */}
       <div className="flex-1 px-6 pt-6 pb-8 flex flex-col">
         {/* Headline */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -126,7 +155,7 @@ const MobileHomeLanding = () => {
         </motion.div>
 
         {/* Subtitle */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -134,21 +163,40 @@ const MobileHomeLanding = () => {
         >
           <p className="text-muted-foreground text-sm">The #1 App for Anglers.</p>
         </motion.div>
-        
+
         {/* Features */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="text-center mb-6"
+          className="text-center mb-5"
         >
           <p className="text-muted-foreground text-sm">
             Spots • Buddies • Catches • Feed
           </p>
         </motion.div>
 
+        {/* Community Photos Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38 }}
+          className="grid grid-cols-4 gap-1.5 mb-5 rounded-xl overflow-hidden"
+        >
+          {[fishingPhoto1, fishingPhoto2, fishingPhoto3, fishingPhoto4].map((photo, i) => (
+            <div key={i} className="aspect-square overflow-hidden rounded-lg">
+              <img
+                src={photo}
+                alt={`Fishing community ${i + 1}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </motion.div>
+
         {/* Buttons */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -160,8 +208,8 @@ const MobileHomeLanding = () => {
             </Button>
           </Link>
           <Link to="/auth?mode=signin" className="block">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full bg-muted hover:bg-muted/80 text-foreground h-14 text-base font-semibold rounded-2xl"
             >
               Log In
@@ -170,7 +218,7 @@ const MobileHomeLanding = () => {
         </motion.div>
 
         {/* Divider */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45 }}
@@ -182,7 +230,7 @@ const MobileHomeLanding = () => {
         </motion.div>
 
         {/* Social Login */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -200,7 +248,7 @@ const MobileHomeLanding = () => {
         </motion.div>
 
         {/* Terms */}
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.55 }}
