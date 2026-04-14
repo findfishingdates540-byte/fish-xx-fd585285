@@ -1,7 +1,8 @@
 import { useRef, useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Camera, MapPin, Clock, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { applyWatermark } from "@/utils/photo-watermark";
+import { reverseGeocode } from "@/utils/reverse-geocode";
 
 export interface CaptureMetadata {
   file: File;
@@ -32,7 +33,8 @@ export function LiveCameraCapture({
   aspectRatio = "aspect-[16/10]",
 }: LiveCameraCaptureProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [gettingLocation, setGettingLocation] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [watermarkedPreview, setWatermarkedPreview] = useState<string | null>(null);
 
   const getLocation = useCallback((): Promise<{ lat: number; lng: number } | null> => {
     return new Promise((resolve) => {
@@ -40,14 +42,9 @@ export function LiveCameraCapture({
         resolve(null);
         return;
       }
-      setGettingLocation(true);
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setGettingLocation(false);
-          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        },
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => {
-          setGettingLocation(false);
           toast.warning("Location unavailable — photo will be saved without GPS.");
           resolve(null);
         },
@@ -61,45 +58,89 @@ export function LiveCameraCapture({
       const file = e.target.files?.[0];
       if (!file) return;
 
+      setProcessing(true);
       const capturedAt = new Date().toISOString();
-      const location = await getLocation();
 
-      onCapture({
-        file,
-        capturedAt,
-        locationLat: location?.lat ?? null,
-        locationLng: location?.lng ?? null,
-      });
+      try {
+        const location = await getLocation();
 
-      // Reset input so same file can be re-captured
-      if (inputRef.current) inputRef.current.value = "";
+        // Reverse geocode if we have coords
+        const locData = location
+          ? await reverseGeocode(location.lat, location.lng)
+          : undefined;
+
+        // Apply watermark
+        const { file: watermarkedFile, previewUrl } = await applyWatermark(
+          file,
+          capturedAt,
+          locData
+        );
+
+        setWatermarkedPreview(previewUrl);
+
+        onCapture({
+          file: watermarkedFile,
+          capturedAt,
+          locationLat: location?.lat ?? null,
+          locationLng: location?.lng ?? null,
+        });
+      } catch (err) {
+        console.error("Watermark failed, using original:", err);
+        // Fallback: return original file without watermark
+        onCapture({
+          file,
+          capturedAt,
+          locationLat: null,
+          locationLng: null,
+        });
+      } finally {
+        setProcessing(false);
+        if (inputRef.current) inputRef.current.value = "";
+      }
     },
     [getLocation, onCapture]
   );
+
+  const handleClear = useCallback(() => {
+    setWatermarkedPreview(null);
+    onClear?.();
+  }, [onClear]);
+
+  // Use watermarked preview if available, otherwise fall back to passed preview
+  const displayPreview = watermarkedPreview || preview;
 
   return (
     <div className={className}>
       <div
         className={`relative w-full ${aspectRatio} rounded-xl overflow-hidden bg-muted border border-border`}
       >
-        {preview ? (
+        {displayPreview ? (
           <>
-            <img src={preview} alt="Captured" className="w-full h-full object-cover" />
+            <img src={displayPreview} alt="Captured" className="w-full h-full object-cover" />
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
               <button
                 type="button"
-                disabled={disabled || gettingLocation}
+                disabled={disabled || processing}
                 onClick={() => inputRef.current?.click()}
                 className="flex flex-col items-center gap-1 text-white hover:text-white/80 transition-colors"
               >
-                <Camera className="h-5 w-5" />
-                <span className="text-sm font-medium">Retake Photo</span>
+                {processing ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm font-medium">Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-5 w-5" />
+                    <span className="text-sm font-medium">Retake Photo</span>
+                  </>
+                )}
               </button>
             </div>
             {onClear && (
               <button
                 type="button"
-                onClick={onClear}
+                onClick={handleClear}
                 className="absolute top-3 right-3 w-7 h-7 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4 text-white" />
@@ -109,14 +150,14 @@ export function LiveCameraCapture({
         ) : (
           <button
             type="button"
-            disabled={disabled || gettingLocation}
+            disabled={disabled || processing}
             onClick={() => inputRef.current?.click()}
             className="w-full h-full flex flex-col items-center justify-center text-muted-foreground hover:text-primary transition-colors"
           >
-            {gettingLocation ? (
+            {processing ? (
               <>
                 <Loader2 className="h-10 w-10 mb-2 animate-spin" />
-                <span className="text-sm font-medium">Getting location...</span>
+                <span className="text-sm font-medium">Adding watermark...</span>
               </>
             ) : (
               <>
@@ -136,11 +177,6 @@ export function LiveCameraCapture({
           </button>
         )}
       </div>
-      {/* 
-        capture="environment" forces the device camera (rear-facing).
-        On desktop browsers this falls back to file picker, but mobile 
-        devices will only open the camera — no gallery access.
-      */}
       <input
         ref={inputRef}
         type="file"
