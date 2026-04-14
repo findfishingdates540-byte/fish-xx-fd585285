@@ -3,6 +3,7 @@ import { Camera, MapPin, Clock, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { applyWatermark } from "@/utils/photo-watermark";
 import { reverseGeocode } from "@/utils/reverse-geocode";
+import { getCurrentPosition } from "@/lib/location";
 
 export interface CaptureMetadata {
   file: File;
@@ -36,21 +37,13 @@ export function LiveCameraCapture({
   const [processing, setProcessing] = useState(false);
   const [watermarkedPreview, setWatermarkedPreview] = useState<string | null>(null);
 
-  const getLocation = useCallback((): Promise<{ lat: number; lng: number } | null> => {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        resolve(null);
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {
-          toast.warning("Location unavailable — photo will be saved without GPS.");
-          resolve(null);
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    });
+  const getLocation = useCallback(async (): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      return await getCurrentPosition();
+    } catch {
+      toast.warning("Location unavailable — photo will be saved without GPS.");
+      return null;
+    }
   }, []);
 
   const handleCapture = useCallback(

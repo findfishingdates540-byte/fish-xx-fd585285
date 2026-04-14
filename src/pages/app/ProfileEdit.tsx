@@ -424,66 +424,48 @@ export default function ProfileEdit() {
 
   // Handle GPS location update
   const handleGetCurrentLocation = async () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
-      return;
-    }
-
     setLocationLoading(true);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocationLat(latitude);
-        setLocationLng(longitude);
+    try {
+      const coords = await getCurrentPosition();
+      setLocationLat(coords.lat);
+      setLocationLng(coords.lng);
 
-        // Reverse geocode to get city, state, and zip
-        try {
-          const tokenResponse = await fetch('https://zjmnlelqoiclkbrqefyv.supabase.co/functions/v1/get-mapbox-token');
-          if (tokenResponse.ok) {
-            const { token } = await tokenResponse.json();
-            const geocodeResponse = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=postcode,place,region&access_token=${token}`
-            );
-            if (geocodeResponse.ok) {
-              const data = await geocodeResponse.json();
-              if (data.features && data.features.length > 0) {
-                const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
-                const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
-                const postcodeFeature = data.features.find((f: any) => f.place_type?.includes('postcode'));
-                
-                const newCity = placeFeature?.text || '';
-                const newState = regionFeature?.text || '';
-                const newZip = postcodeFeature?.text || '';
-                
-                setCity(newCity);
-                setState(newState);
-                setZipCode(newZip);
-                
-                const newLocationName = [newCity, newState].filter(Boolean).join(', ');
-                if (newLocationName) {
-                  setLocationName(newLocationName);
-                }
-              }
+      // Reverse geocode to get city, state, and zip
+      try {
+        const tokenResponse = await fetch('https://zjmnlelqoiclkbrqefyv.supabase.co/functions/v1/get-mapbox-token');
+        if (tokenResponse.ok) {
+          const { token } = await tokenResponse.json();
+          const geocodeResponse = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords.lng},${coords.lat}.json?types=postcode,place,region&access_token=${token}`
+          );
+          if (geocodeResponse.ok) {
+            const data = await geocodeResponse.json();
+            if (data.features && data.features.length > 0) {
+              const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
+              const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
+              const postcodeFeature = data.features.find((f: any) => f.place_type?.includes('postcode'));
+              
+              setCity(placeFeature?.text || '');
+              setState(regionFeature?.text || '');
+              setZipCode(postcodeFeature?.text || '');
+              
+              const newLocationName = [placeFeature?.text, regionFeature?.text].filter(Boolean).join(', ');
+              if (newLocationName) setLocationName(newLocationName);
             }
           }
-        } catch (error) {
-          console.error('Reverse geocoding error:', error);
         }
-
-        setLocationLoading(false);
-        toast.success("Location updated");
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        setLocationLoading(false);
-        if (error.code === error.PERMISSION_DENIED) {
-          toast.error("Location permission denied. Please enable it in your browser settings.");
-        } else {
-          toast.error("Failed to get your location");
-        }
+      } catch (error) {
+        console.error('Reverse geocoding error:', error);
       }
-    );
+
+      toast.success("Location updated");
+    } catch (err) {
+      console.error('Location error:', err);
+      toast.error(locationErrorMessage(err));
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
   // Handle manual location field changes - clear coordinates, will geocode on save

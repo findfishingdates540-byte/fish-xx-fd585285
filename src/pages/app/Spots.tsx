@@ -375,16 +375,15 @@ export default function Spots() {
         duration: 1000,
       });
     } else {
-      navigator.geolocation?.getCurrentPosition(
-        (pos) => {
+      getCurrentPosition()
+        .then((coords) => {
           mapRef.current?.flyTo({
-            center: [pos.coords.longitude, pos.coords.latitude],
+            center: [coords.lng, coords.lat],
             zoom: 10,
             duration: 1000,
           });
-        },
-        () => {}
-      );
+        })
+        .catch(() => {});
     }
   }, [userProfile]);
 

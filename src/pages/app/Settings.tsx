@@ -540,95 +540,76 @@ export default function Settings() {
   };
 
   // Handle enabling GPS location
-  const handleEnableLocation = () => {
+  const handleEnableLocation = async () => {
     if (!user) return;
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported on this device.');
-      return;
-    }
 
     setLocationLoading(true);
 
-    const saveLocation = async (position: GeolocationPosition) => {
-      try {
-        const { latitude, longitude } = position.coords;
+    try {
+      const coords = await getCurrentPosition();
+      const { lat: latitude, lng: longitude } = coords;
 
-        // Reverse geocode to get location name
-        const token = await getMapboxToken();
-        let newLocationName = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      // Reverse geocode to get location name
+      const token = await getMapboxToken();
+      let newLocationName = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      let newCity = '';
+      let newState = '';
+      let newZip = '';
 
-        if (token) {
-          try {
-            const response = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&types=place,locality`
-            );
-            const data = await response.json();
-            if (data.features?.[0]?.place_name) {
-              newLocationName = data.features[0].place_name;
-            }
-          } catch (e) {
-            console.error('Reverse geocoding failed:', e);
+      if (token) {
+        try {
+          const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&types=postcode,place,region`
+          );
+          const data = await response.json();
+          if (data.features && data.features.length > 0) {
+            const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
+            const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
+            const postcodeFeature = data.features.find((f: any) => f.place_type?.includes('postcode'));
+            newCity = placeFeature?.text || '';
+            newState = regionFeature?.text || '';
+            newZip = postcodeFeature?.text || '';
+            const combined = [newCity, newState].filter(Boolean).join(', ');
+            if (combined) newLocationName = combined;
           }
+        } catch (e) {
+          console.error('Reverse geocoding failed:', e);
         }
-
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            location_lat: latitude,
-            location_lng: longitude,
-            location_name: newLocationName,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', user.id);
-
-        if (error) {
-          console.error('Supabase update error:', error);
-          toast.error('Failed to save location to your profile.');
-          return;
-        }
-
-        setLocationLat(latitude);
-        setLocationLng(longitude);
-        setLocationName(newLocationName);
-        setLocationPermission('granted');
-        toast.success('Location updated successfully!');
-      } catch (err) {
-        console.error('Location update error:', err);
-        toast.error('Failed to update location. Check your connection.');
-      } finally {
-        setLocationLoading(false);
       }
-    };
 
-    const handleGeoError = (geoErr: GeolocationPositionError, hasRetried = false) => {
-      console.error('Geolocation error:', geoErr);
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          location_lat: latitude,
+          location_lng: longitude,
+          location_name: newLocationName,
+          city: newCity || undefined,
+          state: newState || undefined,
+          zip_code: newZip || undefined,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
 
-      if (!hasRetried && (geoErr.code === geoErr.POSITION_UNAVAILABLE || geoErr.code === geoErr.TIMEOUT)) {
-        navigator.geolocation.getCurrentPosition(
-          saveLocation,
-          (retryErr) => handleGeoError(retryErr, true),
-          { enableHighAccuracy: false, timeout: 20000, maximumAge: 300000 }
-        );
+      if (error) {
+        console.error('Supabase update error:', error);
+        toast.error('Failed to save location to your profile.');
         return;
       }
 
-      setLocationLoading(false);
-      if (geoErr.code === geoErr.PERMISSION_DENIED) {
+      setLocationLat(latitude);
+      setLocationLng(longitude);
+      setLocationName(newLocationName);
+      setLocationPermission('granted');
+      toast.success('Location updated successfully!');
+    } catch (err: any) {
+      console.error('Location error:', err);
+      if (err?.code === 'permission_denied') {
         setLocationPermission('denied');
-        toast.error('Location access denied. Please enable it in your browser settings.');
-      } else if (geoErr.code === geoErr.TIMEOUT) {
-        toast.error('Location request timed out. Please try again.');
-      } else {
-        toast.error('Unable to get your location. Please try again.');
       }
-    };
-
-    // MUST call getCurrentPosition directly in the click handler — no await before this
-    navigator.geolocation.getCurrentPosition(
-      saveLocation,
-      (geoErr) => handleGeoError(geoErr, false),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
+      toast.error(locationErrorMessage(err));
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
   const getAccountModeLabel = () => {
