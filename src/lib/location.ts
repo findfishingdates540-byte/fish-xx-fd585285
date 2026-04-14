@@ -12,17 +12,41 @@ export interface LocationError {
   message: string;
 }
 
-function mapGeoError(err: GeolocationPositionError): LocationError {
+function mapGeoError(err: Pick<GeolocationPositionError, 'code' | 'message'>): LocationError {
+  const message = err.message?.trim();
+
   switch (err.code) {
-    case err.PERMISSION_DENIED:
-      return { code: 'permission_denied', message: 'Location permission denied. Enable it in your browser/device settings.' };
-    case err.POSITION_UNAVAILABLE:
-      return { code: 'unavailable', message: 'Location is currently unavailable. Make sure location services are enabled on your device.' };
-    case err.TIMEOUT:
-      return { code: 'timeout', message: 'Location request timed out. Please try again.' };
+    case 1:
+      return {
+        code: 'permission_denied',
+        message: message || 'Location permission denied. Enable it in your browser/device settings.',
+      };
+    case 2:
+      return {
+        code: 'unavailable',
+        message:
+          message ||
+          'Location is currently unavailable. On desktop, allow browser location access and make sure your system location services are turned on.',
+      };
+    case 3:
+      return { code: 'timeout', message: message || 'Location request timed out. Please try again.' };
     default:
-      return { code: 'unavailable', message: 'Unable to determine your location.' };
+      return {
+        code: 'unavailable',
+        message:
+          message ||
+          'Unable to determine your location. On desktop, try allowing browser location access or enter your city manually.',
+      };
   }
+}
+
+function isLikelyDesktopWeb(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const hasCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  const mobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  return !hasCoarsePointer && !mobileUserAgent;
 }
 
 /**
@@ -78,33 +102,56 @@ function getWebPosition(): Promise<LocationResult> {
       return;
     }
 
-    // On desktop browsers there's usually no GPS hardware, so high accuracy
-    // often fails. We try high accuracy first, then fall back quickly.
-    const tryPosition = (highAccuracy: boolean, isRetry: boolean) => {
-      console.log(`[Location] Requesting position: highAccuracy=${highAccuracy}, isRetry=${isRetry}`);
+    const desktopStrategy = isLikelyDesktopWeb();
+    const attempts = desktopStrategy
+      ? [
+          { enableHighAccuracy: false, timeout: 12000, maximumAge: 900000, label: 'desktop-coarse' },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0, label: 'desktop-precise' },
+        ]
+      : [
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0, label: 'mobile-precise' },
+          { enableHighAccuracy: false, timeout: 30000, maximumAge: 600000, label: 'mobile-coarse' },
+        ];
+
+    const tryPosition = (attemptIndex: number) => {
+      const attempt = attempts[attemptIndex];
+
+      if (!attempt) {
+        reject({
+          code: 'unavailable',
+          message: 'Unable to determine your location. On desktop, try allowing browser location access or enter your city manually.',
+        } as LocationError);
+        return;
+      }
+
+      console.log(
+        `[Location] Requesting position: strategy=${attempt.label}, highAccuracy=${attempt.enableHighAccuracy}, attempt=${attemptIndex + 1}`
+      );
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           console.log('[Location] Got coordinates:', pos.coords.latitude, pos.coords.longitude);
           resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
         (err) => {
-          console.error(`[Location] Error (code=${err.code}, retry=${isRetry}):`, err.message);
-          // Retry with lower accuracy on any non-permission error
-          if (!isRetry && err.code !== err.PERMISSION_DENIED) {
-            tryPosition(false, true);
+          console.error(`[Location] Error (code=${err.code}, strategy=${attempt.label}):`, err.message);
+
+          if (err.code === 1 || attemptIndex === attempts.length - 1) {
+            reject(mapGeoError(err));
             return;
           }
-          reject(mapGeoError(err));
+
+          tryPosition(attemptIndex + 1);
         },
         {
-          enableHighAccuracy: highAccuracy,
-          timeout: highAccuracy ? 15000 : 30000,
-          maximumAge: highAccuracy ? 0 : 600000,
+          enableHighAccuracy: attempt.enableHighAccuracy,
+          timeout: attempt.timeout,
+          maximumAge: attempt.maximumAge,
         }
       );
     };
 
-    tryPosition(true, false);
+    tryPosition(0);
   });
 }
 
