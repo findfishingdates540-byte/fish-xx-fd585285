@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AnimatedInput } from "@/components/ui/animated-input";
 import { MapPin, Heart, Navigation, Shield } from "lucide-react";
+import { getCurrentPosition, locationErrorMessage } from "@/lib/location";
+import { toast } from "sonner";
 
 interface StepLocationProps {
   city: string;
@@ -51,57 +53,46 @@ export function StepLocation({
   const [locationGranted, setLocationGranted] = useState(false);
 
   const handleEnableLocation = async () => {
-    if (!navigator.geolocation) {
-      return;
-    }
-
     setLocationLoading(true);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        
-        // Pass coordinates to parent
-        setLocationLat?.(latitude);
-        setLocationLng?.(longitude);
-        setLocationGranted(true);
-        
-        // Try to reverse geocode to get city/state/zip
-        try {
+    try {
+      const coords = await getCurrentPosition();
+      
+      setLocationLat?.(coords.lat);
+      setLocationLng?.(coords.lng);
+      setLocationGranted(true);
+      
+      // Try to reverse geocode to get city/state/zip
+      try {
+        const token = await getMapboxToken();
+        if (token) {
           const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=postcode,place,region&access_token=${await getMapboxToken()}`
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords.lng},${coords.lat}.json?types=postcode,place,region&access_token=${token}`
           );
           if (response.ok) {
             const data = await response.json();
             if (data.features && data.features.length > 0) {
-              // Extract city, state, and zip from response
               const placeFeature = data.features.find((f: any) => f.place_type?.includes('place'));
               const regionFeature = data.features.find((f: any) => f.place_type?.includes('region'));
               const postcodeFeature = data.features.find((f: any) => f.place_type?.includes('postcode'));
               
-              if (placeFeature) {
-                setCity(placeFeature.text || '');
-              }
-              if (regionFeature) {
-                setState(regionFeature.text || '');
-              }
-              if (postcodeFeature) {
-                setZipCode(postcodeFeature.text || '');
-              }
+              if (placeFeature) setCity(placeFeature.text || '');
+              if (regionFeature) setState(regionFeature.text || '');
+              if (postcodeFeature) setZipCode(postcodeFeature.text || '');
             }
           }
-        } catch (error) {
-          console.error('Reverse geocoding error:', error);
         }
-        
-        onEnableLocation?.();
-        setLocationLoading(false);
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        setLocationLoading(false);
+      } catch (error) {
+        console.error('Reverse geocoding error:', error);
       }
-    );
+      
+      onEnableLocation?.();
+    } catch (err) {
+      console.error('Location error:', err);
+      toast.error(locationErrorMessage(err));
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
   // Helper to get mapbox token

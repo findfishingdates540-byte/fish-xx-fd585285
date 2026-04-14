@@ -21,6 +21,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { getCurrentPosition } from "@/lib/location";
 
 interface SharedCatch {
   id: string;
@@ -375,16 +376,15 @@ export default function Spots() {
         duration: 1000,
       });
     } else {
-      navigator.geolocation?.getCurrentPosition(
-        (pos) => {
+      getCurrentPosition()
+        .then((coords) => {
           mapRef.current?.flyTo({
-            center: [pos.coords.longitude, pos.coords.latitude],
+            center: [coords.lng, coords.lat],
             zoom: 10,
             duration: 1000,
           });
-        },
-        () => {}
-      );
+        })
+        .catch(() => {});
     }
   }, [userProfile]);
 
