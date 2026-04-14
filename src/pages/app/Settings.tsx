@@ -540,83 +540,76 @@ export default function Settings() {
   };
 
   // Handle enabling GPS location
-  const handleEnableLocation = async () => {
+  const handleEnableLocation = () => {
     if (!user) return;
     setLocationLoading(true);
 
-    let position: GeolocationPosition;
-    try {
-      position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0,
-        });
-      });
-    } catch (geoErr: unknown) {
-      console.error('Geolocation error:', geoErr);
-      const code = (geoErr as { code?: number }).code;
-      if (code === 1) {
-        setLocationPermission('denied');
-        toast.error('Location access denied. Please enable it in your browser settings.');
-      } else if (code === 3) {
-        toast.error('Location request timed out. Please try again.');
-      } else {
-        toast.error('Unable to get your location. Please try again.');
-      }
-      setLocationLoading(false);
-      return;
-    }
-
-    try {
-      const { latitude, longitude } = position.coords;
-      
-      // Reverse geocode to get location name
-      const token = await getMapboxToken();
-      let newLocationName = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-      
-      if (token) {
+    // MUST call getCurrentPosition directly in the click handler — no await before this
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
         try {
-          const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&types=place,locality`
-          );
-          const data = await response.json();
-          if (data.features?.[0]?.place_name) {
-            newLocationName = data.features[0].place_name;
+          const { latitude, longitude } = position.coords;
+
+          // Reverse geocode to get location name
+          const token = await getMapboxToken();
+          let newLocationName = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+          if (token) {
+            try {
+              const response = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&types=place,locality`
+              );
+              const data = await response.json();
+              if (data.features?.[0]?.place_name) {
+                newLocationName = data.features[0].place_name;
+              }
+            } catch (e) {
+              console.error('Reverse geocoding failed:', e);
+            }
           }
-        } catch (e) {
-          console.error('Reverse geocoding failed:', e);
+
+          // Save to database
+          const { error } = await supabase
+            .from('profiles')
+            .update({
+              location_lat: latitude,
+              location_lng: longitude,
+              location_name: newLocationName,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', user.id);
+
+          if (error) {
+            console.error('Supabase update error:', error);
+            toast.error('Failed to save location to your profile.');
+          } else {
+            setLocationLat(latitude);
+            setLocationLng(longitude);
+            setLocationName(newLocationName);
+            setLocationPermission('granted');
+            toast.success('Location updated successfully!');
+          }
+        } catch (err) {
+          console.error('Location update error:', err);
+          toast.error('Failed to update location. Check your connection.');
+        } finally {
+          setLocationLoading(false);
         }
-      }
-
-      // Save to database
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          location_lat: latitude,
-          location_lng: longitude,
-          location_name: newLocationName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Supabase update error:', error);
-        toast.error('Failed to save location to your profile. Please try again.');
-        return;
-      }
-
-      setLocationLat(latitude);
-      setLocationLng(longitude);
-      setLocationName(newLocationName);
-      setLocationPermission('granted');
-      toast.success('Location updated successfully!');
-    } catch (error: unknown) {
-      console.error('Location update error:', error);
-      toast.error('Failed to update location. Check your connection and try again.');
-    } finally {
-      setLocationLoading(false);
-    }
+      },
+      (geoErr) => {
+        console.error('Geolocation error:', geoErr);
+        setLocationLoading(false);
+        if (geoErr.code === geoErr.PERMISSION_DENIED) {
+          setLocationPermission('denied');
+          toast.error('Location access denied. Please enable it in your browser settings.');
+        } else if (geoErr.code === geoErr.TIMEOUT) {
+          toast.error('Location request timed out. Please try again.');
+        } else {
+          toast.error('Unable to get your location. Please try again.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
   };
 
   const getAccountModeLabel = () => {
