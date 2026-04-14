@@ -59,6 +59,7 @@ import {
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
+import { getCurrentPosition, locationErrorMessage } from "@/lib/location";
 
 type AccountMode = Database["public"]["Enums"]["account_mode"];
 type GenderType = Database["public"]["Enums"]["gender_type"];

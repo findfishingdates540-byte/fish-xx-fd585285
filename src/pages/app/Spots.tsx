@@ -21,6 +21,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { getCurrentPosition } from "@/lib/location";
 
 interface SharedCatch {
   id: string;

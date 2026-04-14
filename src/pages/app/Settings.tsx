@@ -64,6 +64,7 @@ import {
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { Eye, Lock, Key } from "lucide-react";
+import { getCurrentPosition, locationErrorMessage } from "@/lib/location";
 
 type AccountMode = Database["public"]["Enums"]["account_mode"];
 
