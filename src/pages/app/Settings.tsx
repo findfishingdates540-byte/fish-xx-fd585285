@@ -592,17 +592,21 @@ export default function Settings() {
       setLocationPermission('granted');
       toast.success('Location updated successfully!');
     } catch (error: unknown) {
-      if (error instanceof GeolocationPositionError) {
-        if (error.code === error.PERMISSION_DENIED) {
+      console.error('Location update error:', error);
+      const geoError = error as { code?: number };
+      if (geoError.code !== undefined) {
+        if (geoError.code === 1) {
           setLocationPermission('denied');
           toast.error('Location access denied. Please enable it in your browser settings.');
-        } else if (error.code === error.TIMEOUT) {
+        } else if (geoError.code === 3) {
           toast.error('Location request timed out. Please try again.');
         } else {
           toast.error('Unable to get your location. Please try again.');
         }
       } else {
-        toast.error('Failed to update location');
+        const msg = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Supabase or network error:', msg);
+        toast.error('Failed to update location. Check your connection and try again.');
       }
     } finally {
       setLocationLoading(false);
