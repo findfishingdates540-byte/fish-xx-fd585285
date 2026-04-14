@@ -15,9 +15,9 @@ export interface LocationError {
 function mapGeoError(err: GeolocationPositionError): LocationError {
   switch (err.code) {
     case err.PERMISSION_DENIED:
-      return { code: 'permission_denied', message: 'Location permission denied. Enable it in your device settings.' };
+      return { code: 'permission_denied', message: 'Location permission denied. Enable it in your browser/device settings.' };
     case err.POSITION_UNAVAILABLE:
-      return { code: 'unavailable', message: 'Location is currently unavailable. Make sure location services are enabled.' };
+      return { code: 'unavailable', message: 'Location is currently unavailable. Make sure location services are enabled on your device.' };
     case err.TIMEOUT:
       return { code: 'timeout', message: 'Location request timed out. Please try again.' };
     default:
@@ -38,18 +38,15 @@ export async function getCurrentPosition(): Promise<LocationResult> {
 }
 
 async function getNativePosition(): Promise<LocationResult> {
-  // Dynamic import so web builds don't fail if the plugin isn't fully installed
   const { Geolocation } = await import('@capacitor/geolocation');
 
   try {
-    // Request permission first on native
     const permStatus = await Geolocation.requestPermissions();
     if (permStatus.location === 'denied') {
       throw { code: 'permission_denied', message: 'Location permission denied. Enable it in your device settings.' } as LocationError;
     }
   } catch (e: any) {
     if (e.code === 'permission_denied') throw e;
-    // Some platforms don't support requestPermissions — continue anyway
   }
 
   try {
@@ -59,7 +56,6 @@ async function getNativePosition(): Promise<LocationResult> {
     });
     return { lat: pos.coords.latitude, lng: pos.coords.longitude };
   } catch {
-    // Retry with lower accuracy
     try {
       const pos = await Geolocation.getCurrentPosition({
         enableHighAccuracy: false,
@@ -82,12 +78,19 @@ function getWebPosition(): Promise<LocationResult> {
       return;
     }
 
+    // On desktop browsers there's usually no GPS hardware, so high accuracy
+    // often fails. We try high accuracy first, then fall back quickly.
     const tryPosition = (highAccuracy: boolean, isRetry: boolean) => {
+      console.log(`[Location] Requesting position: highAccuracy=${highAccuracy}, isRetry=${isRetry}`);
       navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        (pos) => {
+          console.log('[Location] Got coordinates:', pos.coords.latitude, pos.coords.longitude);
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
         (err) => {
-          if (!isRetry && (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT)) {
-            // Retry with lower accuracy and cached position
+          console.error(`[Location] Error (code=${err.code}, retry=${isRetry}):`, err.message);
+          // Retry with lower accuracy on any non-permission error
+          if (!isRetry && err.code !== err.PERMISSION_DENIED) {
             tryPosition(false, true);
             return;
           }
@@ -95,8 +98,8 @@ function getWebPosition(): Promise<LocationResult> {
         },
         {
           enableHighAccuracy: highAccuracy,
-          timeout: highAccuracy ? 15000 : 20000,
-          maximumAge: highAccuracy ? 0 : 300000,
+          timeout: highAccuracy ? 15000 : 30000,
+          maximumAge: highAccuracy ? 0 : 600000,
         }
       );
     };
