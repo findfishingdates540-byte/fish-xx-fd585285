@@ -544,15 +544,31 @@ export default function Settings() {
     if (!user) return;
     setLocationLoading(true);
 
+    let position: GeolocationPosition;
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 15000,
           maximumAge: 0,
         });
       });
+    } catch (geoErr: unknown) {
+      console.error('Geolocation error:', geoErr);
+      const code = (geoErr as { code?: number }).code;
+      if (code === 1) {
+        setLocationPermission('denied');
+        toast.error('Location access denied. Please enable it in your browser settings.');
+      } else if (code === 3) {
+        toast.error('Location request timed out. Please try again.');
+      } else {
+        toast.error('Unable to get your location. Please try again.');
+      }
+      setLocationLoading(false);
+      return;
+    }
 
+    try {
       const { latitude, longitude } = position.coords;
       
       // Reverse geocode to get location name
@@ -584,7 +600,11 @@ export default function Settings() {
         })
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        toast.error('Failed to save location to your profile. Please try again.');
+        return;
+      }
 
       setLocationLat(latitude);
       setLocationLng(longitude);
@@ -593,21 +613,7 @@ export default function Settings() {
       toast.success('Location updated successfully!');
     } catch (error: unknown) {
       console.error('Location update error:', error);
-      const geoError = error as { code?: number };
-      if (geoError.code !== undefined) {
-        if (geoError.code === 1) {
-          setLocationPermission('denied');
-          toast.error('Location access denied. Please enable it in your browser settings.');
-        } else if (geoError.code === 3) {
-          toast.error('Location request timed out. Please try again.');
-        } else {
-          toast.error('Unable to get your location. Please try again.');
-        }
-      } else {
-        const msg = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Supabase or network error:', msg);
-        toast.error('Failed to update location. Check your connection and try again.');
-      }
+      toast.error('Failed to update location. Check your connection and try again.');
     } finally {
       setLocationLoading(false);
     }
