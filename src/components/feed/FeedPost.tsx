@@ -12,6 +12,7 @@ import { MentionText } from './MentionText';
 import { PostDetailModal } from './PostDetailModal';
 import { ReportDialog } from './ReportDialog';
 import { ShareSheet } from './ShareSheet';
+import { LikersModal, useLikedByFollowing } from './LikersModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/ui/verification-badge';
@@ -105,6 +106,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const [showPostModal, setShowPostModal] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const [showLikersModal, setShowLikersModal] = useState(false);
   const { user } = useAuth();
   const likePost = useLikePost();
   const deletePost = useDeletePost();
@@ -130,6 +132,9 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   const toggleRepost = useToggleRepost();
   const isReposted = repostData?.isReposted ?? false;
   const [isRepostAnimating, setIsRepostAnimating] = useState(false);
+
+  // Liked by following
+  const { data: likedByFollowingUser } = useLikedByFollowing(post.id);
 
   // Story sharing
   const createStory = useCreateStory();
@@ -497,7 +502,30 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           </button>
         </div>
 
-        {/* Caption - Instagram style: username + caption inline */}
+        {/* Liked by section */}
+        {post.likes_count > 0 && (
+          <div className="px-3 pt-1">
+            <button
+              className="text-sm text-foreground hover:opacity-70 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLikersModal(true);
+              }}
+            >
+              {likedByFollowingUser ? (
+                <span>
+                  Liked by <span className="font-semibold">{likedByFollowingUser.display_name}</span>
+                  {post.likes_count > 1 && (
+                    <> and <span className="font-semibold">{formatCount(post.likes_count - 1)} {post.likes_count - 1 === 1 ? 'other' : 'others'}</span></>
+                  )}
+                </span>
+              ) : (
+                <span className="font-semibold">{formatCount(post.likes_count)} {post.likes_count === 1 ? 'like' : 'likes'}</span>
+              )}
+            </button>
+          </div>
+        )}
+
         {post.content && (
           <div className="px-3 pt-1 pb-1">
             <p className="text-sm">
