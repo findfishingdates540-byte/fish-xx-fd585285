@@ -7,9 +7,6 @@ import logo from '@/assets/logo.png';
 import heroFishing1 from '@/assets/hero-fishing-1.jpg';
 import heroFishing2 from '@/assets/hero-fishing-2.jpg';
 import heroFishing3 from '@/assets/hero-fishing-3.jpg';
-import coupleFishing from '@/assets/couple-fishing.jpg';
-import datingCouple1 from '@/assets/dating-couple-1.jpg';
-import datingCouple2 from '@/assets/dating-couple-2.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
 import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
 import fishingPhoto1 from '@/assets/fishing-photo-1.jpg';
@@ -353,8 +350,8 @@ const Index = () => {
       {/* Account Types Section */}
       <section className="py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Fishing Buddies Card - First */}
+          <div className="max-w-3xl mx-auto">
+            {/* Fishing Buddies Card */}
             <ScrollReveal delay={0} direction="up">
               <motion.div 
                 className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
@@ -388,45 +385,6 @@ const Index = () => {
                 </p>
                 <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
                   Find your crew
-                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </Link>
-              </motion.div>
-            </ScrollReveal>
-
-            {/* Dating Card - Second */}
-            <ScrollReveal delay={0.2} direction="up">
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
-                whileHover={{ scale: 1.02, y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="relative h-80 mb-8">
-                  <motion.div 
-                    className="absolute left-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
-                    whileHover={{ y: -4 }}
-                  >
-                    <img src={datingCouple1} alt="Couple fishing at sunset" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute right-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
-                    whileHover={{ y: -6 }}
-                  >
-                    <img src={datingCouple2} alt="Happy couple on fishing date" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute left-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
-                    whileHover={{ y: -8 }}
-                  >
-                    <img src={coupleFishing} alt="Romantic fishing moment" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                </div>
-                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Your Date</h3>
-                <p className="text-muted-foreground text-lg mb-6">
-                  Connect with fellow fishing enthusiasts looking for love. 
-                  Find someone who shares your passion for the water and early morning adventures.
-                </p>
-                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
-                  Find your person
                   <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </motion.div>

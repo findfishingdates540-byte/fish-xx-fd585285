@@ -59,9 +59,9 @@ type FishingExperience = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
 // Step configurations per account mode
 const stepConfigs: Record<AccountMode, string[]> = {
-  dating: ['basic_info', 'photo', 'location', 'lifestyle', 'interests', 'dating_preference', 'success'],
+  dating: ['basic_info', 'photo', 'location', 'lifestyle', 'interests', 'success'],
   fishing: ['basic_info', 'photo', 'location', 'lifestyle', 'experience', 'target_species', 'gear', 'interests', 'success'],
-  both: ['basic_info', 'photo', 'location', 'lifestyle', 'experience', 'target_species', 'gear', 'interests', 'dating_preference', 'preference_sync', 'success'],
+  both: ['basic_info', 'photo', 'location', 'lifestyle', 'experience', 'target_species', 'gear', 'interests', 'success'],
 };
 
 // Mode-specific step titles and subtitles
@@ -124,7 +124,7 @@ export default function Onboarding() {
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [accountMode, setAccountMode] = useState<AccountMode>('both');
+  const [accountMode, setAccountMode] = useState<AccountMode>('fishing');
   
   // Basic Info
   const [firstName, setFirstName] = useState('');
@@ -202,7 +202,7 @@ export default function Onboarding() {
           return;
         }
 
-        setAccountMode(data.account_mode || 'both');
+        setAccountMode(data.account_mode || 'fishing');
         if (data.display_name) setFirstName(data.display_name);
         if (data.date_of_birth) setDateOfBirth(data.date_of_birth);
         if (data.gender && (data.gender === 'male' || data.gender === 'female')) {
