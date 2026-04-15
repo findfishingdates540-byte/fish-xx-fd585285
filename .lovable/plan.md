@@ -1,71 +1,40 @@
+## Plan: 3 Changes to FishX
 
-Fix plan: replace the app’s fragile direct `navigator.geolocation` usage with a shared, native-aware location service.
+### 1. Remove the "Find Your Date" dating card from the landing page
 
-1. Confirm the root cause
-- Do I know what the issue is? Yes.
-- The failing step is getting coordinates from the device, before Mapbox is used.
-- Current code relies on browser geolocation only, which is unreliable in Capacitor/native contexts and gives misleading “granted” states via `navigator.permissions`.
-- The app also still has a Capacitor dev `server.url` config, which is fine for sandbox testing but not ideal for real native builds.
+The desktop landing page (`src/pages/Index.tsx`, lines 396-433) has a "Find Your Date" card with couples photos (`datingCouple1`, `datingCouple2`, `coupleFishing`). This will be completely removed so visitors don't think FishX is a dating site. The "Find Fishing Buddies" card will remain and be made full-width.
 
-2. Build one shared location helper
-- Add a reusable helper/hook (for example `src/lib/location.ts`) that:
-  - Uses `@capacitor/geolocation` when `Capacitor.isNativePlatform()` is true
-  - Falls back to `navigator.geolocation` on web
-  - Normalizes errors into clear app-level states:
-    - permission_denied
-    - services_disabled
-    - timeout
-    - unavailable
-  - Retries once with lower accuracy / cached location if the precise request fails
-- This removes the duplicated location logic currently spread across Settings, Profile Edit, onboarding, live camera capture, and spots.
+The unused couple image imports (`coupleFishing`, `datingCouple1`, `datingCouple2`) will also be cleaned up.
 
-3. Refactor the Settings location flow
-- Update `src/pages/app/Settings.tsx` to use the shared helper instead of calling `navigator.geolocation.getCurrentPosition` directly.
-- Stop treating `navigator.permissions.query()` as the source of truth.
-- Show accurate user messages:
-  - permission denied
-  - device location services off
-  - timed out
-  - location unavailable
-- Keep Mapbox reverse geocoding only after coordinates are successfully obtained.
+### 2. Remove dating questions from the onboarding flow
 
-4. Align saved profile data with the precision system
-- When location is successfully fetched, save:
-  - `location_lat`
-  - `location_lng`
-  - `location_name`
-  - and, if available from reverse geocoding, structured `city`, `state`, `zip_code`
-- This keeps the profile consistent with the rest of the app’s location and distance logic.
+Currently, the onboarding flow includes `dating_preference` and `preference_sync` steps for dating/both modes. These steps ask "interested in men/women", age range, looking for, etc.
 
-5. Fix the same bug everywhere else
-- Update these files to use the same helper so the bug does not reappear in other flows:
-  - `src/pages/app/ProfileEdit.tsx`
-  - `src/components/onboarding/StepLocation.tsx`
-  - `src/components/ui/live-camera-capture.tsx`
-  - any other direct geolocation callsites such as `src/pages/app/Spots.tsx`
+Changes:
 
-6. Native app hardening
-- Add `@capacitor/geolocation` to dependencies.
-- Keep the project ready for native permission sync.
-- Adjust `capacitor.config.ts` so the remote `server.url` is not used for real release/native builds.
-- After implementation, you’ll need to:
-  - git pull
-  - run `npx cap sync`
-- If you are testing on a real native app, this step is important.
+- Remove `dating_preference` and `preference_sync` from the step configs in `Onboarding.tsx` for all account modes
+- The onboarding will default all users to **fishing-only** mode, skipping dating setup entirely
+- Users can activate dating later in-app via the account switcher (existing `/app/dating-setup` flow)
 
-Technical details
-- Files to change:
-  - `package.json`
-  - `capacitor.config.ts`
-  - new shared location helper file
-  - `src/pages/app/Settings.tsx`
-  - `src/pages/app/ProfileEdit.tsx`
-  - `src/components/onboarding/StepLocation.tsx`
-  - `src/components/ui/live-camera-capture.tsx`
-  - possibly `src/pages/app/Spots.tsx`
-- No Mapbox edge-function change is required for the main bug, because the failure happens before reverse geocoding.
-- Main success criteria:
-  - Settings location update works on web and native
-  - Errors are specific instead of generic
-  - Other location features reuse the same robust logic
-  - Native builds work after `npx cap sync`
+### 3. Add "who liked this" modal on feed posts
+
+When a user taps the like count on a post, a modal/sheet will open showing a list of users who liked it. Each user row will show their avatar, name, and a Follow/Invite button.
+
+Changes:
+
+- Create a new `LikersModal` component that fetches likers from the `post_likes` table
+- In `FeedPost.tsx`, make the likes count clickable to open this modal
+- Also, below the action icons 'like', 'comment', 'repost', etc (not inside the section), add a feature that's says liked by 'Joshua Campbell and others' . This should happen when a user has a following that liked the post
+- Each liker row will link to their profile and show a follow button
+
+### Technical details
+
+**Files to modify:**
+
+- `src/pages/Index.tsx` — remove dating card section and couple image imports
+- `src/pages/Onboarding.tsx` — remove `dating_preference` and `preference_sync` from all step configs, default account mode to `fishing`
+- `src/components/feed/FeedPost.tsx` — make likes count clickable, open likers modal
+
+**Files to create:**
+
+- `src/components/feed/LikersModal.tsx` — modal showing who liked a post with follow buttons
