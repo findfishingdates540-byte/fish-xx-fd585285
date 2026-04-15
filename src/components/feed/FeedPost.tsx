@@ -608,6 +608,12 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
         shareText={getShareText()}
         onAddToStory={handleAddToStory}
       />
+
+      <LikersModal
+        postId={post.id}
+        isOpen={showLikersModal}
+        onClose={() => setShowLikersModal(false)}
+      />
     </>
   );
 }
