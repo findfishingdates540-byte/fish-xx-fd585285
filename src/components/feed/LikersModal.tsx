@@ -21,25 +21,28 @@ export function LikersModal({ postId, isOpen, onClose }: LikersModalProps) {
   const { data: likers, isLoading } = useQuery({
     queryKey: ['post-likers', postId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: likes, error: likesError } = await supabase
         .from('feed_likes')
-        .select(`
-          user_id,
-          created_at,
-          profile:profiles!feed_likes_user_id_fkey(
-            id,
-            display_name,
-            photos,
-            is_verified,
-            id_verified,
-            live_verified
-          )
-        `)
+        .select('user_id, created_at')
         .eq('post_id', postId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (likesError) throw likesError;
+      if (!likes || likes.length === 0) return [];
+
+      const userIds = likes.map(l => l.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, display_name, photos, is_verified, id_verified, live_verified')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+      return likes.map(l => ({
+        user_id: l.user_id,
+        profile: profileMap.get(l.user_id) || null,
+      })).filter(l => l.profile);
     },
     enabled: isOpen,
   });
@@ -119,22 +122,23 @@ export function useLikedByFollowing(postId: string) {
       const followingIds = following.map(f => f.following_id);
 
       // Find a followed user who liked this post
-      const { data: likedByFollowing } = await supabase
+      const { data: likes } = await supabase
         .from('feed_likes')
-        .select(`
-          user_id,
-          profile:profiles!feed_likes_user_id_fkey(
-            id,
-            display_name,
-            photos
-          )
-        `)
+        .select('user_id')
         .eq('post_id', postId)
         .in('user_id', followingIds)
         .limit(1)
         .maybeSingle();
 
-      return likedByFollowing?.profile as { id: string; display_name: string; photos: string[] } | null;
+      if (!likes) return null;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, display_name, photos')
+        .eq('id', likes.user_id)
+        .single();
+
+      return profile as { id: string; display_name: string; photos: string[] } | null;
     },
     enabled: !!user?.id,
   });
