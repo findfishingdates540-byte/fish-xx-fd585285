@@ -377,24 +377,6 @@ const Index = () => {
                   >
                     <img src={fishingPhoto5} alt="Night fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   </motion.div>
-                  <motion.div 
-                    className="absolute left-12 bottom-4 w-36 h-44 rounded-2xl overflow-hidden shadow-md z-5"
-                    whileHover={{ y: -4 }}
-                  >
-                    <img src={fishingPhoto7} alt="Fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute right-4 top-20 w-32 h-40 rounded-2xl overflow-hidden shadow-md z-15"
-                    whileHover={{ y: -5 }}
-                  >
-                    <img src={fishingPhoto1} alt="Fishing expedition" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute left-36 top-2 w-38 h-46 rounded-2xl overflow-hidden shadow-lg z-25 border-2 border-muted"
-                    whileHover={{ y: -6 }}
-                  >
-                    <img src={fishingPhoto2} alt="Fishing buddies" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
                 </div>
                 <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
                 <p className="text-muted-foreground text-lg mb-6">
