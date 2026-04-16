@@ -347,49 +347,70 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Account Types Section */}
-      <section className="py-24 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="max-w-3xl mx-auto">
-            {/* Fishing Buddies Card */}
-            <ScrollReveal delay={0} direction="up">
-              <motion.div 
-                className="bg-muted rounded-3xl p-8 md:p-12 cursor-pointer group h-full"
-                whileHover={{ scale: 1.02, y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="relative h-80 mb-8">
-                  <motion.div 
-                    className="absolute right-0 top-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg z-10"
-                    whileHover={{ y: -4 }}
-                  >
-                    <img src={fishingPhoto4} alt="Man with salmon catch" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute left-0 top-8 w-44 h-56 rounded-2xl overflow-hidden shadow-xl z-20"
-                    whileHover={{ y: -6 }}
-                  >
-                    <img src={fishingPhoto6} alt="Father and son fishing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute right-24 bottom-0 w-40 h-48 rounded-2xl overflow-hidden shadow-lg z-30 border-4 border-muted"
-                    whileHover={{ y: -8 }}
-                  >
-                    <img src={fishingPhoto5} alt="Night fishing adventure" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </motion.div>
+      {/* Find Your Crew Section */}
+      <section className="py-32 px-6 overflow-hidden relative">
+        {/* Subtle background accent */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.03] to-transparent pointer-events-none" />
+        <div className="max-w-6xl mx-auto relative">
+          <ScrollReveal delay={0} direction="up">
+            <motion.div 
+              className="relative rounded-[2rem] overflow-hidden cursor-pointer group"
+              whileHover={{ scale: 1.01 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              {/* Background photo collage */}
+              <div className="relative grid grid-cols-3 gap-1 h-[420px] md:h-[480px]">
+                <div className="overflow-hidden">
+                  <motion.img 
+                    src={fishingPhoto4} 
+                    alt="Angler with salmon catch" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Find Fishing Buddies</h3>
-                <p className="text-muted-foreground text-lg mb-6">
-                  Not looking for romance? Find local fishing companions for your next adventure. 
-                  Connect with anglers in your area who share your fishing style.
+                <div className="overflow-hidden">
+                  <motion.img 
+                    src={fishingPhoto6} 
+                    alt="Father and son fishing together" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 delay-75"
+                  />
+                </div>
+                <div className="overflow-hidden">
+                  <motion.img 
+                    src={fishingPhoto5} 
+                    alt="Night fishing adventure" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 delay-150"
+                  />
+                </div>
+                {/* Dark gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+              </div>
+
+              {/* Content overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-8 md:p-14">
+                <motion.p 
+                  className="text-white/60 text-sm font-medium tracking-[0.2em] uppercase mb-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Better together
+                </motion.p>
+                <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight leading-[1.1]">
+                  Find Your<br />Fishing Crew
+                </h3>
+                <p className="text-white/70 text-lg md:text-xl max-w-lg mb-8 leading-relaxed">
+                  Connect with local anglers who share your style. Plan trips, share spots, and build your circle.
                 </p>
-                <Link to="/auth?mode=signup" className="inline-flex items-center text-foreground font-medium transition-all duration-200 hover:translate-x-1 underline underline-offset-4">
-                  Find your crew
-                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                <Link 
+                  to="/auth?mode=signup" 
+                  className="inline-flex items-center gap-3 bg-white text-foreground font-semibold px-8 py-4 rounded-full transition-all duration-300 hover:bg-white/90 hover:gap-4 shadow-lg"
+                >
+                  Get started
+                  <ArrowRight className="w-5 h-5" />
                 </Link>
-              </motion.div>
-            </ScrollReveal>
-          </div>
+              </div>
+            </motion.div>
+          </ScrollReveal>
         </div>
       </section>
 
