@@ -70,29 +70,29 @@ const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subt
     basic_info: { title: "Let's get to know you", subtitle: 'We need a few basics to help you find your perfect match.' },
     photo: { title: 'Show your best self!', subtitle: 'Upload at least one clear photo of yourself. A good photo helps build trust!' },
     location: { title: 'Where are you located?', subtitle: 'Set your location to find matches nearby.' },
-    lifestyle: { title: 'Tell us about yourself', subtitle: 'Share your bio and lifestyle details to help others know you better.' },
-    interests: { title: 'What are you into?', subtitle: 'Select at least 3 interests to help us find compatible matches.' },
+    lifestyle: { title: 'Tell us about yourself', subtitle: 'Optional — share your bio and details to help others know you better.' },
+    interests: { title: 'What are you into?', subtitle: 'Optional — select interests to help us find compatible matches.' },
     dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
   },
   fishing: {
     basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to connect you with fellow anglers.' },
     photo: { title: 'Show us your best catch!', subtitle: 'Upload at least one clear photo of yourself so others can recognize you.' },
     location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and fishing spots.' },
-    lifestyle: { title: 'Tell us about yourself', subtitle: 'Share your bio and lifestyle details to connect better with buddies.' },
-    experience: { title: 'How experienced are you?', subtitle: 'This helps us match you with the right fishing buddies.' },
-    target_species: { title: 'What fish do you target?', subtitle: 'Select the species you love to catch.' },
-    gear: { title: 'What gear do you use?', subtitle: 'Select the fishing equipment you own or prefer.' },
-    interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 fishing styles and activities you enjoy.' },
+    lifestyle: { title: 'Tell us about yourself', subtitle: 'Optional — share your bio and lifestyle details to connect better with buddies.' },
+    experience: { title: 'How experienced are you?', subtitle: 'Optional — helps us match you with the right fishing buddies.' },
+    target_species: { title: 'What fish do you target?', subtitle: 'Optional — select the species you love to catch.' },
+    gear: { title: 'What gear do you use?', subtitle: 'Optional — select the fishing equipment you own or prefer.' },
+    interests: { title: 'What gets you hooked?', subtitle: 'Optional — select fishing styles and activities you enjoy.' },
   },
   both: {
     basic_info: { title: "Who's casting the line?", subtitle: 'We need a few basics to find your perfect catch or fishing buddy.' },
     photo: { title: 'Show us your best catch!', subtitle: 'Upload at least one clear photo of yourself. A good photo builds trust!' },
     location: { title: 'Where are you casting from?', subtitle: 'Set your location to find local anglers and matches.' },
-    lifestyle: { title: 'Tell us about yourself', subtitle: 'Share your bio and lifestyle details to make meaningful connections.' },
-    experience: { title: 'How much experience do you have on the water?', subtitle: 'This helps us match you with the right fishing buddies or dates.' },
-    target_species: { title: 'What fish do you target?', subtitle: 'Select the species you love to catch.' },
-    gear: { title: 'What gear do you use?', subtitle: 'Select the fishing equipment you own or prefer.' },
-    interests: { title: 'What gets you hooked?', subtitle: 'Select at least 3 interests to help us find your perfect catch or spot.' },
+    lifestyle: { title: 'Tell us about yourself', subtitle: 'Optional — share your bio and lifestyle details to make meaningful connections.' },
+    experience: { title: 'How much experience do you have on the water?', subtitle: 'Optional — helps us match you with the right fishing buddies or dates.' },
+    target_species: { title: 'What fish do you target?', subtitle: 'Optional — select the species you love to catch.' },
+    gear: { title: 'What gear do you use?', subtitle: 'Optional — select the fishing equipment you own or prefer.' },
+    interests: { title: 'What gets you hooked?', subtitle: 'Optional — select interests to help us find your perfect catch or spot.' },
     dating_preference: { title: 'Who are you looking for?', subtitle: 'Help us find your ideal match by setting your preferences.' },
     preference_sync: { title: "Let's Sync Your Worlds", subtitle: "We'll use this to find matches who love the water just as much as you do." },
   },
@@ -272,42 +272,12 @@ export default function Onboarding() {
         }
         return true;
       case 'lifestyle':
-        if (!bio.trim()) {
-          toast({ title: "Please write a short bio about yourself", variant: "destructive" });
-          return false;
-        }
-        if (bio.trim().length < 20) {
-          toast({ title: "Bio should be at least 20 characters", variant: "destructive" });
-          return false;
-        }
-        if (!occupation.trim()) {
-          toast({ title: "Please enter your occupation", variant: "destructive" });
-          return false;
-        }
-        if (!heightCm) {
-          toast({ title: "Please select your height", variant: "destructive" });
-          return false;
-        }
-        if (!smoking) {
-          toast({ title: "Please select your smoking preference", variant: "destructive" });
-          return false;
-        }
-        if (!drinking) {
-          toast({ title: "Please select your drinking preference", variant: "destructive" });
-          return false;
-        }
-        if (!zodiacSign) {
-          toast({ title: "Please select your zodiac sign", variant: "destructive" });
-          return false;
-        }
+        // All lifestyle fields are optional — users can complete later
         return true;
       case 'experience':
         return true;
       case 'interests':
-        if (selectedStyles.length + selectedActivities.length < 3) {
-          toast({ title: "Please select at least 3 interests", variant: "destructive" });
-          return false;
-        }
+        // Interests are optional — users can add them later
         return true;
       case 'dating_preference':
         if (interestedIn.length === 0) {
@@ -625,7 +595,9 @@ export default function Onboarding() {
     }
   };
 
-  // All steps are now mandatory - no skipping allowed
+  // Steps that are optional and can be skipped
+  const optionalSteps = ['lifestyle', 'experience', 'target_species', 'gear', 'interests'];
+  const isOptionalStep = optionalSteps.includes(currentStepKey);
   const isLastStep = currentStep === totalSteps - 1;
 
   return (
@@ -792,8 +764,17 @@ export default function Onboarding() {
                   </motion.div>
                 </div>
 
-                {/* Skip centered below */}
-                {/* Skip button removed - all steps are mandatory */}
+                {/* Skip button for optional steps */}
+                {isOptionalStep && (
+                  <div className="flex justify-center mt-3 pb-1">
+                    <button
+                      onClick={handleSkip}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                    >
+                      Skip for now — you can complete this later
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
