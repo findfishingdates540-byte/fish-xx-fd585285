@@ -595,7 +595,9 @@ export default function Onboarding() {
     }
   };
 
-  // All steps are now mandatory - no skipping allowed
+  // Steps that are optional and can be skipped
+  const optionalSteps = ['lifestyle', 'experience', 'target_species', 'gear', 'interests'];
+  const isOptionalStep = optionalSteps.includes(currentStepKey);
   const isLastStep = currentStep === totalSteps - 1;
 
   return (
@@ -762,8 +764,17 @@ export default function Onboarding() {
                   </motion.div>
                 </div>
 
-                {/* Skip centered below */}
-                {/* Skip button removed - all steps are mandatory */}
+                {/* Skip button for optional steps */}
+                {isOptionalStep && (
+                  <div className="flex justify-center mt-3 pb-1">
+                    <button
+                      onClick={handleSkip}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                    >
+                      Skip for now — you can complete this later
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
