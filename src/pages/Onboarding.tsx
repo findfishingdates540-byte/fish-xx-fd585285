@@ -272,42 +272,12 @@ export default function Onboarding() {
         }
         return true;
       case 'lifestyle':
-        if (!bio.trim()) {
-          toast({ title: "Please write a short bio about yourself", variant: "destructive" });
-          return false;
-        }
-        if (bio.trim().length < 20) {
-          toast({ title: "Bio should be at least 20 characters", variant: "destructive" });
-          return false;
-        }
-        if (!occupation.trim()) {
-          toast({ title: "Please enter your occupation", variant: "destructive" });
-          return false;
-        }
-        if (!heightCm) {
-          toast({ title: "Please select your height", variant: "destructive" });
-          return false;
-        }
-        if (!smoking) {
-          toast({ title: "Please select your smoking preference", variant: "destructive" });
-          return false;
-        }
-        if (!drinking) {
-          toast({ title: "Please select your drinking preference", variant: "destructive" });
-          return false;
-        }
-        if (!zodiacSign) {
-          toast({ title: "Please select your zodiac sign", variant: "destructive" });
-          return false;
-        }
+        // All lifestyle fields are optional — users can complete later
         return true;
       case 'experience':
         return true;
       case 'interests':
-        if (selectedStyles.length + selectedActivities.length < 3) {
-          toast({ title: "Please select at least 3 interests", variant: "destructive" });
-          return false;
-        }
+        // Interests are optional — users can add them later
         return true;
       case 'dating_preference':
         if (interestedIn.length === 0) {
