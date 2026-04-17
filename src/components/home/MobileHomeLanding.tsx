@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Fish, Heart, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { AppPreloader } from '@/components/layout/AppPreloader';
 
 import fishingPhoto1 from '@/assets/fishing-photo-1.jpg';
 import fishingPhoto2 from '@/assets/fishing-photo-2.jpg';
@@ -42,17 +43,7 @@ const MobileHomeLanding = () => {
   }, []);
 
   if (loading || profileLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <Fish className="w-12 h-12 text-foreground animate-pulse" />
-        </motion.div>
-      </div>
-    );
+    return <AppPreloader />;
   }
 
   if (user && accountMode) {

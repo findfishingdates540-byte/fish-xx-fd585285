@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import datingLogoImage from '@/assets/dating-logo.png';
 import fishxLogo from '@/assets/fishx-logo.png';
 
@@ -50,6 +50,7 @@ export function AppHeader() {
   const { user } = useAuth();
   const { effectiveMode } = useActiveMode();
   const queryClient = useQueryClient();
+  const location = useLocation();
   const previousCountRef = useRef<number>(0);
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
 
@@ -212,8 +213,9 @@ export function AppHeader() {
 
   const avatarUrl = profile?.photos?.[0] || '';
   const initials = profile?.display_name?.charAt(0)?.toUpperCase() || 'U';
-  const isDatingMode = effectiveMode === 'dating';
-  const homeHref = isDatingMode ? '/app/discover' : '/app/feed';
+  const datingBrandRoutes = ['/app/discover', '/app/likes', '/app/matches', '/app/messages', '/app/dating-profile', '/app/dating-setup'];
+  const isDatingBrandedRoute = datingBrandRoutes.some((route) => location.pathname.startsWith(route));
+  const homeHref = isDatingBrandedRoute ? '/app/discover' : '/app/feed';
 
   const totalNotifications = 
     (recentMatches?.length || 0) + 
@@ -232,7 +234,7 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 pl-4 pr-4">
         <Link to={homeHref} className="flex items-center">
-          {isDatingMode ? (
+          {isDatingBrandedRoute ? (
             <img src={datingLogoImage} alt="Find Fishing Dates" className="h-8 w-auto" />
           ) : (
             <img src={fishxLogo} alt="Fish-X" className="h-10 w-auto" />
