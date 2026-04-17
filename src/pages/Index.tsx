@@ -23,6 +23,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import MobileHomeLanding from '@/components/home/MobileHomeLanding';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { AppPreloader } from '@/components/layout/AppPreloader';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -52,17 +53,7 @@ const Index = () => {
 
   // Show loading state while checking auth
   if (loading || profileLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <Fish className="w-12 h-12 text-foreground animate-pulse" />
-        </motion.div>
-      </div>
-    );
+    return <AppPreloader />;
   }
 
   if (user && accountMode) {
