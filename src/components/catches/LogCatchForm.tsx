@@ -147,18 +147,51 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
         </p>
       </div>
 
-      {/* Trophy Photo */}
+      {/* Trophy Photo or Video */}
       <div className="mb-6">
         <Label className="text-sm font-semibold mb-3 block">
           Catch Showcase (Trophy Shot)
         </Label>
-        <LiveCameraCapture
-          onCapture={handleTrophyCapture}
-          preview={coverPhotoPreview}
-          onClear={() => { setCoverPhoto(null); setCoverPhotoPreview(null); }}
-          label="Take Trophy Photo"
-          sublabel="Camera only — no gallery uploads allowed"
-        />
+        <div className="inline-flex rounded-lg overflow-hidden border border-border mb-3">
+          <button
+            type="button"
+            onClick={() => setTrophyMode("photo")}
+            className={`px-4 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              trophyMode === "photo"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Camera className="h-3.5 w-3.5" /> Photo
+          </button>
+          <button
+            type="button"
+            onClick={() => setTrophyMode("video")}
+            className={`px-4 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              trophyMode === "video"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Video className="h-3.5 w-3.5" /> Video
+          </button>
+        </div>
+        {trophyMode === "photo" ? (
+          <LiveCameraCapture
+            onCapture={handleTrophyCapture}
+            preview={coverPhotoPreview}
+            onClear={() => { setCoverPhoto(null); setCoverPhotoPreview(null); }}
+            label="Take Trophy Photo"
+            sublabel="Camera only — no gallery uploads allowed"
+          />
+        ) : (
+          <LiveVideoCapture
+            onCapture={handleVideoCapture}
+            onClear={() => setVideoFile(null)}
+            label="Record Trophy Video"
+            sublabel="Capture the catch in 2K — under 200MB"
+          />
+        )}
         {(formData.location_lat !== null && formData.location_lng !== null) && (
           <div className="mt-2 inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
             <MapPin className="h-3 w-3" />
