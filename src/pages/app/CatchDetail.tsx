@@ -213,6 +213,22 @@ export default function CatchDetail() {
       <div className="flex flex-col lg:flex-row gap-6 px-4 md:px-6">
         {/* LEFT: Photo + Stats + Intelligence */}
         <div className="flex-1 min-w-0 space-y-5">
+          {/* Action Video */}
+          {(catchData as any).video_url && (
+            <div className="relative rounded-xl overflow-hidden bg-black">
+              <video
+                src={(catchData as any).video_url}
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full max-h-[420px] object-contain bg-black"
+              />
+              <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/70 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">
+                ▶ Action Clip
+              </div>
+            </div>
+          )}
+
           {/* Hero Photo */}
           <div className="relative rounded-xl overflow-hidden bg-muted">
             {heroPhoto ? (
