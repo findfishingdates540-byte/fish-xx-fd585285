@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SpeciesCombobox } from "@/components/catches/SpeciesCombobox";
 import { LiveCameraCapture, type CaptureMetadata } from "@/components/ui/live-camera-capture";
+import { LiveVideoCapture, type VideoCaptureMetadata } from "@/components/ui/live-video-capture";
 import {
   Select,
   SelectContent,
@@ -52,9 +53,12 @@ export interface LogCatchFormData {
   catch_status: "released" | "harvested";
   general_location: string;
   share_location: boolean;
+  location_lat: number | null;
+  location_lng: number | null;
   coverPhoto: File | null;
   measurementPhoto: File | null;
   additionalPhotos: File[];
+  videoFile: File | null;
 }
 
 export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
@@ -71,32 +75,53 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     caught_at: new Date().toISOString().slice(0, 16),
     catch_status: "released" as "released" | "harvested",
     general_location: "",
-    share_location: false,
+    share_location: true,
+    location_lat: null as number | null,
+    location_lng: null as number | null,
   });
 
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
   const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
   const [measurementPhoto, setMeasurementPhoto] = useState<File | null>(null);
   const [measurementPhotoPreview, setMeasurementPhotoPreview] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
 
-  // Handle live camera capture for trophy photo — auto-fill time & location
+  // Handle live camera capture for trophy photo — auto-fill time, GPS, location
   const handleTrophyCapture = useCallback((data: CaptureMetadata) => {
     setCoverPhoto(data.file);
     const reader = new FileReader();
     reader.onloadend = () => setCoverPhotoPreview(reader.result as string);
     reader.readAsDataURL(data.file);
 
-    // Auto-fill caught_at from capture timestamp
     const localTime = new Date(data.capturedAt).toISOString().slice(0, 16);
-    setFormData((prev) => ({ ...prev, caught_at: localTime }));
+    setFormData((prev) => ({
+      ...prev,
+      caught_at: localTime,
+      location_lat: data.locationLat ?? prev.location_lat,
+      location_lng: data.locationLng ?? prev.location_lng,
+    }));
   }, []);
 
-  // Handle live camera capture for measurement photo
   const handleMeasurementCapture = useCallback((data: CaptureMetadata) => {
     setMeasurementPhoto(data.file);
     const reader = new FileReader();
     reader.onloadend = () => setMeasurementPhotoPreview(reader.result as string);
     reader.readAsDataURL(data.file);
+    // Backfill GPS from measurement capture if trophy didn't capture
+    setFormData((prev) => ({
+      ...prev,
+      location_lat: prev.location_lat ?? data.locationLat,
+      location_lng: prev.location_lng ?? data.locationLng,
+    }));
+  }, []);
+
+  const handleVideoCapture = useCallback((data: VideoCaptureMetadata) => {
+    setVideoFile(data.file);
+    setFormData((prev) => ({
+      ...prev,
+      location_lat: prev.location_lat ?? data.locationLat,
+      location_lng: prev.location_lng ?? data.locationLng,
+    }));
   }, []);
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -106,12 +131,12 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
       coverPhoto,
       measurementPhoto,
       additionalPhotos: [],
+      videoFile,
     });
   };
 
   return (
     <form onSubmit={handleFormSubmit} className="max-w-3xl mx-auto pb-24">
-      {/* Title */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold mb-1">Log New Catch</h1>
         <p className="text-sm text-muted-foreground">
@@ -119,8 +144,8 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
         </p>
       </div>
 
-      {/* Trophy Photo - Live Camera Only */}
-      <div className="mb-8">
+      {/* Trophy Photo */}
+      <div className="mb-6">
         <Label className="text-sm font-semibold mb-3 block">
           Catch Showcase (Trophy Shot)
         </Label>
@@ -131,13 +156,18 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
           label="Take Trophy Photo"
           sublabel="Camera only — no gallery uploads allowed"
         />
+        {(formData.location_lat !== null && formData.location_lng !== null) && (
+          <div className="mt-2 inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+            <MapPin className="h-3 w-3" />
+            GPS captured: {formData.location_lat.toFixed(3)}°, {formData.location_lng.toFixed(3)}°
+          </div>
+        )}
       </div>
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
         {/* LEFT COLUMN */}
         <div className="space-y-5">
-          {/* Species */}
           <div>
             <Label className="text-sm font-semibold mb-2 block">Species</Label>
             <SpeciesCombobox
@@ -157,7 +187,6 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             />
           </div>
 
-          {/* Length & Weight */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-semibold mb-2 block">Length (in)</Label>
@@ -181,7 +210,6 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             </div>
           </div>
 
-          {/* Catch Status - Segmented buttons */}
           <div>
             <Label className="text-sm font-semibold mb-2 block">Catch Status</Label>
             <div className="flex rounded-lg overflow-hidden border border-border">
@@ -210,7 +238,6 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             </div>
           </div>
 
-          {/* Date & Time */}
           <div>
             <Label className="text-sm font-semibold mb-2 block">Date & Time</Label>
             <Input
@@ -220,7 +247,6 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             />
           </div>
 
-          {/* Body of Water */}
           <div>
             <Label className="text-sm font-semibold mb-2 block">Body of Water</Label>
             <div className="relative">
@@ -262,11 +288,19 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
               />
             )}
           </div>
+
+          <div>
+            <Label className="text-sm font-semibold mb-2 block">Bait / Lure Used</Label>
+            <Input
+              placeholder="e.g., Live shiner, jig, spinnerbait"
+              value={formData.bait_used}
+              onChange={(e) => setFormData({ ...formData, bait_used: e.target.value })}
+            />
+          </div>
         </div>
 
         {/* RIGHT COLUMN */}
         <div className="space-y-5">
-          {/* Verification Photo */}
           <div>
             <Label className="text-sm font-semibold mb-2 block">
               Verification Photo (Scale/Ruler)
@@ -277,6 +311,20 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
               onClear={() => { setMeasurementPhoto(null); setMeasurementPhotoPreview(null); }}
               label="Take Measurement Photo"
               sublabel="Show catch against ruler/scale"
+              aspectRatio="aspect-[4/3]"
+            />
+          </div>
+
+          {/* Action Video */}
+          <div>
+            <Label className="text-sm font-semibold mb-2 block">
+              Action Video (Optional)
+            </Label>
+            <LiveVideoCapture
+              onCapture={handleVideoCapture}
+              onClear={() => setVideoFile(null)}
+              label="Record Action Clip"
+              sublabel="Capture the catch in 2K — under 200MB"
               aspectRatio="aspect-[4/3]"
             />
           </div>
@@ -310,16 +358,15 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
 
       {/* Catch Notes */}
       <div className="mt-8">
-        <Label className="text-sm font-semibold mb-2 block">Catch Notes (Optional)</Label>
+        <Label className="text-sm font-semibold mb-2 block">Catch Notes / Technique (Optional)</Label>
         <Textarea
-          placeholder="Weather conditions, gear used, or the story behind the catch..."
+          placeholder="Weather conditions, technique used, or the story behind the catch..."
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           rows={4}
         />
       </div>
 
-      {/* Action Buttons */}
       <div className="flex items-center justify-center gap-4 mt-8">
         <Button
           type="button"

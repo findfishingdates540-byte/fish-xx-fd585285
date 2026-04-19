@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,7 @@ interface FishingSpot {
 
 export default function Catches() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [catches, setCatches] = useState<Catch[]>([]);
   const [species, setSpecies] = useState<FishSpecies[]>([]);
   const [spots, setSpots] = useState<FishingSpot[]>([]);
@@ -95,11 +97,13 @@ export default function Catches() {
     fetchData();
   }, [user]);
 
-  const uploadSinglePhoto = async (photo: File): Promise<string | null> => {
+  const uploadSingleFile = async (file: File): Promise<string | null> => {
     if (!user) return null;
-    const fileExt = photo.name.split(".").pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const { data, error } = await supabase.storage.from("catch-photos").upload(fileName, photo);
+    const { data, error } = await supabase.storage.from("catch-photos").upload(fileName, file, {
+      contentType: file.type || undefined,
+    });
     if (error) { console.error("Upload error:", error); return null; }
     const { data: urlData } = supabase.storage.from("catch-photos").getPublicUrl(data.path);
     return urlData.publicUrl;
@@ -114,9 +118,10 @@ export default function Catches() {
 
     setIsSubmitting(true);
     try {
-      const [coverUrl, measurementUrl] = await Promise.all([
-        data.coverPhoto ? uploadSinglePhoto(data.coverPhoto) : Promise.resolve(null),
-        data.measurementPhoto ? uploadSinglePhoto(data.measurementPhoto) : Promise.resolve(null),
+      const [coverUrl, measurementUrl, videoUrl] = await Promise.all([
+        data.coverPhoto ? uploadSingleFile(data.coverPhoto) : Promise.resolve(null),
+        data.measurementPhoto ? uploadSingleFile(data.measurementPhoto) : Promise.resolve(null),
+        data.videoFile ? uploadSingleFile(data.videoFile) : Promise.resolve(null),
       ]);
 
       let speciesName = data.species_name;
@@ -163,10 +168,16 @@ export default function Catches() {
         catch_status: data.catch_status,
         cover_photo_url: coverUrl,
         measurement_photo_url: measurementUrl,
+        video_url: videoUrl,
         general_location: data.general_location || null,
         share_location: data.share_location,
+        location_lat: data.location_lat,
+        location_lng: data.location_lng,
       } as any);
       if (error) throw error;
+
+      // Refresh community map so new catch appears immediately
+      queryClient.invalidateQueries({ queryKey: ['shared-catches-map'] });
 
       if (data.fishing_spot_id && speciesName) {
         try {
