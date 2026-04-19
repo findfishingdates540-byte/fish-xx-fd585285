@@ -351,20 +351,6 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             />
           </div>
 
-          {/* Action Video */}
-          <div>
-            <Label className="text-sm font-semibold mb-2 block">
-              Action Video (Optional)
-            </Label>
-            <LiveVideoCapture
-              onCapture={handleVideoCapture}
-              onClear={() => setVideoFile(null)}
-              label="Record Action Clip"
-              sublabel="Capture the catch in 2K — under 200MB"
-              aspectRatio="aspect-[4/3]"
-            />
-          </div>
-
           {/* Share Location Toggle */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-start gap-3 mb-3">
