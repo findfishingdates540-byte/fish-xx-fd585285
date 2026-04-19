@@ -420,6 +420,17 @@ export default function CatchDetail() {
                 Follow Angler
               </Button>
             )}
+
+            {angler && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-2"
+                onClick={() => navigate(`/app/u/${angler.id}`)}
+              >
+                View all {angler.display_name?.split(" ")[0] || "their"} catches →
+              </Button>
+            )}
           </div>
 
           {/* Achievements */}
