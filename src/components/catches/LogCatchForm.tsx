@@ -87,6 +87,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
   const [measurementPhoto, setMeasurementPhoto] = useState<File | null>(null);
   const [measurementPhotoPreview, setMeasurementPhotoPreview] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [trophyMode, setTrophyMode] = useState<"photo" | "video">("photo");
 
   // Handle live camera capture for trophy photo — auto-fill time, GPS, location
   const handleTrophyCapture = useCallback((data: CaptureMetadata) => {
