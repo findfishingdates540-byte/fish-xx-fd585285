@@ -17,6 +17,8 @@ import {
   Loader2,
   MapPin,
   Save,
+  Camera,
+  Video,
 } from "lucide-react";
 
 interface FishSpecies {
