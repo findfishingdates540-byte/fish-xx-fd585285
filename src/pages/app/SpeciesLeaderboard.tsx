@@ -265,7 +265,11 @@ export default function SpeciesLeaderboardPage() {
                 return (
                   <button
                     key={entry.id}
-                    onClick={() => navigate(`/app/u/${entry.user_id}`)}
+                    onClick={() =>
+                      entry.largest_catch_id
+                        ? navigate(`/app/catches/${entry.largest_catch_id}`)
+                        : navigate(`/app/u/${entry.user_id}`)
+                    }
                     className={`w-full grid grid-cols-[50px_1fr_120px_100px_130px] gap-2 px-4 py-3 border-t border-border items-center text-left transition-colors hover:bg-muted/30 ${
                       isTop3 ? "bg-primary/[0.03]" : ""
                     }`}

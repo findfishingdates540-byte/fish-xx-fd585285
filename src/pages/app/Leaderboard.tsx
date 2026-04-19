@@ -179,7 +179,7 @@ export default function Leaderboard() {
                 <><Skeleton className="h-48 rounded-xl" /><Skeleton className="h-48 rounded-xl" /></>
               ) : featuredSpecies.length > 0 ? (
                 featuredSpecies.map(({ entry, species, profile }) => (
-                  <button key={entry.id} onClick={() => navigate(`/app/leaderboard/species/${entry.species_id}`)} className="relative rounded-xl border overflow-hidden bg-muted/30 hover:bg-muted/50 transition-colors text-left group">
+                  <button key={entry.id} onClick={() => entry.largest_catch_id ? navigate(`/app/catches/${entry.largest_catch_id}`) : navigate(`/app/leaderboard/species/${entry.species_id}`)} className="relative rounded-xl border overflow-hidden bg-muted/30 hover:bg-muted/50 transition-colors text-left group">
                     <div className="h-36 bg-muted relative overflow-hidden">
                       {species?.image_url ? <img src={species.image_url} alt={species.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <div className="w-full h-full flex items-center justify-center"><Fish className="h-12 w-12 text-muted-foreground" /></div>}
                       <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
@@ -317,7 +317,7 @@ export default function Leaderboard() {
           </div>
 
           {latestVerified && (
-            <div className="rounded-xl border bg-primary/5 overflow-hidden">
+            <button onClick={() => navigate(`/app/catches/${latestVerified.id}`)} className="w-full rounded-xl border bg-primary/5 overflow-hidden text-left hover:bg-primary/10 transition-colors">
               <div className="p-4">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-3">Latest Verification</p>
                 <div className="flex items-start gap-3">
@@ -332,8 +332,9 @@ export default function Leaderboard() {
                   <span>By <span className="text-primary font-medium">{(latestVerified.user as any)?.display_name || "Angler"}</span></span>
                   <span>{new Date(latestVerified.created_at).toLocaleDateString()}</span>
                 </div>
+                <p className="text-[10px] text-primary mt-2 font-medium">View catch details →</p>
               </div>
-            </div>
+            </button>
           )}
 
           <div className="rounded-xl border bg-primary/10 p-5 text-center">

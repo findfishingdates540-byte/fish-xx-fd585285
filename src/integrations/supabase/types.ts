@@ -501,6 +501,7 @@ export type Database = {
           species_id: string | null
           species_name: string | null
           user_id: string
+          video_url: string | null
           weight_lbs: number | null
         }
         Insert: {
@@ -525,6 +526,7 @@ export type Database = {
           species_id?: string | null
           species_name?: string | null
           user_id: string
+          video_url?: string | null
           weight_lbs?: number | null
         }
         Update: {
@@ -549,6 +551,7 @@ export type Database = {
           species_id?: string | null
           species_name?: string | null
           user_id?: string
+          video_url?: string | null
           weight_lbs?: number | null
         }
         Relationships: [

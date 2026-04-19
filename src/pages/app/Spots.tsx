@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ interface SharedCatch {
   weight_lbs: number | null;
   length_in: number | null;
   cover_photo_url: string | null;
+  video_url: string | null;
   general_location: string | null;
   location_lat: number | null;
   location_lng: number | null;
@@ -68,6 +70,7 @@ const MAP_STYLES: Record<MapStyleKey, { label: string; icon: React.ReactNode; st
 
 export default function Spots() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -85,7 +88,7 @@ export default function Spots() {
     queryFn: async () => {
       const { data: catches } = await supabase
         .from('catches')
-        .select('id, species_name, weight_lbs, length_in, cover_photo_url, general_location, location_lat, location_lng, caught_at, catch_status, user_id')
+        .select('id, species_name, weight_lbs, length_in, cover_photo_url, video_url, general_location, location_lat, location_lng, caught_at, catch_status, user_id')
         .eq('share_location', true)
         .not('location_lat', 'is', null)
         .not('location_lng', 'is', null)
@@ -495,11 +498,18 @@ export default function Spots() {
 
           <div className="flex gap-3">
             {selectedCatch.cover_photo_url && (
-              <img
-                src={selectedCatch.cover_photo_url}
-                alt="Catch"
-                className="w-20 h-20 rounded-lg object-cover shrink-0"
-              />
+              <div className="relative shrink-0">
+                <img
+                  src={selectedCatch.cover_photo_url}
+                  alt="Catch"
+                  className="w-20 h-20 rounded-lg object-cover"
+                />
+                {selectedCatch.video_url && (
+                  <span className="absolute bottom-1 right-1 inline-flex items-center justify-center w-6 h-6 rounded-full bg-black/70 text-white text-[10px]">
+                    ▶
+                  </span>
+                )}
+              </div>
             )}
 
             <div className="flex-1 min-w-0">
@@ -542,6 +552,14 @@ export default function Spots() {
               </div>
             </div>
           </div>
+
+          <Button
+            size="sm"
+            className="w-full mt-3"
+            onClick={() => navigate(`/app/catches/${selectedCatch.id}`)}
+          >
+            View full details
+          </Button>
         </div>
       )}
 
