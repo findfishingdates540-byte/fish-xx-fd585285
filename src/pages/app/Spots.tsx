@@ -498,11 +498,18 @@ export default function Spots() {
 
           <div className="flex gap-3">
             {selectedCatch.cover_photo_url && (
-              <img
-                src={selectedCatch.cover_photo_url}
-                alt="Catch"
-                className="w-20 h-20 rounded-lg object-cover shrink-0"
-              />
+              <div className="relative shrink-0">
+                <img
+                  src={selectedCatch.cover_photo_url}
+                  alt="Catch"
+                  className="w-20 h-20 rounded-lg object-cover"
+                />
+                {selectedCatch.video_url && (
+                  <span className="absolute bottom-1 right-1 inline-flex items-center justify-center w-6 h-6 rounded-full bg-black/70 text-white text-[10px]">
+                    ▶
+                  </span>
+                )}
+              </div>
             )}
 
             <div className="flex-1 min-w-0">
@@ -545,6 +552,14 @@ export default function Spots() {
               </div>
             </div>
           </div>
+
+          <Button
+            size="sm"
+            className="w-full mt-3"
+            onClick={() => navigate(`/app/catches/${selectedCatch.id}`)}
+          >
+            View full details
+          </Button>
         </div>
       )}
 
