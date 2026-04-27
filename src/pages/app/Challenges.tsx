@@ -77,11 +77,11 @@ function CountdownDisplay({ endDate }: { endDate: string }) {
   const { days, hours, minutes } = useCountdown(endDate);
   return (
     <div className="flex items-center gap-1 text-xs font-mono">
-      <span className="bg-muted px-1.5 py-0.5 rounded font-bold">{String(days).padStart(2, "0")}d</span>
-      <span className="text-muted-foreground">:</span>
-      <span className="bg-muted px-1.5 py-0.5 rounded font-bold">{String(hours).padStart(2, "0")}h</span>
-      <span className="text-muted-foreground">:</span>
-      <span className="bg-muted px-1.5 py-0.5 rounded font-bold">{String(minutes).padStart(2, "0")}m</span>
+      <span className="bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold">{String(days).padStart(2, "0")}d</span>
+      <span className="sb-text-muted">:</span>
+      <span className="bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold">{String(hours).padStart(2, "0")}h</span>
+      <span className="sb-text-muted">:</span>
+      <span className="bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold">{String(minutes).padStart(2, "0")}m</span>
     </div>
   );
 }
@@ -231,36 +231,36 @@ export default function Challenges() {
 
 
   const rankLabel = (r: number) => {
-    if (r === 1) return <span className="text-amber-500 font-bold text-xs">1st</span>;
-    if (r === 2) return <span className="text-muted-foreground font-bold text-xs">2nd</span>;
-    if (r === 3) return <span className="text-amber-700 font-bold text-xs">3rd</span>;
-    return <span className="text-muted-foreground text-xs">{r}th</span>;
+    if (r === 1) return <span className="sb-gold font-bold text-xs w-7">1st</span>;
+    if (r === 2) return <span className="text-slate-300 font-bold text-xs w-7">2nd</span>;
+    if (r === 3) return <span className="text-amber-700 font-bold text-xs w-7">3rd</span>;
+    return <span className="sb-text-muted text-xs w-7">{r}th</span>;
   };
 
   return (
-    <div className="pb-24 min-h-screen">
+    <div className="scoreboard-hub pb-24 min-h-screen">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 md:px-6 pt-6 pb-4">
         <div>
-          <h1 className="text-xl font-bold">Fishing Challenges</h1>
-          <p className="text-xs text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Fishing Challenges</h1>
+          <p className="text-xs sb-text-muted mt-1">
             Competing with {participantUserIds.length.toLocaleString()} anglers worldwide
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-56">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted z-10" />
             <Input
               placeholder="Search challenges..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9"
+              className="pl-9 h-9 sb-input"
             />
           </div>
-          <Button className="gap-1.5 shrink-0 h-9" size="sm" onClick={() => navigate("/app/challenges/new")}>
+          <button onClick={() => navigate("/app/challenges/new")} className="inline-flex items-center justify-center gap-1.5 shrink-0 h-9 px-4 rounded-md sb-bg-cyan font-semibold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity">
             <Plus className="h-4 w-4" />
-            <span className="sm:inline">Create</span>
-          </Button>
+            Create Challenge
+          </button>
         </div>
       </div>
 
@@ -268,62 +268,58 @@ export default function Challenges() {
       <div className="px-4 md:px-6 mb-6">
         <button
           onClick={() => navigate("/app/tournaments")}
-          className="w-full rounded-xl border bg-primary/5 hover:bg-primary/10 transition-colors p-4 flex items-center gap-3 text-left"
+          className="w-full sb-card hover:border-[hsl(var(--sb-cyan))] transition-colors p-4 flex items-center gap-3 text-left bg-gradient-to-r from-[hsl(var(--sb-surface))] to-[hsl(var(--sb-cyan)/0.08)]"
         >
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Swords className="h-5 w-5 text-primary" />
+          <div className="h-10 w-10 rounded-full bg-[hsl(var(--sb-cyan)/0.15)] flex items-center justify-center shrink-0">
+            <Swords className="h-5 w-5 sb-cyan" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm">Tournaments</p>
-            <p className="text-xs text-muted-foreground">Brackets, seeding &amp; elimination rounds</p>
+            <p className="text-xs sb-text-muted">Brackets, seeding &amp; elimination rounds</p>
           </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          <ArrowRight className="h-4 w-4 sb-cyan shrink-0" />
         </button>
       </div>
 
       {/* My Stats */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3 px-4 md:px-6 mb-6">
-        <div className="rounded-xl border bg-card p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
-          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+        {[
+          { icon: Clock, label: "My Active", value: `${myStats.activeChallenges} ${myStats.activeChallenges === 1 ? "Challenge" : "Challenges"}`, accent: "cyan" },
+          { icon: DollarSign, label: "Total Purses", value: `$${myStats.totalPurses.toLocaleString()}`, accent: "cyan" },
+          { icon: Award, label: "Current Rank", value: myStats.bestRank ? `#${myStats.bestRank}` : "—", accent: "gold" },
+        ].map(({ icon: Icon, label, value, accent }) => (
+          <div key={label} className="sb-card p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
+            <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center shrink-0 ${accent === "gold" ? "bg-[hsl(var(--sb-gold)/0.15)]" : "bg-[hsl(var(--sb-cyan)/0.15)]"}`}>
+              <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${accent === "gold" ? "sb-gold" : "sb-cyan"}`} />
+            </div>
+            <div className="text-center sm:text-left min-w-0">
+              <p className="text-[9px] sm:text-[10px] sb-text-muted uppercase tracking-widest font-semibold">{label}</p>
+              <p className="text-sm sm:text-lg font-bold truncate">{value}</p>
+            </div>
           </div>
-          <div className="text-center sm:text-left">
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Active</p>
-            <p className="text-sm sm:text-lg font-bold">{myStats.activeChallenges}</p>
-          </div>
-        </div>
-        <div className="rounded-xl border bg-card p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
-          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Purses</p>
-            <p className="text-sm sm:text-lg font-bold">${myStats.totalPurses.toLocaleString()}</p>
-          </div>
-        </div>
-        <div className="rounded-xl border bg-card p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
-          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Award className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Rank</p>
-            <p className="text-sm sm:text-lg font-bold">{myStats.bestRank ? `#${myStats.bestRank}` : "—"}</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Tabs */}
       <div className="px-4 md:px-6 mb-6">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as TabValue)}>
-          <TabsList>
-            <TabsTrigger value="live" className="gap-1.5">
-              <Flame className="h-3.5 w-3.5" />
-              Live Now
-            </TabsTrigger>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="inline-flex sb-card-soft p-0.5 gap-0.5">
+          {[
+            { key: "live", label: "Live Now", icon: <Flame className="h-3.5 w-3.5" /> },
+            { key: "upcoming", label: "Upcoming" },
+            { key: "completed", label: "Completed" },
+          ].map(({ key, label, icon }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key as TabValue)}
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                tab === key ? "sb-bg-cyan font-semibold" : "sb-text-muted hover:text-white"
+              }`}
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Challenge Cards */}
@@ -331,14 +327,14 @@ export default function Challenges() {
         {isLoading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-[320px] rounded-xl" />
+              <Skeleton key={i} className="h-[320px] rounded-xl bg-[hsl(var(--sb-surface-2))]" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <Trophy className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+            <Trophy className="h-12 w-12 mx-auto sb-text-muted opacity-30 mb-3" />
             <p className="font-medium mb-1">No {tab === "live" ? "live" : tab} challenges</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm sb-text-muted">
               {tab === "live" ? "Check upcoming challenges or create your own!" : "Check back later for new challenges."}
             </p>
           </div>
@@ -360,8 +356,11 @@ export default function Challenges() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-bold text-lg">Upcoming Challenges</h2>
-                <p className="text-xs text-muted-foreground">Secure your spot in the next big events</p>
+                <p className="text-xs sb-text-muted">Secure your spot in the next big events</p>
               </div>
+              <button className="text-xs sb-cyan font-semibold hover:underline inline-flex items-center gap-1">
+                View Schedule <ArrowRight className="h-3 w-3" />
+              </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((challenge) => (
@@ -380,32 +379,32 @@ export default function Challenges() {
 
       {/* Quick Navigation */}
       <div className="mx-4 md:mx-6 mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <button onClick={() => navigate("/app/leaderboard")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors group">
-          <Trophy className="h-6 w-6 text-primary mb-2" />
+        <button onClick={() => navigate("/app/leaderboard")} className="sb-card p-5 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors">
+          <Trophy className="h-6 w-6 sb-gold mb-2" />
           <p className="font-bold text-sm">Scoreboards Hub</p>
-          <p className="text-xs text-muted-foreground mt-1">View rankings & top anglers</p>
+          <p className="text-xs sb-text-muted mt-1">View rankings & top anglers</p>
         </button>
-        <button onClick={() => navigate("/app/species")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors group">
-          <Fish className="h-6 w-6 text-primary mb-2" />
+        <button onClick={() => navigate("/app/species")} className="sb-card p-5 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors">
+          <Fish className="h-6 w-6 sb-cyan mb-2" />
           <p className="font-bold text-sm">Species Explorer</p>
-          <p className="text-xs text-muted-foreground mt-1">Browse species & records</p>
+          <p className="text-xs sb-text-muted mt-1">Browse species & records</p>
         </button>
-        <button onClick={() => navigate("/app/catches")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors group">
-          <Award className="h-6 w-6 text-primary mb-2" />
+        <button onClick={() => navigate("/app/catches")} className="sb-card p-5 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors">
+          <Award className="h-6 w-6 text-emerald-400 mb-2" />
           <p className="font-bold text-sm">Log a Catch</p>
-          <p className="text-xs text-muted-foreground mt-1">Submit catches to climb ranks</p>
+          <p className="text-xs sb-text-muted mt-1">Submit catches to climb ranks</p>
         </button>
       </div>
 
       {/* CTA Banner */}
-      <div className="mx-4 md:mx-6 mt-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-6 sm:p-8 md:p-10 text-center">
+      <div className="mx-4 md:mx-6 mt-8 sb-card p-6 sm:p-8 md:p-10 text-center bg-gradient-to-br from-[hsl(var(--sb-surface))] via-[hsl(var(--sb-cyan)/0.06)] to-transparent">
         <h2 className="text-lg sm:text-xl font-bold mb-2">Don't see a challenge that fits?</h2>
-        <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto mb-4 sm:mb-5">
-          Create your own private challenge for your fishing club or tournament series.
+        <p className="text-xs sm:text-sm sb-text-muted max-w-md mx-auto mb-4 sm:mb-5">
+          Create your own private challenge for your fishing club or tournament series. Custom species, locations, and scoring rules.
         </p>
-        <Button variant="outline" size="default" onClick={() => navigate("/app/challenges/new")} className="gap-2">
+        <button onClick={() => navigate("/app/challenges/new")} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg sb-bg-cyan font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity">
           Host a Private Event
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -424,35 +423,35 @@ function LiveChallengeCard({
   rankLabel: (r: number) => React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
+    <div className="sb-card overflow-hidden">
       {/* Top section */}
-      <div className="relative h-32 bg-gradient-to-br from-muted to-muted/50 p-4 flex flex-col justify-end overflow-hidden">
+      <div className="relative h-36 bg-gradient-to-br from-[hsl(var(--sb-surface-2))] to-[hsl(var(--sb-surface))] p-4 flex flex-col justify-end overflow-hidden">
         {challenge.bannerUrl && (
           <img src={challenge.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--sb-surface))] via-[hsl(var(--sb-surface)/0.5)] to-transparent" />
         <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-destructive text-destructive-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-destructive-foreground animate-pulse" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500 text-white">
+            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
             Live
           </span>
           {challenge.speciesName && (
-            <span className="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-muted/80 backdrop-blur-sm border">
+            <span className="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-[hsl(var(--sb-surface)/0.8)] backdrop-blur-sm border sb-border sb-cyan">
               {challenge.speciesName}
             </span>
           )}
         </div>
-        <div className="absolute top-3 right-3">
-          <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Ends in</span>
+        <div className="absolute top-3 right-3 text-right">
+          <span className="text-[10px] font-semibold sb-cyan uppercase tracking-widest">Ends in</span>
           <div className="mt-0.5">
             <CountdownDisplay endDate={challenge.end_date} />
           </div>
         </div>
-        <div>
-          <h3 className="font-bold text-base">{challenge.title}</h3>
+        <div className="relative">
+          <h3 className="font-bold text-lg text-white">{challenge.title}</h3>
           {challenge.location && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <MapPin className="h-3 w-3" /> {challenge.location}
+            <p className="text-xs sb-text-muted flex items-center gap-1">
+              <MapPin className="h-3 w-3 sb-cyan" /> {challenge.location}
             </p>
           )}
         </div>
@@ -464,22 +463,22 @@ function LiveChallengeCard({
           {/* Leaderboard */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Top Leaderboard</p>
-              <button className="text-[10px] text-primary font-semibold hover:underline">View All</button>
+              <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Top Leaderboard</p>
+              <button className="text-[10px] sb-cyan font-semibold hover:underline">View All</button>
             </div>
             <div className="space-y-2">
               {challenge.topEntries.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">No entries yet</p>
+                <p className="text-xs sb-text-muted py-2">No entries yet</p>
               ) : (
                 challenge.topEntries.map((entry) => (
                   <div key={entry.userId} className="flex items-center gap-2">
                     {rankLabel(entry.rank)}
-                    <Avatar className="h-6 w-6">
+                    <Avatar className="h-6 w-6 ring-1 ring-[hsl(var(--sb-border))]">
                       <AvatarImage src={entry.photo || ""} />
-                      <AvatarFallback className="text-[9px] bg-muted">{entry.displayName[0]}</AvatarFallback>
+                      <AvatarFallback className="text-[9px] bg-[hsl(var(--sb-surface-2))]">{entry.displayName[0]}</AvatarFallback>
                     </Avatar>
                     <span className="text-xs font-medium truncate flex-1">{entry.displayName}</span>
-                    <span className="text-xs font-bold">{entry.score} lbs</span>
+                    <span className="text-xs font-bold sb-cyan">{entry.score} lbs</span>
                   </div>
                 ))
               )}
@@ -487,35 +486,39 @@ function LiveChallengeCard({
           </div>
 
           {/* Stats */}
-          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 shrink-0">
+          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 pt-3 sm:pt-0 border-t sb-border sm:border-t-0 shrink-0">
             {challenge.prizePool > 0 && (
               <div className="text-left sm:text-right">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Prize Pool</p>
-                <p className="text-lg sm:text-xl font-bold text-primary">${challenge.prizePool.toLocaleString()}</p>
+                <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Prize Pool</p>
+                <p className="text-xl sm:text-2xl font-bold sb-gold">${challenge.prizePool.toLocaleString()}</p>
               </div>
             )}
             <div className="text-left sm:text-right">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Participants</p>
+              <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Participants</p>
               <p className="text-sm font-bold">
                 {challenge.participantCount}
-                {challenge.maxParticipants && <span className="text-muted-foreground font-normal">/{challenge.maxParticipants}</span>}
+                {challenge.maxParticipants && <span className="sb-text-muted font-normal">/{challenge.maxParticipants}</span>}
               </p>
               {challenge.maxParticipants && (
-                <div className="w-20 h-1 bg-muted rounded-full mt-1">
+                <div className="w-20 h-1 bg-[hsl(var(--sb-surface-2))] rounded-full mt-1">
                   <div
-                    className="h-full bg-primary rounded-full"
+                    className="h-full bg-[hsl(var(--sb-cyan))] rounded-full"
                     style={{ width: `${Math.min(100, (challenge.participantCount / challenge.maxParticipants) * 100)}%` }}
                   />
                 </div>
               )}
             </div>
-            <Button
-              size="sm"
+            <button
               onClick={onJoin}
               disabled={challenge.isJoined || joining}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
+                challenge.isJoined
+                  ? "bg-[hsl(var(--sb-surface-2))] sb-text-muted cursor-not-allowed"
+                  : "sb-bg-cyan hover:opacity-90"
+              } disabled:opacity-60`}
             >
-              {challenge.isJoined ? "Joined" : "Join"}
-            </Button>
+              {challenge.isJoined ? "Joined" : "Join Challenge"}
+            </button>
           </div>
         </div>
       </div>
@@ -535,44 +538,51 @@ function UpcomingChallengeCard({
 }) {
   const startDate = new Date(challenge.start_date);
   const typeLabel = challenge.is_official ? "Pro Series" : challenge.challenge_type === "most_caught" ? "Casual" : "Team Event";
+  const typeBadgeClass = challenge.is_official
+    ? "sb-bg-cyan"
+    : challenge.challenge_type === "most_caught"
+      ? "bg-[hsl(var(--sb-gold))] text-[hsl(var(--sb-bg))]"
+      : "bg-violet-500 text-white";
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden group">
-      <div className="relative h-28 bg-gradient-to-br from-muted to-muted/30 p-3 flex flex-col justify-end overflow-hidden">
+    <div className="sb-card overflow-hidden group hover:border-[hsl(var(--sb-cyan))] transition-colors">
+      <div className="relative h-28 bg-gradient-to-br from-[hsl(var(--sb-surface-2))] to-[hsl(var(--sb-surface))] p-3 flex flex-col justify-end overflow-hidden">
         {challenge.bannerUrl && (
           <img src={challenge.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
-        <span className="absolute top-3 left-3 inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-primary text-primary-foreground">
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--sb-surface))] via-[hsl(var(--sb-surface)/0.4)] to-transparent" />
+        <span className={`absolute top-3 left-3 inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${typeBadgeClass}`}>
           {typeLabel}
         </span>
-        <div className="absolute top-3 right-3 rounded-md border bg-card/80 backdrop-blur-sm px-2 py-1 text-center">
-          <p className="text-[10px] font-bold uppercase">{startDate.toLocaleDateString("en-US", { day: "2-digit" })}</p>
-          <p className="text-[10px] text-muted-foreground uppercase">{startDate.toLocaleDateString("en-US", { month: "short" })}</p>
+        <div className="absolute top-3 right-3 rounded-md sb-card-soft bg-[hsl(var(--sb-surface)/0.85)] backdrop-blur-sm px-2 py-1 text-center min-w-[42px]">
+          <p className="text-sm font-bold leading-none">{startDate.toLocaleDateString("en-US", { day: "2-digit" })}</p>
+          <p className="text-[9px] sb-cyan uppercase tracking-wider mt-0.5">{startDate.toLocaleDateString("en-US", { month: "short" })}</p>
         </div>
+        <button className="absolute bottom-3 right-3 text-[10px] sb-cyan font-semibold hover:underline">
+          Remind Me
+        </button>
       </div>
       <div className="p-4">
         <h3 className="font-bold text-sm mb-1">{challenge.title}</h3>
         {challenge.speciesName && (
-          <p className="text-xs text-muted-foreground flex items-center gap-1 mb-3">
-            <Fish className="h-3 w-3" /> {challenge.speciesName}
+          <p className="text-xs sb-text-muted flex items-center gap-1 mb-3">
+            <MapPin className="h-3 w-3 sb-cyan" /> {challenge.location || challenge.speciesName}
           </p>
         )}
         <div className="flex items-center justify-between">
           {challenge.prizePool > 0 && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Prize Pool</p>
-              <p className="text-sm font-bold">${challenge.prizePool.toLocaleString()}</p>
+              <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Prize Pool</p>
+              <p className="text-sm font-bold sb-gold">${challenge.prizePool.toLocaleString()}</p>
             </div>
           )}
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={onJoin}
             disabled={challenge.isJoined || joining}
+            className="px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border sb-border sb-cyan hover:bg-[hsl(var(--sb-cyan)/0.1)] transition-colors disabled:opacity-60"
           >
             {challenge.isJoined ? "Registered" : "Details"}
-          </Button>
+          </button>
         </div>
       </div>
     </div>
@@ -588,13 +598,13 @@ function CompletedChallengeCard({
   rankLabel: (r: number) => React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border bg-card p-4 opacity-80">
+    <div className="sb-card p-4 opacity-90 hover:opacity-100 transition-opacity">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-sm">{challenge.title}</h3>
-        <Badge variant="secondary" className="text-[10px]">Completed</Badge>
+        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[hsl(var(--sb-surface-2))] sb-text-muted border sb-border">Completed</span>
       </div>
       {challenge.speciesName && (
-        <p className="text-xs text-muted-foreground mb-3">
+        <p className="text-xs sb-text-muted mb-3">
           <Fish className="h-3 w-3 inline mr-1" />{challenge.speciesName}
         </p>
       )}
@@ -604,16 +614,16 @@ function CompletedChallengeCard({
             {rankLabel(entry.rank)}
             <Avatar className="h-5 w-5">
               <AvatarImage src={entry.photo || ""} />
-              <AvatarFallback className="text-[8px] bg-muted">{entry.displayName[0]}</AvatarFallback>
+              <AvatarFallback className="text-[8px] bg-[hsl(var(--sb-surface-2))]">{entry.displayName[0]}</AvatarFallback>
             </Avatar>
             <span className="text-xs truncate flex-1">{entry.displayName}</span>
-            <span className="text-xs font-bold">{entry.score} lbs</span>
+            <span className="text-xs font-bold sb-cyan">{entry.score} lbs</span>
           </div>
         ))}
       </div>
       {challenge.prizePool > 0 && (
-        <p className="text-xs text-muted-foreground mt-3">
-          Prize Pool: <span className="font-semibold">${challenge.prizePool.toLocaleString()}</span>
+        <p className="text-xs sb-text-muted mt-3 pt-3 border-t sb-border">
+          Prize Pool: <span className="font-bold sb-gold">${challenge.prizePool.toLocaleString()}</span>
         </p>
       )}
     </div>
