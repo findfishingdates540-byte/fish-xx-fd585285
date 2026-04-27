@@ -36,6 +36,7 @@ import PublicChallenges from "./pages/Challenges";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
 import SpeciesExplorer from "./pages/app/SpeciesExplorer";
+import AnglerTrophies from "./pages/app/AnglerTrophies";
 import CatchDetail from "./pages/app/CatchDetail";
 import Challenges from "./pages/app/Challenges";
 import CreateChallenge from "./pages/app/CreateChallenge";
