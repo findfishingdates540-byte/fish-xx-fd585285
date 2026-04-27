@@ -287,42 +287,15 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             <Label className="text-sm font-semibold mb-2 block">Body of Water</Label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Select
-                value={formData.fishing_spot_id || "custom"}
-                onValueChange={(val) => {
-                  if (val === "custom") {
-                    setFormData({ ...formData, fishing_spot_id: "" });
-                  } else {
-                    const spot = spots.find(s => s.id === val);
-                    setFormData({
-                      ...formData,
-                      fishing_spot_id: val,
-                      general_location: spot?.location_name || spot?.name || "",
-                    });
-                  }
-                }}
-              >
-                <SelectTrigger className="pl-9">
-                  <SelectValue placeholder="Select body of water" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="custom">Enter manually</SelectItem>
-                  {spots.map((spot) => (
-                    <SelectItem key={spot.id} value={spot.id}>
-                      {spot.name}{spot.location_name ? `, ${spot.location_name}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {!formData.fishing_spot_id && (
               <Input
                 placeholder="e.g., Lake Champlain, VT/NY"
                 value={formData.general_location}
-                onChange={(e) => setFormData({ ...formData, general_location: e.target.value })}
-                className="mt-2"
+                onChange={(e) =>
+                  setFormData({ ...formData, general_location: e.target.value, fishing_spot_id: "" })
+                }
+                className="pl-9"
               />
-            )}
+            </div>
           </div>
 
           <div>
