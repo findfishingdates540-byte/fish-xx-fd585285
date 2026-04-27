@@ -22,6 +22,7 @@ import {
 import { RefreshCw, Heart, Flag, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProfileCompletionBanner } from '@/components/profile';
+import { AdBanner } from '@/components/ads/AdBanner';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
