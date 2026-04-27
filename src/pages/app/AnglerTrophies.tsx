@@ -18,7 +18,7 @@ export default function AnglerTrophies() {
       if (!user) return null;
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, photos, city, state, created_at, premium_status")
+        .select("display_name, photos, city, state, created_at")
         .eq("id", user.id)
         .maybeSingle();
       return data;
@@ -55,7 +55,7 @@ export default function AnglerTrophies() {
     ? new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
     : "—";
   const location = [profile?.city, profile?.state].filter(Boolean).join(", ") || "Location not set";
-  const isPro = !!profile?.premium_status && profile.premium_status !== "free";
+  const isPro = false;
 
   const totalCatches = catchStats?.count ?? 0;
   const heaviest = catchStats?.heaviest;
