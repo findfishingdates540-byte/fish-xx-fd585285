@@ -230,22 +230,22 @@ export default function SpeciesExplorer() {
 
   const categoryBadgeColor = (cat: string) => {
     switch (cat) {
-      case "freshwater": return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
-      case "saltwater": return "bg-sky-500/20 text-sky-400 border-sky-500/30";
-      case "big_game": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
-      case "panfish": return "bg-violet-500/20 text-violet-400 border-violet-500/30";
-      default: return "bg-muted text-muted-foreground";
+      case "freshwater": return "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+      case "saltwater": return "bg-[hsl(var(--sb-cyan)/0.2)] text-[hsl(var(--sb-cyan))] border-[hsl(var(--sb-cyan)/0.4)]";
+      case "big_game": return "bg-[hsl(var(--sb-gold)/0.2)] text-[hsl(var(--sb-gold))] border-[hsl(var(--sb-gold)/0.4)]";
+      case "panfish": return "bg-violet-500/20 text-violet-300 border-violet-500/40";
+      default: return "bg-[hsl(var(--sb-surface-2))] sb-text-muted";
     }
   };
 
   return (
-    <div className="pb-24 min-h-screen">
+    <div className="scoreboard-hub pb-24 min-h-screen">
       {/* Hero Section */}
-      <div className="text-center pt-8 pb-6 px-4">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">
+      <div className="text-center pt-10 pb-6 px-4">
+        <h1 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">
           Discover Your Next Challenge
         </h1>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto">
+        <p className="text-sm sb-text-muted max-w-xl mx-auto leading-relaxed">
           Search through {species.length > 0 ? `over ${formatNumber(species.length)}` : ""} freshwater and saltwater species.
           Track records, view hot spots, and log your championship catches.
         </p>
@@ -254,21 +254,17 @@ export default function SpeciesExplorer() {
       {/* Search Bar */}
       <div className="flex items-center gap-2 max-w-xl mx-auto px-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted z-10" />
           <Input
             placeholder="Search species (e.g. Largemouth Bass, Yellowfin Tuna...)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-11"
+            className="pl-10 h-11 sb-input"
           />
         </div>
-        <Button
-          size="lg"
-          className="h-11 px-6"
-          onClick={() => {/* search is live */}}
-        >
+        <button className="h-11 px-6 sb-bg-cyan font-bold text-sm uppercase tracking-wider rounded-md hover:opacity-90 transition-opacity">
           Search
-        </Button>
+        </button>
       </div>
 
       {/* Filter Tabs + Sort */}
@@ -280,8 +276,8 @@ export default function SpeciesExplorer() {
               onClick={() => { setActiveFilter(tab.value); setShowAll(false); }}
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-colors border ${
                 activeFilter === tab.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                  ? "sb-bg-cyan border-[hsl(var(--sb-cyan))]"
+                  : "bg-[hsl(var(--sb-surface))] sb-text-muted border-[hsl(var(--sb-border))] hover:text-white hover:border-[hsl(var(--sb-cyan)/0.5)]"
               }`}
             >
               {tab.icon}
@@ -290,7 +286,7 @@ export default function SpeciesExplorer() {
           ))}
         </div>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-          <SelectTrigger className="w-[180px] h-9 text-xs">
+          <SelectTrigger className="w-[200px] h-9 text-xs sb-input">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -306,13 +302,13 @@ export default function SpeciesExplorer() {
         {speciesLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-[340px] rounded-xl" />
+              <Skeleton key={i} className="h-[340px] rounded-xl bg-[hsl(var(--sb-surface-2))]" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <Fish className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-muted-foreground">No species found matching your search.</p>
+            <Fish className="h-12 w-12 mx-auto sb-text-muted opacity-40 mb-3" />
+            <p className="sb-text-muted">No species found matching your search.</p>
           </div>
         ) : (
           <>
@@ -321,10 +317,10 @@ export default function SpeciesExplorer() {
                 <button
                   key={card.id}
                   onClick={() => navigate(`/app/leaderboard/species/${card.id}`)}
-                  className="group rounded-xl border bg-card overflow-hidden text-left transition-all hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5"
+                  className="group sb-card overflow-hidden text-left transition-all hover:shadow-lg hover:border-[hsl(var(--sb-cyan))] hover:-translate-y-0.5"
                 >
                   {/* Image */}
-                  <div className="relative h-44 bg-muted overflow-hidden">
+                  <div className="relative h-44 bg-[hsl(var(--sb-surface-2))] overflow-hidden">
                     {card.image_url ? (
                       <img
                         src={card.image_url}
@@ -332,8 +328,8 @@ export default function SpeciesExplorer() {
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                        <Fish className="h-16 w-16 text-muted-foreground/20" />
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[hsl(var(--sb-surface-2))] to-[hsl(var(--sb-surface))]">
+                        <Fish className="h-16 w-16 sb-text-muted opacity-20" />
                       </div>
                     )}
                     {/* Category badges */}
@@ -347,19 +343,19 @@ export default function SpeciesExplorer() {
                         </span>
                       ))}
                       {card.isTrending && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border bg-red-500/20 text-red-400 border-red-500/30 backdrop-blur-sm">
-                          Trending
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border bg-rose-500/20 text-rose-300 border-rose-500/40 backdrop-blur-sm">
+                          <Flame className="h-3 w-3" /> Trending
                         </span>
                       )}
                     </div>
                     {/* Gradient overlay at bottom */}
-                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[hsl(var(--sb-surface))] to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3">
-                      <h3 className="font-bold text-base uppercase tracking-wide">
+                      <h3 className="font-bold text-base uppercase tracking-wide text-white">
                         {card.name}
                       </h3>
                       {card.scientific_name && (
-                        <p className="text-[11px] text-muted-foreground italic">
+                        <p className="text-[11px] sb-text-muted italic">
                           {card.scientific_name}
                         </p>
                       )}
@@ -369,19 +365,19 @@ export default function SpeciesExplorer() {
                   {/* Stats */}
                   <div className="p-4">
                     <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="rounded-lg bg-muted/50 px-3 py-2">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                      <div className="rounded-lg bg-[hsl(var(--sb-surface-2))] border sb-border px-3 py-2">
+                        <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
                           Global Logs
                         </p>
-                        <p className="text-sm font-bold text-primary">
+                        <p className="text-sm font-bold sb-cyan">
                           {formatNumber(card.totalLogs)}
                         </p>
                       </div>
-                      <div className="rounded-lg bg-muted/50 px-3 py-2">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                      <div className="rounded-lg bg-[hsl(var(--sb-surface-2))] border sb-border px-3 py-2">
+                        <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
                           World Record
                         </p>
-                        <p className="text-sm font-bold text-primary">
+                        <p className="text-sm font-bold sb-cyan">
                           {card.worldRecord ? `${card.worldRecord.toLocaleString()} lbs` : "—"}
                         </p>
                       </div>
@@ -390,20 +386,20 @@ export default function SpeciesExplorer() {
                     {/* Record Holder */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Avatar className="h-7 w-7">
+                        <Avatar className="h-8 w-8 ring-2 ring-[hsl(var(--sb-border))]">
                           <AvatarImage src={card.recordHolder?.avatar || ""} />
-                          <AvatarFallback className="text-[10px] bg-muted">
+                          <AvatarFallback className="text-[10px] bg-[hsl(var(--sb-surface-2))]">
                             {card.recordHolder ? card.recordHolder.name[0] : "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="text-[10px] text-muted-foreground">Record Holder</p>
-                          <p className="text-xs font-medium truncate">
+                          <p className="text-[10px] sb-text-muted uppercase tracking-wider">Record Holder</p>
+                          <p className="text-xs font-semibold truncate">
                             {card.recordHolder?.name || "No record yet"}
                           </p>
                         </div>
                       </div>
-                      <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+                      <div className="h-9 w-9 rounded-full sb-bg-cyan flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                         <Plus className="h-4 w-4" />
                       </div>
                     </div>
@@ -415,15 +411,13 @@ export default function SpeciesExplorer() {
             {/* View More Button */}
             {!showAll && remainingCount > 0 && (
               <div className="flex justify-center mt-8">
-                <Button
-                  variant="outline"
-                  size="lg"
+                <button
                   onClick={() => setShowAll(true)}
-                  className="gap-2 px-8"
+                  className="inline-flex items-center gap-2 px-8 py-3 rounded-lg sb-card hover:border-[hsl(var(--sb-cyan))] sb-cyan font-semibold text-sm transition-colors"
                 >
                   View {remainingCount} More Species
                   <ChevronDown className="h-4 w-4" />
-                </Button>
+                </button>
               </div>
             )}
           </>
@@ -432,51 +426,30 @@ export default function SpeciesExplorer() {
 
       {/* Cross-links */}
       <div className="mt-10 px-4 md:px-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button onClick={() => navigate("/app/challenges")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors flex items-center gap-4">
-          <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0"><Target className="h-5 w-5 text-destructive" /></div>
-          <div><p className="font-bold text-sm">Fishing Challenges</p><p className="text-xs text-muted-foreground">Compete for prizes with these species</p></div>
+        <button onClick={() => navigate("/app/challenges")} className="sb-card p-5 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors flex items-center gap-4">
+          <div className="h-10 w-10 rounded-full bg-rose-500/15 flex items-center justify-center shrink-0"><Target className="h-5 w-5 text-rose-400" /></div>
+          <div><p className="font-bold text-sm">Fishing Challenges</p><p className="text-xs sb-text-muted">Compete for prizes with these species</p></div>
         </button>
-        <button onClick={() => navigate("/app/leaderboard")} className="rounded-xl border bg-card p-5 text-left hover:bg-muted/50 transition-colors flex items-center gap-4">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0"><Trophy className="h-5 w-5 text-primary" /></div>
-          <div><p className="font-bold text-sm">Scoreboards Hub</p><p className="text-xs text-muted-foreground">View overall rankings & team standings</p></div>
+        <button onClick={() => navigate("/app/leaderboard")} className="sb-card p-5 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors flex items-center gap-4">
+          <div className="h-10 w-10 rounded-full bg-[hsl(var(--sb-gold)/0.15)] flex items-center justify-center shrink-0"><Trophy className="h-5 w-5 sb-gold" /></div>
+          <div><p className="font-bold text-sm">Scoreboards Hub</p><p className="text-xs sb-text-muted">View overall rankings & team standings</p></div>
         </button>
       </div>
 
       {/* Bottom Stats Bar */}
-      <div className="mt-10 border-t pt-10 pb-6 px-4">
+      <div className="mt-10 border-t sb-border pt-10 pb-6 px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto text-center">
-          <div>
-            <p className="text-2xl md:text-3xl font-bold text-primary">
-              {formatNumber(globalStats.totalSpecies)}
-            </p>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium mt-1">
-              Tracked Species
-            </p>
-          </div>
-          <div>
-            <p className="text-2xl md:text-3xl font-bold text-primary">
-              {formatNumber(globalStats.totalLogs)}
-            </p>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium mt-1">
-              Logged Catches
-            </p>
-          </div>
-          <div>
-            <p className="text-2xl md:text-3xl font-bold text-primary">
-              {formatNumber(globalStats.activeAnglers)}
-            </p>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium mt-1">
-              Active Anglers
-            </p>
-          </div>
-          <div>
-            <p className="text-2xl md:text-3xl font-bold text-primary">
-              {globalStats.newRecords}
-            </p>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium mt-1">
-              New Records Today
-            </p>
-          </div>
+          {[
+            { value: formatNumber(globalStats.totalSpecies), label: "Tracked Species" },
+            { value: formatNumber(globalStats.totalLogs), label: "Logged Catches" },
+            { value: formatNumber(globalStats.activeAnglers), label: "Active Anglers" },
+            { value: String(globalStats.newRecords), label: "New Records Today" },
+          ].map((s) => (
+            <div key={s.label}>
+              <p className="text-3xl md:text-4xl font-bold sb-cyan tracking-tight">{s.value}</p>
+              <p className="text-[11px] sb-text-muted uppercase tracking-widest font-semibold mt-2">{s.label}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
