@@ -268,6 +268,10 @@ export function FishingHeader() {
                 <User className="h-4 w-4 mr-2" />
                 Profile
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/app/trophies")}>
+                <Trophy className="h-4 w-4 mr-2" />
+                Trophies
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/app/settings")}>
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
