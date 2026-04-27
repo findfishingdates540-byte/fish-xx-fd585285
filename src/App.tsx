@@ -36,6 +36,7 @@ import PublicChallenges from "./pages/Challenges";
 import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
 import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
 import SpeciesExplorer from "./pages/app/SpeciesExplorer";
+import AnglerTrophies from "./pages/app/AnglerTrophies";
 import CatchDetail from "./pages/app/CatchDetail";
 import Challenges from "./pages/app/Challenges";
 import CreateChallenge from "./pages/app/CreateChallenge";
@@ -165,6 +166,7 @@ const App = () => (
               <Route path="u/:userId/posts/:postId" element={<UserFeed />} />
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
+              <Route path="trophies" element={<AnglerTrophies />} />
               <Route path="profile/:userId" element={<UserProfile />} />
               <Route path="dating-profile/:userId" element={<DatingProfile />} />
               <Route path="dating-setup" element={<DatingSetup />} />
