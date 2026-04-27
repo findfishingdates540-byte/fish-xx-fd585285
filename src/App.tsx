@@ -166,6 +166,7 @@ const App = () => (
               <Route path="u/:userId/posts/:postId" element={<UserFeed />} />
               <Route path="profile" element={<Profile />} />
               <Route path="profile/edit" element={<ProfileEdit />} />
+              <Route path="trophies" element={<AnglerTrophies />} />
               <Route path="profile/:userId" element={<UserProfile />} />
               <Route path="dating-profile/:userId" element={<DatingProfile />} />
               <Route path="dating-setup" element={<DatingSetup />} />
