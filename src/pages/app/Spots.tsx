@@ -23,6 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { getCurrentPosition } from "@/lib/location";
+import { AdBanner } from "@/components/ads/AdBanner";
 
 interface SharedCatch {
   id: string;
@@ -560,6 +561,11 @@ export default function Spots() {
           >
             View full details
           </Button>
+
+          {/* Sponsored banner — hidden for premium users automatically */}
+          <div className="mt-3">
+            <AdBanner variant="compact" />
+          </div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ import { FeedRightSidebar } from '@/components/feed/FeedRightSidebar';
 import { useFeedPosts, useFollowingFeedPosts, type FeedPost as FeedPostType } from '@/hooks/use-feed';
 import { useActiveAds, type Advertisement } from '@/hooks/use-admin-ads';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsPremium } from '@/hooks/use-is-premium';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
@@ -84,6 +85,9 @@ export default function Feed() {
   // Fetch targeted ads based on user profile
   const { data: ads = [] } = useActiveAds(userProfile);
 
+  // Premium users don't see ads
+  const { isPremium } = useIsPremium();
+
   // Weather data from user's location
   const { data: weather, isLoading: weatherLoading } = useWeather(
     userProfile?.location_lat,
@@ -107,19 +111,19 @@ export default function Feed() {
     const items: FeedItem[] = [];
     let adIndex = 0;
     const adInterval = 5; // Show an ad every 5 posts
-    
+    const showAds = !isPremium && ads.length > 0;
+
     posts.forEach((post, index) => {
       items.push({ type: 'post', data: post });
-      
-      // Insert an ad after every 5 posts if we have ads available
-      if ((index + 1) % adInterval === 0 && adIndex < ads.length) {
+      // Insert an ad after every 5 posts if we have ads available and user isn't premium
+      if (showAds && (index + 1) % adInterval === 0 && adIndex < ads.length) {
         items.push({ type: 'ad', data: ads[adIndex] });
         adIndex++;
       }
     });
-    
+
     return items;
-  }, [posts, ads]);
+  }, [posts, ads, isPremium]);
 
   // Debounced real-time subscription for new posts (prevents rapid refetches)
   useEffect(() => {

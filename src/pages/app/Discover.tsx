@@ -22,6 +22,7 @@ import {
 import { RefreshCw, Heart, Flag, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProfileCompletionBanner } from '@/components/profile';
+import { AdBanner } from '@/components/ads/AdBanner';
 
 type DiscoveryMode = 'fishing' | 'dating' | 'combo';
 
@@ -307,6 +308,11 @@ export default function Discover() {
             </div>
             
             <div className="w-20" /> {/* Spacer for balance */}
+          </div>
+
+          {/* Sponsored banner above the swipe area — auto-hidden for premium users */}
+          <div className="hidden lg:block px-6 pt-3">
+            <AdBanner variant="compact" />
           </div>
 
           {/* Profile Content */}

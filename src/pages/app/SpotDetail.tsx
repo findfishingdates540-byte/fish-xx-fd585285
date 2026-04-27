@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Lightbox } from "@/components/ui/lightbox";
 import { toast } from "sonner";
 import { getShareBaseUrl } from "@/lib/config";
+import { AdBanner } from "@/components/ads/AdBanner";
 import {
   Star,
   MapPin,
@@ -659,6 +660,9 @@ export default function SpotDetail() {
             ))}
           </div>
         </div>
+
+        {/* Sponsored banner under photo gallery — hidden for premium users */}
+        <AdBanner variant="inline" className="mb-6" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
