@@ -237,6 +237,55 @@
 }
 
 @layer utilities {
+  /* Scoreboards Hub – scoped theme inspired by Stitch reference */
+  .scoreboard-hub {
+    --sb-bg: 212 45% 9%;
+    --sb-surface: 212 40% 13%;
+    --sb-surface-2: 212 35% 17%;
+    --sb-border: 212 30% 22%;
+    --sb-text: 210 20% 96%;
+    --sb-muted: 212 15% 65%;
+    --sb-cyan: 187 92% 55%;
+    --sb-cyan-soft: 187 92% 55% / 0.12;
+    --sb-gold: 40 92% 58%;
+    --sb-emerald: 152 72% 48%;
+    background-color: hsl(var(--sb-bg));
+    color: hsl(var(--sb-text));
+    font-family: 'Lexend', 'Outfit', system-ui, sans-serif;
+  }
+  .scoreboard-hub .sb-card {
+    background-color: hsl(var(--sb-surface));
+    border: 1px solid hsl(var(--sb-border));
+    border-radius: 0.875rem;
+  }
+  .scoreboard-hub .sb-card-soft {
+    background-color: hsl(var(--sb-surface-2));
+    border: 1px solid hsl(var(--sb-border));
+    border-radius: 0.75rem;
+  }
+  .scoreboard-hub .sb-text-muted { color: hsl(var(--sb-muted)); }
+  .scoreboard-hub .sb-cyan { color: hsl(var(--sb-cyan)); }
+  .scoreboard-hub .sb-gold { color: hsl(var(--sb-gold)); }
+  .scoreboard-hub .sb-bg-cyan { background-color: hsl(var(--sb-cyan)); color: hsl(var(--sb-bg)); }
+  .scoreboard-hub .sb-border { border-color: hsl(var(--sb-border)); }
+  .scoreboard-hub .sb-divide > * + * { border-top: 1px solid hsl(var(--sb-border)); }
+  .scoreboard-hub input.sb-input {
+    background-color: hsl(var(--sb-surface-2));
+    border: 1px solid hsl(var(--sb-border));
+    color: hsl(var(--sb-text));
+  }
+  .scoreboard-hub input.sb-input::placeholder { color: hsl(var(--sb-muted)); }
+
+  @keyframes sb-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .sb-marquee-track {
+    display: inline-flex;
+    animation: sb-marquee 40s linear infinite;
+  }
+  .sb-marquee-track:hover { animation-play-state: paused; }
+
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
