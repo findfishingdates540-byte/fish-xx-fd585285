@@ -363,13 +363,13 @@ export default function Onboarding() {
         // Grant 30-day free trial to all users
         is_premium: true,
         premium_expires_at: trialExpiresAt.toISOString(),
-        // Lifestyle fields
-        bio,
-        occupation,
-        height_cm: heightCm,
-        smoking,
-        drinking,
-        zodiac_sign: zodiacSign,
+        // Lifestyle fields (coerce empty strings to null so DB enums don't reject "")
+        bio: bio || null,
+        occupation: occupation || null,
+        height_cm: heightCm || null,
+        smoking: smoking || null,
+        drinking: drinking || null,
+        zodiac_sign: zodiacSign || null,
       };
 
       if (accountMode === 'dating' || accountMode === 'both') {
@@ -758,7 +758,9 @@ export default function Onboarding() {
                       {saving ? (
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
                       ) : null}
-                      {isLastStep ? 'Finalize & Find Matches' : 'Continue'}
+                      {isLastStep
+                        ? (accountMode === 'dating' ? 'Finalize & Find Matches' : 'Finish Setup')
+                        : 'Continue'}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </motion.div>
