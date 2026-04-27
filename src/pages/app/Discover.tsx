@@ -310,6 +310,11 @@ export default function Discover() {
             <div className="w-20" /> {/* Spacer for balance */}
           </div>
 
+          {/* Sponsored banner above the swipe area — auto-hidden for premium users */}
+          <div className="hidden lg:block px-6 pt-3">
+            <AdBanner variant="compact" />
+          </div>
+
           {/* Profile Content */}
           <div className="relative flex-1 flex flex-col items-center justify-center p-4 lg:p-6 min-h-0 overflow-hidden">
             {/* Filter - Tablet only, top-left floating */}
