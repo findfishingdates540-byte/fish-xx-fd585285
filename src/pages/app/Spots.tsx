@@ -482,8 +482,8 @@ export default function Spots() {
           <FishXIcon name="weather" size={28} />
         </button>
         <button
-          onClick={() => navigate('/app/pricing')}
-          aria-label="AI suggestions"
+          onClick={() => {}}
+          aria-label="AI suggestions (coming soon)"
           className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
         >
           <Sparkles className="h-5 w-5 text-slate-900" />
@@ -496,14 +496,14 @@ export default function Spots() {
           <Compass className="h-5 w-5 text-slate-900" />
         </button>
         <button
-          onClick={() => navigate('/app/pricing')}
-          aria-label="Verified anglers"
+          onClick={() => {}}
+          aria-label="Verified anglers (coming soon)"
           className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
         >
           <FishXIcon name="achievement" size={28} />
         </button>
         <button
-          onClick={() => navigate(`/app/catches/new?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
+          onClick={() => navigate(`/app/catches?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
           aria-label="Drop pin and log catch"
           className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
         >
