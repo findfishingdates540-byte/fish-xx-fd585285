@@ -91,6 +91,13 @@ export default function Spots() {
   const [activeStyle, setActiveStyle] = useState<MapStyleKey>("outdoors");
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(false);
+  const [crosshair, setCrosshair] = useState<{ lat: number; lng: number }>({ lat: 39.8283, lng: -98.5795 });
+  const [bearing, setBearing] = useState(0);
+  const [showWeather, setShowWeather] = useState(false);
+  const [showPromo, setShowPromo] = useState(true);
+  const { isPremium } = useIsPremium();
+  const { showUpgradeModal } = useUpgradeModal();
+  const weatherQuery = useWeather(showWeather ? crosshair.lat : null, showWeather ? crosshair.lng : null);
 
   // Fetch catches with share_location = true
   const { data: sharedCatches = [], isLoading, refetch } = useQuery({
