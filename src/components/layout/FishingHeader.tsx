@@ -23,16 +23,17 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Search, Settings, LogOut, User, LayoutDashboard, Trophy, Fish, Swords, BarChart3, Camera } from "lucide-react";
+import { Search, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { FishXIcon, type FishXIconName } from "@/components/ui/fishx-icon";
 
-const scoreboardLinks = [
-  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
-  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
-  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
-  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: Camera },
-  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: Trophy },
+const scoreboardLinks: Array<{ to: string; label: string; description: string; icon: FishXIconName }> = [
+  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: "leaderboard" },
+  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: "species" },
+  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: "tournament" },
+  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: "photo" },
+  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: "team2" },
 ];
 
 
@@ -218,8 +219,8 @@ export function FishingHeader() {
                               to={link.to}
                               className="flex items-start gap-3 rounded-lg p-3 hover:bg-accent transition-colors"
                             >
-                              <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                                <link.icon className="h-4 w-4 text-primary" />
+                              <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <FishXIcon name={link.icon} size={32} />
                               </div>
                               <div>
                                 <p className="text-sm font-medium">{link.label}</p>
@@ -263,22 +264,22 @@ export function FishingHeader() {
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem onClick={() => navigate("/app/profile")}>
-                <User className="h-4 w-4 mr-2" />
+                <FishXIcon name="profile" size={20} className="mr-2" />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/app/trophies")}>
-                <Trophy className="h-4 w-4 mr-2" />
+                <FishXIcon name="achievement" size={20} className="mr-2" />
                 Trophies
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/app/settings")}>
-                <Settings className="h-4 w-4 mr-2" />
+                <FishXIcon name="gear" size={20} className="mr-2" />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
+                <FishXIcon name="logout" size={20} className="mr-2" />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>

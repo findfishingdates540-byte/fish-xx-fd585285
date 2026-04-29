@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { PenSquare, BookImage, Fish, MapPin, Calendar, Camera } from 'lucide-react';
+import { PenSquare, BookImage } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
+import { FishXIcon, type FishXIconName } from '@/components/ui/fishx-icon';
 
 interface CreateActionSheetProps {
   open: boolean;
@@ -9,13 +9,23 @@ interface CreateActionSheetProps {
   accountMode: 'dating' | 'fishing';
 }
 
-const allActions = [
-  { key: 'post', to: '/app/feed', icon: PenSquare, label: 'Create Post', description: 'Share an update with your feed', modes: ['fishing', 'both'] },
-  { key: 'story', to: '/app/feed', icon: BookImage, label: 'Add Story', description: 'Share a moment that disappears in 24h', modes: ['fishing', 'both'] },
-  { key: 'catch', to: '/app/catches', icon: Fish, label: 'Log a Catch', description: 'Record your latest catch', modes: ['fishing', 'both'] },
-  { key: 'spot', to: '/app/spots/new', icon: MapPin, label: 'Add a Spot', description: 'Pin a new fishing spot', modes: ['fishing', 'both'] },
-  { key: 'trip', to: '/app/trips/', icon: Calendar, label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
-  { key: 'photo-challenge', to: '/app/photo-challenges', icon: Camera, label: 'Enter Photo Challenge', description: 'Submit a photo to an active challenge', modes: ['fishing', 'both'] },
+type Action = {
+  key: string;
+  to: string;
+  lucideIcon?: typeof PenSquare;
+  fishxIcon?: FishXIconName;
+  label: string;
+  description: string;
+  modes: string[];
+};
+
+const allActions: Action[] = [
+  { key: 'post', to: '/app/feed', lucideIcon: PenSquare, label: 'Create Post', description: 'Share an update with your feed', modes: ['fishing', 'both'] },
+  { key: 'story', to: '/app/feed', lucideIcon: BookImage, label: 'Add Story', description: 'Share a moment that disappears in 24h', modes: ['fishing', 'both'] },
+  { key: 'catch', to: '/app/catches', fishxIcon: 'catchlog', label: 'Log a Catch', description: 'Record your latest catch', modes: ['fishing', 'both'] },
+  { key: 'spot', to: '/app/spots/new', fishxIcon: 'map', label: 'Add a Spot', description: 'Pin a new fishing spot', modes: ['fishing', 'both'] },
+  { key: 'trip', to: '/app/trips/', fishxIcon: 'events', label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
+  { key: 'photo-challenge', to: '/app/photo-challenges', fishxIcon: 'photo', label: 'Enter Photo Challenge', description: 'Submit a photo to an active challenge', modes: ['fishing', 'both'] },
 ];
 
 export function CreateActionSheet({ open, onOpenChange, accountMode }: CreateActionSheetProps) {
@@ -48,8 +58,12 @@ export function CreateActionSheet({ open, onOpenChange, accountMode }: CreateAct
               onClick={() => handleAction(action)}
               className="flex flex-col items-center gap-2 rounded-xl p-3 transition-colors hover:bg-accent"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <action.icon className="h-5 w-5 text-primary" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                {action.fishxIcon ? (
+                  <FishXIcon name={action.fishxIcon} size={40} />
+                ) : action.lucideIcon ? (
+                  <action.lucideIcon className="h-5 w-5 text-primary" />
+                ) : null}
               </div>
               <span className="text-xs font-medium text-foreground text-center leading-tight">{action.label}</span>
             </button>
