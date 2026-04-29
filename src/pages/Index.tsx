@@ -1,6 +1,6 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Apple, Smartphone, Check, Trophy } from 'lucide-react';
+import { ArrowRight, Apple, Smartphone, Check, Trophy, Heart, Fish } from 'lucide-react';
 import { FishXIcon } from '@/components/ui/fishx-icon';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
