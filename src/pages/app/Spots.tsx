@@ -482,7 +482,7 @@ export default function Spots() {
           <FishXIcon name="weather" size={28} />
         </button>
         <button
-          onClick={() => isPremium ? null : showUpgradeModal('AI spot suggestions')}
+          onClick={() => navigate('/app/pricing')}
           aria-label="AI suggestions"
           className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
         >
@@ -496,16 +496,11 @@ export default function Spots() {
           <Compass className="h-5 w-5 text-slate-900" />
         </button>
         <button
-          onClick={() => isPremium ? null : showUpgradeModal('verified angler insights')}
+          onClick={() => navigate('/app/pricing')}
           aria-label="Verified anglers"
-          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95 relative"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
         >
           <FishXIcon name="achievement" size={28} />
-          {!isPremium && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-amber-400 flex items-center justify-center ring-2 ring-white">
-              <Crown className="h-2.5 w-2.5 text-white" />
-            </span>
-          )}
         </button>
         <button
           onClick={() => navigate(`/app/catches/new?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
