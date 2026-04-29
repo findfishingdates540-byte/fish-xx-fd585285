@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Heart, Users, MapPin, MessageCircle, Fish, Star, Apple, Smartphone, Check, Trophy } from 'lucide-react';
+import { ArrowRight, Apple, Smartphone, Check, Trophy } from 'lucide-react';
+import { FishXIcon } from '@/components/ui/fishx-icon';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import logo from '@/assets/logo.png';
@@ -245,42 +246,42 @@ const Index = () => {
           <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" staggerDelay={0.1}>
             <StaggerItem>
               <FeatureCard
-                icon={<Heart className="w-8 h-8" />}
+                icon={<FishXIcon name="search" size={48} />}
                 title="Smart Matching"
                 description="Find fishing buddies who match your style, experience level, and preferred species."
               />
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
-                icon={<Fish className="w-8 h-8" />}
+                icon={<FishXIcon name="catchlog" size={48} />}
                 title="Catch Logs"
                 description="Track and share your catches. Show off your skills and find partners who appreciate the sport."
               />
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
-                icon={<MapPin className="w-8 h-8" />}
+                icon={<FishXIcon name="map" size={48} />}
                 title="Fishing Spots"
                 description="Discover and share the best local fishing spots with an interactive community map."
               />
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
-                icon={<Users className="w-8 h-8" />}
+                icon={<FishXIcon name="team" size={48} />}
                 title="Fishing Buddies"
                 description="Not looking for romance? Find local fishing companions for your next adventure."
               />
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
-                icon={<MessageCircle className="w-8 h-8" />}
+                icon={<FishXIcon name="chat" size={48} />}
                 title="Real-time Chat"
                 description="Message your fishing buddies instantly and plan your next trip together."
               />
             </StaggerItem>
             <StaggerItem>
               <FeatureCard
-                icon={<Star className="w-8 h-8" />}
+                icon={<FishXIcon name="achievement" size={48} />}
                 title="Premium Features"
                 description="Unlock unlimited connections, priority discovery, and exclusive fishing spot data."
               />
