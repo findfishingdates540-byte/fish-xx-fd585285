@@ -6,6 +6,13 @@ import level from '@/assets/icons/fishx_icon_level.png';
 import events from '@/assets/icons/fishx_icon_events.png';
 import chat from '@/assets/icons/fishx_icon_chat.png';
 import team from '@/assets/icons/fishx_icon_team.png';
+import catchlog from '@/assets/icons/fishx_icon_catchlog.png';
+import logout from '@/assets/icons/fishx_icon_logout.png';
+import map from '@/assets/icons/fishx_icon_map.png';
+import notifications from '@/assets/icons/fishx_icon_notifications.png';
+import photo from '@/assets/icons/fishx_icon_photo.png';
+import plus from '@/assets/icons/fishx_icon_plus.png';
+import profile from '@/assets/icons/fishx_icon_profile.png';
 
 /**
  * FishXIcon — themed 3D brand icons (chrome + electric blue).
@@ -19,6 +26,13 @@ export const FISHX_ICONS = {
   events,
   chat,
   team,
+  catchlog,
+  logout,
+  map,
+  notifications,
+  photo,
+  plus,
+  profile,
 } as const;
 
 export type FishXIconName = keyof typeof FISHX_ICONS;
