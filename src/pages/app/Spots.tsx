@@ -18,12 +18,21 @@ import {
   Map,
   Layers,
   Waves,
+  Crown,
+  Compass,
+  Sparkles,
+  Crosshair,
+  Pencil,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { getCurrentPosition } from "@/lib/location";
 import { AdBanner } from "@/components/ads/AdBanner";
+import { FishXIcon } from "@/components/ui/fishx-icon";
+import { useIsPremium } from "@/hooks/use-is-premium";
+import { useWeather } from "@/hooks/use-weather";
+import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
 
 interface SharedCatch {
   id: string;
