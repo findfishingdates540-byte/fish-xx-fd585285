@@ -17,7 +17,6 @@ import {
   Map,
   Layers,
   Waves,
-  Crown,
   Compass,
   Sparkles,
   Crosshair,
@@ -29,9 +28,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { getCurrentPosition } from "@/lib/location";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { FishXIcon } from "@/components/ui/fishx-icon";
-import { useIsPremium } from "@/hooks/use-is-premium";
 import { useWeather } from "@/hooks/use-weather";
-import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
 
 interface SharedCatch {
   id: string;
@@ -93,9 +90,6 @@ export default function Spots() {
   const [crosshair, setCrosshair] = useState<{ lat: number; lng: number }>({ lat: 39.8283, lng: -98.5795 });
   const [bearing, setBearing] = useState(0);
   const [showWeather, setShowWeather] = useState(false);
-  const [showPromo, setShowPromo] = useState(true);
-  const { isPremium } = useIsPremium();
-  const { showUpgradeModal } = useUpgradeModal();
   const weatherQuery = useWeather(showWeather ? crosshair.lat : null, showWeather ? crosshair.lng : null);
 
   // Fetch catches with share_location = true
@@ -439,19 +433,6 @@ export default function Spots() {
       {/* Map Container */}
       <div ref={mapContainerRef} className="absolute inset-0" />
 
-      {/* Premium promo banner (hidden for premium users) */}
-      {showPromo && !isPremium && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 w-[min(92%,520px)]">
-          <button
-            onClick={() => showUpgradeModal('the full Spots map')}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-white font-semibold text-sm sm:text-base bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:brightness-110 transition"
-          >
-            <Crown className="h-5 w-5 shrink-0" />
-            <span className="flex-1 text-left truncate">Unlock thousands of catches!</span>
-          </button>
-        </div>
-      )}
-
       {/* Top-Left stacked controls */}
       <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-10 flex flex-col gap-2.5">
         <button
@@ -501,7 +482,7 @@ export default function Spots() {
           <FishXIcon name="weather" size={28} />
         </button>
         <button
-          onClick={() => isPremium ? null : showUpgradeModal('AI spot suggestions')}
+          onClick={() => navigate('/app/pricing')}
           aria-label="AI suggestions"
           className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
         >
@@ -515,16 +496,11 @@ export default function Spots() {
           <Compass className="h-5 w-5 text-slate-900" />
         </button>
         <button
-          onClick={() => isPremium ? null : showUpgradeModal('verified angler insights')}
+          onClick={() => navigate('/app/pricing')}
           aria-label="Verified anglers"
-          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95 relative"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
         >
           <FishXIcon name="achievement" size={28} />
-          {!isPremium && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-amber-400 flex items-center justify-center ring-2 ring-white">
-              <Crown className="h-2.5 w-2.5 text-white" />
-            </span>
-          )}
         </button>
         <button
           onClick={() => navigate(`/app/catches/new?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
