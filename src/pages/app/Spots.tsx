@@ -266,8 +266,15 @@ export default function Spots() {
       bearing: activeStyle === 'terrain' ? -17 : 0,
     });
 
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100 }), 'bottom-left');
+
+    const updateCrosshair = () => {
+      const c = map.getCenter();
+      setCrosshair({ lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6) });
+      setBearing(map.getBearing());
+    };
+    map.on('move', updateCrosshair);
+    updateCrosshair();
 
     map.on('load', () => {
       setMapReady(true);
