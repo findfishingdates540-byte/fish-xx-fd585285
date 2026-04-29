@@ -13,6 +13,13 @@ import notifications from '@/assets/icons/fishx_icon_notifications.png';
 import photo from '@/assets/icons/fishx_icon_photo.png';
 import plus from '@/assets/icons/fishx_icon_plus.png';
 import profile from '@/assets/icons/fishx_icon_profile.png';
+import weather from '@/assets/icons/fishx_icon_weather.png';
+import video from '@/assets/icons/fishx_icon_video.png';
+import tournament from '@/assets/icons/fishx_icon_tournament.png';
+import team2 from '@/assets/icons/fishx_icon_team2.png';
+import species from '@/assets/icons/fishx_icon_species.png';
+import search from '@/assets/icons/fishx_icon_search.png';
+import social from '@/assets/icons/fishx_icon_social.png';
 
 /**
  * FishXIcon — themed 3D brand icons (chrome + electric blue).
@@ -33,6 +40,13 @@ export const FISHX_ICONS = {
   photo,
   plus,
   profile,
+  weather,
+  video,
+  tournament,
+  team2,
+  species,
+  search,
+  social,
 } as const;
 
 export type FishXIconName = keyof typeof FISHX_ICONS;
