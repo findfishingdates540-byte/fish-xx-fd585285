@@ -1,18 +1,18 @@
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Fish, Swords, Camera, Trophy } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { FishXIcon, type FishXIconName } from '@/components/ui/fishx-icon';
 
 interface ScoreboardSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const scoreboardLinks = [
-  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: BarChart3 },
-  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: Fish },
-  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: Swords },
-  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: Camera },
-  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: Trophy },
+const scoreboardLinks: Array<{ to: string; label: string; description: string; icon: FishXIconName }> = [
+  { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: "leaderboard" },
+  { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: "species" },
+  { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: "tournament" },
+  { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: "photo" },
+  { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: "team2" },
 ];
 
 export function ScoreboardSheet({ open, onOpenChange }: ScoreboardSheetProps) {
@@ -34,8 +34,8 @@ export function ScoreboardSheet({ open, onOpenChange }: ScoreboardSheetProps) {
               }}
               className="flex items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-accent"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted">
-                <link.icon className="h-5 w-5 text-foreground" />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                <FishXIcon name={link.icon} size={36} />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground">{link.label}</p>
