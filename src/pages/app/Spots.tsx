@@ -570,7 +570,7 @@ export default function Spots() {
               {crosshair.lat.toFixed(6)}, {crosshair.lng.toFixed(6)}
             </span>
             <button
-              onClick={() => navigate(`/app/catches/new?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
+              onClick={() => navigate(`/app/catches?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
               className="ml-1 p-1 rounded-full hover:bg-white/10 transition"
               aria-label="Save this location"
             >
