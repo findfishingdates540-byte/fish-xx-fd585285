@@ -10,7 +10,6 @@ import {
   MapPin,
   Fish,
   Navigation,
-  RefreshCw,
   Loader2,
   X,
   Mountain,
