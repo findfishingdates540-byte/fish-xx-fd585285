@@ -440,75 +440,170 @@ export default function Spots() {
       {/* Map Container */}
       <div ref={mapContainerRef} className="absolute inset-0" />
 
-      {/* Header Bar */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between">
-        <div className="bg-card/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border flex items-center gap-2">
-          <Fish className="h-4 w-4 text-primary" />
-          <span className="text-sm font-semibold">Community Catches</span>
-          {!isLoading && (
-            <span className="text-xs text-muted-foreground">({sharedCatches.length})</span>
+      {/* Premium promo banner (hidden for premium users) */}
+      {showPromo && !isPremium && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 w-[min(92%,520px)]">
+          <button
+            onClick={() => showUpgradeModal('the full Spots map')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-white font-semibold text-sm sm:text-base bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:brightness-110 transition"
+          >
+            <Crown className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left truncate">Unlock thousands of catches!</span>
+          </button>
+        </div>
+      )}
+
+      {/* Top-Left stacked controls */}
+      <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-10 flex flex-col gap-2.5">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Close map"
+          className="h-11 w-11 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-white/90 transition active:scale-95"
+        >
+          <X className="h-5 w-5 text-slate-900" />
+        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowStylePicker(!showStylePicker)}
+            aria-label="Map layers"
+            className="h-11 w-11 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-white/90 transition active:scale-95 relative"
+          >
+            <Layers className="h-5 w-5 text-slate-900" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-sky-500 ring-2 ring-white" />
+          </button>
+          {showStylePicker && (
+            <div className="absolute left-12 top-0 bg-card rounded-xl shadow-xl border p-2 min-w-[170px] z-20">
+              {(Object.keys(MAP_STYLES) as MapStyleKey[]).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => switchStyle(key)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    activeStyle === key
+                      ? 'bg-primary/10 text-primary font-semibold'
+                      : 'hover:bg-muted text-foreground'
+                  }`}
+                >
+                  {MAP_STYLES[key].icon}
+                  {MAP_STYLES[key].label}
+                </button>
+              ))}
+            </div>
           )}
         </div>
-        <div className="flex gap-2">
-          {/* Style Picker Toggle */}
-          <div className="relative">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm shadow-lg border"
-              onClick={() => setShowStylePicker(!showStylePicker)}
-            >
-              <Layers className="h-4 w-4" />
-            </Button>
+      </div>
 
-            {/* Style Picker Dropdown */}
-            {showStylePicker && (
-              <div className="absolute right-0 top-11 bg-card rounded-xl shadow-xl border p-2 min-w-[160px] z-20">
-                {(Object.keys(MAP_STYLES) as MapStyleKey[]).map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => switchStyle(key)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                      activeStyle === key
-                        ? 'bg-primary/10 text-primary font-semibold'
-                        : 'hover:bg-muted text-foreground'
-                    }`}
-                  >
-                    {MAP_STYLES[key].icon}
-                    {MAP_STYLES[key].label}
-                  </button>
-                ))}
-              </div>
-            )}
+      {/* Right-Side vertical toolbar pill */}
+      <div className="absolute top-20 right-3 sm:top-24 sm:right-4 z-10 flex flex-col items-center gap-2 bg-white rounded-full shadow-xl px-1.5 py-2.5">
+        <button
+          onClick={() => setShowWeather((s) => !s)}
+          aria-label="Weather"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
+        >
+          <FishXIcon name="weather" size={28} />
+        </button>
+        <button
+          onClick={() => isPremium ? null : showUpgradeModal('AI spot suggestions')}
+          aria-label="AI suggestions"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
+        >
+          <Sparkles className="h-5 w-5 text-slate-900" />
+        </button>
+        <button
+          onClick={() => refetch()}
+          aria-label="Refresh"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
+        >
+          <Compass className="h-5 w-5 text-slate-900" />
+        </button>
+        <button
+          onClick={() => isPremium ? null : showUpgradeModal('verified angler insights')}
+          aria-label="Verified anglers"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95 relative"
+        >
+          <FishXIcon name="achievement" size={28} />
+          {!isPremium && (
+            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-amber-400 flex items-center justify-center ring-2 ring-white">
+              <Crown className="h-2.5 w-2.5 text-white" />
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => navigate(`/app/catches/new?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
+          aria-label="Drop pin and log catch"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
+        >
+          <MapPin className="h-5 w-5 text-slate-900" />
+        </button>
+      </div>
+
+      {/* Weather popover */}
+      {showWeather && (
+        <div className="absolute top-20 right-20 sm:top-24 sm:right-24 z-20 bg-white rounded-2xl shadow-2xl border p-4 w-64 text-slate-900">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-bold text-sm">Local conditions</h4>
+            <button onClick={() => setShowWeather(false)}><X className="h-4 w-4" /></button>
           </div>
-
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm shadow-lg border"
-            onClick={() => refetch()}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm shadow-lg border"
-            onClick={handleLocateUser}
-          >
-            <Navigation className="h-4 w-4" />
-          </Button>
+          {weatherQuery.isLoading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+          {weatherQuery.data && (
+            <div className="space-y-1 text-sm">
+              <div className="text-2xl font-bold">{Math.round(weatherQuery.data.temperature)}°F</div>
+              <div className="capitalize text-slate-600">{weatherQuery.data.description}</div>
+              <div className="text-xs text-slate-500 mt-2">
+                Wind {Math.round(weatherQuery.data.wind.speed)} mph · Humidity {weatherQuery.data.humidity}%
+              </div>
+              <div className="text-xs text-slate-400">{weatherQuery.data.location}</div>
+            </div>
+          )}
+          {weatherQuery.error && (
+            <p className="text-xs text-slate-500">Couldn't load weather for this location.</p>
+          )}
         </div>
+      )}
+
+      {/* Center crosshair */}
+      <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center">
+        <Crosshair className="h-7 w-7 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" strokeWidth={2.25} />
       </div>
 
-      {/* Active Mode Badge */}
-      <div className="absolute top-16 right-3 z-10">
-        <div className="bg-card/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-md border text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-          {MAP_STYLES[activeStyle].icon}
-          {MAP_STYLES[activeStyle].label}
-          {terrainEnabled && activeStyle !== 'terrain' && activeStyle !== 'bathymetry' ? '' : ''}
-        </div>
+      {/* Bottom-right compass + recenter pill */}
+      <div className="absolute bottom-6 right-3 sm:right-4 z-10 flex flex-col items-center gap-1 bg-white rounded-full shadow-xl px-1.5 py-2.5">
+        <button
+          onClick={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0, duration: 600 })}
+          aria-label="Reset north"
+          className="h-10 w-10 rounded-full flex flex-col items-center justify-center hover:bg-slate-100 transition active:scale-95"
+        >
+          <span className="text-[10px] font-bold leading-none text-slate-900">N</span>
+          <Navigation
+            className="h-3.5 w-3.5 text-rose-500 fill-rose-500 mt-0.5"
+            style={{ transform: `rotate(${-bearing}deg)` }}
+          />
+        </button>
+        <button
+          onClick={handleLocateUser}
+          aria-label="Recenter to my location"
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition active:scale-95"
+        >
+          <Navigation className="h-5 w-5 text-slate-900" />
+        </button>
       </div>
+
+      {/* Bottom coordinates pill */}
+      {!selectedCatch && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 max-w-[calc(100%-7rem)]">
+          <div className="flex items-center gap-2 bg-slate-900/85 backdrop-blur-md text-white rounded-full px-4 py-2.5 shadow-xl">
+            <span className="font-mono text-xs sm:text-sm tracking-tight tabular-nums truncate">
+              {crosshair.lat.toFixed(6)}, {crosshair.lng.toFixed(6)}
+            </span>
+            <button
+              onClick={() => navigate(`/app/catches/new?lat=${crosshair.lat}&lng=${crosshair.lng}`)}
+              className="ml-1 p-1 rounded-full hover:bg-white/10 transition"
+              aria-label="Save this location"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Selected Catch Detail Panel */}
       {selectedCatch && (
