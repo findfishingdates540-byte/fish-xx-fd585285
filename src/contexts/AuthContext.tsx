@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, displayName?: string, signupSource?: string, referredBy?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
@@ -42,8 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
+  const signUp = async (email: string, password: string, displayName?: string, signupSource?: string, referredBy?: string) => {
     const redirectUrl = `${window.location.origin}/`;
+    const cleanSignupSource = signupSource?.trim();
+    const cleanReferredBy = referredBy?.trim();
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -52,6 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           display_name: displayName || email.split('@')[0],
+          signup_source: cleanSignupSource || undefined,
+          referred_by: cleanReferredBy || undefined,
         },
       },
     });

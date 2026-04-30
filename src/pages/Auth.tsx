@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle, Ticket, Users } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import authFishingImage from '@/assets/auth-fishing.jpg';
@@ -29,6 +29,8 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [signupSource, setSignupSource] = useState(searchParams.get('promo') || searchParams.get('source') || '');
+  const [referredBy, setReferredBy] = useState(searchParams.get('ref') || '');
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,6 +52,12 @@ const Auth = () => {
   const { signIn, signUp, user, resetPassword, updatePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (searchParams.get('mode') === 'signup') {
+      setIsSignUp(true);
+    }
+  }, [searchParams]);
 
   // Detect recovery mode from URL
   useEffect(() => {
@@ -73,7 +81,7 @@ const Auth = () => {
       const [{ data: profile }, { data: roleRow }] = await Promise.all([
         supabase
           .from('profiles')
-          .select('onboarding_completed, account_mode, is_premium, premium_expires_at')
+        .select('onboarding_completed, account_mode')
           .eq('id', user.id)
           .single(),
         supabase
@@ -98,19 +106,6 @@ const Auth = () => {
 
       if (!profile?.onboarding_completed) {
         navigate('/onboarding');
-        return;
-      }
-
-      // Check if fishing/both users need to pay or have expired subscription (with 3-day grace period)
-      const requiresPremium = profile.account_mode === 'fishing' || profile.account_mode === 'both';
-      const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
-      const isPremiumExpired =
-        profile.premium_expires_at &&
-        new Date(profile.premium_expires_at).getTime() + gracePeriodMs < Date.now();
-      const hasPremiumAccess = profile.is_premium && !isPremiumExpired;
-
-      if (requiresPremium && !hasPremiumAccess) {
-        navigate('/pricing');
         return;
       }
 
@@ -161,7 +156,7 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, displayName);
+        const { error } = await signUp(email, password, displayName, signupSource, referredBy);
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
@@ -415,6 +410,39 @@ const Auth = () => {
                       onChange={(e) => setDisplayName(e.target.value)}
                       className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
                     />
+                  </div>
+                </div>
+              )}
+
+              {isSignUp && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="signupSource">Promo or event code</Label>
+                    <div className="relative">
+                      <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="signupSource"
+                        type="text"
+                        placeholder="Tournament, shop, or event"
+                        value={signupSource}
+                        onChange={(e) => setSignupSource(e.target.value)}
+                        className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="referredBy">Who referred you?</Label>
+                    <div className="relative">
+                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="referredBy"
+                        type="text"
+                        placeholder="Friend or location"
+                        value={referredBy}
+                        onChange={(e) => setReferredBy(e.target.value)}
+                        className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

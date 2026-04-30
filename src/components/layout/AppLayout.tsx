@@ -243,18 +243,8 @@ export function AppLayout() {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Check premium access for fishing/both users (admins exempt)
+  // App access is free while FishX grows; paid checks only apply to paid fishing challenges later.
   const isAdmin = !!adminRole;
-  const requiresPremium = profile?.account_mode === 'fishing' || profile?.account_mode === 'both';
-  const gracePeriodMs = 3 * 24 * 60 * 60 * 1000;
-  const isPremiumExpired =
-    profile?.premium_expires_at &&
-    new Date(profile.premium_expires_at).getTime() + gracePeriodMs < Date.now();
-  const hasPremiumAccess = profile?.is_premium && !isPremiumExpired;
-
-  if (requiresPremium && !hasPremiumAccess && !isAdmin) {
-    return <Navigate to="/pricing" replace />;
-  }
 
   // Redirect admins to /admin by default when visiting /app
   if (isAdmin && location.pathname === '/app') {

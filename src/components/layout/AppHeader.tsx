@@ -6,7 +6,6 @@ import { useActiveMode } from '@/contexts/ActiveModeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link, useLocation } from 'react-router-dom';
-import datingLogoImage from '@/assets/dating-logo.png';
 import fishxLogo from '@/assets/fishx-logo.png';
 
 // Request browser notification permission
@@ -234,11 +233,7 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 pl-4 pr-4">
         <Link to={homeHref} className="flex items-center">
-          {isDatingBrandedRoute ? (
-            <img src={datingLogoImage} alt="Find Fishing Dates" className="h-8 w-auto" />
-          ) : (
-            <img src={fishxLogo} alt="Fish-X" className="h-10 w-auto" />
-          )}
+          <img src={fishxLogo} alt="Fish-X" className="h-10 w-auto" />
         </Link>
 
         <div className="flex items-center gap-2">

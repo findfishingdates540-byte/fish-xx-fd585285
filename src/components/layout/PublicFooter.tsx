@@ -16,9 +16,9 @@ export function PublicFooter() {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Products</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link to="/dating" className="hover:text-foreground transition-colors">Dating</Link></li>
+              <li><Link to="/fishing" className="hover:text-foreground transition-colors">Fishing Spots</Link></li>
               <li><Link to="/fishing" className="hover:text-foreground transition-colors">Fishing Buddies</Link></li>
-              <li><Link to="/pricing" className="hover:text-foreground transition-colors">Premium</Link></li>
+              <li><Link to="/challenges" className="hover:text-foreground transition-colors">Challenges</Link></li>
             </ul>
           </div>
           
