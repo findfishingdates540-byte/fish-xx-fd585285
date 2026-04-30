@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Fish, Heart, Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle, Ticket, Users } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import authFishingImage from '@/assets/auth-fishing.jpg';
@@ -29,6 +29,8 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [signupSource, setSignupSource] = useState(searchParams.get('promo') || searchParams.get('source') || '');
+  const [referredBy, setReferredBy] = useState(searchParams.get('ref') || '');
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -161,7 +163,7 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, displayName);
+        const { error } = await signUp(email, password, displayName, signupSource, referredBy);
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
