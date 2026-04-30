@@ -1746,6 +1746,8 @@ export type Database = {
           preferred_species: string[] | null
           premium_expires_at: string | null
           prompt_responses: Json | null
+          referred_by: string | null
+          signup_source: string | null
           smoking: Database["public"]["Enums"]["smoking_habit"] | null
           state: string | null
           stripe_customer_id: string | null
@@ -1809,6 +1811,8 @@ export type Database = {
           preferred_species?: string[] | null
           premium_expires_at?: string | null
           prompt_responses?: Json | null
+          referred_by?: string | null
+          signup_source?: string | null
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
           stripe_customer_id?: string | null
@@ -1872,6 +1876,8 @@ export type Database = {
           preferred_species?: string[] | null
           premium_expires_at?: string | null
           prompt_responses?: Json | null
+          referred_by?: string | null
+          signup_source?: string | null
           smoking?: Database["public"]["Enums"]["smoking_habit"] | null
           state?: string | null
           stripe_customer_id?: string | null
