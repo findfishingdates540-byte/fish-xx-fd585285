@@ -81,7 +81,7 @@ const Auth = () => {
       const [{ data: profile }, { data: roleRow }] = await Promise.all([
         supabase
           .from('profiles')
-          .select('onboarding_completed, account_mode, is_premium, premium_expires_at')
+        .select('onboarding_completed, account_mode')
           .eq('id', user.id)
           .single(),
         supabase
@@ -106,19 +106,6 @@ const Auth = () => {
 
       if (!profile?.onboarding_completed) {
         navigate('/onboarding');
-        return;
-      }
-
-      // Check if fishing/both users need to pay or have expired subscription (with 3-day grace period)
-      const requiresPremium = profile.account_mode === 'fishing' || profile.account_mode === 'both';
-      const gracePeriodMs = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
-      const isPremiumExpired =
-        profile.premium_expires_at &&
-        new Date(profile.premium_expires_at).getTime() + gracePeriodMs < Date.now();
-      const hasPremiumAccess = profile.is_premium && !isPremiumExpired;
-
-      if (requiresPremium && !hasPremiumAccess) {
-        navigate('/pricing');
         return;
       }
 
