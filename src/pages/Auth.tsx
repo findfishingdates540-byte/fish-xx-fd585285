@@ -53,6 +53,12 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (searchParams.get('mode') === 'signup') {
+      setIsSignUp(true);
+    }
+  }, [searchParams]);
+
   // Detect recovery mode from URL
   useEffect(() => {
     const type = searchParams.get('type');
