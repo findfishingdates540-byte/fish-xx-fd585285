@@ -421,6 +421,39 @@ const Auth = () => {
                 </div>
               )}
 
+              {isSignUp && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="signupSource">Promo or event code</Label>
+                    <div className="relative">
+                      <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="signupSource"
+                        type="text"
+                        placeholder="Tournament, shop, or event"
+                        value={signupSource}
+                        onChange={(e) => setSignupSource(e.target.value)}
+                        className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="referredBy">Who referred you?</Label>
+                    <div className="relative">
+                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="referredBy"
+                        type="text"
+                        placeholder="Friend or location"
+                        value={referredBy}
+                        onChange={(e) => setReferredBy(e.target.value)}
+                        className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email address</Label>
