@@ -14,6 +14,7 @@ import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
+import SpotEntry from "./pages/SpotEntry";
 import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
 import About from "./pages/About";
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/" element={<ForceLightTheme><Index /></ForceLightTheme>} />
             <Route path="/auth" element={<ForceLightTheme><Auth /></ForceLightTheme>} />
             <Route path="/admin/login" element={<ForceLightTheme><AdminAuth /></ForceLightTheme>} />
+            <Route path="/spot-entry" element={<ForceLightTheme><SpotEntry /></ForceLightTheme>} />
             <Route path="/onboarding" element={<ForceLightTheme><Onboarding /></ForceLightTheme>} />
             <Route path="/onboarding/success" element={<ForceLightTheme><OnboardingSuccess /></ForceLightTheme>} />
             <Route path="/about" element={<ForceLightTheme><About /></ForceLightTheme>} />
