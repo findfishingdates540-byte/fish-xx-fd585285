@@ -266,10 +266,7 @@ export default function Onboarding() {
         }
         return true;
       case 'location':
-        if (!city.trim() && !state.trim()) {
-          toast({ title: "Please enter your location", variant: "destructive" });
-          return false;
-        }
+        // Location is optional — users can complete later
         return true;
       case 'lifestyle':
         // All lifestyle fields are optional — users can complete later
@@ -596,7 +593,7 @@ export default function Onboarding() {
   };
 
   // Steps that are optional and can be skipped
-  const optionalSteps = ['lifestyle', 'experience', 'target_species', 'gear', 'interests'];
+  const optionalSteps = ['location', 'lifestyle', 'experience', 'target_species', 'gear', 'interests'];
   const isOptionalStep = optionalSteps.includes(currentStepKey);
   const isLastStep = currentStep === totalSteps - 1;
 
@@ -774,6 +771,19 @@ export default function Onboarding() {
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
                     >
                       Skip for now — you can complete this later
+                    </button>
+                  </div>
+                )}
+
+                {/* Skip all & complete profile after photo step */}
+                {currentStep >= 1 && !isLastStep && (
+                  <div className="flex justify-center mt-2 pb-1">
+                    <button
+                      onClick={handleComplete}
+                      disabled={saving}
+                      className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      {saving ? 'Saving...' : 'Skip all & complete profile →'}
                     </button>
                   </div>
                 )}

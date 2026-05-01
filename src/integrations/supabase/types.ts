@@ -3094,7 +3094,7 @@ export type Database = {
     }
     Enums: {
       account_mode: "dating" | "fishing" | "both"
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "data_entry"
       catch_photo_type: "cover" | "measurement" | "general"
       challenge_type:
         | "largest_fish"
@@ -3251,7 +3251,7 @@ export const Constants = {
   public: {
     Enums: {
       account_mode: ["dating", "fishing", "both"],
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "data_entry"],
       catch_photo_type: ["cover", "measurement", "general"],
       challenge_type: [
         "largest_fish",
