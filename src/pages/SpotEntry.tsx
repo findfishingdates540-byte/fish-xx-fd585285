@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, MapPin, LogOut, Plus, Check, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { z } from 'zod';
 import logo from '@/assets/logo.png';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 interface EnteredSpot {
   id: string;
@@ -53,9 +55,18 @@ export default function SpotEntry() {
   // Spot form
   const [siteNumber, setSiteNumber] = useState('');
   const [description, setDescription] = useState('');
+  const [fullDescription, setFullDescription] = useState('');
   const [latInput, setLatInput] = useState('');
   const [lngInput, setLngInput] = useState('');
   const [locationName, setLocationName] = useState('');
+  const [county, setCounty] = useState('');
+  const [primaryMaterial, setPrimaryMaterial] = useState('');
+  const [tons, setTons] = useState('');
+  const [reliefFt, setReliefFt] = useState('');
+  const [depthFt, setDepthFt] = useState('');
+  const [jurisdiction, setJurisdiction] = useState('');
+  const [coast, setCoast] = useState('');
+  const [deployDate, setDeployDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [recentSpots, setRecentSpots] = useState<EnteredSpot[]>([]);
 
@@ -156,13 +167,22 @@ export default function SpotEntry() {
 
     const { error } = await supabase.from('fishing_spots').insert({
       name: spotName,
-      description: description,
+      description: fullDescription || description,
       location_lat: lat,
       location_lng: lng,
       location_name: locationName || null,
+      county: county || null,
+      primary_material: primaryMaterial || null,
+      tons: tons ? parseFloat(tons) : null,
+      relief_ft: reliefFt ? parseFloat(reliefFt) : null,
+      depth_ft: depthFt ? parseFloat(depthFt) : null,
+      jurisdiction: jurisdiction || null,
+      coast: coast || null,
+      deploy_date: deployDate || null,
       created_by: user.id,
       is_public: true,
       is_verified: false,
+      area_type: 'saltwater',
     });
 
     setSubmitting(false);
@@ -173,9 +193,18 @@ export default function SpotEntry() {
       toast({ title: 'Spot added!', description: spotName });
       setSiteNumber('');
       setDescription('');
+      setFullDescription('');
       setLatInput('');
       setLngInput('');
       setLocationName('');
+      setCounty('');
+      setPrimaryMaterial('');
+      setTons('');
+      setReliefFt('');
+      setDepthFt('');
+      setJurisdiction('');
+      setCoast('');
+      setDeployDate('');
       loadRecentSpots(user.id);
     }
   };
@@ -278,14 +307,19 @@ export default function SpotEntry() {
                 <Input id="site-number" placeholder="e.g. 75" value={siteNumber} onChange={e => setSiteNumber(e.target.value)} className="bg-muted/30 rounded-xl" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location-name">Location / Area Name</Label>
+                <Label htmlFor="location-name">Location / Area</Label>
                 <Input id="location-name" placeholder="e.g. Florida Keys" value={locationName} onChange={e => setLocationName(e.target.value)} className="bg-muted/30 rounded-xl" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="spot-desc">Description *</Label>
-              <Input id="spot-desc" placeholder="e.g. Crocker Reef &quot;16&quot;" value={description} onChange={e => setDescription(e.target.value)} className="bg-muted/30 rounded-xl" required />
+              <Label htmlFor="spot-desc">Deployment Name *</Label>
+              <Input id="spot-desc" placeholder='e.g. Crocker Reef "16"' value={description} onChange={e => setDescription(e.target.value)} className="bg-muted/30 rounded-xl" required />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="full-desc">Description</Label>
+              <Textarea id="full-desc" placeholder="e.g. 97' X 30' X 20' Steel hulled vessel" value={fullDescription} onChange={e => setFullDescription(e.target.value)} className="bg-muted/30 rounded-xl min-h-[80px]" />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -298,6 +332,65 @@ export default function SpotEntry() {
                 <Label htmlFor="lng">Longitude *</Label>
                 <Input id="lng" placeholder="80° 31.490'W or -80.5248" value={lngInput} onChange={e => setLngInput(e.target.value)} className="bg-muted/30 rounded-xl" required />
                 <p className="text-xs text-muted-foreground">Decimal or DMS format</p>
+              </div>
+            </div>
+
+            {/* Reef-specific fields */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="county">County</Label>
+                <Input id="county" placeholder="e.g. Bay" value={county} onChange={e => setCounty(e.target.value)} className="bg-muted/30 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deploy-date">Deploy Date</Label>
+                <Input id="deploy-date" type="date" value={deployDate} onChange={e => setDeployDate(e.target.value)} className="bg-muted/30 rounded-xl" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="material">Primary Material</Label>
+              <Input id="material" placeholder="e.g. Steel vessel 97'" value={primaryMaterial} onChange={e => setPrimaryMaterial(e.target.value)} className="bg-muted/30 rounded-xl" />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="tons">Tons</Label>
+                <Input id="tons" type="number" step="0.1" placeholder="e.g. 94" value={tons} onChange={e => setTons(e.target.value)} className="bg-muted/30 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="relief">Relief (ft)</Label>
+                <Input id="relief" type="number" step="0.1" placeholder="e.g. 20" value={reliefFt} onChange={e => setReliefFt(e.target.value)} className="bg-muted/30 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="depth">Depth (ft)</Label>
+                <Input id="depth" type="number" step="0.1" placeholder="e.g. 74" value={depthFt} onChange={e => setDepthFt(e.target.value)} className="bg-muted/30 rounded-xl" />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Jurisdiction</Label>
+                <Select value={jurisdiction} onValueChange={setJurisdiction}>
+                  <SelectTrigger className="bg-muted/30 rounded-xl">
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="State">State</SelectItem>
+                    <SelectItem value="Federal">Federal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Coast</Label>
+                <Select value={coast} onValueChange={setCoast}>
+                  <SelectTrigger className="bg-muted/30 rounded-xl">
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gulf">Gulf</SelectItem>
+                    <SelectItem value="Atlantic">Atlantic</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
