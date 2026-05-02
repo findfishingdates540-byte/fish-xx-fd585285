@@ -154,7 +154,7 @@ export default function Spots() {
     queryFn: async () => {
       const { data } = await supabase
         .from('fishing_spots')
-        .select('id, name, description, location_lat, location_lng, location_name, county, depth_ft, relief_ft, primary_material, jurisdiction, coast, deploy_date, source, area_type')
+        .select('id, name, description, location_lat, location_lng, location_name, county, depth_ft, relief_ft, primary_material, jurisdiction, coast, deploy_date, source, area_type, location_accuracy')
         .eq('is_public', true)
         .not('location_lat', 'is', null)
         .not('location_lng', 'is', null)
@@ -775,7 +775,25 @@ export default function Spots() {
             )}
 
             {selectedSpot.source && (
-              <p className="text-[10px] text-muted-foreground/60 mt-2">Source: {selectedSpot.source}</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-2">
+                Source:{' '}
+                {/^https?:\/\//.test(selectedSpot.source) ? (
+                  <a href={selectedSpot.source} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                    {selectedSpot.source}
+                  </a>
+                ) : (
+                  selectedSpot.source
+                )}
+              </p>
+            )}
+
+            {selectedSpot.location_lat != null && selectedSpot.location_lng != null && (
+              <div className="text-[10px] text-muted-foreground/60 mt-1 font-mono">
+                <span>{Number(selectedSpot.location_lat).toFixed(6)}, {Number(selectedSpot.location_lng).toFixed(6)}</span>
+                {selectedSpot.location_accuracy && (
+                  <span className="ml-2">±{selectedSpot.location_accuracy}</span>
+                )}
+              </div>
             )}
           </div>
 
