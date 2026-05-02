@@ -29,6 +29,7 @@ import { getCurrentPosition } from "@/lib/location";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { FishXIcon } from "@/components/ui/fishx-icon";
 import { useWeather } from "@/hooks/use-weather";
+import { Anchor } from "lucide-react";
 
 interface SharedCatch {
   id: string;
@@ -91,6 +92,9 @@ export default function Spots() {
   const [bearing, setBearing] = useState(0);
   const [showWeather, setShowWeather] = useState(false);
   const weatherQuery = useWeather(showWeather ? crosshair.lat : null, showWeather ? crosshair.lng : null);
+  const [selectedSpot, setSelectedSpot] = useState<any>(null);
+  const spotMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const [showReefs, setShowReefs] = useState(true);
 
   // Fetch catches with share_location = true
   const { data: sharedCatches = [], isLoading, refetch } = useQuery({
@@ -142,6 +146,22 @@ export default function Spots() {
       return data;
     },
     enabled: !!user?.id,
+  });
+
+  // Fetch fishing spots (reefs)
+  const { data: fishingSpots = [] } = useQuery({
+    queryKey: ['map-fishing-spots'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('fishing_spots')
+        .select('id, name, description, location_lat, location_lng, location_name, county, depth_ft, relief_ft, primary_material, jurisdiction, coast, deploy_date, source, area_type')
+        .eq('is_public', true)
+        .not('location_lat', 'is', null)
+        .not('location_lng', 'is', null)
+        .limit(5000);
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   // Helper: add terrain + sky to current map
@@ -359,6 +379,22 @@ export default function Spots() {
     return el;
   };
 
+  const createSpotMarkerEl = () => {
+    const el = document.createElement('div');
+    el.className = 'spot-marker';
+    el.style.cssText = `
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #ef4444;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+    `;
+    el.textContent = '⚓';
+    return el;
+  };
+
   // Add markers for shared catches
   useEffect(() => {
     if (!mapRef.current || !mapReady) return;
@@ -386,6 +422,37 @@ export default function Spots() {
       markersRef.current.push(marker);
     });
   }, [sharedCatches, mapReady]);
+
+  // Add markers for fishing spots (reefs)
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+
+    spotMarkersRef.current.forEach(m => m.remove());
+    spotMarkersRef.current = [];
+
+    if (!showReefs) return;
+
+    fishingSpots.forEach(spot => {
+      if (!spot.location_lat || !spot.location_lng) return;
+
+      const el = createSpotMarkerEl();
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([spot.location_lng, spot.location_lat])
+        .addTo(mapRef.current!);
+
+      el.addEventListener('click', () => {
+        setSelectedCatch(null);
+        setSelectedSpot(spot);
+        mapRef.current?.flyTo({
+          center: [spot.location_lng!, spot.location_lat!],
+          zoom: 12,
+          duration: 800,
+        });
+      });
+
+      spotMarkersRef.current.push(marker);
+    });
+  }, [fishingSpots, mapReady, showReefs]);
 
   const handleLocateUser = useCallback(() => {
     if (!mapRef.current) return;
@@ -509,6 +576,13 @@ export default function Spots() {
         >
           <MapPin className="h-5 w-5 text-slate-900" />
         </button>
+        <button
+          onClick={() => setShowReefs(!showReefs)}
+          aria-label="Toggle reef spots"
+          className={`h-10 w-10 rounded-full flex items-center justify-center transition active:scale-95 ${showReefs ? 'bg-red-100' : 'hover:bg-slate-100'}`}
+        >
+          <Anchor className={`h-5 w-5 ${showReefs ? 'text-red-600' : 'text-slate-900'}`} />
+        </button>
       </div>
 
       {/* Weather popover */}
@@ -563,7 +637,7 @@ export default function Spots() {
       </div>
 
       {/* Bottom coordinates pill */}
-      {!selectedCatch && (
+      {!selectedCatch && !selectedSpot && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 max-w-[calc(100%-7rem)]">
           <div className="flex items-center gap-2 bg-slate-900/85 backdrop-blur-md text-white rounded-full px-4 py-2.5 shadow-xl">
             <span className="font-mono text-xs sm:text-sm tracking-tight tabular-nums truncate">
@@ -584,7 +658,7 @@ export default function Spots() {
       {selectedCatch && (
         <div className="absolute bottom-4 left-3 right-3 z-10 bg-card rounded-xl shadow-xl border p-4 max-w-md mx-auto">
           <button
-            onClick={() => setSelectedCatch(null)}
+            onClick={() => { setSelectedCatch(null); }}
             className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted"
           >
             <X className="h-4 w-4" />
@@ -662,6 +736,59 @@ export default function Spots() {
         </div>
       )}
 
+      {/* Selected Spot (Reef) Detail Panel */}
+      {selectedSpot && (
+        <div className="absolute bottom-4 left-3 right-3 z-10 bg-card rounded-xl shadow-xl border p-4 max-w-md mx-auto">
+          <button
+            onClick={() => setSelectedSpot(null)}
+            className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">⚓</span>
+              <h3 className="font-bold text-base truncate">{selectedSpot.name}</h3>
+            </div>
+
+            {selectedSpot.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{selectedSpot.description}</p>
+            )}
+
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              {selectedSpot.depth_ft && <span>Depth: {selectedSpot.depth_ft}ft</span>}
+              {selectedSpot.relief_ft && <span>Relief: {selectedSpot.relief_ft}ft</span>}
+              {selectedSpot.county && <span>{selectedSpot.county} County</span>}
+              {selectedSpot.coast && <span>{selectedSpot.coast} Coast</span>}
+              {selectedSpot.jurisdiction && <span>{selectedSpot.jurisdiction}</span>}
+            </div>
+
+            {selectedSpot.primary_material && (
+              <p className="text-xs text-muted-foreground mt-1">Material: {selectedSpot.primary_material}</p>
+            )}
+
+            {selectedSpot.deploy_date && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Deployed: {new Date(selectedSpot.deploy_date).toLocaleDateString()}
+              </p>
+            )}
+
+            {selectedSpot.source && (
+              <p className="text-[10px] text-muted-foreground/60 mt-2">Source: {selectedSpot.source}</p>
+            )}
+          </div>
+
+          <Button
+            size="sm"
+            className="w-full mt-3"
+            onClick={() => navigate(`/app/spots/${selectedSpot.id}`)}
+          >
+            View spot details
+          </Button>
+        </div>
+      )}
+
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50 backdrop-blur-sm">
@@ -673,7 +800,7 @@ export default function Spots() {
       )}
 
       {/* Empty state overlay */}
-      {!isLoading && sharedCatches.length === 0 && mapReady && (
+      {!isLoading && sharedCatches.length === 0 && fishingSpots.length === 0 && mapReady && (
         <div className="absolute bottom-4 left-3 right-3 z-10">
           <div className="bg-card rounded-xl shadow-lg border p-6 text-center max-w-sm mx-auto">
             <Fish className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
