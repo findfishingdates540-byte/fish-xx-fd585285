@@ -912,56 +912,89 @@ export type Database = {
       fishing_spots: {
         Row: {
           area_type: string | null
+          coast: string | null
+          county: string | null
           created_at: string
           created_by: string | null
+          deploy_date: string | null
+          deploy_id: string | null
+          depth_ft: number | null
           description: string | null
           id: string
           is_public: boolean | null
           is_verified: boolean | null
+          jurisdiction: string | null
+          location_accuracy: string | null
           location_lat: number
           location_lng: number
           location_name: string | null
           name: string
           photos: string[] | null
+          primary_material: string | null
           rating_avg: number | null
           rating_count: number | null
+          relief_ft: number | null
+          source: string | null
           species_available: string[] | null
+          tons: number | null
           updated_at: string
         }
         Insert: {
           area_type?: string | null
+          coast?: string | null
+          county?: string | null
           created_at?: string
           created_by?: string | null
+          deploy_date?: string | null
+          deploy_id?: string | null
+          depth_ft?: number | null
           description?: string | null
           id?: string
           is_public?: boolean | null
           is_verified?: boolean | null
+          jurisdiction?: string | null
+          location_accuracy?: string | null
           location_lat: number
           location_lng: number
           location_name?: string | null
           name: string
           photos?: string[] | null
+          primary_material?: string | null
           rating_avg?: number | null
           rating_count?: number | null
+          relief_ft?: number | null
+          source?: string | null
           species_available?: string[] | null
+          tons?: number | null
           updated_at?: string
         }
         Update: {
           area_type?: string | null
+          coast?: string | null
+          county?: string | null
           created_at?: string
           created_by?: string | null
+          deploy_date?: string | null
+          deploy_id?: string | null
+          depth_ft?: number | null
           description?: string | null
           id?: string
           is_public?: boolean | null
           is_verified?: boolean | null
+          jurisdiction?: string | null
+          location_accuracy?: string | null
           location_lat?: number
           location_lng?: number
           location_name?: string | null
           name?: string
           photos?: string[] | null
+          primary_material?: string | null
           rating_avg?: number | null
           rating_count?: number | null
+          relief_ft?: number | null
+          source?: string | null
           species_available?: string[] | null
+          tons?: number | null
           updated_at?: string
         }
         Relationships: [
