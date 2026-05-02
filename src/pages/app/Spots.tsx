@@ -576,6 +576,13 @@ export default function Spots() {
         >
           <MapPin className="h-5 w-5 text-slate-900" />
         </button>
+        <button
+          onClick={() => setShowReefs(!showReefs)}
+          aria-label="Toggle reef spots"
+          className={`h-10 w-10 rounded-full flex items-center justify-center transition active:scale-95 ${showReefs ? 'bg-red-100' : 'hover:bg-slate-100'}`}
+        >
+          <Anchor className={`h-5 w-5 ${showReefs ? 'text-red-600' : 'text-slate-900'}`} />
+        </button>
       </div>
 
       {/* Weather popover */}
