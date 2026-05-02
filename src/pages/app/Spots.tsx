@@ -22,6 +22,7 @@ import {
   Crosshair,
   Pencil,
 } from "lucide-react";
+import { Filter, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -30,6 +31,10 @@ import { AdBanner } from "@/components/ads/AdBanner";
 import { FishXIcon } from "@/components/ui/fishx-icon";
 import { useWeather } from "@/hooks/use-weather";
 import { Anchor } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface SharedCatch {
   id: string;
@@ -95,6 +100,12 @@ export default function Spots() {
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
   const spotMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [showReefs, setShowReefs] = useState(true);
+  const [showReefFilters, setShowReefFilters] = useState(false);
+  const [filterCounty, setFilterCounty] = useState<string>('all');
+  const [filterCoast, setFilterCoast] = useState<string>('all');
+  const [filterDepthMin, setFilterDepthMin] = useState<number>(0);
+  const [filterDepthMax, setFilterDepthMax] = useState<number>(500);
+  const [filterSearch, setFilterSearch] = useState('');
 
   // Fetch catches with share_location = true
   const { data: sharedCatches = [], isLoading, refetch } = useQuery({
@@ -162,6 +173,26 @@ export default function Spots() {
       return data || [];
     },
     staleTime: 5 * 60 * 1000,
+  });
+
+  // Derive unique counties from data
+  const countyOptions = Array.from(new Set(fishingSpots.map(s => s.county).filter(Boolean) as string[])).sort();
+
+  // Filtered spots
+  const filteredSpots = fishingSpots.filter(spot => {
+    if (filterCounty !== 'all' && spot.county !== filterCounty) return false;
+    if (filterCoast !== 'all' && spot.coast !== filterCoast) return false;
+    if (spot.depth_ft != null) {
+      if (spot.depth_ft < filterDepthMin || spot.depth_ft > filterDepthMax) return false;
+    }
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase();
+      const nameMatch = spot.name?.toLowerCase().includes(q);
+      const descMatch = spot.description?.toLowerCase().includes(q);
+      const matMatch = (spot.primary_material as string | null)?.toLowerCase().includes(q);
+      if (!nameMatch && !descMatch && !matMatch) return false;
+    }
+    return true;
   });
 
   // Helper: add terrain + sky to current map
@@ -432,7 +463,7 @@ export default function Spots() {
 
     if (!showReefs) return;
 
-    fishingSpots.forEach(spot => {
+    filteredSpots.forEach(spot => {
       if (!spot.location_lat || !spot.location_lng) return;
 
       const el = createSpotMarkerEl();
@@ -452,7 +483,7 @@ export default function Spots() {
 
       spotMarkersRef.current.push(marker);
     });
-  }, [fishingSpots, mapReady, showReefs]);
+  }, [filteredSpots, mapReady, showReefs]);
 
   const handleLocateUser = useCallback(() => {
     if (!mapRef.current) return;
@@ -583,7 +614,103 @@ export default function Spots() {
         >
           <Anchor className={`h-5 w-5 ${showReefs ? 'text-red-600' : 'text-slate-900'}`} />
         </button>
+        {showReefs && (
+          <button
+            onClick={() => setShowReefFilters(!showReefFilters)}
+            aria-label="Filter reef spots"
+            className={`h-10 w-10 rounded-full flex items-center justify-center transition active:scale-95 ${showReefFilters ? 'bg-primary/10' : 'hover:bg-slate-100'}`}
+          >
+            <Filter className={`h-5 w-5 ${showReefFilters ? 'text-primary' : 'text-slate-900'}`} />
+          </button>
+        )}
       </div>
+
+      {/* Reef filter panel */}
+      {showReefs && showReefFilters && (
+        <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-20 bg-white rounded-2xl shadow-2xl border p-4 w-72 text-slate-900">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-bold text-sm">Filter Reefs ({filteredSpots.length})</h4>
+            <button onClick={() => setShowReefFilters(false)}><X className="h-4 w-4" /></button>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-slate-500 mb-1 block">Search</Label>
+              <Input
+                placeholder="Name, material..."
+                value={filterSearch}
+                onChange={e => setFilterSearch(e.target.value)}
+                className="h-8 text-xs bg-slate-50 border-slate-200"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs text-slate-500 mb-1 block">County</Label>
+              <Select value={filterCounty} onValueChange={setFilterCounty}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <SelectItem value="all">All Counties</SelectItem>
+                  {countyOptions.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-xs text-slate-500 mb-1 block">Coast</Label>
+              <Select value={filterCoast} onValueChange={setFilterCoast}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Coasts</SelectItem>
+                  <SelectItem value="Gulf">Gulf</SelectItem>
+                  <SelectItem value="Atlantic">Atlantic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-xs text-slate-500 mb-1 block">Depth: {filterDepthMin}–{filterDepthMax} ft</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={filterDepthMin}
+                  onChange={e => setFilterDepthMin(Number(e.target.value) || 0)}
+                  className="h-7 w-16 text-xs bg-slate-50 border-slate-200"
+                  min={0}
+                />
+                <span className="text-xs text-slate-400">to</span>
+                <Input
+                  type="number"
+                  value={filterDepthMax}
+                  onChange={e => setFilterDepthMax(Number(e.target.value) || 500)}
+                  className="h-7 w-16 text-xs bg-slate-50 border-slate-200"
+                  min={0}
+                />
+              </div>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => {
+                setFilterCounty('all');
+                setFilterCoast('all');
+                setFilterDepthMin(0);
+                setFilterDepthMax(500);
+                setFilterSearch('');
+              }}
+            >
+              Reset Filters
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Weather popover */}
       {showWeather && (
