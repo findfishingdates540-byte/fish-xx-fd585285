@@ -630,7 +630,7 @@ export default function Spots() {
       </div>
 
       {/* Bottom coordinates pill */}
-      {!selectedCatch && (
+      {!selectedCatch && !selectedSpot && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 max-w-[calc(100%-7rem)]">
           <div className="flex items-center gap-2 bg-slate-900/85 backdrop-blur-md text-white rounded-full px-4 py-2.5 shadow-xl">
             <span className="font-mono text-xs sm:text-sm tracking-tight tabular-nums truncate">
@@ -651,7 +651,7 @@ export default function Spots() {
       {selectedCatch && (
         <div className="absolute bottom-4 left-3 right-3 z-10 bg-card rounded-xl shadow-xl border p-4 max-w-md mx-auto">
           <button
-            onClick={() => setSelectedCatch(null)}
+            onClick={() => { setSelectedCatch(null); }}
             className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted"
           >
             <X className="h-4 w-4" />
@@ -729,6 +729,59 @@ export default function Spots() {
         </div>
       )}
 
+      {/* Selected Spot (Reef) Detail Panel */}
+      {selectedSpot && (
+        <div className="absolute bottom-4 left-3 right-3 z-10 bg-card rounded-xl shadow-xl border p-4 max-w-md mx-auto">
+          <button
+            onClick={() => setSelectedSpot(null)}
+            className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">⚓</span>
+              <h3 className="font-bold text-base truncate">{selectedSpot.name}</h3>
+            </div>
+
+            {selectedSpot.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{selectedSpot.description}</p>
+            )}
+
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              {selectedSpot.depth_ft && <span>Depth: {selectedSpot.depth_ft}ft</span>}
+              {selectedSpot.relief_ft && <span>Relief: {selectedSpot.relief_ft}ft</span>}
+              {selectedSpot.county && <span>{selectedSpot.county} County</span>}
+              {selectedSpot.coast && <span>{selectedSpot.coast} Coast</span>}
+              {selectedSpot.jurisdiction && <span>{selectedSpot.jurisdiction}</span>}
+            </div>
+
+            {selectedSpot.primary_material && (
+              <p className="text-xs text-muted-foreground mt-1">Material: {selectedSpot.primary_material}</p>
+            )}
+
+            {selectedSpot.deploy_date && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Deployed: {new Date(selectedSpot.deploy_date).toLocaleDateString()}
+              </p>
+            )}
+
+            {selectedSpot.source && (
+              <p className="text-[10px] text-muted-foreground/60 mt-2">Source: {selectedSpot.source}</p>
+            )}
+          </div>
+
+          <Button
+            size="sm"
+            className="w-full mt-3"
+            onClick={() => navigate(`/app/spots/${selectedSpot.id}`)}
+          >
+            View spot details
+          </Button>
+        </div>
+      )}
+
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50 backdrop-blur-sm">
@@ -740,7 +793,7 @@ export default function Spots() {
       )}
 
       {/* Empty state overlay */}
-      {!isLoading && sharedCatches.length === 0 && mapReady && (
+      {!isLoading && sharedCatches.length === 0 && fishingSpots.length === 0 && mapReady && (
         <div className="absolute bottom-4 left-3 right-3 z-10">
           <div className="bg-card rounded-xl shadow-lg border p-6 text-center max-w-sm mx-auto">
             <Fish className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
