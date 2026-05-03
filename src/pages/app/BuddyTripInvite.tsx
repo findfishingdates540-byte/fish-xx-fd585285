@@ -294,7 +294,7 @@ export default function BuddyTripInvite() {
                 <h3 className="font-semibold text-lg">{buddy.display_name}</h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   {buddy.fishing_experience ? `${buddy.fishing_experience.charAt(0).toUpperCase() + buddy.fishing_experience.slice(1)} Angler` : "Fishing Enthusiast"}
-                  {calculateAge(buddy.date_of_birth) && ` • ${calculateAge(buddy.date_of_birth)}`}
+                  {buddy.age && ` • ${buddy.age}`}
                 </p>
 
                 {/* Tags */}
