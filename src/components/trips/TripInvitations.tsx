@@ -66,7 +66,7 @@ export function TripInvitations() {
       if (tripUserIds.length === 0) return [];
 
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", tripUserIds);
 

@@ -125,7 +125,7 @@ export function useMessageNotifications() {
 
           // Get sender's name
           const { data: sender } = await supabase
-            .from("profiles")
+            .from("profiles_safe")
             .select("display_name")
             .eq("id", newMessage.sender_id)
             .single();
@@ -179,7 +179,7 @@ export function useMessageNotifications() {
 
           // Get requester's name
           const { data: requester } = await supabase
-            .from("profiles")
+            .from("profiles_safe")
             .select("display_name")
             .eq("id", newRequest.requester_id)
             .single();

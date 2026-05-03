@@ -128,7 +128,7 @@ export default function Spots() {
       for (let i = 0; i < userIds.length; i += 50) {
         const batch = userIds.slice(i, i + 50);
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('profiles_safe')
           .select('id, display_name, photos')
           .in('id', batch);
         profiles?.forEach(p => {

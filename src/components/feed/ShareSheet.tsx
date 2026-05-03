@@ -58,7 +58,7 @@ export const ShareSheet: FC<ShareSheetProps> = ({
       if (following && following.length > 0) {
         const followingIds = following.map(f => f.following_id);
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('profiles_safe')
           .select('id, display_name, photos')
           .in('id', followingIds);
         

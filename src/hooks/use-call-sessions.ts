@@ -226,7 +226,7 @@ export function useCallSessions(options: UseCallSessionsOptions = {}) {
             
             // Fetch caller info
             const { data: callerData } = await supabase
-              .from('profiles')
+              .from('profiles_safe')
               .select('id, display_name, photos')
               .eq('id', session.caller_id)
               .single();

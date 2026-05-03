@@ -48,7 +48,7 @@ export function useTripInvitationNotifications() {
             if (trip) {
               // Fetch the trip owner's profile
               const { data: ownerProfile } = await supabase
-                .from("profiles")
+                .from("profiles_safe")
                 .select("display_name")
                 .eq("id", trip.user_id)
                 .single();
@@ -100,7 +100,7 @@ export function useTripInvitationNotifications() {
             if (trip && trip.user_id === user.id) {
               // Fetch the buddy's profile
               const { data: buddyProfile } = await supabase
-                .from("profiles")
+                .from("profiles_safe")
                 .select("display_name")
                 .eq("id", newData.user_id)
                 .single();

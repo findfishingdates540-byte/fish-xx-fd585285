@@ -92,7 +92,7 @@ export default function TripDetail() {
       // Fetch profiles for participants
       const userIds = data.map((p) => p.user_id);
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", userIds);
 

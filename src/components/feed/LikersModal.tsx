@@ -32,7 +32,7 @@ export function LikersModal({ postId, isOpen, onClose }: LikersModalProps) {
 
       const userIds = likes.map(l => l.user_id);
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos, is_verified, id_verified, live_verified')
         .in('id', userIds);
 
@@ -133,7 +133,7 @@ export function useLikedByFollowing(postId: string) {
       if (!likes) return null;
 
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos')
         .eq('id', likes.user_id)
         .single();

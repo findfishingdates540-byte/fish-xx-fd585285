@@ -85,7 +85,7 @@ export default function SpeciesLeaderboardPage() {
     queryFn: async () => {
       if (userIds.length === 0) return {};
       const { data } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", userIds);
       const map: Record<string, ProfileInfo> = {};
@@ -124,7 +124,7 @@ export default function SpeciesLeaderboardPage() {
         .limit(5);
       if (!data || data.length === 0) return [];
       const uids = [...new Set(data.map((c) => c.user_id))];
-      const { data: profs } = await supabase.from("profiles").select("id, display_name").in("id", uids);
+      const { data: profs } = await supabase.from("profiles_safe").select("id, display_name").in("id", uids);
       const profMap: Record<string, string> = {};
       (profs || []).forEach((p) => { profMap[p.id] = p.display_name || "Angler"; });
       return data.map((c) => ({ ...c, display_name: profMap[c.user_id] || "Angler" }));

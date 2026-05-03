@@ -24,7 +24,7 @@ export default function Followers() {
     queryKey: ['profile-basic', userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('display_name, photos')
         .eq('id', userId!)
         .single();

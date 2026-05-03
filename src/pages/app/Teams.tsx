@@ -68,7 +68,7 @@ export default function Teams() {
       if (captainIds.length === 0) return {};
       const uniqueIds = [...new Set(captainIds)];
       const { data } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", uniqueIds);
       const map: Record<string, any> = {};

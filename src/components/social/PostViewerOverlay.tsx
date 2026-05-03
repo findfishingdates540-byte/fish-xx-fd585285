@@ -66,7 +66,7 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
     queryKey: ['post-viewer-profile', userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos, id_verified, live_verified')
         .eq('id', userId)
         .single();

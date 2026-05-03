@@ -103,7 +103,7 @@ export function useTicketResponses(ticketId: string | null) {
       
       if (responderIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('profiles_safe')
           .select('id, display_name, photos')
           .in('id', responderIds);
         

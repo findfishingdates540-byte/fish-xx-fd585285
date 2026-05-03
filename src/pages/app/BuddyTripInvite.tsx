@@ -37,7 +37,7 @@ interface BuddyProfile {
   id: string;
   display_name: string | null;
   photos: string[] | null;
-  date_of_birth: string | null;
+  age: number | null;
   fishing_experience: string | null;
   preferred_species: string[] | null;
   location_name: string | null;
@@ -100,8 +100,8 @@ export default function BuddyTripInvite() {
     queryFn: async () => {
       if (!buddyId) return null;
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, display_name, photos, date_of_birth, fishing_experience, preferred_species, location_name, bio")
+        .from("profiles_safe")
+        .select("id, display_name, photos, age, fishing_experience, preferred_species, location_name, bio")
         .eq("id", buddyId)
         .maybeSingle();
       if (error) throw error;
@@ -294,7 +294,7 @@ export default function BuddyTripInvite() {
                 <h3 className="font-semibold text-lg">{buddy.display_name}</h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   {buddy.fishing_experience ? `${buddy.fishing_experience.charAt(0).toUpperCase() + buddy.fishing_experience.slice(1)} Angler` : "Fishing Enthusiast"}
-                  {calculateAge(buddy.date_of_birth) && ` • ${calculateAge(buddy.date_of_birth)}`}
+                  {buddy.age && ` • ${buddy.age}`}
                 </p>
 
                 {/* Tags */}
