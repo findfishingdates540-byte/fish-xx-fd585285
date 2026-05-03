@@ -63,7 +63,7 @@ const TournamentDetail = () => {
       if (participants.length === 0) return {};
       const ids = participants.map((p: any) => p.user_id);
       const { data, error } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", ids);
       if (error) throw error;

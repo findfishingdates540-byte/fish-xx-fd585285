@@ -65,7 +65,7 @@ export default function CatchDetail() {
     queryKey: ["catch-detail-angler", catchData?.user_id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos, fishing_experience, id_verified, live_verified")
         .eq("id", catchData!.user_id)
         .maybeSingle();

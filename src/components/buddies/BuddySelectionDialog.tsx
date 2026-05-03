@@ -65,7 +65,7 @@ export function BuddySelectionDialog({
 
       // Fetch buddy profiles
       const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos, fishing_experience, location_name")
         .in("id", buddyUserIds);
 

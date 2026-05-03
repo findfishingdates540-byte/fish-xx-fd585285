@@ -34,7 +34,7 @@ export default function SocialProfile() {
       if (!userId) return null;
       
       const { data, error } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select(`
           id,
           display_name,

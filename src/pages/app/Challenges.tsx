@@ -128,7 +128,7 @@ export default function Challenges() {
     queryFn: async () => {
       if (participantUserIds.length === 0) return {};
       const { data } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", participantUserIds);
       const map: Record<string, { display_name: string | null; photos: string[] | null }> = {};

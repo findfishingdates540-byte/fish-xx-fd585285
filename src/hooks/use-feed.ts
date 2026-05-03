@@ -141,7 +141,7 @@ export function useFeedPosts() {
 
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
       
@@ -288,7 +288,7 @@ export function useFollowingFeedPosts() {
 
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
       
@@ -401,7 +401,7 @@ export function useFeedComments(postId: string) {
 
       // Fetch profiles - use profiles table directly to ensure proper id matching
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos, id_verified, live_verified')
         .in('id', userIds);
       

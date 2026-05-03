@@ -50,7 +50,7 @@ export function useMentionedPosts(userId: string | undefined) {
       
       // Get user's display name to search for mentions
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('display_name')
         .eq('id', userId)
         .single();

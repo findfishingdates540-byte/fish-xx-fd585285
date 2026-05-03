@@ -29,7 +29,7 @@ export function FeedRightSidebar() {
       const requesterIds = requests.map(r => r.requester_id);
       const {
         data: profiles
-      } = await supabase.from('profiles').select('id, display_name, photos').in('id', requesterIds);
+      } = await supabase.from('profiles_safe').select('id, display_name, photos').in('id', requesterIds);
 
       // Get mutual buddies count for each requester
       const {
@@ -73,7 +73,7 @@ export function FeedRightSidebar() {
       const buddyIds = relationships.map(r => r.requester_id === user.id ? r.recipient_id : r.requester_id);
       const {
         data: profiles
-      } = await supabase.from('profiles').select('id, display_name, photos, date_of_birth').in('id', buddyIds).not('date_of_birth', 'is', null);
+      } = await supabase.from('profiles_safe').select('id, display_name, photos, date_of_birth').in('id', buddyIds).not('date_of_birth', 'is', null);
       if (!profiles) return [];
       const today = new Date();
       return profiles.filter(p => {
@@ -99,7 +99,7 @@ export function FeedRightSidebar() {
       const buddyIds = relationships.map(r => r.requester_id === user.id ? r.recipient_id : r.requester_id);
       const {
         data: profiles
-      } = await supabase.from('profiles').select('id, display_name, photos, last_active_at').in('id', buddyIds).order('last_active_at', {
+      } = await supabase.from('profiles_safe').select('id, display_name, photos, last_active_at').in('id', buddyIds).order('last_active_at', {
         ascending: false
       }).limit(15);
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();

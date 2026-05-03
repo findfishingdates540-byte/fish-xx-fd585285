@@ -276,7 +276,7 @@ export function NotificationCenter({ mode = 'both' }: NotificationCenterProps) {
       if (data && data.length > 0) {
         const ownerIds = [...new Set(data.map((d: any) => d.trip?.user_id).filter(Boolean))];
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('profiles_safe')
           .select('id, display_name, photos')
           .in('id', ownerIds);
         

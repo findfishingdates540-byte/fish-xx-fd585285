@@ -78,7 +78,7 @@ export default function Leaderboard() {
     queryKey: ["leaderboard-top-profiles", topUserIds.join(",")],
     queryFn: async () => {
       if (topUserIds.length === 0) return {};
-      const { data } = await supabase.from("profiles").select("id, display_name, photos").in("id", topUserIds);
+      const { data } = await supabase.from("profiles_safe").select("id, display_name, photos").in("id", topUserIds);
       const map: Record<string, ProfileInfo> = {};
       (data || []).forEach((p) => { map[p.id] = p as ProfileInfo; });
       return map;
@@ -102,7 +102,7 @@ export default function Leaderboard() {
     queryKey: ["global-angler-profiles", globalAnglerIds.join(",")],
     queryFn: async () => {
       if (globalAnglerIds.length === 0) return {};
-      const { data } = await supabase.from("profiles").select("id, display_name, photos").in("id", globalAnglerIds);
+      const { data } = await supabase.from("profiles_safe").select("id, display_name, photos").in("id", globalAnglerIds);
       const map: Record<string, ProfileInfo> = {};
       (data || []).forEach((p) => { map[p.id] = p as ProfileInfo; });
       return map;

@@ -63,7 +63,7 @@ export function useMatches() {
 
       // Fetch profiles for all matched users
       const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
+        .from('profiles_safe')
         .select('id, display_name, date_of_birth, bio, photos, id_verified, live_verified, is_active')
         .in('id', otherUserIds)
         .eq('is_active', true);

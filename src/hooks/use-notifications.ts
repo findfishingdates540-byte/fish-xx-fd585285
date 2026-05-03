@@ -64,7 +64,7 @@ export function useNotifications() {
       let profilesMap: Record<string, { photo: string; name: string }> = {};
       if (commenterIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('profiles_safe')
           .select('id, display_name, photos')
           .in('id', commenterIds);
         

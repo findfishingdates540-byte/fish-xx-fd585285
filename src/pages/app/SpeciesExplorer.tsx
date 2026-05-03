@@ -142,7 +142,7 @@ export default function SpeciesExplorer() {
     queryFn: async () => {
       if (recordHolderIds.length === 0) return {};
       const { data } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", recordHolderIds);
       const map: Record<string, { name: string; avatar: string | null }> = {};
