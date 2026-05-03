@@ -66,21 +66,9 @@ export function FeedRightSidebar() {
     queryKey: ['birthdays-today', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const {
-        data: relationships
-      } = await supabase.from('fishing_buddies').select('requester_id, recipient_id').or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`).eq('status', 'accepted');
-      if (!relationships || relationships.length === 0) return [];
-      const buddyIds = relationships.map(r => r.requester_id === user.id ? r.recipient_id : r.requester_id);
-      const {
-        data: profiles
-      } = await supabase.from('profiles_safe').select('id, display_name, photos, date_of_birth').in('id', buddyIds).not('date_of_birth', 'is', null);
-      if (!profiles) return [];
-      const today = new Date();
-      return profiles.filter(p => {
-        if (!p.date_of_birth) return false;
-        const dob = parseISO(p.date_of_birth);
-        return dob.getMonth() === today.getMonth() && dob.getDate() === today.getDate();
-      });
+      const { data, error } = await supabase.rpc('get_birthday_buddies', { p_user_id: user.id });
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.id
   });

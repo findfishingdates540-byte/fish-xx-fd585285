@@ -37,7 +37,7 @@ interface BuddyProfile {
   id: string;
   display_name: string | null;
   photos: string[] | null;
-  date_of_birth: string | null;
+  age: number | null;
   fishing_experience: string | null;
   preferred_species: string[] | null;
   location_name: string | null;

@@ -64,7 +64,7 @@ export function useMatches() {
       // Fetch profiles for all matched users
       const { data: profiles, error: profileError } = await supabase
         .from('profiles_safe')
-        .select('id, display_name, date_of_birth, bio, photos, id_verified, live_verified, is_active')
+        .select('id, display_name, age, bio, photos, id_verified, live_verified, is_active')
         .in('id', otherUserIds)
         .eq('is_active', true);
 
@@ -86,7 +86,7 @@ export function useMatches() {
             id: otherUserId,
             matchId: match.id,
             name: profile.display_name || 'Anonymous',
-            age: calculateAge(profile.date_of_birth),
+            age: profile.age ?? null,
             photo: profile.photos?.[0] || '',
             bio: profile.bio || '',
             idVerified: profile.id_verified || false,
