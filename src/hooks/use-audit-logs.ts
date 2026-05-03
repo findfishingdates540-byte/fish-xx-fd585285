@@ -116,14 +116,13 @@ export function useCreateAuditLog() {
       if (!user?.id) throw new Error('User not authenticated');
 
       const { error } = await supabase
-        .from('audit_logs')
-        .insert([{
-          user_id: user.id,
-          action,
-          entity_type: entityType,
-          entity_id: entityId || null,
-          details: (details || {}) as Json,
-        }]);
+        .rpc('create_audit_log', {
+          p_user_id: user.id,
+          p_action: action,
+          p_entity_type: entityType,
+          p_entity_id: entityId || null,
+          p_details: (details || {}) as Json,
+        });
 
       if (error) throw error;
     },

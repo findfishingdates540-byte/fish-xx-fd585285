@@ -61,12 +61,11 @@ export default function PhotoChallengeDetail() {
     queryKey: ["photo-challenge", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("photo_challenges")
-        .select("*")
-        .eq("id", id!)
-        .maybeSingle();
+        .rpc("get_photo_challenges_safe");
       if (error) throw error;
-      return data;
+      // Find the specific challenge by id
+      const challenges = data || [];
+      return challenges.find((c: any) => c.id === id) || null;
     },
     enabled: !!id,
   });

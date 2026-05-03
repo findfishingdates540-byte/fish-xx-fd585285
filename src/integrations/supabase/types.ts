@@ -1495,6 +1495,13 @@ export type Database = {
             referencedRelation: "photo_challenges"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "photo_challenge_entries_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       photo_challenge_votes: {
@@ -1525,6 +1532,13 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "photo_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_challenge_votes_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges_public"
             referencedColumns: ["id"]
           },
           {
@@ -1700,6 +1714,13 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "photo_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prize_payouts_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges_public"
             referencedColumns: ["id"]
           },
           {
@@ -2838,6 +2859,57 @@ export type Database = {
       }
     }
     Views: {
+      photo_challenges_public: {
+        Row: {
+          banner_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          entry_fee: number | null
+          id: string | null
+          prize_description: string | null
+          prize_type: string | null
+          start_date: string | null
+          status: string | null
+          title: string | null
+          voting_end_date: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          entry_fee?: number | null
+          id?: string | null
+          prize_description?: string | null
+          prize_type?: string | null
+          start_date?: string | null
+          status?: string | null
+          title?: string | null
+          voting_end_date?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          entry_fee?: number | null
+          id?: string | null
+          prize_description?: string | null
+          prize_type?: string | null
+          start_date?: string | null
+          status?: string | null
+          title?: string | null
+          voting_end_date?: string | null
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       public_profiles: {
         Row: {
           account_mode: Database["public"]["Enums"]["account_mode"] | null
@@ -3005,6 +3077,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_audit_log: {
+        Args: {
+          p_action: string
+          p_details?: Json
+          p_entity_id?: string
+          p_entity_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       get_buddy_conversations: {
         Args: { p_user_id: string }
         Returns: {
@@ -3046,6 +3128,25 @@ export type Database = {
           matched_user_id: string
           photo: string
           unread_count: number
+        }[]
+      }
+      get_photo_challenges_safe: {
+        Args: never
+        Returns: {
+          banner_url: string
+          created_at: string
+          created_by: string
+          description: string
+          end_date: string
+          entry_fee: number
+          id: string
+          prize_description: string
+          prize_type: string
+          start_date: string
+          status: string
+          title: string
+          voting_end_date: string
+          winner_id: string
         }[]
       }
       get_species_leaderboard: {
