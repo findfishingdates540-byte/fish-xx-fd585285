@@ -3419,6 +3419,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_birthday_buddies: {
+        Args: { p_user_id: string }
+        Returns: {
+          display_name: string
+          id: string
+          photos: string[]
+        }[]
+      }
       get_buddy_conversations: {
         Args: { p_user_id: string }
         Returns: {
