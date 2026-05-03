@@ -167,7 +167,7 @@ export default function TripPlanner() {
     queryFn: async () => {
       if (invitedBuddies.length === 0) return [];
       const { data, error } = await supabase
-        .from("profiles")
+        .from("profiles_safe")
         .select("id, display_name, photos")
         .in("id", invitedBuddies);
       if (error) throw error;

@@ -62,7 +62,7 @@ export default function TeamProfile() {
     queryKey: ["team-member-profiles", memberUserIds.join(",")],
     queryFn: async () => {
       if (memberUserIds.length === 0) return {};
-      const { data } = await supabase.from("profiles").select("id, display_name, photos, fishing_experience").in("id", memberUserIds);
+      const { data } = await supabase.from("profiles_safe").select("id, display_name, photos, fishing_experience").in("id", memberUserIds);
       const map: Record<string, MemberProfile> = {};
       (data || []).forEach((p) => { map[p.id] = p as MemberProfile; });
       return map;

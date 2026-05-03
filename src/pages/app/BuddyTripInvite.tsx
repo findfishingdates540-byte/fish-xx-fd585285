@@ -100,8 +100,8 @@ export default function BuddyTripInvite() {
     queryFn: async () => {
       if (!buddyId) return null;
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, display_name, photos, date_of_birth, fishing_experience, preferred_species, location_name, bio")
+        .from("profiles_safe")
+        .select("id, display_name, photos, age, fishing_experience, preferred_species, location_name, bio")
         .eq("id", buddyId)
         .maybeSingle();
       if (error) throw error;
