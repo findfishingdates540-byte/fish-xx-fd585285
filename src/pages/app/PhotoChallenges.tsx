@@ -38,13 +38,16 @@ export default function PhotoChallenges() {
     queryKey: ["photo-challenges"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("photo_challenges")
-        .select("*")
-        .order("start_date", { ascending: false });
+        .rpc("get_photo_challenges_safe");
       if (error) throw error;
+      
+      // Sort by start_date descending
+      const sorted = (data || []).sort((a: any, b: any) => 
+        new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+      );
 
       // Get entry counts
-      const ids = (data || []).map((c: any) => c.id);
+      const ids = sorted.map((c: any) => c.id);
       const { data: entries } = await supabase
         .from("photo_challenge_entries")
         .select("challenge_id")
@@ -55,7 +58,7 @@ export default function PhotoChallenges() {
         countMap[e.challenge_id] = (countMap[e.challenge_id] || 0) + 1;
       });
 
-      return (data || []).map((c: any) => ({
+      return sorted.map((c: any) => ({
         ...c,
         entry_count: countMap[c.id] || 0,
       })) as PhotoChallenge[];
