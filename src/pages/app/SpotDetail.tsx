@@ -21,10 +21,6 @@ import {
   Heart,
   Share2,
   ChevronRight,
-  Anchor,
-  Accessibility,
-  ParkingCircle,
-  Bath,
   Sun,
   Wind,
   Gauge,
@@ -120,13 +116,6 @@ interface FishSpecies {
   scientific_name: string | null;
   image_url: string | null;
 }
-
-const amenities = [
-  { id: "boat", label: "Boat Launch", icon: Anchor },
-  { id: "ada", label: "ADA Accessible", icon: Accessibility },
-  { id: "restrooms", label: "Restrooms", icon: Bath },
-  { id: "parking", label: "Parking", icon: ParkingCircle },
-];
 
 export default function SpotDetail() {
   const { id } = useParams<{ id: string }>();
@@ -674,20 +663,6 @@ export default function SpotDetail() {
                 {spot.description || 
                   "This fishing spot offers great opportunities for anglers of all skill levels. The waters are home to various fish species and feature accessible shoreline fishing points. Check local regulations before fishing."}
               </p>
-              <div className="flex flex-wrap gap-3">
-                {amenities.map((amenity) => {
-                  const Icon = amenity.icon;
-                  return (
-                    <div
-                      key={amenity.id}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-sm"
-                    >
-                      <Icon className="h-4 w-4 text-muted-foreground" />
-                      {amenity.label}
-                    </div>
-                  );
-                })}
-              </div>
             </div>
 
             {/* Common Catches */}
