@@ -461,21 +461,29 @@ export default function Spots() {
         })),
     };
 
-    const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
-    if (existing) { existing.setData(geojson); return; }
+    const apply = () => {
+      const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+      if (existing) { existing.setData(geojson); return; }
 
-    map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
-    map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
+      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
 
-    map.on('click', 'spot-unclustered', (e) => {
-      const features = map.queryRenderedFeatures(e.point, { layers: ['spot-unclustered'] });
-      if (!features.length) return;
-      const spot = fishingSpots.find(s => s.id === features[0].properties?.spotId);
-      if (spot) { setSelectedCatch(null); setSelectedSpot(spot); map.flyTo({ center: [spot.location_lng, spot.location_lat], zoom: 12, duration: 800 }); }
-    });
+      map.on('click', 'spot-unclustered', (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ['spot-unclustered'] });
+        if (!features.length) return;
+        const spot = fishingSpots.find(s => s.id === features[0].properties?.spotId);
+        if (spot) { setSelectedCatch(null); setSelectedSpot(spot); map.flyTo({ center: [spot.location_lng, spot.location_lat], zoom: 12, duration: 800 }); }
+      });
 
-    map.on('mouseenter', 'spot-unclustered', () => { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', 'spot-unclustered', () => { map.getCanvas().style.cursor = ''; });
+      map.on('mouseenter', 'spot-unclustered', () => { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseleave', 'spot-unclustered', () => { map.getCanvas().style.cursor = ''; });
+    };
+
+    if (map.isStyleLoaded()) {
+      apply();
+    } else {
+      map.once('style.load', apply);
+    }
   }, [filteredSpots, mapReady, showReefs, fishingSpots]);
 
   const handleLocateUser = useCallback(() => {
