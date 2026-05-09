@@ -295,7 +295,7 @@ export default function BuddyChat() {
       const otherUserId = buddy.requester_id === user.id ? buddy.recipient_id : buddy.requester_id;
 
       const { data: profile } = await supabase
-        .from('public_profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos, id_verified, live_verified')
         .eq('id', otherUserId)
         .single();
