@@ -527,7 +527,7 @@ export default function Spots() {
       {/* Top-Left stacked controls */}
       <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-10 flex flex-col gap-2.5">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/app/feed')}
           aria-label="Close map"
           className="h-11 w-11 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-white/90 transition active:scale-95"
         >
