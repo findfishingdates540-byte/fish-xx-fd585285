@@ -546,7 +546,7 @@ export default function PhotoChallengeDetail() {
                   )}
 
                   {/* Unpaid badge */}
-                  {!entry.has_paid && isSubmissionPhase && (
+                  {!entry.has_paid && isSubmissionPhase && Number(challenge.entry_fee) > 0 && (
                     <div className="absolute top-2 right-2">
                       <Badge variant="outline" className="bg-background/80 text-xs">
                         Unpaid
