@@ -463,7 +463,7 @@ const Index = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Ready to join the ultimate fishing community?
+            Ready to catch more fish, compete, and win money?
           </motion.h2>
           <motion.p 
             className="text-xl text-background/70 mb-10 max-w-2xl mx-auto"
