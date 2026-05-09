@@ -73,7 +73,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut({ scope: 'global' });
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (e) {
+      console.warn('signOut global failed, falling back to local', e);
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch {}
+    }
+    // Force-clear local state in case the server rejected the logout
+    // (e.g. session already expired) so the UI doesn't keep thinking
+    // the user is logged in.
+    setSession(null);
+    setUser(null);
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {}
   };
 
   const resetPassword = async (email: string) => {
