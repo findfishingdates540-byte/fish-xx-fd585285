@@ -100,6 +100,25 @@ interface SharedCatch {
   } | null;
 }
 
+interface FishingSpot {
+  id: string;
+  name: string | null;
+  description: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  location_name: string | null;
+  county: string | null;
+  depth_ft: number | null;
+  relief_ft: number | null;
+  primary_material: string | null;
+  jurisdiction: string | null;
+  coast: string | null;
+  deploy_date: string | null;
+  source: string | null;
+  area_type: string | null;
+  location_accuracy: string | null;
+}
+
 type MapStyleKey = "outdoors" | "satellite" | "terrain" | "bathymetry";
 
 const MAP_STYLES: Record<MapStyleKey, { label: string; icon: React.ReactNode; style: string }> = {
