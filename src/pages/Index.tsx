@@ -101,7 +101,7 @@ const Index = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                Discover fishing spots, log your catches, find fishing buddies, and connect with anglers worldwide. All in one platform.
+                Find better fishing spots, connect with other anglers, and compete in live tournaments from your phone.
               </motion.p>
               <motion.div 
                 className="flex flex-col sm:flex-row gap-4"
