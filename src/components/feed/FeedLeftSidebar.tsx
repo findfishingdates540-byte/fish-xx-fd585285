@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Calendar, MapPin, Fish } from 'lucide-react';
 import { FishXIcon, type FishXIconName } from '@/components/ui/fishx-icon';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
