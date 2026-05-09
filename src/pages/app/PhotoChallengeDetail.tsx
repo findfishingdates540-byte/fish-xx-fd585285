@@ -151,7 +151,12 @@ export default function PhotoChallengeDetail() {
   const myEntry = entries.find((e: any) => e.user_id === user?.id);
   const myVote = votes.find((v: any) => v.user_id === user?.id);
   const paidEntries = entries.filter((e: any) => e.has_paid).length;
-  const prizePool = (challenge?.entry_fee || 0) * paidEntries * 0.5;
+  const grossPool = (challenge?.entry_fee || 0) * paidEntries;
+  const platformFeePct = (challenge as any)?.platform_fee_percent ?? 10;
+  const prizePool =
+    (challenge as any)?.prize_type === "cash" && (challenge as any)?.entry_fee_enabled
+      ? grossPool * (1 - platformFeePct / 100)
+      : grossPool;
 
   const voteCounts: Record<string, number> = {};
   votes.forEach((v: any) => {
