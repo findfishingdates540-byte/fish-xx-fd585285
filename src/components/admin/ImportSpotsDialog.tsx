@@ -592,9 +592,18 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
 
   const validCount = parsedSpots.filter(s => s.valid).length;
   const invalidCount = parsedSpots.filter(s => !s.valid).length;
-  const totalPhotos = parsedSpots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
-  const saltwaterCount = parsedSpots.filter(s => s.area_type === 'saltwater').length;
-  const freshwaterCount = parsedSpots.filter(s => s.area_type === 'freshwater').length;
+  const insertCount = parsedSpots.filter(s => s.valid && s.action === 'insert').length;
+  const updateCount = parsedSpots.filter(s => s.valid && s.action === 'update').length;
+  const skipCount = parsedSpots.filter(s => s.action === 'skip').length;
+  const matchedCount = parsedSpots.filter(s => !!s.existingId).length;
+
+  const setActionFor = (idx: number, action: RowAction) => {
+    setParsedSpots(prev => prev.map((s, i) => (i === idx ? { ...s, action } : s)));
+  };
+
+  const bulkSetMatched = (action: RowAction) => {
+    setParsedSpots(prev => prev.map(s => (s.existingId ? { ...s, action } : s)));
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -605,7 +614,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
             Import Fishing Spots
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Upload a CSV or Excel file to bulk import fishing spots. Supports image URLs including Google Drive links.
+          Upload a CSV, Excel, or KML file. Each row is matched against existing spots so you can preview which will be inserted, updated, or skipped before committing.
           </DialogDescription>
         </DialogHeader>
 
@@ -629,12 +638,12 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="w-12 h-12 mx-auto mb-4 text-slate-500" />
-              <p className="text-slate-300 mb-2">Drag and drop your CSV or Excel file here</p>
-              <p className="text-sm text-slate-500">Supports .csv, .xlsx, .xls files</p>
+              <p className="text-slate-300 mb-2">Drag and drop your CSV, Excel, or KML file here</p>
+              <p className="text-sm text-slate-500">Supports .csv, .xlsx, .xls, .kml files</p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,.txt,.xlsx,.xls"
+                accept=".csv,.txt,.xlsx,.xls,.kml"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -669,8 +678,16 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
               {/* Validation Summary */}
               <div className="flex flex-wrap gap-3">
                 <Badge className="bg-green-500/20 text-green-400 border-0">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  {validCount} valid
+                  <Plus className="w-3 h-3 mr-1" />
+                  {insertCount} insert
+                </Badge>
+                <Badge className="bg-amber-500/20 text-amber-400 border-0">
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  {updateCount} update
+                </Badge>
+                <Badge className="bg-slate-500/20 text-slate-300 border-0">
+                  <MinusCircle className="w-3 h-3 mr-1" />
+                  {skipCount} skip
                 </Badge>
                 {invalidCount > 0 && (
                   <Badge className="bg-red-500/20 text-red-400 border-0">
@@ -678,76 +695,88 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
                     {invalidCount} invalid
                   </Badge>
                 )}
-                {totalPhotos > 0 && (
-                  <Badge className="bg-purple-500/20 text-purple-400 border-0">
-                    <Image className="w-3 h-3 mr-1" />
-                    {totalPhotos} photos
-                  </Badge>
-                )}
-                {saltwaterCount > 0 && (
-                  <Badge className="bg-blue-500/20 text-blue-400 border-0">
-                    🌊 {saltwaterCount} saltwater
-                  </Badge>
-                )}
-                {freshwaterCount > 0 && (
-                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0">
-                    🏞️ {freshwaterCount} freshwater
+                {classifying && (
+                  <Badge className="bg-cyan-500/20 text-cyan-300 border-0">
+                    Matching against database…
                   </Badge>
                 )}
               </div>
 
+              {/* Bulk actions for matched rows */}
+              {matchedCount > 0 && !importing && (
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 bg-slate-800/40 rounded-lg p-2">
+                  <span>{matchedCount} row(s) matched existing spots:</span>
+                  <Button size="sm" variant="outline" className="h-7 border-slate-600 text-slate-200" onClick={() => bulkSetMatched('skip')}>
+                    Skip all matches
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 border-amber-500/40 text-amber-300" onClick={() => bulkSetMatched('update')}>
+                    Update all matches
+                  </Button>
+                </div>
+              )}
+
               {/* Preview */}
-              <ScrollArea className="h-48 rounded-lg border border-slate-700">
+              <ScrollArea className="h-72 rounded-lg border border-slate-700">
                 <div className="p-3 space-y-2">
-                  {parsedSpots.slice(0, 20).map((spot, i) => (
-                    <div
-                      key={i}
-                      className={`p-2 rounded text-sm ${
-                        spot.valid 
-                          ? 'bg-slate-800/50' 
-                          : 'bg-red-500/10 border border-red-500/30'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{spot.name}</span>
-                          <Badge variant="outline" className={`text-xs ${
-                            spot.area_type === 'saltwater' 
-                              ? 'border-blue-500/50 text-blue-400' 
-                              : 'border-emerald-500/50 text-emerald-400'
-                          }`}>
-                            {spot.area_type === 'saltwater' ? '🌊' : '🏞️'}
-                          </Badge>
-                          {spot.photos && spot.photos.length > 0 && (
-                            <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
-                              <Image className="w-3 h-3 mr-1" />
-                              {spot.photos.length}
-                            </Badge>
-                          )}
+                  {parsedSpots.slice(0, 100).map((spot, i) => {
+                    const actionColor =
+                      spot.action === 'insert'
+                        ? 'border-green-500/40'
+                        : spot.action === 'update'
+                        ? 'border-amber-500/40'
+                        : 'border-slate-600/40';
+                    return (
+                      <div
+                        key={i}
+                        className={`p-2 rounded text-sm bg-slate-800/50 border ${actionColor} ${
+                          !spot.valid ? 'bg-red-500/10 border-red-500/30' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="font-medium text-white truncate">{spot.name}</span>
+                            {spot.photos && spot.photos.length > 0 && (
+                              <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
+                                <Image className="w-3 h-3 mr-1" />
+                                {spot.photos.length}
+                              </Badge>
+                            )}
+                          </div>
+                          <Select
+                            value={spot.action}
+                            onValueChange={(v) => setActionFor(i, v as RowAction)}
+                            disabled={!spot.valid}
+                          >
+                            <SelectTrigger className="h-7 w-28 bg-slate-900 border-slate-600 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                              <SelectItem value="insert">Insert</SelectItem>
+                              <SelectItem value="update" disabled={!spot.existingId}>
+                                Update
+                              </SelectItem>
+                              <SelectItem value="skip">Skip</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                        {spot.valid ? (
-                          <CheckCircle className="w-4 h-4 text-green-400" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-red-400" />
+                        {spot.matchReason && (
+                          <p className="text-amber-300 text-xs mt-1">↺ {spot.matchReason}</p>
+                        )}
+                        {spot.location_lat !== undefined && spot.location_lng !== undefined && (
+                          <p className="text-slate-500 text-xs mt-1">
+                            {spot.location_lat.toFixed(4)}, {spot.location_lng.toFixed(4)}
+                            {spot.location_name ? ` · ${spot.location_name}` : ''}
+                          </p>
+                        )}
+                        {spot.errors.length > 0 && (
+                          <p className="text-red-400 text-xs mt-1">{spot.errors.join(', ')}</p>
                         )}
                       </div>
-                      {spot.location_name && (
-                        <p className="text-slate-400 text-xs mt-1">{spot.location_name}</p>
-                      )}
-                      {spot.species_available && spot.species_available.length > 0 && (
-                        <p className="text-cyan-400 text-xs mt-1">
-                          🐟 {spot.species_available.slice(0, 3).join(', ')}
-                          {spot.species_available.length > 3 && ` +${spot.species_available.length - 3} more`}
-                        </p>
-                      )}
-                      {spot.errors.length > 0 && (
-                        <p className="text-red-400 text-xs mt-1">{spot.errors.join(', ')}</p>
-                      )}
-                    </div>
-                  ))}
-                  {parsedSpots.length > 20 && (
+                    );
+                  })}
+                  {parsedSpots.length > 100 && (
                     <p className="text-center text-slate-500 text-sm py-2">
-                      +{parsedSpots.length - 20} more spots...
+                      +{parsedSpots.length - 100} more spots…
                     </p>
                   )}
                 </div>
@@ -770,10 +799,18 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
             <div className="space-y-4">
               <div className="p-4 rounded-lg bg-slate-800 space-y-3">
                 <h4 className="font-medium text-white">Import Complete</h4>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                    <span className="text-green-400">{result.success} imported</span>
+                    <Plus className="w-5 h-5 text-green-400" />
+                    <span className="text-green-400">{result.inserted} inserted</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="w-5 h-5 text-amber-400" />
+                    <span className="text-amber-400">{result.updated} updated</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MinusCircle className="w-5 h-5 text-slate-300" />
+                    <span className="text-slate-300">{result.skipped} skipped</span>
                   </div>
                   {result.failed > 0 && (
                     <div className="flex items-center gap-2">
@@ -806,10 +843,12 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
           {!result && file && (
             <Button
               onClick={handleImport}
-              disabled={importing || validCount === 0}
+              disabled={importing || classifying || (insertCount + updateCount) === 0}
               className="bg-cyan-600 hover:bg-cyan-700"
             >
-              {importing ? 'Importing...' : `Import ${validCount} Spots`}
+              {importing
+                ? 'Committing…'
+                : `Commit ${insertCount} insert${insertCount === 1 ? '' : 's'} · ${updateCount} update${updateCount === 1 ? '' : 's'}`}
             </Button>
           )}
           {result && (
