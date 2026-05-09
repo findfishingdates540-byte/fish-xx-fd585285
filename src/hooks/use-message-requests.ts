@@ -26,22 +26,23 @@ export function useMessageRequests() {
       // and there are messages from the requester
       const { data: pendingBuddies, error } = await supabase
         .from('fishing_buddies')
-        .select(`
-          id,
-          requester_id,
-          created_at,
-          requester:profiles!fishing_buddies_requester_id_fkey(
-            id,
-            display_name,
-            photos
-          )
-        `)
+        .select('id, requester_id, created_at')
         .eq('recipient_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       if (!pendingBuddies || pendingBuddies.length === 0) return [];
+
+      // Fetch requester profiles via the public-readable view (RLS on `profiles` blocks direct reads of other users)
+      const requesterIds = Array.from(new Set(pendingBuddies.map((b) => b.requester_id)));
+      const { data: profilesData } = await supabase
+        .from('public_profiles')
+        .select('id, display_name, photos')
+        .in('id', requesterIds);
+      const profileMap = new Map(
+        (profilesData || []).map((p) => [p.id, p as { id: string; display_name: string | null; photos: string[] | null }])
+      );
 
       // Get message counts and last messages for each pending buddy
       const requests: MessageRequest[] = [];
@@ -61,10 +62,7 @@ export function useMessageRequests() {
 
         // Only include if there are messages
         if (count && count > 0) {
-          const requesterData = buddy.requester as unknown;
-          const requesterProfile = Array.isArray(requesterData) 
-            ? requesterData[0] as { id: string; display_name: string | null; photos: string[] | null } | undefined
-            : requesterData as { id: string; display_name: string | null; photos: string[] | null } | null;
+          const requesterProfile = profileMap.get(buddy.requester_id);
           requests.push({
             buddyId: buddy.id,
             requesterId: buddy.requester_id,
