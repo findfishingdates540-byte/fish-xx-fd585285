@@ -35,7 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.svg";
+import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.png";
 
 // Heuristic: a spot is "boat-only" (cannot be reached from shore) when
 // it sits in deeper water, is offshore, or its area type implies open water.
@@ -56,21 +56,13 @@ const ensureBoatIcon = (map: mapboxgl.Map) => {
   if (map.hasImage("boat-spot-icon")) return;
   const size = 64;
   const img = new Image();
-  img.crossOrigin = "anonymous";
   img.width = size;
   img.height = size;
   img.decoding = "async";
   img.onload = () => {
     try {
-      const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.drawImage(img, 0, 0, size, size);
-      const data = ctx.getImageData(0, 0, size, size);
       if (!map.hasImage("boat-spot-icon")) {
-        map.addImage("boat-spot-icon", { width: size, height: size, data: new Uint8Array(data.data.buffer) }, { pixelRatio: 2 });
+        map.addImage("boat-spot-icon", img, { pixelRatio: 2 });
       }
     } catch (e) {
       console.warn("Failed to add boat-spot-icon", e);
