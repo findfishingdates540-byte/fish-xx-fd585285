@@ -590,7 +590,6 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
     URL.revokeObjectURL(url);
   };
 
-  const validCount = parsedSpots.filter(s => s.valid).length;
   const invalidCount = parsedSpots.filter(s => !s.valid).length;
   const insertCount = parsedSpots.filter(s => s.valid && s.action === 'insert').length;
   const updateCount = parsedSpots.filter(s => s.valid && s.action === 'update').length;
