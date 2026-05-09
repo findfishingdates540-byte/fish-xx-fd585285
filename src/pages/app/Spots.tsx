@@ -52,6 +52,8 @@ const isBoatOnlySpot = (s: { area_type?: string | null; depth_ft?: number | null
   return false;
 };
 
+const boatIconMissingBoundMaps = new WeakSet<mapboxgl.Map>();
+
 const ensureBoatIcon = (map: mapboxgl.Map) => {
   if (map.hasImage("boat-spot-icon")) return;
   const size = 64;
@@ -71,9 +73,9 @@ const ensureBoatIcon = (map: mapboxgl.Map) => {
   img.onerror = (e) => console.warn("boat-spot-icon failed to load", e);
   img.src = boatSpotIconUrl;
   // Fallback handler in case the icon is requested before load completes
-  if (!(map as any).__boatIconMissingBound) {
-    (map as any).__boatIconMissingBound = true;
-    map.on("styleimagemissing", (ev: any) => {
+  if (!boatIconMissingBoundMaps.has(map)) {
+    boatIconMissingBoundMaps.add(map);
+    map.on("styleimagemissing", (ev) => {
       if (ev.id === "boat-spot-icon") ensureBoatIcon(map);
     });
   }
