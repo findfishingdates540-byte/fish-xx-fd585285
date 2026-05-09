@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 
 export default function AdminPhotoChallenges() {
@@ -27,6 +28,7 @@ export default function AdminPhotoChallenges() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [isFree, setIsFree] = useState(false);
   const [entryFee, setEntryFee] = useState("5");
   const [prizeType, setPrizeType] = useState("cash");
   const [prizeDescription, setPrizeDescription] = useState("");
@@ -74,7 +76,7 @@ export default function AdminPhotoChallenges() {
         title,
         description: description || null,
         banner_url: bannerUrl || null,
-        entry_fee: parseFloat(entryFee) || 5,
+        entry_fee: isFree ? 0 : (parseFloat(entryFee) || 0),
         prize_type: prizeType,
         prize_description: prizeDescription || null,
         gift_card_code: prizeType === "gift_card" ? (giftCardCode || null) : null,
@@ -217,6 +219,7 @@ export default function AdminPhotoChallenges() {
     setTitle("");
     setDescription("");
     setBannerUrl("");
+    setIsFree(false);
     setEntryFee("5");
     setPrizeType("cash");
     setPrizeDescription("");
@@ -351,22 +354,44 @@ export default function AdminPhotoChallenges() {
                 <Textarea placeholder="Theme details, rules..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
               </div>
 
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <Label className="text-sm">Free entry challenge</Label>
+                  <p className="text-[11px] text-muted-foreground">No entry fee. Prize must be admin-funded (cash or gift card).</p>
+                </div>
+                <Switch checked={isFree} onCheckedChange={setIsFree} />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Entry Fee ($)</Label>
-                  <Input type="number" min="0" step="0.50" value={entryFee} onChange={(e) => setEntryFee(e.target.value)} />
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.50"
+                    value={isFree ? "0" : entryFee}
+                    onChange={(e) => setEntryFee(e.target.value)}
+                    disabled={isFree}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Prize Type</Label>
                   <Select value={prizeType} onValueChange={setPrizeType}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cash">Cash (Half the Pot)</SelectItem>
+                      <SelectItem value="cash">{isFree ? "Cash (Admin Funded)" : "Cash (Half the Pot)"}</SelectItem>
                       <SelectItem value="gift_card">Gift Card</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
+
+              {isFree && prizeType === "cash" && (
+                <div className="space-y-2">
+                  <Label>Prize Description (admin-funded amount)</Label>
+                  <Input placeholder="e.g. $100 cash prize" value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} />
+                </div>
+              )}
 
               {prizeType === "gift_card" && (
                 <div className="space-y-3">
