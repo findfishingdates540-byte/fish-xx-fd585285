@@ -147,6 +147,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   const [file, setFile] = useState<File | null>(null);
   const [parsedSpots, setParsedSpots] = useState<ParsedSpot[]>([]);
   const [importing, setImporting] = useState(false);
+  const [classifying, setClassifying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -482,64 +483,94 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   };
 
   const handleImport = async () => {
-    const validSpots = parsedSpots.filter(s => s.valid);
-    if (validSpots.length === 0) {
-      toast.error('No valid spots to import');
+    const inserts = parsedSpots.filter(s => s.valid && s.action === 'insert');
+    const updates = parsedSpots.filter(s => s.valid && s.action === 'update' && s.existingId);
+    const totalOps = inserts.length + updates.length;
+    if (totalOps === 0) {
+      toast.error('Nothing to commit (everything is set to skip)');
       return;
     }
 
     setImporting(true);
     setProgress(0);
 
-    const results: ImportResult = { success: 0, failed: 0, errors: [] };
-    const batchSize = 10;
-    const batches = Math.ceil(validSpots.length / batchSize);
+    const results: ImportResult = {
+      inserted: 0,
+      updated: 0,
+      skipped: parsedSpots.filter(s => s.action === 'skip').length,
+      failed: 0,
+      errors: [],
+    };
+    let done = 0;
 
-    for (let i = 0; i < batches; i++) {
-      const batch = validSpots.slice(i * batchSize, (i + 1) * batchSize);
-      
-      const spotsToInsert = batch.map(spot => ({
+    // Inserts in batches of 10
+    const batchSize = 10;
+    for (let i = 0; i < inserts.length; i += batchSize) {
+      const batch = inserts.slice(i, i + batchSize);
+      const payload = batch.map(spot => ({
         name: spot.name,
         description: spot.description || null,
         location_name: spot.location_name || null,
         location_lat: spot.location_lat || 25.7617,
         location_lng: spot.location_lng || -80.1918,
-        species_available: null, // Species are UUIDs, will need to be set separately
+        species_available: null,
         is_public: spot.is_public ?? true,
         is_verified: spot.is_verified ?? false,
         area_type: spot.area_type || 'freshwater',
         photos: spot.photos || null,
       }));
-
-      const { data, error } = await supabase
-        .from('fishing_spots')
-        .insert(spotsToInsert)
-        .select('id');
-
+      const { data, error } = await supabase.from('fishing_spots').insert(payload).select('id');
       if (error) {
         results.failed += batch.length;
-        results.errors.push(`Batch ${i + 1}: ${error.message}`);
+        results.errors.push(`Insert batch: ${error.message}`);
       } else {
-        results.success += data?.length || 0;
+        results.inserted += data?.length || 0;
       }
+      done += batch.length;
+      setProgress(Math.round((done / totalOps) * 100));
+    }
 
-      setProgress(Math.round(((i + 1) / batches) * 100));
+    // Updates one-by-one (only set fields that have values)
+    for (const spot of updates) {
+      const updatePayload: Record<string, unknown> = {};
+      if (spot.description) updatePayload.description = spot.description;
+      if (spot.location_name) updatePayload.location_name = spot.location_name;
+      if (typeof spot.location_lat === 'number') updatePayload.location_lat = spot.location_lat;
+      if (typeof spot.location_lng === 'number') updatePayload.location_lng = spot.location_lng;
+      if (spot.area_type) updatePayload.area_type = spot.area_type;
+      if (spot.photos && spot.photos.length > 0) updatePayload.photos = spot.photos;
+      if (Object.keys(updatePayload).length === 0) {
+        done += 1;
+        setProgress(Math.round((done / totalOps) * 100));
+        continue;
+      }
+      const { error } = await supabase.from('fishing_spots').update(updatePayload).eq('id', spot.existingId!);
+      if (error) {
+        results.failed += 1;
+        results.errors.push(`Update "${spot.name}": ${error.message}`);
+      } else {
+        results.updated += 1;
+      }
+      done += 1;
+      setProgress(Math.round((done / totalOps) * 100));
     }
 
     setResult(results);
     setImporting(false);
 
-    if (results.success > 0) {
+    if (results.inserted + results.updated > 0) {
       queryClient.invalidateQueries({ queryKey: ['admin-spots'] });
-      toast.success(`Successfully imported ${results.success} spots`);
+      toast.success(`Inserted ${results.inserted}, updated ${results.updated}`);
       await logAction('spots_bulk_import', 'spot', undefined, { 
-        imported: results.success, 
-        failed: results.failed 
+        inserted: results.inserted,
+        updated: results.updated,
+        skipped: results.skipped,
+        failed: results.failed,
       });
     }
 
     if (results.failed > 0) {
-      toast.error(`Failed to import ${results.failed} spots`);
+      toast.error(`${results.failed} operation(s) failed`);
     }
   };
 
