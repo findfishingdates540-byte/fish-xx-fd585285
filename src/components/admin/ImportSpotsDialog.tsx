@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Download, Image } from 'lucide-react';
+import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Download, Image, Plus, RefreshCw, MinusCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -15,6 +16,8 @@ interface ImportSpotsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+type RowAction = 'insert' | 'update' | 'skip';
 
 interface ParsedSpot {
   name: string;
@@ -29,10 +32,16 @@ interface ParsedSpot {
   photos?: string[];
   valid: boolean;
   errors: string[];
+  action: RowAction;
+  existingId?: string;
+  existingName?: string;
+  matchReason?: string;
 }
 
 interface ImportResult {
-  success: number;
+  inserted: number;
+  updated: number;
+  skipped: number;
   failed: number;
   errors: string[];
 }
@@ -138,6 +147,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   const [file, setFile] = useState<File | null>(null);
   const [parsedSpots, setParsedSpots] = useState<ParsedSpot[]>([]);
   const [importing, setImporting] = useState(false);
+  const [classifying, setClassifying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -307,56 +317,153 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         photos: photos.length > 0 ? photos : undefined,
         valid: errors.length === 0 && !!name,
         errors,
+        action: 'insert' as RowAction,
       };
     }).filter(spot => spot.name);
 
     return spots;
   };
 
+  // Parse KML file (Google Earth / Maps)
+  const parseKML = async (selectedFile: File): Promise<ParsedSpot[]> => {
+    const text = await selectedFile.text();
+    const doc = new DOMParser().parseFromString(text, 'text/xml');
+    const placemarks = Array.from(doc.getElementsByTagName('Placemark'));
+    const spots: ParsedSpot[] = [];
+    for (const pm of placemarks) {
+      const name = pm.getElementsByTagName('name')[0]?.textContent?.trim() || '';
+      const description = pm.getElementsByTagName('description')[0]?.textContent?.trim() || undefined;
+      const coordsEl = pm.getElementsByTagName('coordinates')[0];
+      const coordsText = coordsEl?.textContent?.trim() || '';
+      // Take first coordinate triplet (lng,lat,alt)
+      const first = coordsText.split(/\s+/)[0] || '';
+      const parts = first.split(',').map(p => parseFloat(p));
+      const lng = parts[0];
+      const lat = parts[1];
+      if (!name || isNaN(lat) || isNaN(lng)) continue;
+      spots.push({
+        name,
+        description,
+        location_lat: lat,
+        location_lng: lng,
+        is_public: true,
+        is_verified: true,
+        area_type: 'saltwater',
+        valid: true,
+        errors: [],
+        action: 'insert',
+      });
+    }
+    return spots;
+  };
+
+  // Classify parsed spots against existing DB spots: insert/update/skip
+  const classifySpots = async (spots: ParsedSpot[]): Promise<ParsedSpot[]> => {
+    if (spots.length === 0) return spots;
+    // Fetch existing spots in bounding box of import (single query, capped)
+    const lats = spots.map(s => s.location_lat!).filter(n => typeof n === 'number');
+    const lngs = spots.map(s => s.location_lng!).filter(n => typeof n === 'number');
+    const minLat = Math.min(...lats) - 0.05;
+    const maxLat = Math.max(...lats) + 0.05;
+    const minLng = Math.min(...lngs) - 0.05;
+    const maxLng = Math.max(...lngs) + 0.05;
+
+    const { data: existing } = await supabase
+      .from('fishing_spots')
+      .select('id,name,location_lat,location_lng')
+      .gte('location_lat', minLat)
+      .lte('location_lat', maxLat)
+      .gte('location_lng', minLng)
+      .lte('location_lng', maxLng)
+      .limit(5000);
+
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const existingList = (existing || []).map(e => ({
+      id: e.id as string,
+      name: e.name as string,
+      key: norm(e.name as string),
+      lat: Number(e.location_lat),
+      lng: Number(e.location_lng),
+    }));
+
+    return spots.map(spot => {
+      if (!spot.valid) return spot;
+      const sKey = norm(spot.name);
+      const sLat = spot.location_lat!;
+      const sLng = spot.location_lng!;
+      // Find by name keyword overlap + within ~0.05 deg, OR very close coords
+      const match = existingList.find(e => {
+        const dLat = Math.abs(e.lat - sLat);
+        const dLng = Math.abs(e.lng - sLng);
+        const close = dLat < 0.05 && dLng < 0.05;
+        const veryClose = dLat < 0.005 && dLng < 0.005;
+        const nameMatch = e.key === sKey || e.key.includes(sKey) || sKey.includes(e.key);
+        return (close && nameMatch) || veryClose;
+      });
+      if (match) {
+        return {
+          ...spot,
+          action: 'skip' as RowAction,
+          existingId: match.id,
+          existingName: match.name,
+          matchReason: `Matches "${match.name}"`,
+        };
+      }
+      return spot;
+    });
+  };
+
   const parseFile = async (selectedFile: File) => {
     setFile(selectedFile);
     setResult(null);
+    setClassifying(true);
 
     try {
-      let rows: string[][];
+      let spots: ParsedSpot[] = [];
+      const isKML = selectedFile.name.match(/\.kml$/i);
       const isExcel = selectedFile.name.match(/\.xlsx?$/i);
 
-      if (isExcel) {
-        rows = await parseExcel(selectedFile);
+      if (isKML) {
+        spots = await parseKML(selectedFile);
+        if (spots.length === 0) {
+          toast.error('No placemarks found in KML file');
+          return;
+        }
       } else {
-        const text = await selectedFile.text();
-        rows = parseCSV(text);
+        let rows: string[][];
+        if (isExcel) {
+          rows = await parseExcel(selectedFile);
+        } else {
+          const text = await selectedFile.text();
+          rows = parseCSV(text);
+        }
+        if (rows.length < 2) {
+          toast.error('File must have a header row and at least one data row');
+          return;
+        }
+        spots = processRows(rows, rows[0]);
       }
 
-      if (rows.length < 2) {
-        toast.error('File must have a header row and at least one data row');
-        return;
-      }
+      // Classify against existing DB
+      const classified = await classifySpots(spots);
+      setParsedSpots(classified);
 
-      const headers = rows[0];
-      const spots = processRows(rows, headers);
-      
-      setParsedSpots(spots);
-
-      // Show summary
-      const totalPhotos = spots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
-      const saltwaterCount = spots.filter(s => s.area_type === 'saltwater').length;
-      const freshwaterCount = spots.filter(s => s.area_type === 'freshwater').length;
-
-      toast.success(
-        `Parsed ${spots.length} spots: ${saltwaterCount} saltwater, ${freshwaterCount} freshwater, ${totalPhotos} photos`
-      );
+      const insertCount = classified.filter(s => s.action === 'insert' && s.valid).length;
+      const skipCount = classified.filter(s => s.action === 'skip').length;
+      toast.success(`Parsed ${classified.length} spots: ${insertCount} new, ${skipCount} matched existing`);
     } catch (error) {
       console.error('Error parsing file:', error);
       toast.error('Failed to parse file. Please check the format.');
+    } finally {
+      setClassifying(false);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.name.match(/\.(csv|txt|xlsx|xls)$/i)) {
-        toast.error('Please upload a CSV or Excel file');
+      if (!selectedFile.name.match(/\.(csv|txt|xlsx|xls|kml)$/i)) {
+        toast.error('Please upload a CSV, Excel, or KML file');
         return;
       }
       parseFile(selectedFile);
@@ -367,8 +474,8 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
-      if (!droppedFile.name.match(/\.(csv|txt|xlsx|xls)$/i)) {
-        toast.error('Please upload a CSV or Excel file');
+      if (!droppedFile.name.match(/\.(csv|txt|xlsx|xls|kml)$/i)) {
+        toast.error('Please upload a CSV, Excel, or KML file');
         return;
       }
       parseFile(droppedFile);
@@ -376,64 +483,94 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
   };
 
   const handleImport = async () => {
-    const validSpots = parsedSpots.filter(s => s.valid);
-    if (validSpots.length === 0) {
-      toast.error('No valid spots to import');
+    const inserts = parsedSpots.filter(s => s.valid && s.action === 'insert');
+    const updates = parsedSpots.filter(s => s.valid && s.action === 'update' && s.existingId);
+    const totalOps = inserts.length + updates.length;
+    if (totalOps === 0) {
+      toast.error('Nothing to commit (everything is set to skip)');
       return;
     }
 
     setImporting(true);
     setProgress(0);
 
-    const results: ImportResult = { success: 0, failed: 0, errors: [] };
-    const batchSize = 10;
-    const batches = Math.ceil(validSpots.length / batchSize);
+    const results: ImportResult = {
+      inserted: 0,
+      updated: 0,
+      skipped: parsedSpots.filter(s => s.action === 'skip').length,
+      failed: 0,
+      errors: [],
+    };
+    let done = 0;
 
-    for (let i = 0; i < batches; i++) {
-      const batch = validSpots.slice(i * batchSize, (i + 1) * batchSize);
-      
-      const spotsToInsert = batch.map(spot => ({
+    // Inserts in batches of 10
+    const batchSize = 10;
+    for (let i = 0; i < inserts.length; i += batchSize) {
+      const batch = inserts.slice(i, i + batchSize);
+      const payload = batch.map(spot => ({
         name: spot.name,
         description: spot.description || null,
         location_name: spot.location_name || null,
         location_lat: spot.location_lat || 25.7617,
         location_lng: spot.location_lng || -80.1918,
-        species_available: null, // Species are UUIDs, will need to be set separately
+        species_available: null,
         is_public: spot.is_public ?? true,
         is_verified: spot.is_verified ?? false,
         area_type: spot.area_type || 'freshwater',
         photos: spot.photos || null,
       }));
-
-      const { data, error } = await supabase
-        .from('fishing_spots')
-        .insert(spotsToInsert)
-        .select('id');
-
+      const { data, error } = await supabase.from('fishing_spots').insert(payload).select('id');
       if (error) {
         results.failed += batch.length;
-        results.errors.push(`Batch ${i + 1}: ${error.message}`);
+        results.errors.push(`Insert batch: ${error.message}`);
       } else {
-        results.success += data?.length || 0;
+        results.inserted += data?.length || 0;
       }
+      done += batch.length;
+      setProgress(Math.round((done / totalOps) * 100));
+    }
 
-      setProgress(Math.round(((i + 1) / batches) * 100));
+    // Updates one-by-one (only set fields that have values)
+    for (const spot of updates) {
+      const updatePayload: Record<string, unknown> = {};
+      if (spot.description) updatePayload.description = spot.description;
+      if (spot.location_name) updatePayload.location_name = spot.location_name;
+      if (typeof spot.location_lat === 'number') updatePayload.location_lat = spot.location_lat;
+      if (typeof spot.location_lng === 'number') updatePayload.location_lng = spot.location_lng;
+      if (spot.area_type) updatePayload.area_type = spot.area_type;
+      if (spot.photos && spot.photos.length > 0) updatePayload.photos = spot.photos;
+      if (Object.keys(updatePayload).length === 0) {
+        done += 1;
+        setProgress(Math.round((done / totalOps) * 100));
+        continue;
+      }
+      const { error } = await supabase.from('fishing_spots').update(updatePayload).eq('id', spot.existingId!);
+      if (error) {
+        results.failed += 1;
+        results.errors.push(`Update "${spot.name}": ${error.message}`);
+      } else {
+        results.updated += 1;
+      }
+      done += 1;
+      setProgress(Math.round((done / totalOps) * 100));
     }
 
     setResult(results);
     setImporting(false);
 
-    if (results.success > 0) {
+    if (results.inserted + results.updated > 0) {
       queryClient.invalidateQueries({ queryKey: ['admin-spots'] });
-      toast.success(`Successfully imported ${results.success} spots`);
+      toast.success(`Inserted ${results.inserted}, updated ${results.updated}`);
       await logAction('spots_bulk_import', 'spot', undefined, { 
-        imported: results.success, 
-        failed: results.failed 
+        inserted: results.inserted,
+        updated: results.updated,
+        skipped: results.skipped,
+        failed: results.failed,
       });
     }
 
     if (results.failed > 0) {
-      toast.error(`Failed to import ${results.failed} spots`);
+      toast.error(`${results.failed} operation(s) failed`);
     }
   };
 
@@ -453,11 +590,19 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
     URL.revokeObjectURL(url);
   };
 
-  const validCount = parsedSpots.filter(s => s.valid).length;
   const invalidCount = parsedSpots.filter(s => !s.valid).length;
-  const totalPhotos = parsedSpots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
-  const saltwaterCount = parsedSpots.filter(s => s.area_type === 'saltwater').length;
-  const freshwaterCount = parsedSpots.filter(s => s.area_type === 'freshwater').length;
+  const insertCount = parsedSpots.filter(s => s.valid && s.action === 'insert').length;
+  const updateCount = parsedSpots.filter(s => s.valid && s.action === 'update').length;
+  const skipCount = parsedSpots.filter(s => s.action === 'skip').length;
+  const matchedCount = parsedSpots.filter(s => !!s.existingId).length;
+
+  const setActionFor = (idx: number, action: RowAction) => {
+    setParsedSpots(prev => prev.map((s, i) => (i === idx ? { ...s, action } : s)));
+  };
+
+  const bulkSetMatched = (action: RowAction) => {
+    setParsedSpots(prev => prev.map(s => (s.existingId ? { ...s, action } : s)));
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -468,7 +613,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
             Import Fishing Spots
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Upload a CSV or Excel file to bulk import fishing spots. Supports image URLs including Google Drive links.
+          Upload a CSV, Excel, or KML file. Each row is matched against existing spots so you can preview which will be inserted, updated, or skipped before committing.
           </DialogDescription>
         </DialogHeader>
 
@@ -492,12 +637,12 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="w-12 h-12 mx-auto mb-4 text-slate-500" />
-              <p className="text-slate-300 mb-2">Drag and drop your CSV or Excel file here</p>
-              <p className="text-sm text-slate-500">Supports .csv, .xlsx, .xls files</p>
+              <p className="text-slate-300 mb-2">Drag and drop your CSV, Excel, or KML file here</p>
+              <p className="text-sm text-slate-500">Supports .csv, .xlsx, .xls, .kml files</p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,.txt,.xlsx,.xls"
+                accept=".csv,.txt,.xlsx,.xls,.kml"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -532,8 +677,16 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
               {/* Validation Summary */}
               <div className="flex flex-wrap gap-3">
                 <Badge className="bg-green-500/20 text-green-400 border-0">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  {validCount} valid
+                  <Plus className="w-3 h-3 mr-1" />
+                  {insertCount} insert
+                </Badge>
+                <Badge className="bg-amber-500/20 text-amber-400 border-0">
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  {updateCount} update
+                </Badge>
+                <Badge className="bg-slate-500/20 text-slate-300 border-0">
+                  <MinusCircle className="w-3 h-3 mr-1" />
+                  {skipCount} skip
                 </Badge>
                 {invalidCount > 0 && (
                   <Badge className="bg-red-500/20 text-red-400 border-0">
@@ -541,76 +694,88 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
                     {invalidCount} invalid
                   </Badge>
                 )}
-                {totalPhotos > 0 && (
-                  <Badge className="bg-purple-500/20 text-purple-400 border-0">
-                    <Image className="w-3 h-3 mr-1" />
-                    {totalPhotos} photos
-                  </Badge>
-                )}
-                {saltwaterCount > 0 && (
-                  <Badge className="bg-blue-500/20 text-blue-400 border-0">
-                    🌊 {saltwaterCount} saltwater
-                  </Badge>
-                )}
-                {freshwaterCount > 0 && (
-                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0">
-                    🏞️ {freshwaterCount} freshwater
+                {classifying && (
+                  <Badge className="bg-cyan-500/20 text-cyan-300 border-0">
+                    Matching against database…
                   </Badge>
                 )}
               </div>
 
+              {/* Bulk actions for matched rows */}
+              {matchedCount > 0 && !importing && (
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 bg-slate-800/40 rounded-lg p-2">
+                  <span>{matchedCount} row(s) matched existing spots:</span>
+                  <Button size="sm" variant="outline" className="h-7 border-slate-600 text-slate-200" onClick={() => bulkSetMatched('skip')}>
+                    Skip all matches
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 border-amber-500/40 text-amber-300" onClick={() => bulkSetMatched('update')}>
+                    Update all matches
+                  </Button>
+                </div>
+              )}
+
               {/* Preview */}
-              <ScrollArea className="h-48 rounded-lg border border-slate-700">
+              <ScrollArea className="h-72 rounded-lg border border-slate-700">
                 <div className="p-3 space-y-2">
-                  {parsedSpots.slice(0, 20).map((spot, i) => (
-                    <div
-                      key={i}
-                      className={`p-2 rounded text-sm ${
-                        spot.valid 
-                          ? 'bg-slate-800/50' 
-                          : 'bg-red-500/10 border border-red-500/30'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{spot.name}</span>
-                          <Badge variant="outline" className={`text-xs ${
-                            spot.area_type === 'saltwater' 
-                              ? 'border-blue-500/50 text-blue-400' 
-                              : 'border-emerald-500/50 text-emerald-400'
-                          }`}>
-                            {spot.area_type === 'saltwater' ? '🌊' : '🏞️'}
-                          </Badge>
-                          {spot.photos && spot.photos.length > 0 && (
-                            <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
-                              <Image className="w-3 h-3 mr-1" />
-                              {spot.photos.length}
-                            </Badge>
-                          )}
+                  {parsedSpots.slice(0, 100).map((spot, i) => {
+                    const actionColor =
+                      spot.action === 'insert'
+                        ? 'border-green-500/40'
+                        : spot.action === 'update'
+                        ? 'border-amber-500/40'
+                        : 'border-slate-600/40';
+                    return (
+                      <div
+                        key={i}
+                        className={`p-2 rounded text-sm bg-slate-800/50 border ${actionColor} ${
+                          !spot.valid ? 'bg-red-500/10 border-red-500/30' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="font-medium text-white truncate">{spot.name}</span>
+                            {spot.photos && spot.photos.length > 0 && (
+                              <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
+                                <Image className="w-3 h-3 mr-1" />
+                                {spot.photos.length}
+                              </Badge>
+                            )}
+                          </div>
+                          <Select
+                            value={spot.action}
+                            onValueChange={(v) => setActionFor(i, v as RowAction)}
+                            disabled={!spot.valid}
+                          >
+                            <SelectTrigger className="h-7 w-28 bg-slate-900 border-slate-600 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                              <SelectItem value="insert">Insert</SelectItem>
+                              <SelectItem value="update" disabled={!spot.existingId}>
+                                Update
+                              </SelectItem>
+                              <SelectItem value="skip">Skip</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                        {spot.valid ? (
-                          <CheckCircle className="w-4 h-4 text-green-400" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-red-400" />
+                        {spot.matchReason && (
+                          <p className="text-amber-300 text-xs mt-1">↺ {spot.matchReason}</p>
+                        )}
+                        {spot.location_lat !== undefined && spot.location_lng !== undefined && (
+                          <p className="text-slate-500 text-xs mt-1">
+                            {spot.location_lat.toFixed(4)}, {spot.location_lng.toFixed(4)}
+                            {spot.location_name ? ` · ${spot.location_name}` : ''}
+                          </p>
+                        )}
+                        {spot.errors.length > 0 && (
+                          <p className="text-red-400 text-xs mt-1">{spot.errors.join(', ')}</p>
                         )}
                       </div>
-                      {spot.location_name && (
-                        <p className="text-slate-400 text-xs mt-1">{spot.location_name}</p>
-                      )}
-                      {spot.species_available && spot.species_available.length > 0 && (
-                        <p className="text-cyan-400 text-xs mt-1">
-                          🐟 {spot.species_available.slice(0, 3).join(', ')}
-                          {spot.species_available.length > 3 && ` +${spot.species_available.length - 3} more`}
-                        </p>
-                      )}
-                      {spot.errors.length > 0 && (
-                        <p className="text-red-400 text-xs mt-1">{spot.errors.join(', ')}</p>
-                      )}
-                    </div>
-                  ))}
-                  {parsedSpots.length > 20 && (
+                    );
+                  })}
+                  {parsedSpots.length > 100 && (
                     <p className="text-center text-slate-500 text-sm py-2">
-                      +{parsedSpots.length - 20} more spots...
+                      +{parsedSpots.length - 100} more spots…
                     </p>
                   )}
                 </div>
@@ -633,10 +798,18 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
             <div className="space-y-4">
               <div className="p-4 rounded-lg bg-slate-800 space-y-3">
                 <h4 className="font-medium text-white">Import Complete</h4>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                    <span className="text-green-400">{result.success} imported</span>
+                    <Plus className="w-5 h-5 text-green-400" />
+                    <span className="text-green-400">{result.inserted} inserted</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="w-5 h-5 text-amber-400" />
+                    <span className="text-amber-400">{result.updated} updated</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MinusCircle className="w-5 h-5 text-slate-300" />
+                    <span className="text-slate-300">{result.skipped} skipped</span>
                   </div>
                   {result.failed > 0 && (
                     <div className="flex items-center gap-2">
@@ -669,10 +842,12 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
           {!result && file && (
             <Button
               onClick={handleImport}
-              disabled={importing || validCount === 0}
+              disabled={importing || classifying || (insertCount + updateCount) === 0}
               className="bg-cyan-600 hover:bg-cyan-700"
             >
-              {importing ? 'Importing...' : `Import ${validCount} Spots`}
+              {importing
+                ? 'Committing…'
+                : `Commit ${insertCount} insert${insertCount === 1 ? '' : 's'} · ${updateCount} update${updateCount === 1 ? '' : 's'}`}
             </Button>
           )}
           {result && (
