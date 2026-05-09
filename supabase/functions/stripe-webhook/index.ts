@@ -115,6 +115,14 @@ serve(async (req) => {
               }, { onConflict: "challenge_id,user_id" });
             if (entryErr) console.error("Error marking fishing challenge entry as paid:", entryErr);
 
+            // Also register them as a challenge participant so existing UI updates
+            const { error: partErr } = await supabase
+              .from("challenge_participants")
+              .upsert({ challenge_id: challengeId, user_id: userId }, {
+                onConflict: "challenge_id,user_id",
+              });
+            if (partErr) console.error("Error inserting challenge participant:", partErr);
+
             const { error: escrowErr } = await supabase
               .from("escrow_transactions")
               .update({
