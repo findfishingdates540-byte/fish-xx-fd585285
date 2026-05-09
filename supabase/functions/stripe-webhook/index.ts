@@ -79,18 +79,58 @@ serve(async (req) => {
           const challengeId = session.metadata?.challenge_id;
           if (userId && challengeId) {
             console.log(`Photo challenge entry payment for user ${userId}, challenge ${challengeId}`);
-            // Mark entry as paid
-            const { error } = await supabase
+            // Mark entry as paid (upsert in case entry doesn't exist yet)
+            const { error: entryErr } = await supabase
               .from("photo_challenge_entries")
               .update({ has_paid: true })
               .eq("challenge_id", challengeId)
               .eq("user_id", userId);
-            
-            if (error) {
-              console.error("Error marking photo challenge entry as paid:", error);
-            } else {
-              console.log("Marked photo challenge entry as paid");
-            }
+            if (entryErr) console.error("Error marking photo challenge entry as paid:", entryErr);
+
+            // Move escrow row to held
+            const { error: escrowErr } = await supabase
+              .from("escrow_transactions")
+              .update({
+                status: "held",
+                stripe_payment_intent_id: (session.payment_intent as string) ?? null,
+              })
+              .eq("stripe_session_id", session.id);
+            if (escrowErr) console.error("Error updating escrow:", escrowErr);
+          }
+          break;
+        }
+
+        // Handle fishing challenge entry payment
+        if (metaType === "fishing_challenge_entry") {
+          const challengeId = session.metadata?.challenge_id;
+          if (userId && challengeId) {
+            console.log(`Fishing challenge entry payment for user ${userId}, challenge ${challengeId}`);
+            const { error: entryErr } = await supabase
+              .from("fishing_challenge_entries")
+              .upsert({
+                challenge_id: challengeId,
+                user_id: userId,
+                has_paid: true,
+                stripe_session_id: session.id,
+              }, { onConflict: "challenge_id,user_id" });
+            if (entryErr) console.error("Error marking fishing challenge entry as paid:", entryErr);
+
+            // Also register them as a challenge participant so existing UI updates
+            const { error: partErr } = await supabase
+              .from("challenge_participants")
+              .upsert({ challenge_id: challengeId, user_id: userId }, {
+                onConflict: "challenge_id,user_id",
+              });
+            if (partErr) console.error("Error inserting challenge participant:", partErr);
+
+            const { error: escrowErr } = await supabase
+              .from("escrow_transactions")
+              .update({
+                status: "held",
+                stripe_payment_intent_id: (session.payment_intent as string) ?? null,
+              })
+              .eq("stripe_session_id", session.id);
+            if (escrowErr) console.error("Error updating escrow:", escrowErr);
           }
           break;
         }

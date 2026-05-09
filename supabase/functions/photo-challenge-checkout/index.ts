@@ -104,6 +104,19 @@ serve(async (req) => {
       },
     });
 
+    // Record pending escrow row (service role bypasses RLS)
+    const supabaseService = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    await supabaseService.from("escrow_transactions").insert({
+      challenge_id: challengeId,
+      user_id: user.id,
+      amount: challenge.entry_fee,
+      stripe_session_id: session.id,
+      status: "pending",
+    });
+
     return new Response(
       JSON.stringify({ url: session.url, sessionId: session.id }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }

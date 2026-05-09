@@ -682,6 +682,76 @@ export type Database = {
           },
         ]
       }
+      escrow_transactions: {
+        Row: {
+          amount: number
+          challenge_id: string | null
+          created_at: string
+          currency: string
+          entry_id: string | null
+          fishing_challenge_id: string | null
+          id: string
+          refunded_at: string | null
+          released_at: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          challenge_id?: string | null
+          created_at?: string
+          currency?: string
+          entry_id?: string | null
+          fishing_challenge_id?: string | null
+          id?: string
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          challenge_id?: string | null
+          created_at?: string
+          currency?: string
+          entry_id?: string | null
+          fishing_challenge_id?: string | null
+          id?: string
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_transactions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrow_transactions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrow_transactions_fishing_challenge_id_fkey"
+            columns: ["fishing_challenge_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feed_comment_reactions: {
         Row: {
           comment_id: string
@@ -892,6 +962,41 @@ export type Database = {
         }
         Relationships: []
       }
+      fishing_challenge_entries: {
+        Row: {
+          challenge_id: string
+          created_at: string
+          has_paid: boolean
+          id: string
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string
+          has_paid?: boolean
+          id?: string
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string
+          has_paid?: boolean
+          id?: string
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fishing_challenge_entries_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fishing_challenges: {
         Row: {
           challenge_type: Database["public"]["Enums"]["challenge_type"]
@@ -914,6 +1019,7 @@ export type Database = {
           status: string
           target_species_name: string | null
           title: string
+          winner_id: string | null
         }
         Insert: {
           challenge_type?: Database["public"]["Enums"]["challenge_type"]
@@ -936,6 +1042,7 @@ export type Database = {
           status?: string
           target_species_name?: string | null
           title: string
+          winner_id?: string | null
         }
         Update: {
           challenge_type?: Database["public"]["Enums"]["challenge_type"]
@@ -958,6 +1065,7 @@ export type Database = {
           status?: string
           target_species_name?: string | null
           title?: string
+          winner_id?: string | null
         }
         Relationships: [
           {
@@ -1778,9 +1886,12 @@ export type Database = {
           admin_notes: string | null
           challenge_id: string | null
           created_at: string
+          fishing_challenge_id: string | null
           gift_card_code: string | null
+          gross_pool: number | null
           id: string
           notified_at: string | null
+          platform_fee_amount: number | null
           prize_amount: number | null
           prize_description: string | null
           prize_type: string
@@ -1793,9 +1904,12 @@ export type Database = {
           admin_notes?: string | null
           challenge_id?: string | null
           created_at?: string
+          fishing_challenge_id?: string | null
           gift_card_code?: string | null
+          gross_pool?: number | null
           id?: string
           notified_at?: string | null
+          platform_fee_amount?: number | null
           prize_amount?: number | null
           prize_description?: string | null
           prize_type?: string
@@ -1808,9 +1922,12 @@ export type Database = {
           admin_notes?: string | null
           challenge_id?: string | null
           created_at?: string
+          fishing_challenge_id?: string | null
           gift_card_code?: string | null
+          gross_pool?: number | null
           id?: string
           notified_at?: string | null
+          platform_fee_amount?: number | null
           prize_amount?: number | null
           prize_description?: string | null
           prize_type?: string
@@ -1832,6 +1949,13 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "photo_challenges_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prize_payouts_fishing_challenge_id_fkey"
+            columns: ["fishing_challenge_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
             referencedColumns: ["id"]
           },
           {

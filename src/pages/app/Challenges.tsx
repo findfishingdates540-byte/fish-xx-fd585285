@@ -216,6 +216,30 @@ export default function Challenges() {
   const joinMutation = useMutation({
     mutationFn: async (challengeId: string) => {
       if (!user) throw new Error("Must be logged in");
+
+      // Check if challenge requires entry fee
+      const ch = challenges.find((c: any) => c.id === challengeId) as any;
+      const requiresPayment =
+        ch?.entry_fee_enabled && ch?.prize_type === "cash" && Number(ch?.entry_fee) > 0;
+
+      if (requiresPayment) {
+        // Open Stripe Checkout (handle iframe popup blockers)
+        const isInIframe = window.self !== window.top;
+        const pendingTab = isInIframe ? window.open("about:blank", "_blank") : null;
+
+        const { data, error } = await supabase.functions.invoke(
+          "fishing-challenge-checkout",
+          { body: { challengeId } },
+        );
+        if (error || !data?.url) {
+          if (pendingTab) pendingTab.close();
+          throw new Error(error?.message || "Failed to start checkout");
+        }
+        if (pendingTab) pendingTab.location.href = data.url;
+        else window.location.href = data.url;
+        return;
+      }
+
       const { error } = await supabase.from("challenge_participants").insert({
         challenge_id: challengeId,
         user_id: user.id,
