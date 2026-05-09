@@ -565,6 +565,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         is_public: spot.is_public ?? true,
         is_verified: spot.is_verified ?? false,
         area_type: spot.area_type || 'freshwater',
+        depth_ft: spot.depth_ft ?? null,
         photos: spot.photos || null,
       }));
       const { data, error } = await supabase.from('fishing_spots').insert(payload).select('id');
@@ -586,6 +587,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
       if (typeof spot.location_lat === 'number') updatePayload.location_lat = spot.location_lat;
       if (typeof spot.location_lng === 'number') updatePayload.location_lng = spot.location_lng;
       if (spot.area_type) updatePayload.area_type = spot.area_type;
+      if (typeof spot.depth_ft === 'number') updatePayload.depth_ft = spot.depth_ft;
       if (spot.photos && spot.photos.length > 0) updatePayload.photos = spot.photos;
       if (Object.keys(updatePayload).length === 0) {
         done += 1;
