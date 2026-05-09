@@ -35,6 +35,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.svg";
+
+// Heuristic: a spot is "boat-only" (cannot be reached from shore) when
+// it sits in deeper water, is offshore, or its area type implies open water.
+const isBoatOnlySpot = (s: { area_type?: string | null; depth_ft?: number | null; coast?: string | null }) => {
+  const at = (s.area_type || "").toLowerCase();
+  const co = (s.coast || "").toLowerCase();
+  if (at && /(offshore|reef|wreck|oil|rig|buoy|deep|open[-_ ]?water|nearshore)/.test(at)) return true;
+  if (co && /offshore/.test(co)) return true;
+  if (typeof s.depth_ft === "number" && s.depth_ft >= 30) return true;
+  return false;
+};
+
+const ensureBoatIcon = (map: mapboxgl.Map) => {
+  if (map.hasImage("boat-spot-icon")) return;
+  const img = new Image(64, 64);
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    if (!map.hasImage("boat-spot-icon")) {
+      try { map.addImage("boat-spot-icon", img); } catch {}
+    }
+  };
+  img.src = boatSpotIconUrl;
+};
 
 interface SharedCatch {
   id: string;
