@@ -37,7 +37,7 @@ export function useMessageRequests() {
       // Fetch requester profiles via the public-readable view (RLS on `profiles` blocks direct reads of other users)
       const requesterIds = Array.from(new Set(pendingBuddies.map((b) => b.requester_id)));
       const { data: profilesData } = await supabase
-        .from('public_profiles')
+        .from('profiles_safe')
         .select('id, display_name, photos')
         .in('id', requesterIds);
       const profileMap = new Map(
