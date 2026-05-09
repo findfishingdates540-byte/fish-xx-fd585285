@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Download, Image } from 'lucide-react';
+import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Download, Image, Plus, RefreshCw, MinusCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -15,6 +16,8 @@ interface ImportSpotsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+type RowAction = 'insert' | 'update' | 'skip';
 
 interface ParsedSpot {
   name: string;
@@ -29,10 +32,16 @@ interface ParsedSpot {
   photos?: string[];
   valid: boolean;
   errors: string[];
+  action: RowAction;
+  existingId?: string;
+  existingName?: string;
+  matchReason?: string;
 }
 
 interface ImportResult {
-  success: number;
+  inserted: number;
+  updated: number;
+  skipped: number;
   failed: number;
   errors: string[];
 }
