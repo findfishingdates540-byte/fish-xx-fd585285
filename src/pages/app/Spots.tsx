@@ -35,6 +35,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.svg";
+
+// Heuristic: a spot is "boat-only" (cannot be reached from shore) when
+// it sits in deeper water, is offshore, or its area type implies open water.
+const isBoatOnlySpot = (s: { area_type?: string | null; depth_ft?: number | null; coast?: string | null }) => {
+  const at = (s.area_type || "").toLowerCase();
+  const co = (s.coast || "").toLowerCase();
+  if (at && /(offshore|reef|wreck|oil|rig|buoy|deep|open[-_ ]?water|nearshore)/.test(at)) return true;
+  if (co && /offshore/.test(co)) return true;
+  if (typeof s.depth_ft === "number" && s.depth_ft >= 30) return true;
+  return false;
+};
+
+const ensureBoatIcon = (map: mapboxgl.Map) => {
+  if (map.hasImage("boat-spot-icon")) return;
+  const img = new Image(64, 64);
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    if (!map.hasImage("boat-spot-icon")) {
+      try { map.addImage("boat-spot-icon", img); } catch {}
+    }
+  };
+  img.src = boatSpotIconUrl;
+};
 
 interface SharedCatch {
   id: string;
@@ -393,9 +417,11 @@ export default function Spots() {
 
       // Re-add spot GeoJSON layers after style change
       const sId = 'fishing-spots-source';
-      const sg: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: (!showReefs ? [] : filteredSpots).filter(s => s.location_lat && s.location_lng).map(s => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [s.location_lng, s.location_lat] }, properties: { spotId: s.id } })) };
+      const sg: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: (!showReefs ? [] : filteredSpots).filter(s => s.location_lat && s.location_lng).map(s => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [s.location_lng, s.location_lat] }, properties: { spotId: s.id, boat: isBoatOnlySpot(s) } })) };
+      ensureBoatIcon(map);
       map.addSource(sId, { type: 'geojson', data: sg, cluster: false });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
     });
   }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs]);
 
@@ -457,7 +483,7 @@ export default function Spots() {
         .map(s => ({
           type: 'Feature' as const,
           geometry: { type: 'Point' as const, coordinates: [s.location_lng, s.location_lat] },
-          properties: { spotId: s.id },
+          properties: { spotId: s.id, boat: isBoatOnlySpot(s) },
         })),
     };
 
@@ -465,18 +491,26 @@ export default function Spots() {
       const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
       if (existing) { existing.setData(geojson); return; }
 
+      ensureBoatIcon(map);
       map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
 
-      map.on('click', 'spot-unclustered', (e) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ['spot-unclustered'] });
+      const handleSpotClick = (e: mapboxgl.MapMouseEvent) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ['spot-unclustered', 'spot-boat'] });
         if (!features.length) return;
         const spot = fishingSpots.find(s => s.id === features[0].properties?.spotId);
         if (spot) { setSelectedCatch(null); setSelectedSpot(spot); map.flyTo({ center: [spot.location_lng, spot.location_lat], zoom: 12, duration: 800 }); }
-      });
+      };
+      map.on('click', 'spot-unclustered', handleSpotClick);
+      map.on('click', 'spot-boat', handleSpotClick);
 
-      map.on('mouseenter', 'spot-unclustered', () => { map.getCanvas().style.cursor = 'pointer'; });
-      map.on('mouseleave', 'spot-unclustered', () => { map.getCanvas().style.cursor = ''; });
+      const setPointer = () => { map.getCanvas().style.cursor = 'pointer'; };
+      const clearPointer = () => { map.getCanvas().style.cursor = ''; };
+      map.on('mouseenter', 'spot-unclustered', setPointer);
+      map.on('mouseleave', 'spot-unclustered', clearPointer);
+      map.on('mouseenter', 'spot-boat', setPointer);
+      map.on('mouseleave', 'spot-boat', clearPointer);
     };
 
     if (map.isStyleLoaded()) {
