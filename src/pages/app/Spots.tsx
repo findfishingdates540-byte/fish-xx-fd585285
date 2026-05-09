@@ -39,12 +39,16 @@ import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.svg";
 
 // Heuristic: a spot is "boat-only" (cannot be reached from shore) when
 // it sits in deeper water, is offshore, or its area type implies open water.
-const isBoatOnlySpot = (s: { area_type?: string | null; depth_ft?: number | null; coast?: string | null }) => {
+const isBoatOnlySpot = (s: { area_type?: string | null; depth_ft?: number | null; coast?: string | null; name?: string | null; description?: string | null; location_name?: string | null }) => {
   const at = (s.area_type || "").toLowerCase();
   const co = (s.coast || "").toLowerCase();
   if (at && /(offshore|reef|wreck|oil|rig|buoy|deep|open[-_ ]?water|nearshore)/.test(at)) return true;
   if (co && /offshore/.test(co)) return true;
   if (typeof s.depth_ft === "number" && s.depth_ft >= 30) return true;
+  // Detect imported offshore datasets by name / description / location signals
+  const haystack = `${s.name || ""} ${s.description || ""} ${s.location_name || ""}`.toLowerCase();
+  if (/(pulley ridge|hogfish spot|red snapper snapper|warsaw grouper|hog-\d|warsaw-\d|snapper-\d)/.test(haystack)) return true;
+  if (/(artificial reef|patch reef|coral rubble|hard bottom|rock pile|ledge|wreck|canyon|drop ?-?off|shelf edge|deep drop)/.test(haystack)) return true;
   return false;
 };
 
