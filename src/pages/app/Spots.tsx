@@ -394,10 +394,8 @@ export default function Spots() {
       // Re-add spot GeoJSON layers after style change
       const sId = 'fishing-spots-source';
       const sg: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: (!showReefs ? [] : filteredSpots).filter(s => s.location_lat && s.location_lng).map(s => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [s.location_lng, s.location_lat] }, properties: { spotId: s.id } })) };
-      map.addSource(sId, { type: 'geojson', data: sg, cluster: true, clusterMaxZoom: 14, clusterRadius: 50 });
-      map.addLayer({ id: 'spot-clusters', type: 'circle', source: sId, filter: ['has', 'point_count'], paint: { 'circle-color': '#ef4444', 'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 50, 30], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      map.addLayer({ id: 'spot-cluster-count', type: 'symbol', source: sId, filter: ['has', 'point_count'], layout: { 'text-field': '{point_count_abbreviated}', 'text-size': 12 }, paint: { 'text-color': '#ffffff' } });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['!', ['has', 'point_count']], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addSource(sId, { type: 'geojson', data: sg, cluster: false });
+      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
     });
   }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs]);
 
@@ -466,19 +464,8 @@ export default function Spots() {
     const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
     if (existing) { existing.setData(geojson); return; }
 
-    map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: true, clusterMaxZoom: 14, clusterRadius: 50 });
-    map.addLayer({ id: 'spot-clusters', type: 'circle', source: sourceId, filter: ['has', 'point_count'], paint: { 'circle-color': '#ef4444', 'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 50, 30], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-    map.addLayer({ id: 'spot-cluster-count', type: 'symbol', source: sourceId, filter: ['has', 'point_count'], layout: { 'text-field': '{point_count_abbreviated}', 'text-size': 12 }, paint: { 'text-color': '#ffffff' } });
-    map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['!', ['has', 'point_count']], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-
-    map.on('click', 'spot-clusters', (e) => {
-      const features = map.queryRenderedFeatures(e.point, { layers: ['spot-clusters'] });
-      if (!features.length) return;
-      (map.getSource(sourceId) as mapboxgl.GeoJSONSource).getClusterExpansionZoom(features[0].properties?.cluster_id, (err, zoom) => {
-        if (err) return;
-        map.easeTo({ center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number], zoom: zoom! });
-      });
-    });
+    map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
+    map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
 
     map.on('click', 'spot-unclustered', (e) => {
       const features = map.queryRenderedFeatures(e.point, { layers: ['spot-unclustered'] });
@@ -487,8 +474,6 @@ export default function Spots() {
       if (spot) { setSelectedCatch(null); setSelectedSpot(spot); map.flyTo({ center: [spot.location_lng, spot.location_lat], zoom: 12, duration: 800 }); }
     });
 
-    map.on('mouseenter', 'spot-clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', 'spot-clusters', () => { map.getCanvas().style.cursor = ''; });
     map.on('mouseenter', 'spot-unclustered', () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', 'spot-unclustered', () => { map.getCanvas().style.cursor = ''; });
   }, [filteredSpots, mapReady, showReefs, fishingSpots]);
