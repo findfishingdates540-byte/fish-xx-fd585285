@@ -316,56 +316,153 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         photos: photos.length > 0 ? photos : undefined,
         valid: errors.length === 0 && !!name,
         errors,
+        action: 'insert' as RowAction,
       };
     }).filter(spot => spot.name);
 
     return spots;
   };
 
+  // Parse KML file (Google Earth / Maps)
+  const parseKML = async (selectedFile: File): Promise<ParsedSpot[]> => {
+    const text = await selectedFile.text();
+    const doc = new DOMParser().parseFromString(text, 'text/xml');
+    const placemarks = Array.from(doc.getElementsByTagName('Placemark'));
+    const spots: ParsedSpot[] = [];
+    for (const pm of placemarks) {
+      const name = pm.getElementsByTagName('name')[0]?.textContent?.trim() || '';
+      const description = pm.getElementsByTagName('description')[0]?.textContent?.trim() || undefined;
+      const coordsEl = pm.getElementsByTagName('coordinates')[0];
+      const coordsText = coordsEl?.textContent?.trim() || '';
+      // Take first coordinate triplet (lng,lat,alt)
+      const first = coordsText.split(/\s+/)[0] || '';
+      const parts = first.split(',').map(p => parseFloat(p));
+      const lng = parts[0];
+      const lat = parts[1];
+      if (!name || isNaN(lat) || isNaN(lng)) continue;
+      spots.push({
+        name,
+        description,
+        location_lat: lat,
+        location_lng: lng,
+        is_public: true,
+        is_verified: true,
+        area_type: 'saltwater',
+        valid: true,
+        errors: [],
+        action: 'insert',
+      });
+    }
+    return spots;
+  };
+
+  // Classify parsed spots against existing DB spots: insert/update/skip
+  const classifySpots = async (spots: ParsedSpot[]): Promise<ParsedSpot[]> => {
+    if (spots.length === 0) return spots;
+    // Fetch existing spots in bounding box of import (single query, capped)
+    const lats = spots.map(s => s.location_lat!).filter(n => typeof n === 'number');
+    const lngs = spots.map(s => s.location_lng!).filter(n => typeof n === 'number');
+    const minLat = Math.min(...lats) - 0.05;
+    const maxLat = Math.max(...lats) + 0.05;
+    const minLng = Math.min(...lngs) - 0.05;
+    const maxLng = Math.max(...lngs) + 0.05;
+
+    const { data: existing } = await supabase
+      .from('fishing_spots')
+      .select('id,name,location_lat,location_lng')
+      .gte('location_lat', minLat)
+      .lte('location_lat', maxLat)
+      .gte('location_lng', minLng)
+      .lte('location_lng', maxLng)
+      .limit(5000);
+
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const existingList = (existing || []).map(e => ({
+      id: e.id as string,
+      name: e.name as string,
+      key: norm(e.name as string),
+      lat: Number(e.location_lat),
+      lng: Number(e.location_lng),
+    }));
+
+    return spots.map(spot => {
+      if (!spot.valid) return spot;
+      const sKey = norm(spot.name);
+      const sLat = spot.location_lat!;
+      const sLng = spot.location_lng!;
+      // Find by name keyword overlap + within ~0.05 deg, OR very close coords
+      const match = existingList.find(e => {
+        const dLat = Math.abs(e.lat - sLat);
+        const dLng = Math.abs(e.lng - sLng);
+        const close = dLat < 0.05 && dLng < 0.05;
+        const veryClose = dLat < 0.005 && dLng < 0.005;
+        const nameMatch = e.key === sKey || e.key.includes(sKey) || sKey.includes(e.key);
+        return (close && nameMatch) || veryClose;
+      });
+      if (match) {
+        return {
+          ...spot,
+          action: 'skip' as RowAction,
+          existingId: match.id,
+          existingName: match.name,
+          matchReason: `Matches "${match.name}"`,
+        };
+      }
+      return spot;
+    });
+  };
+
   const parseFile = async (selectedFile: File) => {
     setFile(selectedFile);
     setResult(null);
+    setClassifying(true);
 
     try {
-      let rows: string[][];
+      let spots: ParsedSpot[] = [];
+      const isKML = selectedFile.name.match(/\.kml$/i);
       const isExcel = selectedFile.name.match(/\.xlsx?$/i);
 
-      if (isExcel) {
-        rows = await parseExcel(selectedFile);
+      if (isKML) {
+        spots = await parseKML(selectedFile);
+        if (spots.length === 0) {
+          toast.error('No placemarks found in KML file');
+          return;
+        }
       } else {
-        const text = await selectedFile.text();
-        rows = parseCSV(text);
+        let rows: string[][];
+        if (isExcel) {
+          rows = await parseExcel(selectedFile);
+        } else {
+          const text = await selectedFile.text();
+          rows = parseCSV(text);
+        }
+        if (rows.length < 2) {
+          toast.error('File must have a header row and at least one data row');
+          return;
+        }
+        spots = processRows(rows, rows[0]);
       }
 
-      if (rows.length < 2) {
-        toast.error('File must have a header row and at least one data row');
-        return;
-      }
+      // Classify against existing DB
+      const classified = await classifySpots(spots);
+      setParsedSpots(classified);
 
-      const headers = rows[0];
-      const spots = processRows(rows, headers);
-      
-      setParsedSpots(spots);
-
-      // Show summary
-      const totalPhotos = spots.reduce((sum, s) => sum + (s.photos?.length || 0), 0);
-      const saltwaterCount = spots.filter(s => s.area_type === 'saltwater').length;
-      const freshwaterCount = spots.filter(s => s.area_type === 'freshwater').length;
-
-      toast.success(
-        `Parsed ${spots.length} spots: ${saltwaterCount} saltwater, ${freshwaterCount} freshwater, ${totalPhotos} photos`
-      );
+      const insertCount = classified.filter(s => s.action === 'insert' && s.valid).length;
+      const skipCount = classified.filter(s => s.action === 'skip').length;
+      toast.success(`Parsed ${classified.length} spots: ${insertCount} new, ${skipCount} matched existing`);
     } catch (error) {
       console.error('Error parsing file:', error);
       toast.error('Failed to parse file. Please check the format.');
+    } finally {
+      setClassifying(false);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.name.match(/\.(csv|txt|xlsx|xls)$/i)) {
-        toast.error('Please upload a CSV or Excel file');
+      if (!selectedFile.name.match(/\.(csv|txt|xlsx|xls|kml)$/i)) {
+        toast.error('Please upload a CSV, Excel, or KML file');
         return;
       }
       parseFile(selectedFile);
@@ -376,8 +473,8 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
-      if (!droppedFile.name.match(/\.(csv|txt|xlsx|xls)$/i)) {
-        toast.error('Please upload a CSV or Excel file');
+      if (!droppedFile.name.match(/\.(csv|txt|xlsx|xls|kml)$/i)) {
+        toast.error('Please upload a CSV, Excel, or KML file');
         return;
       }
       parseFile(droppedFile);
