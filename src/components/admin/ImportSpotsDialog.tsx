@@ -28,7 +28,8 @@ interface ParsedSpot {
   species_available?: string[];
   is_public?: boolean;
   is_verified?: boolean;
-  area_type?: 'freshwater' | 'saltwater';
+  area_type?: string;
+  depth_ft?: number;
   photos?: string[];
   valid: boolean;
   errors: string[];
@@ -126,6 +127,22 @@ const HEADER_MAPPINGS: Record<string, string> = {
   'watertype': 'area_type',
   'water_type': 'area_type',
   'type': 'area_type',
+  'depth': 'depth_ft',
+  'depthft': 'depth_ft',
+  'depth_ft': 'depth_ft',
+  'approxdepth': 'depth_ft',
+  'approxdepthft': 'depth_ft',
+  'depthfeet': 'depth_ft',
+  'structure': 'structure',
+  'structuretype': 'structure',
+  'habitat': 'structure',
+  'area': 'region',
+  'region': 'region',
+  'spotid': 'spot_id',
+  'spot_id': 'spot_id',
+  'waypointtype': 'waypoint_type',
+  'notes': 'notes',
+  'targetspecies': 'species',
 };
 
 // Detect if a header is an image column
@@ -277,7 +294,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
       }
 
       // Parse area type
-      let areaType: 'freshwater' | 'saltwater' | undefined;
+      let areaType: string | undefined;
       const areaTypeStr = getValue('area_type')?.toLowerCase().trim();
       if (areaTypeStr) {
         if (areaTypeStr.includes('salt')) {
@@ -285,6 +302,36 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         } else if (areaTypeStr.includes('fresh')) {
           areaType = 'freshwater';
         }
+      }
+
+      // Parse depth (handles "200", "30-60", "250-400")
+      let depthFt: number | undefined;
+      const depthStr = getValue('depth_ft');
+      if (depthStr) {
+        const nums = depthStr.match(/\d+\.?\d*/g)?.map(Number) || [];
+        if (nums.length > 0) {
+          depthFt = nums.reduce((a, b) => a + b, 0) / nums.length;
+        }
+      }
+
+      // Auto-detect boat-only / offshore based on structure / habitat / region / depth
+      const structure = getValue('structure') || '';
+      const region = getValue('region') || '';
+      const haystack = `${structure} ${region} ${name}`.toLowerCase();
+      const offshoreSignals = [
+        'offshore', 'reef', 'wreck', 'ledge', 'hard bottom', 'rock pile',
+        'coral', 'patch reef', 'artificial reef', 'canyon', 'drop', 'ridge',
+        'gulf', 'keys', 'shelf', 'deep', 'pulley', 'panhandle', 'nearshore',
+      ];
+      const isOffshore = offshoreSignals.some(s => haystack.includes(s)) || (depthFt !== undefined && depthFt >= 30);
+      if (isOffshore && !areaType) areaType = 'offshore';
+
+      // Build description from notes/structure if no description column
+      const notes = getValue('notes');
+      let description = getValue('description');
+      if (!description) {
+        const parts = [structure, notes].filter(Boolean);
+        if (parts.length) description = parts.join('. ');
       }
 
       // Parse photos from all image columns
@@ -306,14 +353,15 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
 
       return {
         name,
-        description: getValue('description'),
-        location_name: getValue('location_name'),
+        description,
+        location_name: getValue('location_name') || region || undefined,
         location_lat: lat,
         location_lng: lng,
         species_available: species,
         is_public: getValue('is_public') ? parseBoolean(getValue('is_public')) : true,
         is_verified: getValue('is_verified') ? parseBoolean(getValue('is_verified')) : false,
         area_type: areaType || 'freshwater',
+        depth_ft: depthFt,
         photos: photos.length > 0 ? photos : undefined,
         valid: errors.length === 0 && !!name,
         errors,
@@ -517,6 +565,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
         is_public: spot.is_public ?? true,
         is_verified: spot.is_verified ?? false,
         area_type: spot.area_type || 'freshwater',
+        depth_ft: spot.depth_ft ?? null,
         photos: spot.photos || null,
       }));
       const { data, error } = await supabase.from('fishing_spots').insert(payload).select('id');
@@ -538,6 +587,7 @@ export function ImportSpotsDialog({ open, onOpenChange }: ImportSpotsDialogProps
       if (typeof spot.location_lat === 'number') updatePayload.location_lat = spot.location_lat;
       if (typeof spot.location_lng === 'number') updatePayload.location_lng = spot.location_lng;
       if (spot.area_type) updatePayload.area_type = spot.area_type;
+      if (typeof spot.depth_ft === 'number') updatePayload.depth_ft = spot.depth_ft;
       if (spot.photos && spot.photos.length > 0) updatePayload.photos = spot.photos;
       if (Object.keys(updatePayload).length === 0) {
         done += 1;
