@@ -161,7 +161,7 @@ export default function Spots() {
   const [bearing, setBearing] = useState(0);
   const [showWeather, setShowWeather] = useState(false);
   const weatherQuery = useWeather(showWeather ? crosshair.lat : null, showWeather ? crosshair.lng : null);
-  const [selectedSpot, setSelectedSpot] = useState<any>(null);
+  const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null);
   const [showReefs, setShowReefs] = useState(true);
   const [showReefFilters, setShowReefFilters] = useState(false);
   const [filterCounty, setFilterCounty] = useState<string>('all');
@@ -284,7 +284,7 @@ export default function Spots() {
   }, []);
 
   const disableTerrain = useCallback((map: mapboxgl.Map) => {
-    map.setTerrain(null as any);
+    map.setTerrain(null);
     if (map.getLayer('sky')) map.removeLayer('sky');
     setTerrainEnabled(false);
   }, []);
