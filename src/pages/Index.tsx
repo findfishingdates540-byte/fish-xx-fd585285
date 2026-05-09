@@ -82,7 +82,7 @@ const Index = () => {
               className="space-y-8"
             >
               <h1 className="display-text text-foreground">
-                Your
+                Catch more fish.
                 <br />
                 <motion.span 
                   className="italic inline-block"
@@ -90,10 +90,10 @@ const Index = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
                 >
-                  Ultimate
+                  Compete.
                 </motion.span>
                 <br />
-                Fishing Platform
+                Win money.
               </h1>
               <motion.p 
                 className="text-xl text-muted-foreground max-w-lg leading-relaxed"
@@ -463,7 +463,7 @@ const Index = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Ready to join the ultimate fishing community?
+            Ready to catch more fish, compete, and win money?
           </motion.h2>
           <motion.p 
             className="text-xl text-background/70 mb-10 max-w-2xl mx-auto"
