@@ -166,12 +166,13 @@ export default function PhotoChallengeDetail() {
   // Submit entry (photo first, then pay)
   const submitEntry = useMutation({
     mutationFn: async ({ photoUrl, metadata }: { photoUrl: string; metadata: CaptureMetadata }) => {
+      const isFree = !challenge?.entry_fee || Number(challenge.entry_fee) === 0;
       const { error } = await supabase.from("photo_challenge_entries").insert({
         challenge_id: id!,
         user_id: user!.id,
         photo_url: photoUrl,
         caption: caption || null,
-        has_paid: false,
+        has_paid: isFree, // Free challenges are auto-paid
         captured_at: metadata.capturedAt,
         location_lat: metadata.locationLat,
         location_lng: metadata.locationLng,
@@ -179,7 +180,11 @@ export default function PhotoChallengeDetail() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Photo captured!", description: "Now complete your entry by paying the fee." });
+      const isFree = !challenge?.entry_fee || Number(challenge.entry_fee) === 0;
+      toast({
+        title: isFree ? "Entry submitted!" : "Photo captured!",
+        description: isFree ? "Good luck in the challenge!" : "Now complete your entry by paying the fee.",
+      });
       setCaption("");
       setCapturePreview(null);
       setPendingCapture(null);
@@ -452,8 +457,8 @@ export default function PhotoChallengeDetail() {
         </Card>
       )}
 
-      {/* Entry submitted but not paid */}
-      {isSubmissionPhase && myEntry && !myEntry.has_paid && (
+      {/* Entry submitted but not paid (only for paid challenges) */}
+      {isSubmissionPhase && myEntry && !myEntry.has_paid && Number(challenge.entry_fee) > 0 && (
         <Card className="p-5 border-primary/30 bg-primary/5 space-y-3">
           <div className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
