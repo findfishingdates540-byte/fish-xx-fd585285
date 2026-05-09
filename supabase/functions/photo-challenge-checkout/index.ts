@@ -28,12 +28,9 @@ serve(async (req) => {
     });
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) throw new Error("User not authenticated");
-    const user = {
-      id: claimsData.claims.sub as string,
-      email: claimsData.claims.email as string | undefined,
-    };
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !userData?.user) throw new Error("User not authenticated");
+    const user = { id: userData.user.id, email: userData.user.email ?? undefined };
 
     const { challengeId, entryFee, challengeTitle, successUrl, cancelUrl } = await req.json();
 
