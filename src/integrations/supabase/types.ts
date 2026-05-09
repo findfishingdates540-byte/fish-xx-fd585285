@@ -899,8 +899,14 @@ export type Database = {
           created_by: string
           description: string | null
           end_date: string
+          entry_fee: number
+          entry_fee_enabled: boolean
           id: string
+          is_admin_funded: boolean
           is_official: boolean
+          platform_fee_percent: number
+          prize_description: string | null
+          prize_type: string
           prizes: Json | null
           rules: Json | null
           species_id: string | null
@@ -915,8 +921,14 @@ export type Database = {
           created_by: string
           description?: string | null
           end_date: string
+          entry_fee?: number
+          entry_fee_enabled?: boolean
           id?: string
+          is_admin_funded?: boolean
           is_official?: boolean
+          platform_fee_percent?: number
+          prize_description?: string | null
+          prize_type?: string
           prizes?: Json | null
           rules?: Json | null
           species_id?: string | null
@@ -931,8 +943,14 @@ export type Database = {
           created_by?: string
           description?: string | null
           end_date?: string
+          entry_fee?: number
+          entry_fee_enabled?: boolean
           id?: string
+          is_admin_funded?: boolean
           is_official?: boolean
+          platform_fee_percent?: number
+          prize_description?: string | null
+          prize_type?: string
           prizes?: Json | null
           rules?: Json | null
           species_id?: string | null
@@ -1642,8 +1660,11 @@ export type Database = {
           description: string | null
           end_date: string
           entry_fee: number
+          entry_fee_enabled: boolean
           gift_card_code: string | null
           id: string
+          is_admin_funded: boolean
+          platform_fee_percent: number
           prize_description: string | null
           prize_type: string
           start_date: string
@@ -1659,8 +1680,11 @@ export type Database = {
           description?: string | null
           end_date: string
           entry_fee?: number
+          entry_fee_enabled?: boolean
           gift_card_code?: string | null
           id?: string
+          is_admin_funded?: boolean
+          platform_fee_percent?: number
           prize_description?: string | null
           prize_type?: string
           start_date: string
@@ -1676,8 +1700,11 @@ export type Database = {
           description?: string | null
           end_date?: string
           entry_fee?: number
+          entry_fee_enabled?: boolean
           gift_card_code?: string | null
           id?: string
+          is_admin_funded?: boolean
+          platform_fee_percent?: number
           prize_description?: string | null
           prize_type?: string
           start_date?: string
