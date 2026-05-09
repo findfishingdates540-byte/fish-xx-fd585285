@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Camera, Upload } from "lucide-react";
 
@@ -21,6 +22,9 @@ export default function CreatePhotoChallenge() {
   const [description, setDescription] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
   const [entryFee, setEntryFee] = useState("5");
+  const [entryFeeEnabled, setEntryFeeEnabled] = useState(true);
+  const [platformFeePercent, setPlatformFeePercent] = useState("10");
+  const [isAdminFunded, setIsAdminFunded] = useState(false);
   const [prizeType, setPrizeType] = useState("cash");
   const [prizeDescription, setPrizeDescription] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -39,7 +43,13 @@ export default function CreatePhotoChallenge() {
         title,
         description: description || null,
         banner_url: bannerUrl || null,
-        entry_fee: parseFloat(entryFee) || 5,
+        entry_fee: entryFeeEnabled ? parseFloat(entryFee) || 0 : 0,
+        entry_fee_enabled: entryFeeEnabled,
+        platform_fee_percent:
+          entryFeeEnabled && prizeType === "cash"
+            ? Math.min(100, Math.max(0, parseFloat(platformFeePercent) || 0))
+            : 0,
+        is_admin_funded: !entryFeeEnabled ? isAdminFunded : false,
         prize_type: prizeType,
         prize_description: prizeDescription || null,
         start_date: new Date(startDate).toISOString(),
@@ -148,17 +158,29 @@ export default function CreatePhotoChallenge() {
           </div>
 
           {/* Entry Fee + Prize */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Entry Fee ($)</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.50"
-                value={entryFee}
-                onChange={(e) => setEntryFee(e.target.value)}
-              />
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+            <div>
+              <p className="text-sm font-medium">Require Entry Fee</p>
+              <p className="text-xs text-muted-foreground">
+                Off = free challenge (you fund the prize)
+              </p>
             </div>
+            <Switch checked={entryFeeEnabled} onCheckedChange={setEntryFeeEnabled} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {entryFeeEnabled && (
+              <div className="space-y-2">
+                <Label>Entry Fee ($)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.50"
+                  value={entryFee}
+                  onChange={(e) => setEntryFee(e.target.value)}
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Prize Type</Label>
               <Select value={prizeType} onValueChange={setPrizeType}>
@@ -166,12 +188,42 @@ export default function CreatePhotoChallenge() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Cash (Half the Pot)</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
                   <SelectItem value="gift_card">Gift Card</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {entryFeeEnabled && prizeType === "cash" && (
+            <div className="space-y-2 rounded-lg border p-3 bg-primary/5">
+              <Label>Platform Fee (% of pool)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                value={platformFeePercent}
+                onChange={(e) => setPlatformFeePercent(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Winner receives {Math.max(0, 100 - (parseFloat(platformFeePercent) || 0))}% of the
+                total pool. No fee applies to gift card prizes.
+              </p>
+            </div>
+          )}
+
+          {!entryFeeEnabled && (
+            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+              <div>
+                <p className="text-sm font-medium">Admin-funded prize</p>
+                <p className="text-xs text-muted-foreground">
+                  Mark if you (admin) are funding the prize directly
+                </p>
+              </div>
+              <Switch checked={isAdminFunded} onCheckedChange={setIsAdminFunded} />
+            </div>
+          )}
 
           {prizeType === "gift_card" && (
             <div className="space-y-2">
