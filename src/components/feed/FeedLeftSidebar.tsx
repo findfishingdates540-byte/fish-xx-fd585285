@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Fish, Users, Target, ChevronRight,
-  Calendar, MapPin, Trophy, Camera, Swords
-} from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import { FishXIcon, type FishXIconName } from '@/components/ui/fishx-icon';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -103,15 +101,15 @@ export function FeedLeftSidebar() {
     enabled: !!user?.id,
   });
 
-  // Navigation items
-  const navItems = [
-    { to: '/app/buddies', icon: Users, label: 'Friends', badge: pendingCount || undefined },
-    { to: '/app/catches', icon: Target, label: 'My Catches' },
-    { to: '/app/trips', icon: Calendar, label: 'Trips' },
-    { to: '/app/spots', icon: MapPin, label: 'Saved Spots' },
-    { to: '/app/challenges', icon: Trophy, label: 'Challenges' },
-    { to: '/app/photo-challenges', icon: Camera, label: 'Photo Challenges' },
-    { to: '/app/tournaments', icon: Swords, label: 'Tournaments' },
+  // Navigation items (themed FishX icons)
+  const navItems: Array<{ to: string; icon: FishXIconName; label: string; badge?: number }> = [
+    { to: '/app/buddies', icon: 'social', label: 'Friends', badge: pendingCount || undefined },
+    { to: '/app/catches', icon: 'catchlog', label: 'My Catches' },
+    { to: '/app/trips', icon: 'events', label: 'Trips' },
+    { to: '/app/spots', icon: 'map', label: 'Saved Spots' },
+    { to: '/app/challenges', icon: 'achievement', label: 'Challenges' },
+    { to: '/app/photo-challenges', icon: 'photo', label: 'Photo Challenges' },
+    { to: '/app/tournaments', icon: 'tournament', label: 'Tournaments' },
   ];
 
   return (
@@ -169,7 +167,7 @@ export function FeedLeftSidebar() {
               )}
             >
               <div className="flex items-center gap-3">
-                <item.icon className="h-5 w-5" />
+                <FishXIcon name={item.icon} size={20} />
                 {item.label}
               </div>
               {item.badge && item.badge > 0 && (
