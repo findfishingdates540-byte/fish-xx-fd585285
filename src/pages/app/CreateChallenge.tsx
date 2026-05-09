@@ -55,6 +55,12 @@ export default function CreateChallenge() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [prizePool, setPrizePool] = useState("");
+  const [prizeType, setPrizeType] = useState<"cash" | "gift_card">("cash");
+  const [prizeDescription, setPrizeDescription] = useState("");
+  const [entryFeeEnabled, setEntryFeeEnabled] = useState(false);
+  const [entryFee, setEntryFee] = useState("5");
+  const [platformFeePercent, setPlatformFeePercent] = useState("10");
+  const [isAdminFunded, setIsAdminFunded] = useState(false);
   const [maxParticipants, setMaxParticipants] = useState("");
   const [location, setLocation] = useState("");
   const [isOfficial, setIsOfficial] = useState(false);
@@ -115,6 +121,15 @@ export default function CreateChallenge() {
         is_official: isOfficial,
         prizes,
         rules: rulesObj,
+        entry_fee_enabled: entryFeeEnabled,
+        entry_fee: entryFeeEnabled ? parseFloat(entryFee) || 0 : 0,
+        prize_type: prizeType,
+        prize_description: prizeDescription.trim() || null,
+        platform_fee_percent:
+          entryFeeEnabled && prizeType === "cash"
+            ? Math.min(100, Math.max(0, parseFloat(platformFeePercent) || 0))
+            : 0,
+        is_admin_funded: !entryFeeEnabled ? isAdminFunded : false,
       });
       if (error) throw error;
     },
@@ -283,9 +298,84 @@ export default function CreateChallenge() {
               <DollarSign className="h-5 w-5 text-primary" />
               <h2 className="font-bold">Prizes & Participation</h2>
             </div>
+            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+              <div>
+                <p className="text-sm font-medium">Require Entry Fee</p>
+                <p className="text-xs text-muted-foreground">Off = free challenge (admin-funded prize)</p>
+              </div>
+              <Switch checked={entryFeeEnabled} onCheckedChange={setEntryFeeEnabled} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {entryFeeEnabled && (
+                <div>
+                  <Label className="text-sm font-medium">Entry Fee ($)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.50"
+                    value={entryFee}
+                    onChange={(e) => setEntryFee(e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+              )}
+              <div>
+                <Label className="text-sm font-medium">Prize Type</Label>
+                <Select value={prizeType} onValueChange={(v) => setPrizeType(v as "cash" | "gift_card")}>
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="gift_card">Gift Card</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {prizeType === "gift_card" && (
+              <div>
+                <Label className="text-sm font-medium">Prize Description</Label>
+                <Input
+                  value={prizeDescription}
+                  onChange={(e) => setPrizeDescription(e.target.value)}
+                  placeholder="e.g. $50 Bass Pro Gift Card"
+                  className="mt-1.5"
+                />
+              </div>
+            )}
+
+            {entryFeeEnabled && prizeType === "cash" && (
+              <div className="space-y-2 rounded-lg border p-3 bg-primary/5">
+                <Label className="text-sm font-medium">Platform Fee (% of pool)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={platformFeePercent}
+                  onChange={(e) => setPlatformFeePercent(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Winner receives {Math.max(0, 100 - (parseFloat(platformFeePercent) || 0))}% of total entries collected. No fee on gift card prizes.
+                </p>
+              </div>
+            )}
+
+            {!entryFeeEnabled && (
+              <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+                <div>
+                  <p className="text-sm font-medium">Admin-funded prize</p>
+                  <p className="text-xs text-muted-foreground">You're providing the prize directly (cash or gift card)</p>
+                </div>
+                <Switch checked={isAdminFunded} onCheckedChange={setIsAdminFunded} />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium">Prize Pool ($)</Label>
+                <Label className="text-sm font-medium">Prize Pool ($) <span className="text-muted-foreground">(optional)</span></Label>
                 <div className="relative mt-1.5">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
