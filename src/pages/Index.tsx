@@ -11,6 +11,7 @@ import heroFishing3 from '@/assets/hero-fishing-3.jpg';
 import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
 import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
 import fishingPhoto1 from '@/assets/fishing-photo-1.jpg';
+import mobileAppScreen from '@/assets/mobile-app-screen.png';
 import fishingPhoto2 from '@/assets/fishing-photo-2.jpg';
 import fishingPhoto3 from '@/assets/fishing-photo-3.jpg';
 import fishingPhoto4 from '@/assets/fishing-photo-4.jpg';
@@ -590,37 +591,13 @@ const Index = () => {
                   <div className="w-full h-full bg-background rounded-[2.5rem] overflow-hidden relative">
                     {/* Notch */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-7 bg-foreground rounded-b-2xl z-10" />
-                    
-                    {/* App content mockup */}
-                    <div className="w-full h-full flex flex-col">
-                      {/* Status bar area */}
-                      <div className="h-12" />
-                      
-                      {/* App header */}
-                      <div className="px-6 py-4 border-b border-border">
-                        <img src={logo} alt="FishX" className="h-8 w-auto" />
-                      </div>
-                      
-                      {/* Profile card preview */}
-                      <div className="flex-1 p-4">
-                        <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg relative">
-                          <img src={fishingPhoto1} alt="Profile preview" className="w-full h-full object-cover" />
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/90 to-transparent p-4">
-                            <p className="text-background font-bold text-xl">Sarah, 28</p>
-                            <p className="text-background/80 text-sm">Bass fishing enthusiast</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Bottom nav mockup */}
-                      <div className="h-20 border-t border-border flex items-center justify-around px-6">
-                        <div className="w-10 h-10 rounded-full bg-muted" />
-                        <div className="w-12 h-12 rounded-full bg-foreground flex items-center justify-center">
-                          <Heart className="w-6 h-6 text-background" />
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-muted" />
-                      </div>
-                    </div>
+
+                    {/* App screenshot */}
+                    <img
+                      src={mobileAppScreen}
+                      alt="FishX mobile app preview"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 </motion.div>
                 
