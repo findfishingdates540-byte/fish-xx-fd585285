@@ -539,18 +539,9 @@ const Index = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.5 }}
               >
-                <motion.button 
-                  className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl group"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Apple className="w-8 h-8" />
-                  <div className="text-left">
-                    <p className="text-xs opacity-80">Download on the</p>
-                    <p className="text-lg font-semibold -mt-1">App Store</p>
-                  </div>
-                </motion.button>
-                <motion.button 
+                <motion.a
+                  href="/downloads/Fish-X.apk"
+                  download="Fish-X.apk"
                   className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl group"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
@@ -560,7 +551,7 @@ const Index = () => {
                     <p className="text-xs opacity-80">Get it on</p>
                     <p className="text-lg font-semibold -mt-1">Google Play</p>
                   </div>
-                </motion.button>
+                </motion.a>
               </motion.div>
             </ScrollReveal>
             
