@@ -390,11 +390,23 @@ export default function Spots() {
         enableTerrain(map);
         enableBathymetry(map);
       }
+      // Ensure canvas matches container after page-transition animation settles
+      map.resize();
+      requestAnimationFrame(() => map.resize());
+      setTimeout(() => map.resize(), 250);
     });
 
     mapRef.current = map;
 
+    // Resize map whenever the container changes size (e.g. after PageTransition
+    // finishes animating from scale(0.98) → scale(1), or on window resize).
+    const ro = new ResizeObserver(() => {
+      try { map.resize(); } catch { /* map removed */ }
+    });
+    ro.observe(mapContainerRef.current);
+
     return () => {
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
       setMapReady(false);
