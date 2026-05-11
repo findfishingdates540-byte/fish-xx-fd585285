@@ -13,7 +13,6 @@ import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { ForceLightTheme } from "@/components/layout/ForceLightTheme";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import Index from "./pages/Index";
-import { AppLayout as _AppLayoutType } from "@/components/layout";
 
 // Public pages — lazy loaded (Index stays eager so the marketing page paints fast)
 const Auth = lazy(() => import("./pages/Auth"));
