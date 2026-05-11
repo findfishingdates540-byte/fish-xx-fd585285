@@ -21,6 +21,10 @@ import {
   Trophy,
   Shield,
   Sparkles,
+  Anchor,
+  MapPin,
+  Globe,
+  Phone,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,6 +46,10 @@ export default function CreateTeam() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("teams");
+  const [teamType, setTeamType] = useState<"team" | "charter">("team");
+  const [location, setLocation] = useState("");
+  const [website, setWebsite] = useState("");
+  const [phone, setPhone] = useState("");
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,7 +68,7 @@ export default function CreateTeam() {
       let logoUrl: string | null = null;
       if (logoFile) {
         const ext = logoFile.name.split(".").pop();
-        const path = `team-logos/${user.id}/${Date.now()}.${ext}`;
+        const path = `${user.id}/team-logos/${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage.from("catch-photos").upload(path, logoFile);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from("catch-photos").getPublicUrl(path);
@@ -74,6 +82,10 @@ export default function CreateTeam() {
         captain_id: user.id,
         logo_url: logoUrl,
         category: category,
+        team_type: teamType,
+        location: location.trim() || null,
+        website: website.trim() || null,
+        phone: phone.trim() || null,
       }).select("id").single();
       if (error) throw error;
 
@@ -150,6 +162,53 @@ export default function CreateTeam() {
                 rows={3}
                 className="mt-1.5"
               />
+            </div>
+          </div>
+        </section>
+
+        {/* Type */}
+        <section className="rounded-xl border bg-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Anchor className="h-5 w-5 text-primary" />
+            <h2 className="font-bold">Type</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { value: "team", label: "Team", desc: "A group of anglers" },
+              { value: "charter", label: "Charter Boat", desc: "Captain & crew operation" },
+            ].map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setTeamType(t.value as "team" | "charter")}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  teamType === t.value ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
+                }`}
+              >
+                <p className="font-semibold text-sm">{t.label}</p>
+                <p className="text-xs text-muted-foreground">{t.desc}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Contact (optional) */}
+        <section className="rounded-xl border bg-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="h-5 w-5 text-primary" />
+            <h2 className="font-bold">Contact <span className="text-xs font-normal text-muted-foreground">(optional)</span></h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Location</Label>
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Tampa, FL" className="mt-1.5" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Website</Label>
+              <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://..." className="mt-1.5" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> Phone</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" className="mt-1.5" />
             </div>
           </div>
         </section>
