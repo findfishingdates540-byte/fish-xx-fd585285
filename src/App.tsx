@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,56 +13,98 @@ import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { ForceLightTheme } from "@/components/layout/ForceLightTheme";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import AdminAuth from "./pages/AdminAuth";
-import SpotEntry from "./pages/SpotEntry";
-import Onboarding from "./pages/Onboarding";
-import OnboardingSuccess from "./pages/OnboardingSuccess";
-import About from "./pages/About";
-import Dating from "./pages/Dating";
-import Fishing from "./pages/Fishing";
-import Safety from "./pages/Safety";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Contact from "./pages/Contact";
-import Help from "./pages/Help";
-import Pricing from "./pages/Pricing";
-import Checkout from "./pages/Checkout";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import CommunityGuidelines from "./pages/CommunityGuidelines";
-import CookiePolicy from "./pages/CookiePolicy";
-import Accessibility from "./pages/Accessibility";
-import NotFound from "./pages/NotFound";
-import Stories from "./pages/Stories";
-import PublicChallenges from "./pages/Challenges";
-import { Discover, Messages, Likes, Spots, Catches, Buddies, BuddyMessages, BuddyChat, BuddyTripInvite, Profile, ProfileEdit, Chat, Matches, Settings, Trips, TripPlanner, TripDetail, Feed, MyTickets, SocialProfile, UserFeed, CallHistory, IncomingCallScreen, Leaderboard } from "./pages/app";
-import SpeciesLeaderboard from "./pages/app/SpeciesLeaderboard";
-import SpeciesExplorer from "./pages/app/SpeciesExplorer";
-import AnglerTrophies from "./pages/app/AnglerTrophies";
-import CatchDetail from "./pages/app/CatchDetail";
-import Challenges from "./pages/app/Challenges";
-import CreateChallenge from "./pages/app/CreateChallenge";
-import Teams from "./pages/app/Teams";
-import CreateTeam from "./pages/app/CreateTeam";
-import TeamProfile from "./pages/app/TeamProfile";
-import Followers from "./pages/app/Followers";
-import Notifications from "./pages/app/Notifications";
-import SpotDetail from "./pages/app/SpotDetail";
-import AppIndex from "./pages/app/AppIndex";
-import UserProfile from "./pages/app/UserProfile";
-import DatingProfile from "./pages/app/DatingProfile";
-import DatingSetup from "./pages/app/DatingSetup";
-import PhotoChallenges from "./pages/app/PhotoChallenges";
-import PhotoChallengeDetail from "./pages/app/PhotoChallengeDetail";
-import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge"; // kept for potential future use
-import Tournaments from "./pages/app/Tournaments";
-import TournamentDetail from "./pages/app/TournamentDetail";
-import CreateTournament from "./pages/app/CreateTournament";
+import { AppLayout as _AppLayoutType } from "@/components/layout";
 
-import { AdminLayout } from "@/components/admin";
-import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
-import AdminFishSpecies from "./pages/admin/AdminFishSpecies";
-import AdminPhotoChallenges from "./pages/admin/AdminPhotoChallenges";
+// Public pages — lazy loaded (Index stays eager so the marketing page paints fast)
+const Auth = lazy(() => import("./pages/Auth"));
+const AdminAuth = lazy(() => import("./pages/AdminAuth"));
+const SpotEntry = lazy(() => import("./pages/SpotEntry"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const OnboardingSuccess = lazy(() => import("./pages/OnboardingSuccess"));
+const About = lazy(() => import("./pages/About"));
+const Dating = lazy(() => import("./pages/Dating"));
+const Fishing = lazy(() => import("./pages/Fishing"));
+const Safety = lazy(() => import("./pages/Safety"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Help = lazy(() => import("./pages/Help"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const CommunityGuidelines = lazy(() => import("./pages/CommunityGuidelines"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const Accessibility = lazy(() => import("./pages/Accessibility"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Stories = lazy(() => import("./pages/Stories"));
+const PublicChallenges = lazy(() => import("./pages/Challenges"));
+
+// App pages — lazy loaded
+const Discover = lazy(() => import("./pages/app/Discover"));
+const Messages = lazy(() => import("./pages/app/Messages"));
+const Likes = lazy(() => import("./pages/app/Likes"));
+const Spots = lazy(() => import("./pages/app/Spots"));
+const Catches = lazy(() => import("./pages/app/Catches"));
+const Buddies = lazy(() => import("./pages/app/Buddies"));
+const BuddyMessages = lazy(() => import("./pages/app/BuddyMessages"));
+const BuddyChat = lazy(() => import("./pages/app/BuddyChat"));
+const BuddyTripInvite = lazy(() => import("./pages/app/BuddyTripInvite"));
+const Profile = lazy(() => import("./pages/app/Profile"));
+const ProfileEdit = lazy(() => import("./pages/app/ProfileEdit"));
+const Chat = lazy(() => import("./pages/app/Chat"));
+const Matches = lazy(() => import("./pages/app/Matches"));
+const Settings = lazy(() => import("./pages/app/Settings"));
+const Trips = lazy(() => import("./pages/app/Trips"));
+const TripPlanner = lazy(() => import("./pages/app/TripPlanner"));
+const TripDetail = lazy(() => import("./pages/app/TripDetail"));
+const Feed = lazy(() => import("./pages/app/Feed"));
+const MyTickets = lazy(() => import("./pages/app/MyTickets"));
+const SocialProfile = lazy(() => import("./pages/app/SocialProfile"));
+const UserFeed = lazy(() => import("./pages/app/UserFeed"));
+const CallHistory = lazy(() => import("./pages/app/CallHistory"));
+const IncomingCallScreen = lazy(() => import("./pages/app/IncomingCallScreen"));
+const Leaderboard = lazy(() => import("./pages/app/Leaderboard"));
+const SpeciesLeaderboard = lazy(() => import("./pages/app/SpeciesLeaderboard"));
+const SpeciesExplorer = lazy(() => import("./pages/app/SpeciesExplorer"));
+const AnglerTrophies = lazy(() => import("./pages/app/AnglerTrophies"));
+const CatchDetail = lazy(() => import("./pages/app/CatchDetail"));
+const Challenges = lazy(() => import("./pages/app/Challenges"));
+const CreateChallenge = lazy(() => import("./pages/app/CreateChallenge"));
+const Teams = lazy(() => import("./pages/app/Teams"));
+const CreateTeam = lazy(() => import("./pages/app/CreateTeam"));
+const TeamProfile = lazy(() => import("./pages/app/TeamProfile"));
+const Followers = lazy(() => import("./pages/app/Followers"));
+const Notifications = lazy(() => import("./pages/app/Notifications"));
+const SpotDetail = lazy(() => import("./pages/app/SpotDetail"));
+const AppIndex = lazy(() => import("./pages/app/AppIndex"));
+const UserProfile = lazy(() => import("./pages/app/UserProfile"));
+const DatingProfile = lazy(() => import("./pages/app/DatingProfile"));
+const DatingSetup = lazy(() => import("./pages/app/DatingSetup"));
+const PhotoChallenges = lazy(() => import("./pages/app/PhotoChallenges"));
+const PhotoChallengeDetail = lazy(() => import("./pages/app/PhotoChallengeDetail"));
+const Tournaments = lazy(() => import("./pages/app/Tournaments"));
+const TournamentDetail = lazy(() => import("./pages/app/TournamentDetail"));
+const CreateTournament = lazy(() => import("./pages/app/CreateTournament"));
+
+// Admin — lazy loaded
+const AdminLayout = lazy(() => import("@/components/admin").then(m => ({ default: m.AdminLayout })));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
+const AdminSpots = lazy(() => import("./pages/admin/AdminSpots"));
+const AdminMatches = lazy(() => import("./pages/admin/AdminMatches"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminCatches = lazy(() => import("./pages/admin/AdminCatches"));
+const AdminPosts = lazy(() => import("./pages/admin/AdminPosts"));
+const AdminComments = lazy(() => import("./pages/admin/AdminComments"));
+const AdminTrips = lazy(() => import("./pages/admin/AdminTrips"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const AdminAds = lazy(() => import("./pages/admin/AdminAds"));
+const AdminAdAnalytics = lazy(() => import("./pages/admin/AdminAdAnalytics"));
+const AdminVerifications = lazy(() => import("./pages/admin/AdminVerifications"));
+const AdminSupportTickets = lazy(() => import("./pages/admin/AdminSupportTickets"));
+const AdminFishSpecies = lazy(() => import("./pages/admin/AdminFishSpecies"));
+const AdminPhotoChallenges = lazy(() => import("./pages/admin/AdminPhotoChallenges"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,6 +128,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
           <ScrollToTop />
+          <Suspense fallback={<div className="min-h-screen" />}>
           <Routes>
             {/* Public pages - force light theme */}
             <Route path="/" element={<ForceLightTheme><Index /></ForceLightTheme>} />
@@ -200,6 +244,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<ForceLightTheme><NotFound /></ForceLightTheme>} />
           </Routes>
+          </Suspense>
           <CookieConsentBanner />
         </BrowserRouter>
         </TooltipProvider>
