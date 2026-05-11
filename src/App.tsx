@@ -11,10 +11,11 @@ import { AppLayout } from "@/components/layout";
 import { DatingRoute, FishingRoute } from "@/components/layout/RouteGuard";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { ForceLightTheme } from "@/components/layout/ForceLightTheme";
-import { CookieConsentBanner } from "@/components/CookieConsentBanner";
-import Index from "./pages/Index";
-
-// Public pages — lazy loaded (Index stays eager so the marketing page paints fast)
+// Public pages — all lazy loaded (keeps framer-motion out of the entry bundle)
+const Index = lazy(() => import("./pages/Index"));
+const CookieConsentBanner = lazy(() =>
+  import("@/components/CookieConsentBanner").then(m => ({ default: m.CookieConsentBanner }))
+);
 const Auth = lazy(() => import("./pages/Auth"));
 const AdminAuth = lazy(() => import("./pages/AdminAuth"));
 const SpotEntry = lazy(() => import("./pages/SpotEntry"));
@@ -244,7 +245,9 @@ const App = () => (
             <Route path="*" element={<ForceLightTheme><NotFound /></ForceLightTheme>} />
           </Routes>
           </Suspense>
-          <CookieConsentBanner />
+          <Suspense fallback={null}>
+            <CookieConsentBanner />
+          </Suspense>
         </BrowserRouter>
         </TooltipProvider>
         </CallProvider>
