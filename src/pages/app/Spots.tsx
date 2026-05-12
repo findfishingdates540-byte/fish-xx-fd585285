@@ -410,8 +410,11 @@ export default function Spots() {
       const c = map.getCenter();
       setCrosshair({ lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6) });
       setBearing(map.getBearing());
+      setStaticMapUrl(buildStaticMapUrl(token, activeStyle, map, mapContainerRef.current!));
     };
-    map.on('move', updateCrosshair);
+    map.on('moveend', updateCrosshair);
+    map.on('rotateend', updateCrosshair);
+    map.on('pitchend', updateCrosshair);
     updateCrosshair();
 
     map.on('load', () => {
@@ -432,6 +435,7 @@ export default function Spots() {
     // finishes animating from scale(0.98) → scale(1), or on window resize).
     const ro = new ResizeObserver(() => {
       try { map.resize(); } catch { /* map removed */ }
+      setStaticMapUrl(buildStaticMapUrl(token, activeStyle, map, mapContainerRef.current!));
     });
     ro.observe(mapContainerRef.current);
 
