@@ -617,7 +617,9 @@ export default function Spots() {
         zoom: 10,
         duration: 1000,
       });
-      setStaticMapUrl(buildStaticMapUrl(token!, activeStyle, mapRef.current, mapContainerRef.current!));
+      if (token && mapContainerRef.current) {
+        setStaticMapUrl(buildStaticMapUrl(token, activeStyle, mapRef.current, mapContainerRef.current));
+      }
     } else {
       getCurrentPosition()
         .then((coords) => {
@@ -629,7 +631,7 @@ export default function Spots() {
         })
         .catch(() => {});
     }
-  }, [userProfile]);
+  }, [activeStyle, token, userProfile]);
 
   if (tokenLoading) {
     return (
