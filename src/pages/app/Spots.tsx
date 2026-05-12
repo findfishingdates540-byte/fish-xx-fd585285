@@ -154,6 +154,25 @@ const triggerMapResize = (map: mapboxgl.Map) => {
   window.setTimeout(resize, 750);
 };
 
+const getStaticMapStylePath = (styleKey: MapStyleKey) =>
+  MAP_STYLES[styleKey].style.replace('mapbox://styles/', '');
+
+const buildStaticMapUrl = (
+  token: string,
+  styleKey: MapStyleKey,
+  map: mapboxgl.Map,
+  container: HTMLDivElement,
+) => {
+  const center = map.getCenter();
+  const width = Math.max(320, Math.min(Math.round(container.clientWidth || 640), 1280));
+  const height = Math.max(320, Math.min(Math.round(container.clientHeight || 640), 1280));
+  const zoom = Math.max(0, Math.min(map.getZoom(), 20)).toFixed(2);
+  const bearing = map.getBearing().toFixed(1);
+  const pitch = Math.min(map.getPitch(), 60).toFixed(0);
+
+  return `https://api.mapbox.com/styles/v1/${getStaticMapStylePath(styleKey)}/static/${center.lng.toFixed(5)},${center.lat.toFixed(5)},${zoom},${bearing},${pitch}/${width}x${height}@2x?access_token=${token}&logo=false&attribution=false`;
+};
+
 export default function Spots() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -164,6 +183,7 @@ export default function Spots() {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null);
   const [activeStyle, setActiveStyle] = useState<MapStyleKey>("satellite");
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(false);
