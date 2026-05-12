@@ -435,6 +435,7 @@ export default function Spots() {
     map.setStyle(MAP_STYLES[key].style);
 
     map.once('style.load', () => {
+      map.setProjection('mercator');
       map.setCenter(center);
       map.setZoom(zoom);
 
@@ -481,6 +482,7 @@ export default function Spots() {
       map.addSource(sId, { type: 'geojson', data: sg, cluster: false });
       map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      triggerMapResize(map);
     });
   }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs]);
 
