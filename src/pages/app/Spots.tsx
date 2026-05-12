@@ -145,10 +145,13 @@ const MAP_STYLES: Record<MapStyleKey, { label: string; icon: React.ReactNode; st
 };
 
 const triggerMapResize = (map: mapboxgl.Map) => {
-  map.resize();
-  requestAnimationFrame(() => map.resize());
-  window.setTimeout(() => map.resize(), 250);
-  window.setTimeout(() => map.resize(), 750);
+  const resize = () => {
+    try { map.resize(); } catch { /* map may have unmounted */ }
+  };
+  resize();
+  requestAnimationFrame(resize);
+  window.setTimeout(resize, 250);
+  window.setTimeout(resize, 750);
 };
 
 export default function Spots() {
