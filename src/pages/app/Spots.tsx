@@ -465,6 +465,7 @@ export default function Spots() {
       map.setProjection('mercator');
       map.setCenter(center);
       map.setZoom(zoom);
+      setStaticMapUrl(buildStaticMapUrl(token, key, map, mapContainerRef.current!));
 
       if (key === 'terrain' || key === 'bathymetry') {
         map.setPitch(60);
@@ -511,7 +512,7 @@ export default function Spots() {
       map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
       triggerMapResize(map);
     });
-  }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs]);
+  }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs, token]);
 
   // Marker factory
   const createMarkerEl = () => {
@@ -616,6 +617,7 @@ export default function Spots() {
         zoom: 10,
         duration: 1000,
       });
+      setStaticMapUrl(buildStaticMapUrl(token!, activeStyle, mapRef.current, mapContainerRef.current!));
     } else {
       getCurrentPosition()
         .then((coords) => {
