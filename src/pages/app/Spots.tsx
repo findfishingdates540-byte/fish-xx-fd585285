@@ -144,6 +144,13 @@ const MAP_STYLES: Record<MapStyleKey, { label: string; icon: React.ReactNode; st
   },
 };
 
+const triggerMapResize = (map: mapboxgl.Map) => {
+  map.resize();
+  requestAnimationFrame(() => map.resize());
+  window.setTimeout(() => map.resize(), 250);
+  window.setTimeout(() => map.resize(), 750);
+};
+
 export default function Spots() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -371,6 +378,7 @@ export default function Spots() {
       zoom: userProfile?.location_lat ? 8 : 4,
       pitch: activeStyle === 'terrain' ? 60 : 0,
       bearing: activeStyle === 'terrain' ? -17 : 0,
+      projection: 'mercator',
     });
 
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100 }), 'bottom-left');
@@ -390,11 +398,10 @@ export default function Spots() {
         enableTerrain(map);
         enableBathymetry(map);
       }
-      // Ensure canvas matches container after page-transition animation settles
-      map.resize();
-      requestAnimationFrame(() => map.resize());
-      setTimeout(() => map.resize(), 250);
+      triggerMapResize(map);
     });
+
+    map.on('styledata', () => triggerMapResize(map));
 
     mapRef.current = map;
 
