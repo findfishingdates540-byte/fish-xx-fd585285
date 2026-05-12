@@ -144,6 +144,16 @@ const MAP_STYLES: Record<MapStyleKey, { label: string; icon: React.ReactNode; st
   },
 };
 
+const triggerMapResize = (map: mapboxgl.Map) => {
+  const resize = () => {
+    try { map.resize(); } catch { /* map may have unmounted */ }
+  };
+  resize();
+  requestAnimationFrame(resize);
+  window.setTimeout(resize, 250);
+  window.setTimeout(resize, 750);
+};
+
 export default function Spots() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -154,7 +164,7 @@ export default function Spots() {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [activeStyle, setActiveStyle] = useState<MapStyleKey>("outdoors");
+  const [activeStyle, setActiveStyle] = useState<MapStyleKey>("satellite");
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [crosshair, setCrosshair] = useState<{ lat: number; lng: number }>({ lat: 39.8283, lng: -98.5795 });
@@ -371,6 +381,7 @@ export default function Spots() {
       zoom: userProfile?.location_lat ? 8 : 4,
       pitch: activeStyle === 'terrain' ? 60 : 0,
       bearing: activeStyle === 'terrain' ? -17 : 0,
+      projection: 'mercator',
     });
 
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100 }), 'bottom-left');
@@ -390,11 +401,10 @@ export default function Spots() {
         enableTerrain(map);
         enableBathymetry(map);
       }
-      // Ensure canvas matches container after page-transition animation settles
-      map.resize();
-      requestAnimationFrame(() => map.resize());
-      setTimeout(() => map.resize(), 250);
+      triggerMapResize(map);
     });
+
+    map.on('styledata', () => triggerMapResize(map));
 
     mapRef.current = map;
 
@@ -428,6 +438,7 @@ export default function Spots() {
     map.setStyle(MAP_STYLES[key].style);
 
     map.once('style.load', () => {
+      map.setProjection('mercator');
       map.setCenter(center);
       map.setZoom(zoom);
 
@@ -474,6 +485,7 @@ export default function Spots() {
       map.addSource(sId, { type: 'geojson', data: sg, cluster: false });
       map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      triggerMapResize(map);
     });
   }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs]);
 
