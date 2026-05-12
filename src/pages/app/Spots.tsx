@@ -654,7 +654,17 @@ export default function Spots() {
   return (
     <div className="relative w-full" style={{ height: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 64px)' }}>
       {/* Map Container */}
-      <div ref={mapContainerRef} className="absolute inset-0" />
+      <div className="absolute inset-0 bg-muted">
+        {staticMapUrl && (
+          <img
+            src={staticMapUrl}
+            alt="Map background"
+            className="absolute inset-0 h-full w-full object-cover"
+            draggable={false}
+          />
+        )}
+        <div ref={mapContainerRef} className="absolute inset-0 opacity-0" />
+      </div>
 
       {/* Top-Left stacked controls */}
       <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-10 flex flex-col gap-2.5">
