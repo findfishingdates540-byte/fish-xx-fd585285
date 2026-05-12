@@ -164,7 +164,6 @@ export default function Spots() {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [mapHasRenderedTiles, setMapHasRenderedTiles] = useState(false);
   const [activeStyle, setActiveStyle] = useState<MapStyleKey>("satellite");
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(false);
@@ -232,14 +231,6 @@ export default function Spots() {
     },
     enabled: !!user?.id,
   });
-
-  const initialCenterLng = userProfile?.location_lng || -98.5795;
-  const initialCenterLat = userProfile?.location_lat || 39.8283;
-  const fallbackZoom = userProfile?.location_lat ? 8 : 4;
-  const staticMapSize = isMobile ? '390x640@2x' : '1280x720@2x';
-  const staticMapUrl = token
-    ? `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${initialCenterLng},${initialCenterLat},${fallbackZoom},0/${staticMapSize}?access_token=${token}`
-    : null;
 
   // Fetch fishing spots (reefs)
   const { data: fishingSpots = [] } = useQuery({
