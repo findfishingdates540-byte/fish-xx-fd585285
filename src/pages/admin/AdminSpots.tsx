@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, MoreVertical, MapPin, Star, Eye, Trash2, CheckCircle, XCircle, Globe, Lock, Plus, Pencil, Upload, Filter, ChevronDown, Waves, Droplets } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import { AddSpotDialog } from '@/components/admin/AddSpotDialog';
 import { EditSpotDialog } from '@/components/admin/EditSpotDialog';
 import { ImportSpotsDialog } from '@/components/admin/ImportSpotsDialog';
 
-type SpotType = NonNullable<ReturnType<typeof useAdminSpots>['data']>[number];
+type SpotType = NonNullable<NonNullable<ReturnType<typeof useAdminSpots>['data']>['pages'][number]['spots'][number]>;
 
 type FilterStatus = 'all' | 'verified' | 'unverified';
 type FilterVisibility = 'all' | 'public' | 'private';
@@ -24,7 +24,19 @@ type FilterRating = 'all' | 'high' | 'medium' | 'low' | 'unrated';
 
 export default function AdminSpots() {
   const [search, setSearch] = useState('');
-  const { data: spots, isLoading } = useAdminSpots(search);
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdminSpots(search);
+
+  const spots = useMemo<SpotType[]>(
+    () => (data?.pages ?? []).flatMap((p) => p.spots),
+    [data]
+  );
+  const totalSpots = data?.pages?.[0]?.total ?? 0;
   
   // Filter states
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
@@ -56,8 +68,6 @@ export default function AdminSpots() {
 
   // Apply filters
   const filteredSpots = useMemo(() => {
-    if (!spots) return [];
-    
     return spots.filter(spot => {
       // Status filter
       if (statusFilter === 'verified' && !spot.is_verified) return false;
@@ -76,6 +86,20 @@ export default function AdminSpots() {
       return true;
     });
   }, [spots, statusFilter, visibilityFilter, ratingFilter]);
+
+  // Infinite scroll sentinel
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    }, { rootMargin: '600px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const allSelected = filteredSpots.length > 0 && filteredSpots.every(spot => selectedIds.has(spot.id));
   const someSelected = selectedIds.size > 0;
@@ -168,7 +192,12 @@ export default function AdminSpots() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Fishing Spots</h1>
-          <p className="text-slate-400 mt-1">Manage all fishing spots on the platform</p>
+          <p className="text-slate-400 mt-1">
+            Manage all fishing spots on the platform
+            {totalSpots > 0 && (
+              <span className="ml-2 text-slate-500">· {totalSpots.toLocaleString()} total</span>
+            )}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -521,6 +550,17 @@ export default function AdminSpots() {
           ))
         )}
       </div>
+
+      {/* Infinite scroll sentinel */}
+      {!isLoading && filteredSpots.length > 0 && (
+        <div ref={sentinelRef} className="flex justify-center py-6 text-sm text-slate-500">
+          {isFetchingNextPage
+            ? 'Loading more spots…'
+            : hasNextPage
+              ? 'Scroll to load more'
+              : `All ${totalSpots.toLocaleString()} spots loaded`}
+        </div>
+      )}
 
       {/* Bulk Action Confirmation Dialog */}
       <AlertDialog open={!!bulkAction} onOpenChange={() => setBulkAction(null)}>
