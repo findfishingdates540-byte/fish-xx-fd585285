@@ -8,13 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   ArrowLeft,
   ImagePlus,
   Users,
@@ -33,10 +26,8 @@ const CATEGORIES = [
 ];
 
 const TEAM_TYPES = [
-  { value: "recreational", label: "Recreational" },
-  { value: "competitive", label: "Competitive" },
-  { value: "club", label: "Club" },
-  { value: "charter", label: "Charter" },
+  { value: "team", label: "Team", description: "A group of anglers fishing together" },
+  { value: "charter_boat", label: "Charter Boat", description: "A licensed charter operation" },
 ];
 
 export default function CreateTeam() {
@@ -50,7 +41,7 @@ export default function CreateTeam() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("teams");
-  const [teamType, setTeamType] = useState("recreational");
+  const [teamType, setTeamType] = useState("team");
   const [location, setLocation] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
@@ -179,27 +170,34 @@ export default function CreateTeam() {
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium">Team Type</Label>
-              <Select value={teamType} onValueChange={setTeamType}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Select team type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TEAM_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 gap-2 mt-1.5">
+                {TEAM_TYPES.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setTeamType(t.value)}
+                    className={`p-3 rounded-lg border-2 text-left transition-all ${
+                      teamType === t.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/30"
+                    }`}
+                  >
+                    <p className="font-semibold text-sm">{t.label}</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight">{t.description}</p>
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
-              <Label className="text-sm font-medium">Location</Label>
+              <Label className="text-sm font-medium">Location <span className="text-muted-foreground font-normal">(optional)</span></Label>
               <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Miami, FL" className="mt-1.5" />
             </div>
             <div>
-              <Label className="text-sm font-medium">Phone</Label>
+              <Label className="text-sm font-medium">Phone <span className="text-muted-foreground font-normal">(optional)</span></Label>
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className="mt-1.5" type="tel" />
             </div>
             <div>
-              <Label className="text-sm font-medium">Website</Label>
+              <Label className="text-sm font-medium">Website <span className="text-muted-foreground font-normal">(optional)</span></Label>
               <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" className="mt-1.5" type="url" />
             </div>
           </div>
