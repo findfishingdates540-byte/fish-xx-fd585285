@@ -215,6 +215,84 @@ serve(async (req) => {
       transitions.push(`fishing_completed: ${fcDone.map(c => c.title).join(", ")}`);
     }
 
+    // 5. Tournaments: in_progress → completed when end_date passed
+    const { data: tDone } = await supabase
+      .from("tournaments")
+      .select("id, title, entry_fee, entry_fee_enabled, is_admin_funded, prize_type, prize_description, gift_card_code, winner_id, status, end_date")
+      .in("status", ["in_progress", "registration", "seeding"])
+      .not("end_date", "is", null)
+      .lt("end_date", now);
+
+    if (tDone?.length) {
+      for (const t of tDone) {
+        // Try to derive winner from final matchup if missing
+        let winnerId = t.winner_id as string | null;
+        if (!winnerId) {
+          const { data: finalMatch } = await supabase
+            .from("tournament_matchups")
+            .select("winner_id, round_id")
+            .eq("tournament_id", t.id)
+            .eq("status", "completed")
+            .order("matchup_number", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          winnerId = finalMatch?.winner_id ?? null;
+        }
+
+        await supabase
+          .from("tournaments")
+          .update({ status: "completed", winner_id: winnerId })
+          .eq("id", t.id);
+
+        if (!winnerId) continue;
+
+        let grossPool = 0;
+        let platformFee = 0;
+        let prizeAmount = 0;
+
+        if (t.prize_type === "cash" && t.entry_fee_enabled && !t.is_admin_funded) {
+          const { data: heldRows } = await supabase
+            .from("escrow_transactions")
+            .select("amount")
+            .eq("tournament_id", t.id)
+            .eq("status", "held");
+          grossPool = (heldRows || []).reduce((s, r) => s + Number(r.amount || 0), 0);
+          const feePct = globalFeePct;
+          platformFee = +(grossPool * (feePct / 100)).toFixed(2);
+          prizeAmount = +(grossPool - platformFee).toFixed(2);
+
+          await supabase
+            .from("escrow_transactions")
+            .update({ status: "released", released_at: now })
+            .eq("tournament_id", t.id)
+            .eq("status", "held");
+        }
+
+        await supabase.from("prize_payouts").insert({
+          winner_id: winnerId,
+          tournament_id: t.id,
+          prize_type: t.prize_type || "cash",
+          prize_amount: prizeAmount,
+          gross_pool: grossPool,
+          platform_fee_amount: platformFee,
+          prize_description: t.prize_description ||
+            (prizeAmount > 0 ? `$${prizeAmount.toFixed(2)} cash prize` : null),
+          gift_card_code: t.gift_card_code || null,
+          status: "pending",
+          notified_at: now,
+        });
+
+        await supabase.from("notifications").insert({
+          user_id: winnerId,
+          type: "prize_won",
+          title: "🏆 Tournament Won!",
+          body: `Congratulations! You won "${t.title}"!`,
+          data: { tournament_id: t.id, prize_type: t.prize_type },
+        });
+      }
+      transitions.push(`tournaments_completed: ${tDone.map(t => t.title).join(", ")}`);
+    }
+
     console.log("Challenge status update complete.", transitions.length ? transitions : "No transitions needed.");
 
     return new Response(
