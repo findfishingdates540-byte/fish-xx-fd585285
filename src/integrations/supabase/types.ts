@@ -524,6 +524,7 @@ export type Database = {
           gear_used: string[] | null
           general_location: string | null
           id: string
+          is_private: boolean
           is_verified: boolean
           length_in: number | null
           location_lat: number | null
@@ -549,6 +550,7 @@ export type Database = {
           gear_used?: string[] | null
           general_location?: string | null
           id?: string
+          is_private?: boolean
           is_verified?: boolean
           length_in?: number | null
           location_lat?: number | null
@@ -574,6 +576,7 @@ export type Database = {
           gear_used?: string[] | null
           general_location?: string | null
           id?: string
+          is_private?: boolean
           is_verified?: boolean
           length_in?: number | null
           location_lat?: number | null
