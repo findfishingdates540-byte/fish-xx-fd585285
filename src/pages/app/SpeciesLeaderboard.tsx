@@ -103,9 +103,9 @@ export default function SpeciesLeaderboardPage() {
       if (catchIds.length === 0) return {};
       const { data } = await supabase
         .from("catches")
-        .select("id, caught_at, general_location, created_at")
+        .select("id, caught_at, general_location, created_at, share_location, user_id")
         .in("id", catchIds);
-      const map: Record<string, { caught_at: string | null; general_location: string | null; created_at: string }> = {};
+      const map: Record<string, { caught_at: string | null; general_location: string | null; created_at: string; share_location: boolean | null; user_id: string }> = {};
       (data || []).forEach((c) => { map[c.id] = c; });
       return map;
     },
