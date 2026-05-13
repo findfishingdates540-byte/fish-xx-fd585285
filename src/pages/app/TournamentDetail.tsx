@@ -541,6 +541,19 @@ const TournamentDetail = () => {
               ))}
             </SelectContent>
           </Select>
+          {selectedTeamId && rosterMembers.length > 0 && (
+            <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Roster ({rosterMembers.length})</p>
+              <div className="flex flex-wrap gap-1.5">
+                {rosterMembers.map((m: any) => (
+                  <div key={m.id} className="flex items-center gap-1.5 bg-background rounded-full pl-1 pr-2 py-0.5 border">
+                    <Avatar className="h-5 w-5"><AvatarImage src={m.photos?.[0]} /><AvatarFallback className="text-[8px]">{m.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                    <span className="text-[11px] font-medium">{m.display_name}{m.is_captain && " (C)"}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <DialogFooter>
             <Button
               onClick={() => {
