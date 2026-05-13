@@ -9,6 +9,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
   ArrowLeft,
   Trophy,
   Users,
@@ -19,6 +28,7 @@ import {
   Target,
   Copy,
   CheckCircle,
+  Users2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -30,6 +40,8 @@ const TournamentDetail = () => {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [teamPickerOpen, setTeamPickerOpen] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ["tournament", id],
@@ -74,6 +86,40 @@ const TournamentDetail = () => {
       return map;
     },
     enabled: participants.length > 0,
+  });
+
+  // Resolve team info for participants (tournaments are team-based)
+  const { data: teamMap = {} } = useQuery({
+    queryKey: ["tournament-participant-teams", id, participants.map((p: any) => p.team_id).filter(Boolean).join(",")],
+    queryFn: async () => {
+      const teamIds = participants.map((p: any) => p.team_id).filter(Boolean);
+      if (teamIds.length === 0) return {} as Record<string, any>;
+      const { data, error } = await supabase
+        .from("fishing_teams")
+        .select("id, name, logo_url")
+        .in("id", teamIds);
+      if (error) throw error;
+      const map: Record<string, any> = {};
+      (data || []).forEach((t: any) => (map[t.id] = t));
+      return map;
+    },
+    enabled: participants.length > 0,
+  });
+
+  // Teams the current user is captain of
+  const { data: myCaptainedTeams = [] } = useQuery({
+    queryKey: ["my-captained-teams", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("fishing_teams")
+        .select("id, name, logo_url")
+        .eq("captain_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
   });
 
   const { data: rounds = [] } = useQuery({
@@ -126,7 +172,10 @@ const TournamentDetail = () => {
     enabled: !!id && !!user && tournament?.status === "completed",
   });
 
-  const isJoined = participants.some((p: any) => p.user_id === user?.id);
+  const myTeamIds = myCaptainedTeams.map((t: any) => t.id);
+  const isJoined = participants.some(
+    (p: any) => p.user_id === user?.id || (p.team_id && myTeamIds.includes(p.team_id))
+  );
   const canJoin = tournament?.status === "registration" && !isJoined;
   const requiresPayment =
     !!tournament?.entry_fee_enabled &&
@@ -134,23 +183,43 @@ const TournamentDetail = () => {
     tournament?.prize_type === "cash";
 
   const joinMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (teamId: string) => {
       if (!user || !id) throw new Error("Not logged in");
+      if (!teamId) throw new Error("Select a team");
       const { error } = await supabase
         .from("tournament_participants")
-        .insert({ tournament_id: id, user_id: user.id, has_paid: true });
+        .insert({ tournament_id: id, user_id: user.id, team_id: teamId, has_paid: true } as any);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Registered successfully!");
+      toast.success("Your team is registered!");
+      setTeamPickerOpen(false);
       queryClient.invalidateQueries({ queryKey: ["tournament-participants", id] });
     },
     onError: (e: any) => toast.error(e.message),
   });
 
   const handleRegister = async () => {
+    if (myCaptainedTeams.length === 0) {
+      toast.error("Only team captains can register. Create a team first.");
+      navigate("/app/teams");
+      return;
+    }
+    const pickTeam = () => {
+      if (myCaptainedTeams.length === 1) return myCaptainedTeams[0].id;
+      setSelectedTeamId(myCaptainedTeams[0].id);
+      setTeamPickerOpen(true);
+      return null;
+    };
     if (!requiresPayment) {
-      joinMutation.mutate();
+      const teamId = pickTeam();
+      if (teamId) joinMutation.mutate(teamId);
+      return;
+    }
+    // For paid tournaments, require a single team selection up front
+    if (myCaptainedTeams.length > 1) {
+      setSelectedTeamId(myCaptainedTeams[0].id);
+      setTeamPickerOpen(true);
       return;
     }
     setCheckoutLoading(true);
@@ -158,7 +227,7 @@ const TournamentDetail = () => {
       const isInIframe = window.self !== window.top;
       const pendingTab = isInIframe ? window.open("about:blank", "_blank") : null;
       const { data, error } = await supabase.functions.invoke("tournament-checkout", {
-        body: { tournamentId: id },
+        body: { tournamentId: id, teamId: myCaptainedTeams[0].id },
       });
       if (error) {
         if (pendingTab) pendingTab.close();
@@ -224,14 +293,25 @@ const TournamentDetail = () => {
     return map;
   }, [matchups]);
 
+  // For tournaments, "players" are teams. Resolve via the participant's team_id.
+  const participantByUser = useMemo(() => {
+    const map: Record<string, any> = {};
+    participants.forEach((p: any) => { if (p.user_id) map[p.user_id] = p; });
+    return map;
+  }, [participants]);
+
   const getPlayerName = (userId: string | null) => {
     if (!userId) return "TBD";
+    const part = participantByUser[userId];
+    if (part?.team_id && teamMap[part.team_id]) return teamMap[part.team_id].name;
     const p = profiles[userId];
-    return p?.display_name || "Angler";
+    return p?.display_name || "Team";
   };
 
   const getPlayerPhoto = (userId: string | null) => {
     if (!userId) return null;
+    const part = participantByUser[userId];
+    if (part?.team_id && teamMap[part.team_id]?.logo_url) return teamMap[part.team_id].logo_url;
     const p = profiles[userId];
     return p?.photos?.[0] || null;
   };
@@ -276,14 +356,20 @@ const TournamentDetail = () => {
             onClick={handleRegister}
             disabled={joinMutation.isPending || checkoutLoading}
           >
-            {checkoutLoading ? "Loading…" : requiresPayment ? `Pay $${tournament.entry_fee} & Register` : "Register"}
+            {checkoutLoading ? "Loading…" : requiresPayment ? `Pay $${tournament.entry_fee} & Register Team` : "Register Team"}
           </Button>
         )}
         {isJoined && (
           <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-            Registered
+            Team Registered
           </Badge>
         )}
+      </div>
+
+      {/* Teams-only notice */}
+      <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground flex items-start gap-2">
+        <Users2 className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
+        <p>This is a <span className="font-medium text-foreground">team tournament</span>. Only team captains can register their team to compete.</p>
       </div>
 
       {/* Info cards */}
@@ -343,10 +429,10 @@ const TournamentDetail = () => {
       <div className="rounded-xl border bg-card p-4 mb-4">
         <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Users className="h-4 w-4 text-muted-foreground" />
-          Participants ({participants.length})
+          Teams ({participants.length})
         </h2>
         {participants.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No participants yet.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No teams registered yet.</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {participants.map((p: any) => (
@@ -373,6 +459,58 @@ const TournamentDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Team picker dialog */}
+      <Dialog open={teamPickerOpen} onOpenChange={setTeamPickerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Register a team</DialogTitle>
+            <DialogDescription>Pick which of your teams will compete in this tournament.</DialogDescription>
+          </DialogHeader>
+          <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+            <SelectTrigger><SelectValue placeholder="Choose a team" /></SelectTrigger>
+            <SelectContent>
+              {myCaptainedTeams.map((t: any) => (
+                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                if (!selectedTeamId) return;
+                if (requiresPayment) {
+                  setTeamPickerOpen(false);
+                  setCheckoutLoading(true);
+                  (async () => {
+                    try {
+                      const isInIframe = window.self !== window.top;
+                      const pendingTab = isInIframe ? window.open("about:blank", "_blank") : null;
+                      const { data, error } = await supabase.functions.invoke("tournament-checkout", {
+                        body: { tournamentId: id, teamId: selectedTeamId },
+                      });
+                      if (error) { if (pendingTab) pendingTab.close(); throw error; }
+                      const url = data?.url as string | undefined;
+                      if (!url) { if (pendingTab) pendingTab.close(); throw new Error("No checkout URL returned"); }
+                      if (pendingTab) pendingTab.location.href = url;
+                      else window.location.href = url;
+                    } catch (e: any) {
+                      toast.error(e?.message || "Failed to start checkout");
+                    } finally {
+                      setCheckoutLoading(false);
+                    }
+                  })();
+                } else {
+                  joinMutation.mutate(selectedTeamId);
+                }
+              }}
+              disabled={!selectedTeamId || joinMutation.isPending || checkoutLoading}
+            >
+              {joinMutation.isPending || checkoutLoading ? "Working…" : requiresPayment ? `Pay $${tournament.entry_fee} & Register` : "Confirm Registration"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Bracket */}
       {rounds.length > 0 && (
