@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,11 +26,14 @@ import {
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ShareSheet } from "@/components/feed/ShareSheet";
+import { getShareBaseUrl } from "@/lib/config";
 
 export default function CatchDetail() {
   const { catchId } = useParams<{ catchId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Fetch catch
   const { data: catchData, isLoading } = useQuery({
@@ -140,15 +144,9 @@ export default function CatchDetail() {
     ? angler.fishing_experience.charAt(0).toUpperCase() + angler.fishing_experience.slice(1) + " Angler"
     : "Angler";
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      await navigator.share({ title: `${speciesName} Catch`, url });
-    } else {
-      await navigator.clipboard.writeText(url);
-      toast.success("Link copied to clipboard");
-    }
-  };
+  const shareUrl = `${getShareBaseUrl()}/app/catches/${catchId}`;
+  const shareTitle = `${speciesName} Catch on FishX`;
+  const handleShare = () => setShareOpen(true);
 
   const badgeIcon = (type: string) => {
     switch (type) {
@@ -208,6 +206,14 @@ export default function CatchDetail() {
           Share
         </Button>
       </div>
+
+      <ShareSheet
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        shareUrl={shareUrl}
+        shareTitle={shareTitle}
+        shareText={`Check out this ${speciesName} catch on FishX`}
+      />
 
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-6 px-4 md:px-6">
