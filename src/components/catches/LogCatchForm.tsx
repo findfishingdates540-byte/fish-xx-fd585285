@@ -55,6 +55,7 @@ export interface LogCatchFormData {
   catch_status: "released" | "harvested";
   general_location: string;
   share_location: boolean;
+  is_private: boolean;
   location_lat: number | null;
   location_lng: number | null;
   coverPhoto: File | null;
@@ -78,6 +79,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     catch_status: "released" as "released" | "harvested",
     general_location: "",
     share_location: true,
+    is_private: false,
     location_lat: null as number | null,
     location_lng: null as number | null,
   });
