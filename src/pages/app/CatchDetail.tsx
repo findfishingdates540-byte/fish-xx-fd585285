@@ -25,7 +25,6 @@ import {
   Zap,
   UserPlus,
 } from "lucide-react";
-import { toast } from "sonner";
 import { ShareSheet } from "@/components/feed/ShareSheet";
 import { getShareBaseUrl } from "@/lib/config";
 
