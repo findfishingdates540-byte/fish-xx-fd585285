@@ -1196,9 +1196,13 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          location: string | null
           logo_url: string | null
           name: string
+          phone: string | null
           skill_level: Database["public"]["Enums"]["fishing_experience"]
+          team_type: string
+          website: string | null
         }
         Insert: {
           captain_id: string
@@ -1206,9 +1210,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
           logo_url?: string | null
           name: string
+          phone?: string | null
           skill_level?: Database["public"]["Enums"]["fishing_experience"]
+          team_type?: string
+          website?: string | null
         }
         Update: {
           captain_id?: string
@@ -1216,9 +1224,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
           logo_url?: string | null
           name?: string
+          phone?: string | null
           skill_level?: Database["public"]["Enums"]["fishing_experience"]
+          team_type?: string
+          website?: string | null
         }
         Relationships: []
       }
