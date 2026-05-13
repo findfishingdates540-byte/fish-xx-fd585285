@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   DollarSign,
   Sparkles,
   Gift,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
@@ -44,6 +45,21 @@ const CreateTournament = () => {
   const navigate = useNavigate();
   const { canCreate, requirement, isLoading: gateLoading } = useCanCreateTournament();
   const { data: platformFeePercent = 10 } = usePlatformFeePercent();
+
+  // Verify the creator either captains or belongs to a team — tournaments are team-only.
+  const { data: teamMembership, isLoading: teamCheckLoading } = useQuery({
+    queryKey: ["tournament-creator-team", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const [captainRes, memberRes] = await Promise.all([
+        supabase.from("fishing_teams").select("id, name").eq("captain_id", user!.id).limit(1),
+        supabase.from("team_members").select("team_id").eq("user_id", user!.id).limit(1),
+      ]);
+      const isCaptain = (captainRes.data?.length ?? 0) > 0;
+      const isMember = (memberRes.data?.length ?? 0) > 0;
+      return { isCaptain, isMember, hasTeam: isCaptain || isMember };
+    },
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
@@ -155,6 +171,43 @@ const CreateTournament = () => {
           <Button variant="ghost" className="w-full" onClick={() => navigate("/app/tournaments")}>
             Back to tournaments
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (teamCheckLoading) {
+    return <div className="max-w-lg mx-auto px-4 py-12 text-center text-muted-foreground">Checking team membership…</div>;
+  }
+
+  if (!teamMembership?.hasTeam) {
+    return (
+      <div className="max-w-lg mx-auto px-4 pb-32">
+        <div className="flex items-center gap-3 py-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-lg font-bold">Create Tournament</h1>
+        </div>
+        <div className="rounded-xl border bg-card p-8 text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <ShieldAlert className="h-6 w-6 text-primary" />
+          </div>
+          <h2 className="text-lg font-semibold">You need a team first</h2>
+          <p className="text-sm text-muted-foreground">
+            Tournaments are team-based. You must be the captain of a team — or a member of one — before you can host a tournament.
+          </p>
+          <div className="grid gap-2">
+            <Button asChild className="w-full">
+              <Link to="/app/teams/create">Create a team</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/app/teams">Browse teams to join</Link>
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => navigate("/app/tournaments")}>
+              Back to tournaments
+            </Button>
+          </div>
         </div>
       </div>
     );
