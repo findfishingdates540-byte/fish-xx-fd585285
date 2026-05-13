@@ -103,9 +103,9 @@ export default function SpeciesLeaderboardPage() {
       if (catchIds.length === 0) return {};
       const { data } = await supabase
         .from("catches")
-        .select("id, caught_at, general_location, created_at")
+        .select("id, caught_at, general_location, created_at, share_location, user_id")
         .in("id", catchIds);
-      const map: Record<string, { caught_at: string | null; general_location: string | null; created_at: string }> = {};
+      const map: Record<string, { caught_at: string | null; general_location: string | null; created_at: string; share_location: boolean | null; user_id: string }> = {};
       (data || []).forEach((c) => { map[c.id] = c; });
       return map;
     },
@@ -336,11 +336,13 @@ export default function SpeciesLeaderboardPage() {
                     </span>
 
                     <div className="flex items-center gap-1 min-w-0">
-                      {catchInfo?.general_location ? (
+                      {catchInfo?.general_location && (catchInfo.share_location !== false) ? (
                         <>
                           <MapPin className="h-3 w-3 sb-cyan shrink-0" />
                           <span className="text-xs sb-text-muted truncate">{catchInfo.general_location}</span>
                         </>
+                      ) : catchInfo && catchInfo.share_location === false ? (
+                        <span className="text-xs sb-text-muted italic">Private</span>
                       ) : (
                         <span className="text-xs sb-text-muted">—</span>
                       )}
