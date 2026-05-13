@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Camera, Upload } from "lucide-react";
+import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
 
 export default function CreatePhotoChallenge() {
   const navigate = useNavigate();
@@ -23,7 +24,6 @@ export default function CreatePhotoChallenge() {
   const [bannerUrl, setBannerUrl] = useState("");
   const [entryFee, setEntryFee] = useState("5");
   const [entryFeeEnabled, setEntryFeeEnabled] = useState(true);
-  const [platformFeePercent, setPlatformFeePercent] = useState("10");
   const [isAdminFunded, setIsAdminFunded] = useState(false);
   const [prizeType, setPrizeType] = useState("cash");
   const [prizeDescription, setPrizeDescription] = useState("");
@@ -31,6 +31,8 @@ export default function CreatePhotoChallenge() {
   const [endDate, setEndDate] = useState("");
   const [votingEndDate, setVotingEndDate] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  const { data: platformFeePercent = 10 } = usePlatformFeePercent();
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -47,7 +49,7 @@ export default function CreatePhotoChallenge() {
         entry_fee_enabled: entryFeeEnabled,
         platform_fee_percent:
           entryFeeEnabled && prizeType === "cash"
-            ? Math.min(100, Math.max(0, parseFloat(platformFeePercent) || 0))
+            ? Math.min(100, Math.max(0, platformFeePercent))
             : 0,
         is_admin_funded: !entryFeeEnabled ? isAdminFunded : false,
         prize_type: prizeType,
@@ -196,19 +198,11 @@ export default function CreatePhotoChallenge() {
           </div>
 
           {entryFeeEnabled && prizeType === "cash" && (
-            <div className="space-y-2 rounded-lg border p-3 bg-primary/5">
-              <Label>Platform Fee (% of pool)</Label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value={platformFeePercent}
-                onChange={(e) => setPlatformFeePercent(e.target.value)}
-              />
+            <div className="rounded-lg border p-3 bg-primary/5">
               <p className="text-xs text-muted-foreground">
-                Winner receives {Math.max(0, 100 - (parseFloat(platformFeePercent) || 0))}% of the
-                total pool. No fee applies to gift card prizes.
+                ℹ️ A {platformFeePercent}% platform fee is deducted from the prize pool. The winner receives{" "}
+                <span className="font-semibold text-foreground">{Math.max(0, 100 - platformFeePercent)}%</span>{" "}
+                of the total pool. No fee applies to gift card prizes.
               </p>
             </div>
           )}
