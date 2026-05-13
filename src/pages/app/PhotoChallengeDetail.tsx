@@ -16,6 +16,7 @@ import {
   Trophy, Upload, Users, Vote, ImageIcon, CreditCard, Copy, CheckCircle,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
+import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
 
 export default function PhotoChallengeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,7 @@ export default function PhotoChallengeDetail() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [capturePreview, setCapturePreview] = useState<string | null>(null);
   const [pendingCapture, setPendingCapture] = useState<CaptureMetadata | null>(null);
+  const { data: globalPlatformFee = 10 } = usePlatformFeePercent();
 
   // Handle payment callback — mark entry as paid client-side as a fallback
   // in case the Stripe webhook is delayed or fails
@@ -152,7 +154,7 @@ export default function PhotoChallengeDetail() {
   const myVote = votes.find((v: any) => v.user_id === user?.id);
   const paidEntries = entries.filter((e: any) => e.has_paid).length;
   const grossPool = (challenge?.entry_fee || 0) * paidEntries;
-  const platformFeePct = (challenge as any)?.platform_fee_percent ?? 10;
+  const platformFeePct = globalPlatformFee;
   const prizePool =
     (challenge as any)?.prize_type === "cash" && (challenge as any)?.entry_fee_enabled
       ? grossPool * (1 - platformFeePct / 100)

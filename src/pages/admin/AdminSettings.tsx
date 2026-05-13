@@ -1,14 +1,24 @@
-import { Settings, Bell, Shield, Database, Loader2 } from 'lucide-react';
+import { Settings, Bell, Shield, Database, Loader2, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppSettings, useToggleSetting } from '@/hooks/use-app-settings';
+import { usePlatformFeePercent, useUpdatePlatformFeePercent } from '@/hooks/use-platform-fee';
+import { useEffect, useState } from 'react';
 
 export default function AdminSettings() {
   const { data: settings, isLoading } = useAppSettings();
   const { mutate: toggleSetting, isPending } = useToggleSetting();
+  const { data: platformFee = 10, isLoading: feeLoading } = usePlatformFeePercent();
+  const { mutate: updatePlatformFee, isPending: feeSaving } = useUpdatePlatformFeePercent();
+  const [feeInput, setFeeInput] = useState<string>('10');
+
+  useEffect(() => {
+    setFeeInput(String(platformFee));
+  }, [platformFee]);
 
   const handleToggle = (key: Parameters<typeof toggleSetting>[0]['key'], enabled: boolean) => {
     toggleSetting({ key, enabled });
@@ -36,6 +46,50 @@ export default function AdminSettings() {
       </div>
 
       <div className="max-w-2xl space-y-8">
+        {/* Monetization */}
+        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-emerald-500/20">
+              <DollarSign className="w-5 h-5 text-emerald-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-white">Monetization</h2>
+          </div>
+
+          {feeLoading ? (
+            <Skeleton className="h-14 bg-slate-700" />
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <Label className="text-white">Platform Fee (% of cash prize pool)</Label>
+                <p className="text-sm text-slate-400 mb-3">
+                  Applied to every cash-prize challenge (fishing & photo). Affects new payouts globally. No fee on gift-card prizes.
+                </p>
+                <div className="flex items-center gap-3 max-w-xs">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={feeInput}
+                    onChange={(e) => setFeeInput(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                  <span className="text-slate-400">%</span>
+                  <Button
+                    onClick={() => updatePlatformFee(parseFloat(feeInput) || 0)}
+                    disabled={feeSaving || parseFloat(feeInput) === platformFee}
+                  >
+                    {feeSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Winners currently receive <span className="font-semibold text-slate-300">{Math.max(0, 100 - platformFee)}%</span> of the pool.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* General Settings */}
         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
           <div className="flex items-center gap-3 mb-6">
