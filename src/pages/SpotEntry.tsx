@@ -67,6 +67,7 @@ export default function SpotEntry() {
   const [jurisdiction, setJurisdiction] = useState('');
   const [coast, setCoast] = useState('');
   const [deployDate, setDeployDate] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [recentSpots, setRecentSpots] = useState<EnteredSpot[]>([]);
 
@@ -180,7 +181,7 @@ export default function SpotEntry() {
       coast: coast || null,
       deploy_date: deployDate || null,
       created_by: user.id,
-      is_public: true,
+      is_public: !isPrivate,
       is_verified: false,
       area_type: 'saltwater',
     });
