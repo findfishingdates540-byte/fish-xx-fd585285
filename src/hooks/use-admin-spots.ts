@@ -30,22 +30,32 @@ export function useAdminSpots(search?: string) {
   return useQuery({
     queryKey: ['admin-spots', search],
     queryFn: async (): Promise<AdminSpot[]> => {
-      let query = supabase
-        .from('fishing_spots')
-        .select(`
-          *,
-          creator:profiles!fishing_spots_created_by_fkey(id, display_name, photos)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(100);
+      // Fetch all spots in batches to bypass PostgREST's 1000-row default cap
+      const PAGE_SIZE = 1000;
+      const all: any[] = [];
+      let from = 0;
+      while (true) {
+        let query = supabase
+          .from('fishing_spots')
+          .select(`
+            *,
+            creator:profiles!fishing_spots_created_by_fkey(id, display_name, photos)
+          `)
+          .order('created_at', { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
 
-      if (search) {
-        query = query.or(`name.ilike.%${search}%,location_name.ilike.%${search}%`);
+        if (search) {
+          query = query.or(`name.ilike.%${search}%,location_name.ilike.%${search}%`);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
+      return all;
     },
     staleTime: 30000,
   });
