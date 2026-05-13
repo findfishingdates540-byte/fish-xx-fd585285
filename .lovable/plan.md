@@ -1,49 +1,36 @@
-# Three client-feedback fixes
+## Tournament System Upgrades
 
-## 1. Social sharing for posts & catches
+Address all 4 gaps in tournaments + add to Scoreboard Hub.
 
-Add a **Share** button on catch detail (`CatchDetail.tsx`) and on the feed post viewer.
+### 1. Paid entry flow (Stripe)
+- New edge function `tournament-checkout` modeled after `fishing-challenge-checkout`: creates Stripe session, records pending row in `escrow_transactions` (linked via new `tournament_id` column), returns checkout URL.
+- Extend `stripe-webhook` to mark tournament entries paid on `checkout.session.completed` and insert into `tournament_participants`.
+- `TournamentDetail` "Register" button:
+  - If `entry_fee = 0` → direct join (current behavior).
+  - If `entry_fee > 0` → call checkout function; on `?payment=success` URL, optimistic confirm + toast.
+- DB: add `tournament_id` to `escrow_transactions`, add `has_paid` to `tournament_participants` (default true for free, set true on webhook).
 
-A new `ShareToSocial` component opens a sheet with:
-- **Native share** (Web Share API — picks up Facebook, Instagram, TikTok, WhatsApp, etc. installed on the phone). Used on mobile / Capacitor.
-- **Facebook** — opens `https://www.facebook.com/sharer/sharer.php?u=<url>` in a new tab.
-- **X / Twitter** — `https://twitter.com/intent/tweet?...`
-- **WhatsApp** — `https://wa.me/?text=...`
-- **Copy link** + **Download photo** (fallback for Instagram & TikTok which do not accept direct web URL sharing).
+### 2. Automatic prize payout on completion
+- Extend `update-challenge-statuses` cron edge function to also process tournaments:
+  - When `status = in_progress` and `end_date < now()` (or final match decided) → mark `completed`, set `winner_id` from final match.
+  - If `entry_fee > 0`: read global `platform_fee_percent` from `app_settings`, compute payout = total_paid_entries × (1 − fee%), record an admin payout task in existing `prize_payouts` flow (same pattern as challenges). Gift-card prizes: no fee.
+  - Notify winner + creator.
 
-Honest UX note in the sheet: "Instagram and TikTok don't allow direct web sharing — download the photo, then post it from their app."
+### 3. Admin moderation page
+- New route `/admin/tournaments` → `AdminTournaments.tsx`:
+  - Table of all tournaments (search, filter by status).
+  - Actions: view, force-cancel (refunds via Stripe refund call), delete, mark winner manually, view participants & payouts.
+- Add link to `AdminSidebar` (Swords icon) under the existing Photo Challenges entry.
 
-URLs shared point at public detail routes:
-- catch → `https://<app-url>/app/catches/<id>`
-- post → `https://<app-url>/app/feed?post=<id>`
+### 4. Creator gating
+- Add app setting `tournament_creator_requirement` (values: `anyone` | `premium` | `verified` | `admin`, default `premium`).
+- `CreateTournament` checks via existing `useIsPremium` / verification hooks; non-eligible users see locked screen explaining requirement + upgrade CTA.
+- Admin Settings page exposes this dropdown.
 
-## 2. Scoreboard: measurement / date / location + privacy toggle
+### 5. Scoreboard Hub
+- Add `Tournaments` entry to `ScoreboardSheet.tsx` linking to `/app/tournaments` (Swords/tournament icon).
 
-**Why columns are empty today:** `refresh_leaderboard_entries` only sets `largest_catch_id` when a catch has a weight. Most catches have no weight logged → `largest_catch_id` is null → date & location fall back to `—`.
-
-**Fix in DB function** (`refresh_leaderboard_entries`): if no weighted catch exists for a (user, species) pair, fall back to that user's **most recent** catch of that species so we always have a `largest_catch_id` to display.
-
-**Per-catch location privacy:** add a `hide_location` boolean to `catches` (default `false`). UI:
-- Toggle in the Log Catch form: "Hide exact location publicly"
-- Toggle on the catch detail page (owner only)
-- Scoreboard reads `hide_location` and renders **"Private"** instead of the city when true.
-- Public spot map / feed already uses `general_location`; when `hide_location` is true we suppress that string and the lat/lng stays excluded from the public surface.
-
-Run a one-off `SELECT refresh_leaderboard_entries();` after deploying the function so existing rows are backfilled.
-
-## 3. Scoreboard row → catch detail (not profile)
-
-Already wired in `SpeciesLeaderboard.tsx` to navigate to `/app/catches/<largest_catch_id>` when present. Once fix #2 backfills `largest_catch_id` for every entry, every row will route to the catch detail page (with photo + measurement + species + angler link). Profile is reachable from the catch detail page via the angler avatar — no change needed there.
-
-## Files touched
-
-- `supabase/migrations/...` — add `hide_location` column + updated `refresh_leaderboard_entries` function.
-- `src/components/share/ShareToSocial.tsx` — new share sheet.
-- `src/pages/app/CatchDetail.tsx` — Share button + privacy toggle for owner.
-- `src/pages/app/LogCatch.tsx` (or current catch-create form) — `hide_location` checkbox.
-- `src/pages/app/SpeciesLeaderboard.tsx` — show "Private" when `hide_location`.
-- Feed post viewer — Share button hookup.
-
-## Out of scope
-
-- Auto-cross-posting from the server to FB / IG / TikTok (would need each platform's OAuth + business account approval — large separate project).
+### Files
+- Migrations: `escrow_transactions.tournament_id`, `tournament_participants.has_paid`, `app_settings` seed for `tournament_creator_requirement`.
+- New: `supabase/functions/tournament-checkout/`, `src/pages/admin/AdminTournaments.tsx`.
+- Edited: `stripe-webhook`, `update-challenge-statuses`, `TournamentDetail.tsx`, `CreateTournament.tsx`, `AdminSidebar.tsx`, `AdminSettings.tsx`, `ScoreboardSheet.tsx`, `App.tsx` (route).
