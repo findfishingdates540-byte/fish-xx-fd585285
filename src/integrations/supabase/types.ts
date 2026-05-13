@@ -3560,6 +3560,28 @@ export type Database = {
       }
     }
     Functions: {
+      admin_search_spots: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: {
+          area_type: string
+          created_at: string
+          created_by: string
+          creator: Json
+          description: string
+          id: string
+          is_public: boolean
+          is_verified: boolean
+          location_lat: number
+          location_lng: number
+          location_name: string
+          name: string
+          photos: string[]
+          rating_avg: number
+          rating_count: number
+          species_available: string[]
+          total_count: number
+        }[]
+      }
       check_and_award_badges: {
         Args: { p_user_id: string }
         Returns: undefined
