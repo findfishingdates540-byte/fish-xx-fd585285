@@ -551,6 +551,17 @@ export default function AdminSpots() {
         )}
       </div>
 
+      {/* Infinite scroll sentinel */}
+      {!isLoading && filteredSpots.length > 0 && (
+        <div ref={sentinelRef} className="flex justify-center py-6 text-sm text-slate-500">
+          {isFetchingNextPage
+            ? 'Loading more spots…'
+            : hasNextPage
+              ? 'Scroll to load more'
+              : `All ${totalSpots.toLocaleString()} spots loaded`}
+        </div>
+      )}
+
       {/* Bulk Action Confirmation Dialog */}
       <AlertDialog open={!!bulkAction} onOpenChange={() => setBulkAction(null)}>
         <AlertDialogContent className="bg-slate-800 border-slate-700">
