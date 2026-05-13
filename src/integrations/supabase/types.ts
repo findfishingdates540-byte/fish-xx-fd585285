@@ -699,6 +699,7 @@ export type Database = {
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
+          tournament_id: string | null
           user_id: string
         }
         Insert: {
@@ -714,6 +715,7 @@ export type Database = {
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          tournament_id?: string | null
           user_id: string
         }
         Update: {
@@ -729,6 +731,7 @@ export type Database = {
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          tournament_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -2908,10 +2911,14 @@ export type Database = {
           description: string | null
           end_date: string | null
           entry_fee: number
+          entry_fee_enabled: boolean
           format: Database["public"]["Enums"]["tournament_format"]
+          gift_card_code: string | null
           id: string
+          is_admin_funded: boolean
           max_participants: number
           prize_description: string | null
+          prize_type: string
           registration_end: string
           registration_start: string
           scoring_method: Database["public"]["Enums"]["tournament_scoring"]
@@ -2921,6 +2928,7 @@ export type Database = {
           title: string
           total_rounds: number
           updated_at: string
+          winner_id: string | null
         }
         Insert: {
           banner_url?: string | null
@@ -2930,10 +2938,14 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           entry_fee?: number
+          entry_fee_enabled?: boolean
           format?: Database["public"]["Enums"]["tournament_format"]
+          gift_card_code?: string | null
           id?: string
+          is_admin_funded?: boolean
           max_participants?: number
           prize_description?: string | null
+          prize_type?: string
           registration_end: string
           registration_start?: string
           scoring_method?: Database["public"]["Enums"]["tournament_scoring"]
@@ -2943,6 +2955,7 @@ export type Database = {
           title: string
           total_rounds?: number
           updated_at?: string
+          winner_id?: string | null
         }
         Update: {
           banner_url?: string | null
@@ -2952,10 +2965,14 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           entry_fee?: number
+          entry_fee_enabled?: boolean
           format?: Database["public"]["Enums"]["tournament_format"]
+          gift_card_code?: string | null
           id?: string
+          is_admin_funded?: boolean
           max_participants?: number
           prize_description?: string | null
+          prize_type?: string
           registration_end?: string
           registration_start?: string
           scoring_method?: Database["public"]["Enums"]["tournament_scoring"]
@@ -2965,6 +2982,7 @@ export type Database = {
           title?: string
           total_rounds?: number
           updated_at?: string
+          winner_id?: string | null
         }
         Relationships: []
       }

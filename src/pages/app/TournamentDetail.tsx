@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,8 @@ const TournamentDetail = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ["tournament", id],
@@ -126,13 +128,17 @@ const TournamentDetail = () => {
 
   const isJoined = participants.some((p: any) => p.user_id === user?.id);
   const canJoin = tournament?.status === "registration" && !isJoined;
+  const requiresPayment =
+    !!tournament?.entry_fee_enabled &&
+    Number(tournament?.entry_fee) > 0 &&
+    tournament?.prize_type === "cash";
 
   const joinMutation = useMutation({
     mutationFn: async () => {
       if (!user || !id) throw new Error("Not logged in");
       const { error } = await supabase
         .from("tournament_participants")
-        .insert({ tournament_id: id, user_id: user.id });
+        .insert({ tournament_id: id, user_id: user.id, has_paid: true });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -141,6 +147,51 @@ const TournamentDetail = () => {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const handleRegister = async () => {
+    if (!requiresPayment) {
+      joinMutation.mutate();
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const isInIframe = window.self !== window.top;
+      const pendingTab = isInIframe ? window.open("about:blank", "_blank") : null;
+      const { data, error } = await supabase.functions.invoke("tournament-checkout", {
+        body: { tournamentId: id },
+      });
+      if (error) {
+        if (pendingTab) pendingTab.close();
+        throw error;
+      }
+      const url = data?.url as string | undefined;
+      if (!url) {
+        if (pendingTab) pendingTab.close();
+        throw new Error("No checkout URL returned");
+      }
+      if (pendingTab) pendingTab.location.href = url;
+      else window.location.href = url;
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to start checkout");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  // Optimistic confirmation on ?payment=success
+  useEffect(() => {
+    const status = searchParams.get("payment");
+    if (status === "success") {
+      toast.success("Payment received — you're registered!");
+      queryClient.invalidateQueries({ queryKey: ["tournament-participants", id] });
+      searchParams.delete("payment");
+      setSearchParams(searchParams, { replace: true });
+    } else if (status === "cancelled") {
+      toast.info("Checkout cancelled");
+      searchParams.delete("payment");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, id, queryClient, setSearchParams]);
 
   const formatLabel = (f: string) =>
     f === "single_elimination" ? "Single Elimination" : "Double Elimination";
@@ -222,10 +273,10 @@ const TournamentDetail = () => {
         {canJoin && (
           <Button
             size="sm"
-            onClick={() => joinMutation.mutate()}
-            disabled={joinMutation.isPending}
+            onClick={handleRegister}
+            disabled={joinMutation.isPending || checkoutLoading}
           >
-            Register
+            {checkoutLoading ? "Loading…" : requiresPayment ? `Pay $${tournament.entry_fee} & Register` : "Register"}
           </Button>
         )}
         {isJoined && (

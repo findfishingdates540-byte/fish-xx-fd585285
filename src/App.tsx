@@ -62,6 +62,7 @@ import { AdminLayout } from "@/components/admin";
 import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, AdminSettings, AdminCatches, AdminPosts, AdminComments, AdminTrips, AdminAuditLogs, AdminAds, AdminAdAnalytics, AdminVerifications, AdminSupportTickets } from "./pages/admin";
 import AdminFishSpecies from "./pages/admin/AdminFishSpecies";
 import AdminPhotoChallenges from "./pages/admin/AdminPhotoChallenges";
+import AdminTournaments from "./pages/admin/AdminTournaments";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -194,6 +195,7 @@ const App = () => (
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="support" element={<AdminSupportTickets />} />
               <Route path="photo-challenges" element={<AdminPhotoChallenges />} />
+              <Route path="tournaments" element={<AdminTournaments />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 

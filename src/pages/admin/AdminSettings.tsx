@@ -1,12 +1,18 @@
-import { Settings, Bell, Shield, Database, Loader2, DollarSign } from 'lucide-react';
+import { Settings, Bell, Shield, Database, Loader2, DollarSign, Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppSettings, useToggleSetting } from '@/hooks/use-app-settings';
 import { usePlatformFeePercent, useUpdatePlatformFeePercent } from '@/hooks/use-platform-fee';
+import {
+  useTournamentCreatorRequirement,
+  useUpdateTournamentCreatorRequirement,
+  type CreatorRequirement,
+} from '@/hooks/use-tournament-creator-requirement';
 import { useEffect, useState } from 'react';
 
 export default function AdminSettings() {
@@ -14,6 +20,8 @@ export default function AdminSettings() {
   const { mutate: toggleSetting, isPending } = useToggleSetting();
   const { data: platformFee = 10, isLoading: feeLoading } = usePlatformFeePercent();
   const { mutate: updatePlatformFee, isPending: feeSaving } = useUpdatePlatformFeePercent();
+  const { data: creatorReq = 'premium', isLoading: creatorReqLoading } = useTournamentCreatorRequirement();
+  const { mutate: updateCreatorReq, isPending: creatorReqSaving } = useUpdateTournamentCreatorRequirement();
   const [feeInput, setFeeInput] = useState<string>('10');
 
   useEffect(() => {
@@ -85,6 +93,45 @@ export default function AdminSettings() {
                 <p className="text-xs text-slate-500 mt-2">
                   Winners currently receive <span className="font-semibold text-slate-300">{Math.max(0, 100 - platformFee)}%</span> of the pool.
                 </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tournaments */}
+        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-orange-500/20">
+              <Swords className="w-5 h-5 text-orange-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-white">Tournaments</h2>
+          </div>
+
+          {creatorReqLoading ? (
+            <Skeleton className="h-14 bg-slate-700" />
+          ) : (
+            <div className="space-y-3">
+              <Label className="text-white">Who can create tournaments?</Label>
+              <p className="text-sm text-slate-400 mb-3">
+                Restrict tournament creation to a tier of users. Admins can always create.
+              </p>
+              <div className="flex items-center gap-3 max-w-xs">
+                <Select
+                  value={creatorReq}
+                  onValueChange={(v) => updateCreatorReq(v as CreatorRequirement)}
+                  disabled={creatorReqSaving}
+                >
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="anyone">Anyone (logged in)</SelectItem>
+                    <SelectItem value="premium">Premium members only</SelectItem>
+                    <SelectItem value="verified">Verified users only</SelectItem>
+                    <SelectItem value="admin">Admins only</SelectItem>
+                  </SelectContent>
+                </Select>
+                {creatorReqSaving && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
               </div>
             </div>
           )}
