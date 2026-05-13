@@ -1,0 +1,2 @@
+ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS creator_team_id uuid REFERENCES public.fishing_teams(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_tournaments_creator_team_id ON public.tournaments(creator_team_id);
