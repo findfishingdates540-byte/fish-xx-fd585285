@@ -12,6 +12,7 @@ const scoreboardLinks: Array<{ to: string; label: string; description: string; i
   { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: "species" },
   { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: "tournament" },
   { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: "photo" },
+  { to: "/app/tournaments", label: "Tournaments", description: "Bracket-style head-to-head competitions", icon: "tournament" },
   { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: "team2" },
 ];
 
