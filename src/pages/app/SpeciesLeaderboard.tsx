@@ -336,11 +336,14 @@ export default function SpeciesLeaderboardPage() {
                     </span>
 
                     <div className="flex items-center gap-1 min-w-0">
-                      {catchInfo?.general_location ? (
+                      {catchInfo && catchInfo.share_location === false && catchInfo.user_id !== entry.user_id ? null : null}
+                      {catchInfo?.general_location && (catchInfo.share_location !== false) ? (
                         <>
                           <MapPin className="h-3 w-3 sb-cyan shrink-0" />
                           <span className="text-xs sb-text-muted truncate">{catchInfo.general_location}</span>
                         </>
+                      ) : catchInfo && catchInfo.share_location === false ? (
+                        <span className="text-xs sb-text-muted italic">Private</span>
                       ) : (
                         <span className="text-xs sb-text-muted">—</span>
                       )}
