@@ -612,7 +612,7 @@ const CreateTournament = () => {
             <Button
               className="flex-1 gap-2"
               onClick={() => createMutation.mutate()}
-              disabled={createMutation.isPending || !title.trim() || !registrationEnd || !startDate}
+              disabled={createMutation.isPending || !title.trim() || !registrationEnd || !startDate || !creatorTeamId}
             >
               <Trophy className="h-4 w-4" />
               {createMutation.isPending ? "Creating..." : "Launch Tournament"}
