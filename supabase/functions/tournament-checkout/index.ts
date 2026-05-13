@@ -29,8 +29,20 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error("User not authenticated");
 
-    const { tournamentId, successUrl, cancelUrl } = await req.json();
+    const { tournamentId, teamId, successUrl, cancelUrl } = await req.json();
     if (!tournamentId) throw new Error("Missing tournamentId");
+    if (!teamId) throw new Error("Missing teamId — tournaments are team-based");
+
+    // Verify the user captains this team
+    const { data: team, error: teamErr } = await supabase
+      .from("fishing_teams")
+      .select("id, captain_id")
+      .eq("id", teamId)
+      .maybeSingle();
+    if (teamErr || !team) throw new Error("Team not found");
+    if (team.captain_id !== user.id) {
+      throw new Error("Only the team captain can register the team");
+    }
 
     const { data: tournament, error: tErr } = await supabase
       .from("tournaments")
@@ -57,9 +69,9 @@ serve(async (req) => {
       .from("tournament_participants")
       .select("has_paid")
       .eq("tournament_id", tournamentId)
-      .eq("user_id", user.id)
+      .eq("team_id", teamId)
       .maybeSingle();
-    if (existing?.has_paid) throw new Error("You are already registered");
+    if (existing?.has_paid) throw new Error("This team is already registered");
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     const customerId = customers.data[0]?.id ??
@@ -94,6 +106,7 @@ serve(async (req) => {
       metadata: {
         supabase_user_id: user.id,
         tournament_id: tournamentId,
+        team_id: teamId,
         type: "tournament_entry",
       },
     });

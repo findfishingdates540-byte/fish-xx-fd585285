@@ -6,21 +6,29 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Trophy,
   Plus,
   Users,
-  Clock,
   DollarSign,
   Swords,
   ChevronRight,
   CalendarDays,
   Search,
+  Users2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { format, isPast, isFuture, isWithinInterval } from "date-fns";
+import { format } from "date-fns";
 
 type TabValue = "open" | "active" | "completed";
 
@@ -30,6 +38,8 @@ const Tournaments = () => {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabValue>("open");
   const [search, setSearch] = useState("");
+  const [registerForId, setRegisterForId] = useState<string | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
   const { data: tournaments = [], isLoading } = useQuery({
     queryKey: ["tournaments", tab],
@@ -68,35 +78,69 @@ const Tournaments = () => {
     },
   });
 
-  const { data: myParticipations = [] } = useQuery({
-    queryKey: ["my-tournament-participations", user?.id],
+  // Teams the current user captains — required to register
+  const { data: myCaptainedTeams = [] } = useQuery({
+    queryKey: ["my-captained-teams", user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from("tournament_participants")
-        .select("tournament_id")
-        .eq("user_id", user.id);
+        .from("fishing_teams")
+        .select("id, name, logo_url")
+        .eq("captain_id", user.id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data.map((p: any) => p.tournament_id);
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Tournaments where one of the user's captained teams is already registered
+  const { data: myParticipations = [] } = useQuery({
+    queryKey: ["my-tournament-participations", user?.id, myCaptainedTeams.map((t: any) => t.id).join(",")],
+    queryFn: async () => {
+      if (!user || myCaptainedTeams.length === 0) return [];
+      const { data, error } = await supabase
+        .from("tournament_participants")
+        .select("tournament_id, team_id")
+        .in("team_id", myCaptainedTeams.map((t: any) => t.id));
+      if (error) throw error;
+      return (data || []).map((p: any) => p.tournament_id);
     },
     enabled: !!user,
   });
 
   const joinMutation = useMutation({
-    mutationFn: async (tournamentId: string) => {
+    mutationFn: async ({ tournamentId, teamId }: { tournamentId: string; teamId: string }) => {
       if (!user) throw new Error("Login required");
+      if (!teamId) throw new Error("Select a team");
       const { error } = await supabase
         .from("tournament_participants")
-        .insert({ tournament_id: tournamentId, user_id: user.id });
+        .insert({ tournament_id: tournamentId, user_id: user.id, team_id: teamId, has_paid: true } as any);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("You've registered for the tournament!");
+      toast.success("Your team is registered!");
+      setRegisterForId(null);
+      setSelectedTeamId("");
       queryClient.invalidateQueries({ queryKey: ["my-tournament-participations"] });
       queryClient.invalidateQueries({ queryKey: ["tournament-participant-counts"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const handleRegisterClick = (tournamentId: string) => {
+    if (myCaptainedTeams.length === 0) {
+      toast.error("Only team captains can register. Create a team first.");
+      navigate("/app/teams");
+      return;
+    }
+    if (myCaptainedTeams.length === 1) {
+      joinMutation.mutate({ tournamentId, teamId: myCaptainedTeams[0].id });
+      return;
+    }
+    setSelectedTeamId(myCaptainedTeams[0].id);
+    setRegisterForId(tournamentId);
+  };
 
   const filtered = tournaments.filter((t: any) =>
     t.title.toLowerCase().includes(search.toLowerCase())
@@ -135,6 +179,12 @@ const Tournaments = () => {
         <Button size="sm" onClick={() => navigate("/app/tournaments/new")} className="gap-1.5">
           <Plus className="h-4 w-4" /> Create
         </Button>
+      </div>
+
+      {/* Teams-only notice */}
+      <div className="mb-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground flex items-start gap-2">
+        <Users2 className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
+        <p>Tournaments are <span className="font-medium text-foreground">team-based</span>. Only team captains can register a team to compete.</p>
       </div>
 
       {/* Search */}
@@ -245,11 +295,11 @@ const Tournaments = () => {
                         className="h-7 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
-                          joinMutation.mutate(t.id);
+                          handleRegisterClick(t.id);
                         }}
                         disabled={joinMutation.isPending}
                       >
-                        Register
+                        Register Team
                       </Button>
                     )}
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -260,6 +310,32 @@ const Tournaments = () => {
           })}
         </div>
       )}
+
+      {/* Team picker dialog (when user captains 2+ teams) */}
+      <Dialog open={!!registerForId} onOpenChange={(o) => { if (!o) { setRegisterForId(null); setSelectedTeamId(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Register a team</DialogTitle>
+            <DialogDescription>Pick which of your teams will compete in this tournament.</DialogDescription>
+          </DialogHeader>
+          <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+            <SelectTrigger><SelectValue placeholder="Choose a team" /></SelectTrigger>
+            <SelectContent>
+              {myCaptainedTeams.map((t: any) => (
+                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button
+              onClick={() => registerForId && joinMutation.mutate({ tournamentId: registerForId, teamId: selectedTeamId })}
+              disabled={!selectedTeamId || joinMutation.isPending}
+            >
+              {joinMutation.isPending ? "Registering…" : "Confirm Registration"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

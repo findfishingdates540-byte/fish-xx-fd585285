@@ -2823,6 +2823,7 @@ export type Database = {
           id: string
           joined_at: string
           seed_number: number | null
+          team_id: string | null
           tournament_id: string
           user_id: string
         }
@@ -2834,6 +2835,7 @@ export type Database = {
           id?: string
           joined_at?: string
           seed_number?: number | null
+          team_id?: string | null
           tournament_id: string
           user_id: string
         }
@@ -2845,6 +2847,7 @@ export type Database = {
           id?: string
           joined_at?: string
           seed_number?: number | null
+          team_id?: string | null
           tournament_id?: string
           user_id?: string
         }
