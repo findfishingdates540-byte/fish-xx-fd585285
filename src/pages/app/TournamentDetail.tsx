@@ -411,6 +411,27 @@ const TournamentDetail = () => {
         )}
       </div>
 
+      {isJoined && registeredTeamName && (
+        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="h-4 w-4 text-emerald-600" />
+            <p className="text-sm font-semibold">
+              Registered as <span className="text-emerald-700 dark:text-emerald-400">{registeredTeamName}</span>
+            </p>
+          </div>
+          {rosterMembers.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {rosterMembers.map((m: any) => (
+                <div key={m.id} className="flex items-center gap-1.5 bg-background rounded-full pl-1 pr-2 py-0.5 border">
+                  <Avatar className="h-5 w-5"><AvatarImage src={m.photos?.[0]} /><AvatarFallback className="text-[8px]">{m.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                  <span className="text-[11px] font-medium">{m.display_name}{m.is_captain && " (C)"}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Teams-only notice */}
       <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground flex items-start gap-2">
         <Users2 className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
