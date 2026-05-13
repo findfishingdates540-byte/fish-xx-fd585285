@@ -138,16 +138,29 @@ serve(async (req) => {
         // Handle tournament entry payment
         if (metaType === "tournament_entry") {
           const tournamentId = session.metadata?.tournament_id;
-          if (userId && tournamentId) {
-            console.log(`Tournament entry payment for user ${userId}, tournament ${tournamentId}`);
-            const { error: partErr } = await supabase
-              .from("tournament_participants")
-              .upsert({
-                tournament_id: tournamentId,
-                user_id: userId,
-                has_paid: true,
-              }, { onConflict: "tournament_id,user_id" });
-            if (partErr) console.error("Error inserting tournament participant:", partErr);
+          const teamId = session.metadata?.team_id;
+          if (userId && tournamentId && teamId) {
+            console.log(`Tournament entry payment user=${userId} tournament=${tournamentId} team=${teamId}`);
+
+            // Re-validate captain server-side before persisting
+            const { data: teamRow } = await supabase
+              .from("fishing_teams")
+              .select("id, captain_id")
+              .eq("id", teamId)
+              .maybeSingle();
+            if (!teamRow || teamRow.captain_id !== userId) {
+              console.error("Webhook rejected: user is not captain of team", { userId, teamId });
+            } else {
+              const { error: partErr } = await supabase
+                .from("tournament_participants")
+                .upsert({
+                  tournament_id: tournamentId,
+                  user_id: userId,
+                  team_id: teamId,
+                  has_paid: true,
+                }, { onConflict: "tournament_id,user_id" });
+              if (partErr) console.error("Error inserting tournament participant:", partErr);
+            }
 
             const { error: escrowErr } = await supabase
               .from("escrow_transactions")
@@ -157,6 +170,8 @@ serve(async (req) => {
               })
               .eq("stripe_session_id", session.id);
             if (escrowErr) console.error("Error updating escrow:", escrowErr);
+          } else {
+            console.error("Webhook missing required tournament metadata", { userId, tournamentId, teamId });
           }
           break;
         }

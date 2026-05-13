@@ -246,6 +246,32 @@ serve(async (req) => {
 
         if (!winnerId) continue;
 
+        // Resolve the registering team for the winning captain
+        const { data: winnerPart } = await supabase
+          .from("tournament_participants")
+          .select("team_id")
+          .eq("tournament_id", t.id)
+          .eq("user_id", winnerId)
+          .maybeSingle();
+        const winningTeamId = winnerPart?.team_id ?? null;
+        let winningTeamName: string | null = null;
+        let teamMemberIds: string[] = [winnerId];
+        if (winningTeamId) {
+          const { data: teamRow } = await supabase
+            .from("fishing_teams")
+            .select("name, captain_id")
+            .eq("id", winningTeamId)
+            .maybeSingle();
+          winningTeamName = teamRow?.name ?? null;
+          const { data: members } = await supabase
+            .from("team_members")
+            .select("user_id")
+            .eq("team_id", winningTeamId);
+          const ids = new Set<string>([winnerId]);
+          (members || []).forEach((m: any) => m.user_id && ids.add(m.user_id));
+          teamMemberIds = Array.from(ids);
+        }
+
         let grossPool = 0;
         let platformFee = 0;
         let prizeAmount = 0;
@@ -276,19 +302,26 @@ serve(async (req) => {
           gross_pool: grossPool,
           platform_fee_amount: platformFee,
           prize_description: t.prize_description ||
-            (prizeAmount > 0 ? `$${prizeAmount.toFixed(2)} cash prize` : null),
+            (prizeAmount > 0
+              ? `$${prizeAmount.toFixed(2)} cash prize${winningTeamName ? ` for team ${winningTeamName}` : ""}`
+              : null),
           gift_card_code: t.gift_card_code || null,
           status: "pending",
           notified_at: now,
         });
 
-        await supabase.from("notifications").insert({
-          user_id: winnerId,
-          type: "prize_won",
-          title: "🏆 Tournament Won!",
-          body: `Congratulations! You won "${t.title}"!`,
-          data: { tournament_id: t.id, prize_type: t.prize_type },
-        });
+        // Notify the captain and every team member
+        await supabase.from("notifications").insert(
+          teamMemberIds.map((uid) => ({
+            user_id: uid,
+            type: "prize_won",
+            title: "🏆 Tournament Won!",
+            body: winningTeamName
+              ? `Team ${winningTeamName} won "${t.title}"!`
+              : `Congratulations! You won "${t.title}"!`,
+            data: { tournament_id: t.id, prize_type: t.prize_type, team_id: winningTeamId },
+          })),
+        );
       }
       transitions.push(`tournaments_completed: ${tDone.map(t => t.title).join(", ")}`);
     }

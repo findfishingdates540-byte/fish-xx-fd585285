@@ -176,6 +176,44 @@ const TournamentDetail = () => {
   const isJoined = participants.some(
     (p: any) => p.user_id === user?.id || (p.team_id && myTeamIds.includes(p.team_id))
   );
+  const myParticipantEntry = participants.find(
+    (p: any) => p.user_id === user?.id || (p.team_id && myTeamIds.includes(p.team_id))
+  );
+  const myRegisteredTeamId = myParticipantEntry?.team_id ?? null;
+
+  // Roster for the team currently being picked (or already registered)
+  const rosterTeamId = myRegisteredTeamId || selectedTeamId || myCaptainedTeams[0]?.id;
+  const { data: rosterMembers = [] } = useQuery({
+    queryKey: ["tournament-team-roster", rosterTeamId],
+    queryFn: async () => {
+      if (!rosterTeamId) return [] as any[];
+      const { data: team } = await supabase
+        .from("fishing_teams")
+        .select("id, name, logo_url, captain_id")
+        .eq("id", rosterTeamId)
+        .maybeSingle();
+      const { data: members } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .eq("team_id", rosterTeamId);
+      const memberIds = (members || []).map((m: any) => m.user_id);
+      const allIds = Array.from(new Set([team?.captain_id, ...memberIds].filter(Boolean))) as string[];
+      if (allIds.length === 0) return [];
+      const { data: profs } = await supabase
+        .from("profiles_safe")
+        .select("id, display_name, photos")
+        .in("id", allIds);
+      return (profs || []).map((p: any) => ({
+        ...p,
+        is_captain: p.id === team?.captain_id,
+      }));
+    },
+    enabled: !!rosterTeamId,
+  });
+  const registeredTeamName = myRegisteredTeamId
+    ? teamMap[myRegisteredTeamId]?.name ?? myCaptainedTeams.find((t: any) => t.id === myRegisteredTeamId)?.name
+    : null;
+
   const canJoin = tournament?.status === "registration" && !isJoined;
   const requiresPayment =
     !!tournament?.entry_fee_enabled &&
@@ -189,19 +227,26 @@ const TournamentDetail = () => {
       const { error } = await supabase
         .from("tournament_participants")
         .insert({ tournament_id: id, user_id: user.id, team_id: teamId, has_paid: true } as any);
-      if (error) throw error;
+      if (error) {
+        // Friendly duplicate detection
+        const msg = error.message || "";
+        if (error.code === "23505" || /duplicate|unique/i.test(msg)) {
+          throw new Error("This team is already registered for this tournament.");
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Your team is registered!");
       setTeamPickerOpen(false);
       queryClient.invalidateQueries({ queryKey: ["tournament-participants", id] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message || "Could not register team"),
   });
 
   const handleRegister = async () => {
     if (myCaptainedTeams.length === 0) {
-      toast.error("Only team captains can register. Create a team first.");
+      toast.error("Only team captains can register a team. Create a team or ask your captain to register.");
       navigate("/app/teams");
       return;
     }
@@ -366,6 +411,27 @@ const TournamentDetail = () => {
         )}
       </div>
 
+      {isJoined && registeredTeamName && (
+        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="h-4 w-4 text-emerald-600" />
+            <p className="text-sm font-semibold">
+              Registered as <span className="text-emerald-700 dark:text-emerald-400">{registeredTeamName}</span>
+            </p>
+          </div>
+          {rosterMembers.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {rosterMembers.map((m: any) => (
+                <div key={m.id} className="flex items-center gap-1.5 bg-background rounded-full pl-1 pr-2 py-0.5 border">
+                  <Avatar className="h-5 w-5"><AvatarImage src={m.photos?.[0]} /><AvatarFallback className="text-[8px]">{m.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                  <span className="text-[11px] font-medium">{m.display_name}{m.is_captain && " (C)"}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Teams-only notice */}
       <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground flex items-start gap-2">
         <Users2 className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
@@ -475,6 +541,19 @@ const TournamentDetail = () => {
               ))}
             </SelectContent>
           </Select>
+          {selectedTeamId && rosterMembers.length > 0 && (
+            <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Roster ({rosterMembers.length})</p>
+              <div className="flex flex-wrap gap-1.5">
+                {rosterMembers.map((m: any) => (
+                  <div key={m.id} className="flex items-center gap-1.5 bg-background rounded-full pl-1 pr-2 py-0.5 border">
+                    <Avatar className="h-5 w-5"><AvatarImage src={m.photos?.[0]} /><AvatarFallback className="text-[8px]">{m.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                    <span className="text-[11px] font-medium">{m.display_name}{m.is_captain && " (C)"}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <DialogFooter>
             <Button
               onClick={() => {
