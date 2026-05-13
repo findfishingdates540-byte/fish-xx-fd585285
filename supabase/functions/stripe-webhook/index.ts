@@ -135,6 +135,32 @@ serve(async (req) => {
           break;
         }
 
+        // Handle tournament entry payment
+        if (metaType === "tournament_entry") {
+          const tournamentId = session.metadata?.tournament_id;
+          if (userId && tournamentId) {
+            console.log(`Tournament entry payment for user ${userId}, tournament ${tournamentId}`);
+            const { error: partErr } = await supabase
+              .from("tournament_participants")
+              .upsert({
+                tournament_id: tournamentId,
+                user_id: userId,
+                has_paid: true,
+              }, { onConflict: "tournament_id,user_id" });
+            if (partErr) console.error("Error inserting tournament participant:", partErr);
+
+            const { error: escrowErr } = await supabase
+              .from("escrow_transactions")
+              .update({
+                status: "held",
+                stripe_payment_intent_id: (session.payment_intent as string) ?? null,
+              })
+              .eq("stripe_session_id", session.id);
+            if (escrowErr) console.error("Error updating escrow:", escrowErr);
+          }
+          break;
+        }
+
         if (userId) {
           // Calculate expiration date
           const daysToAdd = billingCycle === "annual" ? 365 : 30;
