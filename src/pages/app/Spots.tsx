@@ -226,14 +226,26 @@ export default function Spots() {
   const { data: fishingSpots = [] } = useQuery({
     queryKey: ['map-fishing-spots'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('fishing_spots')
-        .select('id, name, description, location_lat, location_lng, location_name, county, depth_ft, relief_ft, primary_material, jurisdiction, coast, deploy_date, source, area_type, location_accuracy')
-        .eq('is_public', true)
-        .not('location_lat', 'is', null)
-        .not('location_lng', 'is', null)
-        .limit(5000);
-      return data || [];
+      // PostgREST caps each request at 1000 rows, so page through everything
+      const PAGE = 1000;
+      const all: any[] = [];
+      let from = 0;
+      while (true) {
+        const { data, error } = await supabase
+          .from('fishing_spots')
+          .select('id, name, description, location_lat, location_lng, location_name, county, depth_ft, relief_ft, primary_material, jurisdiction, coast, deploy_date, source, area_type, location_accuracy')
+          .eq('is_public', true)
+          .not('location_lat', 'is', null)
+          .not('location_lng', 'is', null)
+          .order('id', { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      return all;
     },
     staleTime: 5 * 60 * 1000,
   });
