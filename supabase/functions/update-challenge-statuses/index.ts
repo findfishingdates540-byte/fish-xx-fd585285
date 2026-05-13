@@ -19,6 +19,16 @@ serve(async (req) => {
     const now = new Date().toISOString();
     const transitions: string[] = [];
 
+    // Read the global platform fee from app_settings (single source of truth)
+    const { data: feeSetting } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "platform_fee_percent")
+      .maybeSingle();
+    const globalFeePct = Number(
+      (feeSetting?.value as { percent?: number } | null)?.percent ?? 10,
+    );
+
     // 1. upcoming → submissions_open (when now >= start_date)
     const { data: toOpen, error: e1 } = await supabase
       .from("photo_challenges")
@@ -90,7 +100,7 @@ serve(async (req) => {
               .eq("challenge_id", challenge.id)
               .eq("status", "held");
             grossPool = (heldRows || []).reduce((s, r) => s + Number(r.amount || 0), 0);
-            const feePct = Number(challenge.platform_fee_percent ?? 10);
+            const feePct = globalFeePct;
             platformFee = +(grossPool * (feePct / 100)).toFixed(2);
             prizeAmount = +(grossPool - platformFee).toFixed(2);
 
@@ -170,7 +180,7 @@ serve(async (req) => {
             .eq("fishing_challenge_id", ch.id)
             .eq("status", "held");
           grossPool = (heldRows || []).reduce((s, r) => s + Number(r.amount || 0), 0);
-          const feePct = Number(ch.platform_fee_percent ?? 10);
+          const feePct = globalFeePct;
           platformFee = +(grossPool * (feePct / 100)).toFixed(2);
           prizeAmount = +(grossPool - platformFee).toFixed(2);
 
