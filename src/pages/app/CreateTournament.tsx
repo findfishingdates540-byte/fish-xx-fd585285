@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,10 +82,11 @@ const CreateTournament = () => {
   const [creatorTeamId, setCreatorTeamId] = useState<string>("");
 
   // Default the team selection to the first captained team once loaded
-  if (!creatorTeamId && captainTeams.length > 0) {
-    // setState during render is fine here because it's guarded and idempotent
-    setTimeout(() => setCreatorTeamId(captainTeams[0].id), 0);
-  }
+  useEffect(() => {
+    if (!creatorTeamId && captainTeams.length > 0) {
+      setCreatorTeamId(captainTeams[0].id);
+    }
+  }, [captainTeams, creatorTeamId]);
 
   const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -288,6 +289,64 @@ const CreateTournament = () => {
               </p>
             </div>
           </div>
+
+          {/* Your team selector */}
+          <section className="rounded-xl border bg-card p-5 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="h-5 w-5 text-primary" />
+              <h2 className="font-bold">Your Team</h2>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Pick the team you'll compete with. They'll be auto-registered as the first entrant when the tournament launches.
+            </p>
+            {captainTeams.length === 1 ? (
+              <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/30">
+                {selectedTeam?.logo_url ? (
+                  <img src={selectedTeam.logo_url} alt={selectedTeam.name} className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{selectedTeam?.name}</p>
+                  <p className="text-xs text-muted-foreground">You're the captain</p>
+                </div>
+                <Badge variant="secondary" className="text-[10px]">Captain</Badge>
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {captainTeams.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setCreatorTeamId(t.id)}
+                    className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
+                      creatorTeamId === t.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/30 hover:bg-muted/30"
+                    }`}
+                  >
+                    {t.logo_url ? (
+                      <img src={t.logo_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">You're the captain</p>
+                    </div>
+                    {creatorTeamId === t.id && (
+                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <Sparkles className="h-3 w-3 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
 
           {/* Basic Info */}
           <section className="rounded-xl border bg-card p-5 space-y-4">
@@ -537,6 +596,9 @@ const CreateTournament = () => {
                 )}
                 {prizeDescription && (
                   <p><span className="text-muted-foreground">Prize:</span> <span className="font-medium">{prizeDescription}</span></p>
+                )}
+                {selectedTeam && (
+                  <p><span className="text-muted-foreground">Your Team:</span> <span className="font-medium">{selectedTeam.name}</span></p>
                 )}
               </div>
             </section>
