@@ -171,6 +171,7 @@ export default function Catches() {
         video_url: videoUrl,
         general_location: data.general_location || null,
         share_location: data.share_location,
+        is_private: data.is_private,
         location_lat: data.location_lat,
         location_lng: data.location_lng,
       } as any);
