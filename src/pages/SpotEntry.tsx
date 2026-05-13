@@ -67,6 +67,7 @@ export default function SpotEntry() {
   const [jurisdiction, setJurisdiction] = useState('');
   const [coast, setCoast] = useState('');
   const [deployDate, setDeployDate] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [recentSpots, setRecentSpots] = useState<EnteredSpot[]>([]);
 
@@ -180,7 +181,7 @@ export default function SpotEntry() {
       coast: coast || null,
       deploy_date: deployDate || null,
       created_by: user.id,
-      is_public: true,
+      is_public: !isPrivate,
       is_verified: false,
       area_type: 'saltwater',
     });
@@ -393,6 +394,18 @@ export default function SpotEntry() {
                 </Select>
               </div>
             </div>
+
+            <label className="flex items-center gap-3 cursor-pointer rounded-xl bg-muted/30 p-3 border border-border">
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              />
+              <span className="text-sm font-medium">
+                {isPrivate ? '🔒 Private spot — only you can see it' : '👥 Public spot — visible to all anglers'}
+              </span>
+            </label>
 
             <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}

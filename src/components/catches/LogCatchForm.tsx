@@ -55,6 +55,7 @@ export interface LogCatchFormData {
   catch_status: "released" | "harvested";
   general_location: string;
   share_location: boolean;
+  is_private: boolean;
   location_lat: number | null;
   location_lng: number | null;
   coverPhoto: File | null;
@@ -78,6 +79,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     catch_status: "released" as "released" | "harvested",
     general_location: "",
     share_location: true,
+    is_private: false,
     location_lat: null as number | null,
     location_lng: null as number | null,
   });
@@ -345,6 +347,31 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
               />
               <span className="text-sm font-medium">
                 {formData.share_location ? '📍 Location will be shared' : '🔒 Location stays private'}
+              </span>
+            </label>
+          </div>
+
+          {/* Private catch toggle */}
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 mt-3">
+            <div className="flex items-start gap-3 mb-3">
+              <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-primary">Keep this catch private?</p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Private catches are only visible to you. They won't appear on the feed,
+                  spot pages, or other anglers' profiles. Your scoreboard rank still counts.
+                </p>
+              </div>
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer rounded-lg bg-muted/60 p-3">
+              <input
+                type="checkbox"
+                checked={formData.is_private}
+                onChange={(e) => setFormData({ ...formData, is_private: e.target.checked })}
+                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              />
+              <span className="text-sm font-medium">
+                {formData.is_private ? '🔒 Only you can see this catch' : '👥 Visible to other anglers'}
               </span>
             </label>
           </div>
