@@ -176,6 +176,44 @@ const TournamentDetail = () => {
   const isJoined = participants.some(
     (p: any) => p.user_id === user?.id || (p.team_id && myTeamIds.includes(p.team_id))
   );
+  const myParticipantEntry = participants.find(
+    (p: any) => p.user_id === user?.id || (p.team_id && myTeamIds.includes(p.team_id))
+  );
+  const myRegisteredTeamId = myParticipantEntry?.team_id ?? null;
+
+  // Roster for the team currently being picked (or already registered)
+  const rosterTeamId = myRegisteredTeamId || selectedTeamId || myCaptainedTeams[0]?.id;
+  const { data: rosterMembers = [] } = useQuery({
+    queryKey: ["tournament-team-roster", rosterTeamId],
+    queryFn: async () => {
+      if (!rosterTeamId) return [] as any[];
+      const { data: team } = await supabase
+        .from("fishing_teams")
+        .select("id, name, logo_url, captain_id")
+        .eq("id", rosterTeamId)
+        .maybeSingle();
+      const { data: members } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .eq("team_id", rosterTeamId);
+      const memberIds = (members || []).map((m: any) => m.user_id);
+      const allIds = Array.from(new Set([team?.captain_id, ...memberIds].filter(Boolean))) as string[];
+      if (allIds.length === 0) return [];
+      const { data: profs } = await supabase
+        .from("profiles_safe")
+        .select("id, display_name, photos")
+        .in("id", allIds);
+      return (profs || []).map((p: any) => ({
+        ...p,
+        is_captain: p.id === team?.captain_id,
+      }));
+    },
+    enabled: !!rosterTeamId,
+  });
+  const registeredTeamName = myRegisteredTeamId
+    ? teamMap[myRegisteredTeamId]?.name ?? myCaptainedTeams.find((t: any) => t.id === myRegisteredTeamId)?.name
+    : null;
+
   const canJoin = tournament?.status === "registration" && !isJoined;
   const requiresPayment =
     !!tournament?.entry_fee_enabled &&
@@ -189,19 +227,26 @@ const TournamentDetail = () => {
       const { error } = await supabase
         .from("tournament_participants")
         .insert({ tournament_id: id, user_id: user.id, team_id: teamId, has_paid: true } as any);
-      if (error) throw error;
+      if (error) {
+        // Friendly duplicate detection
+        const msg = error.message || "";
+        if (error.code === "23505" || /duplicate|unique/i.test(msg)) {
+          throw new Error("This team is already registered for this tournament.");
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Your team is registered!");
       setTeamPickerOpen(false);
       queryClient.invalidateQueries({ queryKey: ["tournament-participants", id] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message || "Could not register team"),
   });
 
   const handleRegister = async () => {
     if (myCaptainedTeams.length === 0) {
-      toast.error("Only team captains can register. Create a team first.");
+      toast.error("Only team captains can register a team. Create a team or ask your captain to register.");
       navigate("/app/teams");
       return;
     }
