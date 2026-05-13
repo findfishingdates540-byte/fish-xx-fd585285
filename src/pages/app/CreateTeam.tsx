@@ -21,6 +21,7 @@ import {
   Trophy,
   Shield,
   Sparkles,
+  Phone,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,6 +30,13 @@ const CATEGORIES = [
   { value: "lady_angler", label: "Lady Angler", description: "Women anglers 18 and up", emoji: "👩" },
   { value: "all_anglers", label: "All Anglers", description: "Open to all anglers, any age or gender", emoji: "🎣" },
   { value: "teams", label: "Teams", description: "General fishing team", emoji: "🏆" },
+];
+
+const TEAM_TYPES = [
+  { value: "recreational", label: "Recreational" },
+  { value: "competitive", label: "Competitive" },
+  { value: "club", label: "Club" },
+  { value: "charter", label: "Charter" },
 ];
 
 export default function CreateTeam() {
@@ -42,6 +50,10 @@ export default function CreateTeam() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("teams");
+  const [teamType, setTeamType] = useState("recreational");
+  const [location, setLocation] = useState("");
+  const [phone, setPhone] = useState("");
+  const [website, setWebsite] = useState("");
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,7 +72,7 @@ export default function CreateTeam() {
       let logoUrl: string | null = null;
       if (logoFile) {
         const ext = logoFile.name.split(".").pop();
-        const path = `team-logos/${user.id}/${Date.now()}.${ext}`;
+        const path = `${user.id}/team-logos/${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage.from("catch-photos").upload(path, logoFile);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from("catch-photos").getPublicUrl(path);
@@ -74,6 +86,10 @@ export default function CreateTeam() {
         captain_id: user.id,
         logo_url: logoUrl,
         category: category,
+        team_type: teamType,
+        location: location.trim() || null,
+        phone: phone.trim() || null,
+        website: website.trim() || null,
       }).select("id").single();
       if (error) throw error;
 
@@ -150,6 +166,41 @@ export default function CreateTeam() {
                 rows={3}
                 className="mt-1.5"
               />
+            </div>
+          </div>
+        </section>
+
+        {/* Type & Contact */}
+        <section className="rounded-xl border bg-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Phone className="h-5 w-5 text-primary" />
+            <h2 className="font-bold">Type & Contact</h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Team Type</Label>
+              <Select value={teamType} onValueChange={setTeamType}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Select team type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEAM_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Location</Label>
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Miami, FL" className="mt-1.5" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Phone</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className="mt-1.5" type="tel" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Website</Label>
+              <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" className="mt-1.5" type="url" />
             </div>
           </div>
         </section>
