@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,18 +46,18 @@ const CreateTournament = () => {
   const { canCreate, requirement, isLoading: gateLoading } = useCanCreateTournament();
   const { data: platformFeePercent = 10 } = usePlatformFeePercent();
 
-  // Verify the creator either captains or belongs to a team — tournaments are team-only.
-  const { data: teamMembership, isLoading: teamCheckLoading } = useQuery({
-    queryKey: ["tournament-creator-team", user?.id],
+  // Tournaments are team-only and only captains can register a team — load captained teams.
+  const { data: captainTeams = [], isLoading: teamCheckLoading } = useQuery({
+    queryKey: ["tournament-creator-captain-teams", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const [captainRes, memberRes] = await Promise.all([
-        supabase.from("fishing_teams").select("id, name").eq("captain_id", user!.id).limit(1),
-        supabase.from("team_members").select("team_id").eq("user_id", user!.id).limit(1),
-      ]);
-      const isCaptain = (captainRes.data?.length ?? 0) > 0;
-      const isMember = (memberRes.data?.length ?? 0) > 0;
-      return { isCaptain, isMember, hasTeam: isCaptain || isMember };
+      const { data, error } = await supabase
+        .from("fishing_teams")
+        .select("id, name, logo_url")
+        .eq("captain_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
@@ -79,6 +79,14 @@ const CreateTournament = () => {
   const [registrationEnd, setRegistrationEnd] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [creatorTeamId, setCreatorTeamId] = useState<string>("");
+
+  // Default the team selection to the first captained team once loaded
+  useEffect(() => {
+    if (!creatorTeamId && captainTeams.length > 0) {
+      setCreatorTeamId(captainTeams[0].id);
+    }
+  }, [captainTeams, creatorTeamId]);
 
   const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,6 +103,7 @@ const CreateTournament = () => {
       if (!title.trim()) throw new Error("Title is required");
       if (!registrationEnd) throw new Error("Registration end date is required");
       if (!startDate) throw new Error("Start date is required");
+      if (!creatorTeamId) throw new Error("Please select the team you'll compete with");
 
       // Optional banner upload
       let bannerUrl: string | null = null;
@@ -126,9 +135,22 @@ const CreateTournament = () => {
         status: "registration",
         created_by: user.id,
         banner_url: bannerUrl,
+        creator_team_id: creatorTeamId,
       } as any).select().single();
 
       if (error) throw error;
+
+      // Auto-register the creator's team as the first participant (free entry for the host).
+      const { error: partErr } = await supabase
+        .from("tournament_participants")
+        .insert({
+          tournament_id: data.id,
+          user_id: user.id,
+          team_id: creatorTeamId,
+          has_paid: true,
+        } as any);
+      if (partErr) console.error("Failed to auto-register host team:", partErr);
+
       return data;
     },
     onSuccess: (data: any) => {
@@ -180,7 +202,7 @@ const CreateTournament = () => {
     return <div className="max-w-lg mx-auto px-4 py-12 text-center text-muted-foreground">Checking team membership…</div>;
   }
 
-  if (!teamMembership?.hasTeam) {
+  if (captainTeams.length === 0) {
     return (
       <div className="max-w-lg mx-auto px-4 pb-32">
         <div className="flex items-center gap-3 py-4">
@@ -193,16 +215,16 @@ const CreateTournament = () => {
           <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <ShieldAlert className="h-6 w-6 text-primary" />
           </div>
-          <h2 className="text-lg font-semibold">You need a team first</h2>
+          <h2 className="text-lg font-semibold">You need to captain a team first</h2>
           <p className="text-sm text-muted-foreground">
-            Tournaments are team-based. You must be the captain of a team — or a member of one — before you can host a tournament.
+            Tournaments are team-based and only team captains can host or register. Create a team (you'll be its captain) before launching a tournament.
           </p>
           <div className="grid gap-2">
             <Button asChild className="w-full">
               <Link to="/app/teams/new">Create a team</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
-              <Link to="/app/teams">Browse teams to join</Link>
+              <Link to="/app/teams">Browse existing teams</Link>
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => navigate("/app/tournaments")}>
               Back to tournaments
@@ -215,6 +237,7 @@ const CreateTournament = () => {
 
   const selectedFormat = FORMAT_OPTIONS.find((f) => f.value === format);
   const selectedScoring = SCORING_OPTIONS.find((s) => s.value === scoring);
+  const selectedTeam = captainTeams.find((t) => t.id === creatorTeamId);
 
   return (
     <div className="pb-24 min-h-screen">
@@ -266,6 +289,64 @@ const CreateTournament = () => {
               </p>
             </div>
           </div>
+
+          {/* Your team selector */}
+          <section className="rounded-xl border bg-card p-5 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="h-5 w-5 text-primary" />
+              <h2 className="font-bold">Your Team</h2>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Pick the team you'll compete with. They'll be auto-registered as the first entrant when the tournament launches.
+            </p>
+            {captainTeams.length === 1 ? (
+              <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/30">
+                {selectedTeam?.logo_url ? (
+                  <img src={selectedTeam.logo_url} alt={selectedTeam.name} className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{selectedTeam?.name}</p>
+                  <p className="text-xs text-muted-foreground">You're the captain</p>
+                </div>
+                <Badge variant="secondary" className="text-[10px]">Captain</Badge>
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {captainTeams.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setCreatorTeamId(t.id)}
+                    className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
+                      creatorTeamId === t.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/30 hover:bg-muted/30"
+                    }`}
+                  >
+                    {t.logo_url ? (
+                      <img src={t.logo_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">You're the captain</p>
+                    </div>
+                    {creatorTeamId === t.id && (
+                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <Sparkles className="h-3 w-3 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
 
           {/* Basic Info */}
           <section className="rounded-xl border bg-card p-5 space-y-4">
@@ -516,6 +597,9 @@ const CreateTournament = () => {
                 {prizeDescription && (
                   <p><span className="text-muted-foreground">Prize:</span> <span className="font-medium">{prizeDescription}</span></p>
                 )}
+                {selectedTeam && (
+                  <p><span className="text-muted-foreground">Your Team:</span> <span className="font-medium">{selectedTeam.name}</span></p>
+                )}
               </div>
             </section>
           )}
@@ -528,7 +612,7 @@ const CreateTournament = () => {
             <Button
               className="flex-1 gap-2"
               onClick={() => createMutation.mutate()}
-              disabled={createMutation.isPending || !title.trim() || !registrationEnd || !startDate}
+              disabled={createMutation.isPending || !title.trim() || !registrationEnd || !startDate || !creatorTeamId}
             >
               <Trophy className="h-4 w-4" />
               {createMutation.isPending ? "Creating..." : "Launch Tournament"}

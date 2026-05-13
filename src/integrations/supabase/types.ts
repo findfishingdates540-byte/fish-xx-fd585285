@@ -2910,6 +2910,7 @@ export type Database = {
           banner_url: string | null
           created_at: string
           created_by: string
+          creator_team_id: string | null
           current_round: number
           description: string | null
           end_date: string | null
@@ -2937,6 +2938,7 @@ export type Database = {
           banner_url?: string | null
           created_at?: string
           created_by: string
+          creator_team_id?: string | null
           current_round?: number
           description?: string | null
           end_date?: string | null
@@ -2964,6 +2966,7 @@ export type Database = {
           banner_url?: string | null
           created_at?: string
           created_by?: string
+          creator_team_id?: string | null
           current_round?: number
           description?: string | null
           end_date?: string | null
@@ -2987,7 +2990,15 @@ export type Database = {
           updated_at?: string
           winner_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_creator_team_id_fkey"
+            columns: ["creator_team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trip_participants: {
         Row: {
