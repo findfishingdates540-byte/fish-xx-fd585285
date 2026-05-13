@@ -199,7 +199,7 @@ const CreateTournament = () => {
           </p>
           <div className="grid gap-2">
             <Button asChild className="w-full">
-              <Link to="/app/teams/create">Create a team</Link>
+              <Link to="/app/teams/new">Create a team</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
               <Link to="/app/teams">Browse teams to join</Link>
