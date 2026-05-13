@@ -144,35 +144,6 @@ const MAP_STYLES: Record<MapStyleKey, { label: string; icon: React.ReactNode; st
   },
 };
 
-const triggerMapResize = (map: mapboxgl.Map) => {
-  const resize = () => {
-    try { map.resize(); } catch { /* map may have unmounted */ }
-  };
-  resize();
-  requestAnimationFrame(resize);
-  window.setTimeout(resize, 250);
-  window.setTimeout(resize, 750);
-};
-
-const getStaticMapStylePath = (styleKey: MapStyleKey) =>
-  MAP_STYLES[styleKey].style.replace('mapbox://styles/', '');
-
-const buildStaticMapUrl = (
-  token: string,
-  styleKey: MapStyleKey,
-  map: mapboxgl.Map,
-  container: HTMLDivElement,
-) => {
-  const center = map.getCenter();
-  const width = Math.max(320, Math.min(Math.round(container.clientWidth || 640), 1280));
-  const height = Math.max(320, Math.min(Math.round(container.clientHeight || 640), 1280));
-  const zoom = Math.max(0, Math.min(map.getZoom(), 20)).toFixed(2);
-  const bearing = map.getBearing().toFixed(1);
-  const pitch = Math.min(map.getPitch(), 60).toFixed(0);
-
-  return `https://api.mapbox.com/styles/v1/${getStaticMapStylePath(styleKey)}/static/${center.lng.toFixed(5)},${center.lat.toFixed(5)},${zoom},${bearing},${pitch}/${width}x${height}@2x?access_token=${token}&logo=false&attribution=false`;
-};
-
 export default function Spots() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -183,8 +154,7 @@ export default function Spots() {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null);
-  const [activeStyle, setActiveStyle] = useState<MapStyleKey>("satellite");
+  const [activeStyle, setActiveStyle] = useState<MapStyleKey>("outdoors");
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [crosshair, setCrosshair] = useState<{ lat: number; lng: number }>({ lat: 39.8283, lng: -98.5795 });
@@ -401,7 +371,6 @@ export default function Spots() {
       zoom: userProfile?.location_lat ? 8 : 4,
       pitch: activeStyle === 'terrain' ? 60 : 0,
       bearing: activeStyle === 'terrain' ? -17 : 0,
-      projection: 'mercator',
     });
 
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100 }), 'bottom-left');
@@ -410,11 +379,8 @@ export default function Spots() {
       const c = map.getCenter();
       setCrosshair({ lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6) });
       setBearing(map.getBearing());
-      setStaticMapUrl(buildStaticMapUrl(token, activeStyle, map, mapContainerRef.current!));
     };
-    map.on('moveend', updateCrosshair);
-    map.on('rotateend', updateCrosshair);
-    map.on('pitchend', updateCrosshair);
+    map.on('move', updateCrosshair);
     updateCrosshair();
 
     map.on('load', () => {
@@ -424,23 +390,11 @@ export default function Spots() {
         enableTerrain(map);
         enableBathymetry(map);
       }
-      triggerMapResize(map);
     });
-
-    map.on('styledata', () => triggerMapResize(map));
 
     mapRef.current = map;
 
-    // Resize map whenever the container changes size (e.g. after PageTransition
-    // finishes animating from scale(0.98) → scale(1), or on window resize).
-    const ro = new ResizeObserver(() => {
-      try { map.resize(); } catch { /* map removed */ }
-      setStaticMapUrl(buildStaticMapUrl(token, activeStyle, map, mapContainerRef.current!));
-    });
-    ro.observe(mapContainerRef.current);
-
     return () => {
-      ro.disconnect();
       map.remove();
       mapRef.current = null;
       setMapReady(false);
@@ -462,10 +416,8 @@ export default function Spots() {
     map.setStyle(MAP_STYLES[key].style);
 
     map.once('style.load', () => {
-      map.setProjection('mercator');
       map.setCenter(center);
       map.setZoom(zoom);
-      setStaticMapUrl(buildStaticMapUrl(token, key, map, mapContainerRef.current!));
 
       if (key === 'terrain' || key === 'bathymetry') {
         map.setPitch(60);
@@ -510,9 +462,8 @@ export default function Spots() {
       map.addSource(sId, { type: 'geojson', data: sg, cluster: false });
       map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
-      triggerMapResize(map);
     });
-  }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs, token]);
+  }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs]);
 
   // Marker factory
   const createMarkerEl = () => {
@@ -617,9 +568,6 @@ export default function Spots() {
         zoom: 10,
         duration: 1000,
       });
-      if (token && mapContainerRef.current) {
-        setStaticMapUrl(buildStaticMapUrl(token, activeStyle, mapRef.current, mapContainerRef.current));
-      }
     } else {
       getCurrentPosition()
         .then((coords) => {
@@ -631,7 +579,7 @@ export default function Spots() {
         })
         .catch(() => {});
     }
-  }, [activeStyle, token, userProfile]);
+  }, [userProfile]);
 
   if (tokenLoading) {
     return (
@@ -656,17 +604,7 @@ export default function Spots() {
   return (
     <div className="relative w-full" style={{ height: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 64px)' }}>
       {/* Map Container */}
-      <div className="absolute inset-0 bg-muted">
-        {staticMapUrl && (
-          <img
-            src={staticMapUrl}
-            alt="Map background"
-            className="absolute inset-0 h-full w-full object-cover"
-            draggable={false}
-          />
-        )}
-        <div ref={mapContainerRef} className="absolute inset-0 opacity-0" />
-      </div>
+      <div ref={mapContainerRef} className="absolute inset-0" />
 
       {/* Top-Left stacked controls */}
       <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-10 flex flex-col gap-2.5">

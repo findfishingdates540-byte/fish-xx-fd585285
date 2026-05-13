@@ -21,18 +21,6 @@ const pageVariants = {
   },
 };
 
-const mapPageVariants = {
-  initial: {
-    opacity: 0,
-  },
-  in: {
-    opacity: 1,
-  },
-  out: {
-    opacity: 0,
-  },
-};
-
 const pageTransition = {
   type: 'tween' as const,
   ease: 'easeInOut' as const,
@@ -41,7 +29,6 @@ const pageTransition = {
 
 export function PageTransition({ children }: PageTransitionProps) {
   const location = useLocation();
-  const isMapRoute = location.pathname === '/app/spots' || location.pathname.startsWith('/app/spots/');
 
   return (
     <AnimatePresence mode="wait">
@@ -50,7 +37,7 @@ export function PageTransition({ children }: PageTransitionProps) {
         initial="initial"
         animate="in"
         exit="out"
-        variants={isMapRoute ? mapPageVariants : pageVariants}
+        variants={pageVariants}
         transition={pageTransition}
         className="w-full h-full"
       >
