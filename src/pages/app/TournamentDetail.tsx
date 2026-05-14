@@ -805,66 +805,50 @@ const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string
 
 const MatchupCard = ({
   matchup,
+  teamMap,
   getPlayerName,
   getPlayerPhoto,
 }: {
   matchup: any;
+  teamMap: Record<string, any>;
   getPlayerName: (id: string | null) => string;
   getPlayerPhoto: (id: string | null) => string | null;
 }) => {
   const isComplete = matchup.status === "completed";
+  const t1 = matchup.team1_id ? teamMap[matchup.team1_id] : null;
+  const t2 = matchup.team2_id ? teamMap[matchup.team2_id] : null;
+  const team1Name = t1?.name || getPlayerName(matchup.player1_id);
+  const team2Name = t2?.name || getPlayerName(matchup.player2_id);
+  const team1Photo = t1?.logo_url || getPlayerPhoto(matchup.player1_id);
+  const team2Photo = t2?.logo_url || getPlayerPhoto(matchup.player2_id);
+  const team1Score = matchup.team1_id ? matchup.team1_score : matchup.player1_score;
+  const team2Score = matchup.team2_id ? matchup.team2_score : matchup.player2_score;
+  const team1Wins = isComplete && (
+    (matchup.winner_team_id && matchup.winner_team_id === matchup.team1_id) ||
+    (!matchup.winner_team_id && matchup.winner_id === matchup.player1_id)
+  );
+  const team2Wins = isComplete && (
+    (matchup.winner_team_id && matchup.winner_team_id === matchup.team2_id) ||
+    (!matchup.winner_team_id && matchup.winner_id === matchup.player2_id)
+  );
 
   return (
     <div className="rounded-lg border bg-background overflow-hidden">
-      <PlayerRow
-        userId={matchup.player1_id}
-        score={matchup.player1_score}
-        isWinner={matchup.winner_id === matchup.player1_id && isComplete}
-        getPlayerName={getPlayerName}
-        getPlayerPhoto={getPlayerPhoto}
-      />
+      <TeamRow name={team1Name} photo={team1Photo} score={team1Score} isWinner={team1Wins} />
       <div className="h-px bg-border" />
-      <PlayerRow
-        userId={matchup.player2_id}
-        score={matchup.player2_score}
-        isWinner={matchup.winner_id === matchup.player2_id && isComplete}
-        getPlayerName={getPlayerName}
-        getPlayerPhoto={getPlayerPhoto}
-      />
+      <TeamRow name={team2Name} photo={team2Photo} score={team2Score} isWinner={team2Wins} />
     </div>
   );
 };
 
-const PlayerRow = ({
-  userId,
-  score,
-  isWinner,
-  getPlayerName,
-  getPlayerPhoto,
-}: {
-  userId: string | null;
-  score: number;
-  isWinner: boolean;
-  getPlayerName: (id: string | null) => string;
-  getPlayerPhoto: (id: string | null) => string | null;
-}) => (
-  <div
-    className={`flex items-center gap-2 px-3 py-2 ${
-      isWinner ? "bg-emerald-500/10" : ""
-    }`}
-  >
+const TeamRow = ({ name, photo, score, isWinner }: { name: string; photo: string | null; score: number; isWinner: boolean }) => (
+  <div className={`flex items-center gap-2 px-3 py-2 ${isWinner ? "bg-emerald-500/10" : ""}`}>
     <Avatar className="h-5 w-5">
-      <AvatarImage src={getPlayerPhoto(userId) || undefined} />
-      <AvatarFallback className="text-[8px]">
-        {getPlayerName(userId).charAt(0)}
-      </AvatarFallback>
+      <AvatarImage src={photo || undefined} />
+      <AvatarFallback className="text-[8px]">{(name || "?").charAt(0)}</AvatarFallback>
     </Avatar>
-    <span className={`text-xs flex-1 truncate ${isWinner ? "font-semibold" : ""}`}>
-      {getPlayerName(userId)}
-    </span>
-    <span className={`text-xs tabular-nums ${isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"}`}>
-      {score}
-    </span>
+    <span className={`text-xs flex-1 truncate ${isWinner ? "font-semibold" : ""}`}>{name || "TBD"}</span>
+    <span className={`text-xs tabular-nums ${isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"}`}>{Number(score || 0)}</span>
   </div>
 );
 
