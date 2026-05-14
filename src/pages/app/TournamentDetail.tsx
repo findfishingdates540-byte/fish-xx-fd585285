@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Trophy,
@@ -29,6 +30,8 @@ import {
   Copy,
   CheckCircle,
   Users2,
+  Medal,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -146,6 +149,55 @@ const TournamentDetail = () => {
         .order("matchup_number", { ascending: true });
       if (error) throw error;
       return data;
+    },
+    enabled: !!id,
+  });
+
+  // Team leaderboard (per-tournament)
+  const { data: teamLeaderboard = [] } = useQuery({
+    queryKey: ["tournament-team-leaderboard", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_team_leaderboard" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("total_score", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // MVP leaderboard (top individuals)
+  const { data: mvpLeaderboard = [] } = useQuery({
+    queryKey: ["tournament-mvp-leaderboard", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_mvp_leaderboard" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("total_score", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // My-team contributions
+  const { data: myTeamContributions = [] } = useQuery({
+    queryKey: ["tournament-my-team-contributions", id, /* registered team */ undefined],
+    queryFn: async () => {
+      const teamIdForView = (myParticipantEntry as any)?.team_id;
+      if (!teamIdForView) return [];
+      const { data, error } = await supabase
+        .from("tournament_member_contributions" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .eq("team_id", teamIdForView)
+        .order("score_contribution", { ascending: false });
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!id,
   });
