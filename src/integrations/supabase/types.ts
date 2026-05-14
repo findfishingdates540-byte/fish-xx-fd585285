@@ -2738,9 +2738,14 @@ export type Database = {
           player2_score: number | null
           round_id: string
           status: string
+          team1_id: string | null
+          team1_score: number
+          team2_id: string | null
+          team2_score: number
           tournament_id: string
           updated_at: string
           winner_id: string | null
+          winner_team_id: string | null
         }
         Insert: {
           created_at?: string
@@ -2755,9 +2760,14 @@ export type Database = {
           player2_score?: number | null
           round_id: string
           status?: string
+          team1_id?: string | null
+          team1_score?: number
+          team2_id?: string | null
+          team2_score?: number
           tournament_id: string
           updated_at?: string
           winner_id?: string | null
+          winner_team_id?: string | null
         }
         Update: {
           created_at?: string
@@ -2772,9 +2782,14 @@ export type Database = {
           player2_score?: number | null
           round_id?: string
           status?: string
+          team1_id?: string | null
+          team1_score?: number
+          team2_id?: string | null
+          team2_score?: number
           tournament_id?: string
           updated_at?: string
           winner_id?: string | null
+          winner_team_id?: string | null
         }
         Relationships: [
           {
@@ -2806,10 +2821,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tournament_matchups_team1_id_fkey"
+            columns: ["team1_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matchups_team2_id_fkey"
+            columns: ["team2_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tournament_matchups_tournament_id_fkey"
             columns: ["tournament_id"]
             isOneToOne: false
             referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matchups_winner_team_id_fkey"
+            columns: ["winner_team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
             referencedColumns: ["id"]
           },
         ]
@@ -2933,6 +2969,7 @@ export type Database = {
           total_rounds: number
           updated_at: string
           winner_id: string | null
+          winner_team_id: string | null
         }
         Insert: {
           banner_url?: string | null
@@ -2961,6 +2998,7 @@ export type Database = {
           total_rounds?: number
           updated_at?: string
           winner_id?: string | null
+          winner_team_id?: string | null
         }
         Update: {
           banner_url?: string | null
@@ -2989,11 +3027,19 @@ export type Database = {
           total_rounds?: number
           updated_at?: string
           winner_id?: string | null
+          winner_team_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "tournaments_creator_team_id_fkey"
             columns: ["creator_team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournaments_winner_team_id_fkey"
+            columns: ["winner_team_id"]
             isOneToOne: false
             referencedRelation: "fishing_teams"
             referencedColumns: ["id"]
@@ -3590,6 +3636,60 @@ export type Database = {
           state?: string | null
           total_likes_received?: number | null
           zodiac_sign?: string | null
+        }
+        Relationships: []
+      }
+      tournament_member_contributions: {
+        Row: {
+          biggest_catch: number | null
+          catches: number | null
+          display_name: string | null
+          photos: string[] | null
+          score_contribution: number | null
+          team_id: string | null
+          total_weight: number | null
+          tournament_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      tournament_mvp_leaderboard: {
+        Row: {
+          biggest_catch: number | null
+          catches: number | null
+          display_name: string | null
+          photos: string[] | null
+          team_id: string | null
+          team_logo: string | null
+          team_name: string | null
+          total_score: number | null
+          total_weight: number | null
+          tournament_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      tournament_team_leaderboard: {
+        Row: {
+          biggest_catch: number | null
+          captain_id: string | null
+          catches_count: number | null
+          eliminated: boolean | null
+          logo_url: string | null
+          rounds_won: number | null
+          team_id: string | null
+          team_name: string | null
+          total_score: number | null
+          total_weight: number | null
+          tournament_id: string | null
+        }
+        Relationships: []
+      }
+      tournament_team_roster: {
+        Row: {
+          team_id: string | null
+          tournament_id: string | null
+          user_id: string | null
         }
         Relationships: []
       }

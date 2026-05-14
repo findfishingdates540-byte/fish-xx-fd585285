@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Trophy,
@@ -29,6 +30,8 @@ import {
   Copy,
   CheckCircle,
   Users2,
+  Medal,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -148,6 +151,61 @@ const TournamentDetail = () => {
       return data;
     },
     enabled: !!id,
+  });
+
+  // Team leaderboard (per-tournament)
+  const { data: teamLeaderboard = [] } = useQuery({
+    queryKey: ["tournament-team-leaderboard", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_team_leaderboard" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("total_score", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // MVP leaderboard (top individuals)
+  const { data: mvpLeaderboard = [] } = useQuery({
+    queryKey: ["tournament-mvp-leaderboard", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_mvp_leaderboard" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("total_score", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // My-team contributions
+  const { data: myTeamContributions = [] } = useQuery({
+    queryKey: ["tournament-my-team-contributions", id, user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      // Find registered team for current user (captain or member)
+      const captainTeamIds = (myCaptainedTeams || []).map((t: any) => t.id);
+      const myEntry = participants.find(
+        (p: any) => p.user_id === user.id || (p.team_id && captainTeamIds.includes(p.team_id)),
+      );
+      const teamIdForView = (myEntry as any)?.team_id;
+      if (!teamIdForView) return [];
+      const { data, error } = await supabase
+        .from("tournament_member_contributions" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .eq("team_id", teamIdForView)
+        .order("score_contribution", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id && !!user && participants.length > 0,
   });
 
   // Fetch prize payout for current user
@@ -591,83 +649,146 @@ const TournamentDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Bracket */}
-      {rounds.length > 0 && (
-        <div className="rounded-xl border bg-card p-4">
-          <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" />
-            Bracket
-          </h2>
+      {/* Tabs: Bracket / Standings / MVPs / My Team */}
+      <Tabs defaultValue="bracket" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-3">
+          <TabsTrigger value="bracket" className="text-xs"><Swords className="h-3 w-3 mr-1" />Bracket</TabsTrigger>
+          <TabsTrigger value="standings" className="text-xs"><Trophy className="h-3 w-3 mr-1" />Teams</TabsTrigger>
+          <TabsTrigger value="mvp" className="text-xs"><Crown className="h-3 w-3 mr-1" />MVPs</TabsTrigger>
+          <TabsTrigger value="myteam" className="text-xs" disabled={myTeamContributions.length === 0}>
+            <Users className="h-3 w-3 mr-1" />My Team
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Horizontal scrollable bracket */}
-          <div className="overflow-x-auto -mx-4 px-4">
-            <div className="flex gap-6 min-w-max">
-              {rounds
-                .filter((r: any) => r.bracket_type === "winners")
-                .map((round: any) => {
-                  const rMatchups = roundMatchups[round.id] || [];
-                  return (
-                    <div key={round.id} className="flex flex-col gap-3 min-w-[180px]">
-                      <div className="text-center">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                          {round.round_name}
-                        </p>
-                      </div>
-                      <div className="flex flex-col justify-around flex-1 gap-3">
-                        {rMatchups.map((m: any) => (
-                          <MatchupCard
-                            key={m.id}
-                            matchup={m}
-                            getPlayerName={getPlayerName}
-                            getPlayerPhoto={getPlayerPhoto}
-                          />
-                        ))}
-                        {rMatchups.length === 0 && (
-                          <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">
-                            Matchups TBD
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* BRACKET */}
+        <TabsContent value="bracket" className="mt-0">
+          {rounds.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+              Bracket will appear once seeding is complete.
             </div>
-          </div>
-
-          {/* Losers bracket */}
-          {rounds.some((r: any) => r.bracket_type === "losers") && (
-            <div className="mt-6 pt-4 border-t">
-              <p className="text-xs font-semibold text-muted-foreground mb-3">Losers Bracket</p>
+          ) : (
+            <div className="rounded-xl border bg-card p-4">
               <div className="overflow-x-auto -mx-4 px-4">
                 <div className="flex gap-6 min-w-max">
-                  {rounds
-                    .filter((r: any) => r.bracket_type === "losers")
-                    .map((round: any) => {
-                      const rMatchups = roundMatchups[round.id] || [];
-                      return (
-                        <div key={round.id} className="flex flex-col gap-3 min-w-[180px]">
-                          <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">
-                            {round.round_name}
-                          </p>
-                          <div className="flex flex-col justify-around flex-1 gap-3">
-                            {rMatchups.map((m: any) => (
-                              <MatchupCard
-                                key={m.id}
-                                matchup={m}
-                                getPlayerName={getPlayerName}
-                                getPlayerPhoto={getPlayerPhoto}
-                              />
-                            ))}
-                          </div>
+                  {rounds.filter((r: any) => r.bracket_type === "winners").map((round: any) => {
+                    const rMatchups = roundMatchups[round.id] || [];
+                    return (
+                      <div key={round.id} className="flex flex-col gap-3 min-w-[200px]">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">{round.round_name}</p>
+                        <div className="flex flex-col justify-around flex-1 gap-3">
+                          {rMatchups.map((m: any) => (
+                            <MatchupCard key={m.id} matchup={m} teamMap={teamMap} getPlayerName={getPlayerName} getPlayerPhoto={getPlayerPhoto} />
+                          ))}
+                          {rMatchups.length === 0 && (
+                            <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">TBD</div>
+                          )}
                         </div>
-                      );
-                    })}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+              {rounds.some((r: any) => r.bracket_type === "losers") && (
+                <div className="mt-6 pt-4 border-t">
+                  <p className="text-xs font-semibold text-muted-foreground mb-3">Losers Bracket</p>
+                  <div className="overflow-x-auto -mx-4 px-4">
+                    <div className="flex gap-6 min-w-max">
+                      {rounds.filter((r: any) => r.bracket_type === "losers").map((round: any) => {
+                        const rMatchups = roundMatchups[round.id] || [];
+                        return (
+                          <div key={round.id} className="flex flex-col gap-3 min-w-[200px]">
+                            <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">{round.round_name}</p>
+                            <div className="flex flex-col justify-around flex-1 gap-3">
+                              {rMatchups.map((m: any) => (
+                                <MatchupCard key={m.id} matchup={m} teamMap={teamMap} getPlayerName={getPlayerName} getPlayerPhoto={getPlayerPhoto} />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
+        </TabsContent>
+
+        {/* TEAM STANDINGS */}
+        <TabsContent value="standings" className="mt-0">
+          <div className="rounded-xl border bg-card p-4">
+            {teamLeaderboard.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No team scores yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {teamLeaderboard.map((row: any, idx: number) => (
+                  <div key={row.team_id} className={`flex items-center gap-3 p-2.5 rounded-lg border ${idx === 0 ? "bg-amber-500/10 border-amber-500/30" : "bg-muted/30"}`}>
+                    <div className="w-7 h-7 rounded-full bg-background border flex items-center justify-center">
+                      {idx === 0 ? <Crown className="h-3.5 w-3.5 text-amber-500" /> : <span className="text-xs font-bold">{idx + 1}</span>}
+                    </div>
+                    <Avatar className="h-8 w-8"><AvatarImage src={row.logo_url} /><AvatarFallback className="text-[10px]">{row.team_name?.charAt(0)}</AvatarFallback></Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{row.team_name}</p>
+                      <p className="text-[10px] text-muted-foreground">{row.catches_count} catches · {row.rounds_won} rounds won</p>
+                    </div>
+                    {row.eliminated && <Badge variant="outline" className="text-[9px] text-destructive border-destructive/30">Out</Badge>}
+                    <p className="text-sm font-bold tabular-nums">{Number(row.total_score).toFixed(1)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* MVP LEADERBOARD */}
+        <TabsContent value="mvp" className="mt-0">
+          <div className="rounded-xl border bg-card p-4">
+            {mvpLeaderboard.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No catches logged yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {mvpLeaderboard.filter((m: any) => Number(m.total_score) > 0).map((row: any, idx: number) => (
+                  <div key={`${row.user_id}-${row.team_id}`} className={`flex items-center gap-3 p-2.5 rounded-lg border ${idx === 0 ? "bg-primary/10 border-primary/30" : "bg-muted/30"}`}>
+                    <div className="w-7 h-7 rounded-full bg-background border flex items-center justify-center">
+                      {idx < 3 ? <Medal className={`h-3.5 w-3.5 ${idx === 0 ? "text-amber-500" : idx === 1 ? "text-slate-400" : "text-orange-600"}`} /> : <span className="text-xs font-bold">{idx + 1}</span>}
+                    </div>
+                    <Avatar className="h-8 w-8"><AvatarImage src={row.photos?.[0]} /><AvatarFallback className="text-[10px]">{row.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{row.display_name}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{row.team_name} · {row.catches} catches</p>
+                    </div>
+                    <p className="text-sm font-bold tabular-nums">{Number(row.total_score).toFixed(1)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* MY TEAM */}
+        <TabsContent value="myteam" className="mt-0">
+          <div className="rounded-xl border bg-card p-4">
+            {myTeamContributions.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">You're not on a registered team in this tournament.</p>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium mb-2">Roster contribution</p>
+                {myTeamContributions.map((row: any, idx: number) => (
+                  <div key={row.user_id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 border">
+                    <span className="text-xs font-bold w-5 text-center">{idx + 1}</span>
+                    <Avatar className="h-8 w-8"><AvatarImage src={row.photos?.[0]} /><AvatarFallback className="text-[10px]">{row.display_name?.charAt(0)}</AvatarFallback></Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{row.display_name}</p>
+                      <p className="text-[10px] text-muted-foreground">{row.catches} catches · {Number(row.total_weight).toFixed(1)} lbs</p>
+                    </div>
+                    <p className="text-sm font-bold tabular-nums">{Number(row.score_contribution).toFixed(1)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
@@ -684,66 +805,50 @@ const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string
 
 const MatchupCard = ({
   matchup,
+  teamMap,
   getPlayerName,
   getPlayerPhoto,
 }: {
   matchup: any;
+  teamMap: Record<string, any>;
   getPlayerName: (id: string | null) => string;
   getPlayerPhoto: (id: string | null) => string | null;
 }) => {
   const isComplete = matchup.status === "completed";
+  const t1 = matchup.team1_id ? teamMap[matchup.team1_id] : null;
+  const t2 = matchup.team2_id ? teamMap[matchup.team2_id] : null;
+  const team1Name = t1?.name || getPlayerName(matchup.player1_id);
+  const team2Name = t2?.name || getPlayerName(matchup.player2_id);
+  const team1Photo = t1?.logo_url || getPlayerPhoto(matchup.player1_id);
+  const team2Photo = t2?.logo_url || getPlayerPhoto(matchup.player2_id);
+  const team1Score = matchup.team1_id ? matchup.team1_score : matchup.player1_score;
+  const team2Score = matchup.team2_id ? matchup.team2_score : matchup.player2_score;
+  const team1Wins = isComplete && (
+    (matchup.winner_team_id && matchup.winner_team_id === matchup.team1_id) ||
+    (!matchup.winner_team_id && matchup.winner_id === matchup.player1_id)
+  );
+  const team2Wins = isComplete && (
+    (matchup.winner_team_id && matchup.winner_team_id === matchup.team2_id) ||
+    (!matchup.winner_team_id && matchup.winner_id === matchup.player2_id)
+  );
 
   return (
     <div className="rounded-lg border bg-background overflow-hidden">
-      <PlayerRow
-        userId={matchup.player1_id}
-        score={matchup.player1_score}
-        isWinner={matchup.winner_id === matchup.player1_id && isComplete}
-        getPlayerName={getPlayerName}
-        getPlayerPhoto={getPlayerPhoto}
-      />
+      <TeamRow name={team1Name} photo={team1Photo} score={team1Score} isWinner={team1Wins} />
       <div className="h-px bg-border" />
-      <PlayerRow
-        userId={matchup.player2_id}
-        score={matchup.player2_score}
-        isWinner={matchup.winner_id === matchup.player2_id && isComplete}
-        getPlayerName={getPlayerName}
-        getPlayerPhoto={getPlayerPhoto}
-      />
+      <TeamRow name={team2Name} photo={team2Photo} score={team2Score} isWinner={team2Wins} />
     </div>
   );
 };
 
-const PlayerRow = ({
-  userId,
-  score,
-  isWinner,
-  getPlayerName,
-  getPlayerPhoto,
-}: {
-  userId: string | null;
-  score: number;
-  isWinner: boolean;
-  getPlayerName: (id: string | null) => string;
-  getPlayerPhoto: (id: string | null) => string | null;
-}) => (
-  <div
-    className={`flex items-center gap-2 px-3 py-2 ${
-      isWinner ? "bg-emerald-500/10" : ""
-    }`}
-  >
+const TeamRow = ({ name, photo, score, isWinner }: { name: string; photo: string | null; score: number; isWinner: boolean }) => (
+  <div className={`flex items-center gap-2 px-3 py-2 ${isWinner ? "bg-emerald-500/10" : ""}`}>
     <Avatar className="h-5 w-5">
-      <AvatarImage src={getPlayerPhoto(userId) || undefined} />
-      <AvatarFallback className="text-[8px]">
-        {getPlayerName(userId).charAt(0)}
-      </AvatarFallback>
+      <AvatarImage src={photo || undefined} />
+      <AvatarFallback className="text-[8px]">{(name || "?").charAt(0)}</AvatarFallback>
     </Avatar>
-    <span className={`text-xs flex-1 truncate ${isWinner ? "font-semibold" : ""}`}>
-      {getPlayerName(userId)}
-    </span>
-    <span className={`text-xs tabular-nums ${isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"}`}>
-      {score}
-    </span>
+    <span className={`text-xs flex-1 truncate ${isWinner ? "font-semibold" : ""}`}>{name || "TBD"}</span>
+    <span className={`text-xs tabular-nums ${isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"}`}>{Number(score || 0)}</span>
   </div>
 );
 

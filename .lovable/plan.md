@@ -1,36 +1,60 @@
-## Tournament System Upgrades
+## Team-based tournament mechanics
 
-Address all 4 gaps in tournaments + add to Scoreboard Hub.
+Make tournaments truly team-vs-team with proper aggregation, leaderboards, and an MVP view.
 
-### 1. Paid entry flow (Stripe)
-- New edge function `tournament-checkout` modeled after `fishing-challenge-checkout`: creates Stripe session, records pending row in `escrow_transactions` (linked via new `tournament_id` column), returns checkout URL.
-- Extend `stripe-webhook` to mark tournament entries paid on `checkout.session.completed` and insert into `tournament_participants`.
-- `TournamentDetail` "Register" button:
-  - If `entry_fee = 0` → direct join (current behavior).
-  - If `entry_fee > 0` → call checkout function; on `?payment=success` URL, optimistic confirm + toast.
-- DB: add `tournament_id` to `escrow_transactions`, add `has_paid` to `tournament_participants` (default true for free, set true on webhook).
+### 1. Schema changes (migration)
 
-### 2. Automatic prize payout on completion
-- Extend `update-challenge-statuses` cron edge function to also process tournaments:
-  - When `status = in_progress` and `end_date < now()` (or final match decided) → mark `completed`, set `winner_id` from final match.
-  - If `entry_fee > 0`: read global `platform_fee_percent` from `app_settings`, compute payout = total_paid_entries × (1 − fee%), record an admin payout task in existing `prize_payouts` flow (same pattern as challenges). Gift-card prizes: no fee.
-  - Notify winner + creator.
+`tournament_matchups`:
+- Add `team1_id uuid` and `team2_id uuid` (FK → `fishing_teams`, nullable for backfill).
+- Keep `player1_id` / `player2_id` as optional "match MVP" slots.
+- Add `team1_score numeric default 0`, `team2_score numeric default 0`, `winner_team_id uuid`.
 
-### 3. Admin moderation page
-- New route `/admin/tournaments` → `AdminTournaments.tsx`:
-  - Table of all tournaments (search, filter by status).
-  - Actions: view, force-cancel (refunds via Stripe refund call), delete, mark winner manually, view participants & payouts.
-- Add link to `AdminSidebar` (Swords icon) under the existing Photo Challenges entry.
+`tournaments`:
+- Add `winner_team_id uuid` (alongside existing `winner_id`, which becomes "MVP captain").
 
-### 4. Creator gating
-- Add app setting `tournament_creator_requirement` (values: `anyone` | `premium` | `verified` | `admin`, default `premium`).
-- `CreateTournament` checks via existing `useIsPremium` / verification hooks; non-eligible users see locked screen explaining requirement + upgrade CTA.
-- Admin Settings page exposes this dropdown.
+New view `tournament_team_leaderboard` (per tournament, cumulative):
+- team_id, team_name, logo, total_score, catches_count, rounds_won, eliminated.
 
-### 5. Scoreboard Hub
-- Add `Tournaments` entry to `ScoreboardSheet.tsx` linking to `/app/tournaments` (Swords/tournament icon).
+New view `tournament_member_contributions` (per tournament, per member within team):
+- tournament_id, team_id, user_id, display_name, catches, score_contribution.
+
+New view `tournament_mvp_leaderboard` (per tournament, across all teams):
+- tournament_id, user_id, display_name, team_id, team_name, total_score, catches.
+
+All views: SECURITY INVOKER, readable by any authenticated user.
+
+### 2. Scoring engine (edge function update)
+
+Update `update-challenge-statuses` (and add a helper edge function `score-tournament-matchup` callable on demand):
+
+For each `in_progress` tournament with active matchups whose round window has elapsed:
+1. For each matchup, fetch all `team_members` (+ captain) of `team1_id` and `team2_id`.
+2. Aggregate `catches` between `round.start_at` and `round.end_at` per the tournament's `scoring_method`:
+   - `biggest_catch` → MAX(weight_lbs)
+   - `total_weight` → SUM(weight_lbs)
+   - `most_catches` → COUNT(*)
+3. Write `team1_score`, `team2_score`, `winner_team_id`, advance to `next_matchup_id` (set the next slot's `team1_id` or `team2_id`).
+4. Mark losing team's participants `eliminated = true, eliminated_in_round`.
+5. When the final matchup completes → set `tournaments.winner_team_id`, derive `winner_id` = top contributor on winning team (MVP).
+
+Prize payout logic stays — just notify all members of `winner_team_id` (already partially done).
+
+### 3. Frontend — TournamentDetail
+
+Add three tabs below the bracket:
+- **Bracket** (existing) — show team names + logos in matchup cards instead of player names.
+- **Team leaderboard** — uses `tournament_team_leaderboard`, shows rank, team logo/name, score, rounds won, eliminated badge.
+- **MVP leaderboard** — uses `tournament_mvp_leaderboard`, shows top individuals across all teams.
+- **My team** (only if viewer is on a registered team) — uses `tournament_member_contributions` to show each teammate's contribution.
 
 ### Files
-- Migrations: `escrow_transactions.tournament_id`, `tournament_participants.has_paid`, `app_settings` seed for `tournament_creator_requirement`.
-- New: `supabase/functions/tournament-checkout/`, `src/pages/admin/AdminTournaments.tsx`.
-- Edited: `stripe-webhook`, `update-challenge-statuses`, `TournamentDetail.tsx`, `CreateTournament.tsx`, `AdminSidebar.tsx`, `AdminSettings.tsx`, `ScoreboardSheet.tsx`, `App.tsx` (route).
+
+- New migration: matchup team columns + tournament `winner_team_id` + 3 views.
+- Edited: `supabase/functions/update-challenge-statuses/index.ts` (scoring loop).
+- Edited: `src/pages/app/TournamentDetail.tsx` (3 new tabs, team-aware bracket cards).
+- `src/integrations/supabase/types.ts` regenerates automatically after migration.
+
+### Out of scope
+
+- Live in-tournament catch logging UI changes (catches are already attributed to user; aggregation is done server-side by team membership).
+- Manual admin override of team scores (can be added later in `AdminTournaments`).
