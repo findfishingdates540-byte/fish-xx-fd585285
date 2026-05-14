@@ -186,9 +186,15 @@ const TournamentDetail = () => {
 
   // My-team contributions
   const { data: myTeamContributions = [] } = useQuery({
-    queryKey: ["tournament-my-team-contributions", id, /* registered team */ undefined],
+    queryKey: ["tournament-my-team-contributions", id, user?.id],
     queryFn: async () => {
-      const teamIdForView = (myParticipantEntry as any)?.team_id;
+      if (!user) return [];
+      // Find registered team for current user (captain or member)
+      const captainTeamIds = (myCaptainedTeams || []).map((t: any) => t.id);
+      const myEntry = participants.find(
+        (p: any) => p.user_id === user.id || (p.team_id && captainTeamIds.includes(p.team_id)),
+      );
+      const teamIdForView = (myEntry as any)?.team_id;
       if (!teamIdForView) return [];
       const { data, error } = await supabase
         .from("tournament_member_contributions" as any)
@@ -199,7 +205,7 @@ const TournamentDetail = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!id,
+    enabled: !!id && !!user && participants.length > 0,
   });
 
   // Fetch prize payout for current user
