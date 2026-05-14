@@ -218,59 +218,89 @@ serve(async (req) => {
     // 5. Tournaments: in_progress → completed when end_date passed
     const { data: tDone } = await supabase
       .from("tournaments")
-      .select("id, title, entry_fee, entry_fee_enabled, is_admin_funded, prize_type, prize_description, gift_card_code, winner_id, status, end_date")
+      .select("id, title, entry_fee, entry_fee_enabled, is_admin_funded, prize_type, prize_description, gift_card_code, winner_id, winner_team_id, scoring_method, start_date, status, end_date")
       .in("status", ["in_progress", "registration", "seeding"])
       .not("end_date", "is", null)
       .lt("end_date", now);
 
     if (tDone?.length) {
       for (const t of tDone) {
-        // Try to derive winner from final matchup if missing
-        let winnerId = t.winner_id as string | null;
-        if (!winnerId) {
+        // Resolve winning team from final matchup (preferred) or fall back to leaderboard
+        let winningTeamId = t.winner_team_id as string | null;
+        if (!winningTeamId) {
           const { data: finalMatch } = await supabase
             .from("tournament_matchups")
-            .select("winner_id, round_id")
+            .select("winner_team_id, winner_id")
             .eq("tournament_id", t.id)
             .eq("status", "completed")
             .order("matchup_number", { ascending: false })
             .limit(1)
             .maybeSingle();
-          winnerId = finalMatch?.winner_id ?? null;
+          winningTeamId = finalMatch?.winner_team_id ?? null;
+          // Fallback: derive team from winner_id participant entry
+          if (!winningTeamId && finalMatch?.winner_id) {
+            const { data: wp } = await supabase
+              .from("tournament_participants")
+              .select("team_id")
+              .eq("tournament_id", t.id)
+              .eq("user_id", finalMatch.winner_id)
+              .maybeSingle();
+            winningTeamId = wp?.team_id ?? null;
+          }
+        }
+
+        // If still no winner team, pick top team from team leaderboard
+        if (!winningTeamId) {
+          const { data: lb } = await supabase
+            .from("tournament_team_leaderboard")
+            .select("team_id, total_score")
+            .eq("tournament_id", t.id)
+            .order("total_score", { ascending: false })
+            .limit(1);
+          winningTeamId = lb?.[0]?.team_id ?? null;
+        }
+
+        // MVP = top contributor on the winning team
+        let winnerId = t.winner_id as string | null;
+        if (winningTeamId) {
+          const { data: mvp } = await supabase
+            .from("tournament_member_contributions")
+            .select("user_id, score_contribution")
+            .eq("tournament_id", t.id)
+            .eq("team_id", winningTeamId)
+            .order("score_contribution", { ascending: false })
+            .limit(1);
+          winnerId = mvp?.[0]?.user_id ?? winnerId;
         }
 
         await supabase
           .from("tournaments")
-          .update({ status: "completed", winner_id: winnerId })
+          .update({ status: "completed", winner_id: winnerId, winner_team_id: winningTeamId })
           .eq("id", t.id);
 
-        if (!winnerId) continue;
+        if (!winningTeamId) continue;
 
-        // Resolve the registering team for the winning captain
-        const { data: winnerPart } = await supabase
-          .from("tournament_participants")
-          .select("team_id")
-          .eq("tournament_id", t.id)
-          .eq("user_id", winnerId)
-          .maybeSingle();
-        const winningTeamId = winnerPart?.team_id ?? null;
         let winningTeamName: string | null = null;
-        let teamMemberIds: string[] = [winnerId];
-        if (winningTeamId) {
-          const { data: teamRow } = await supabase
-            .from("fishing_teams")
-            .select("name, captain_id")
-            .eq("id", winningTeamId)
-            .maybeSingle();
-          winningTeamName = teamRow?.name ?? null;
-          const { data: members } = await supabase
-            .from("team_members")
-            .select("user_id")
-            .eq("team_id", winningTeamId);
-          const ids = new Set<string>([winnerId]);
-          (members || []).forEach((m: any) => m.user_id && ids.add(m.user_id));
-          teamMemberIds = Array.from(ids);
-        }
+        let teamMemberIds: string[] = [];
+        const { data: teamRow } = await supabase
+          .from("fishing_teams")
+          .select("name, captain_id")
+          .eq("id", winningTeamId)
+          .maybeSingle();
+        winningTeamName = teamRow?.name ?? null;
+        const { data: members } = await supabase
+          .from("team_members")
+          .select("user_id")
+          .eq("team_id", winningTeamId);
+        const ids = new Set<string>();
+        if (teamRow?.captain_id) ids.add(teamRow.captain_id);
+        if (winnerId) ids.add(winnerId);
+        (members || []).forEach((m: any) => m.user_id && ids.add(m.user_id));
+        teamMemberIds = Array.from(ids);
+
+        // Need a winnerId for prize_payouts FK
+        if (!winnerId) winnerId = teamRow?.captain_id ?? null;
+        if (!winnerId) continue;
 
         let grossPool = 0;
         let platformFee = 0;
