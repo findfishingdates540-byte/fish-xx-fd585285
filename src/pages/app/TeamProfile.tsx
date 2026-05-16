@@ -390,7 +390,7 @@ export default function TeamProfile() {
               isCaptain={isCaptain}
             />
             <div className="hidden lg:block sticky top-20">
-              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} />
+              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} isCaptain={isCaptain} />
             </div>
           </div>
         </TabsContent>
@@ -407,7 +407,7 @@ export default function TeamProfile() {
               isCaptain={isCaptain}
             />
             <div className="hidden lg:block sticky top-20">
-              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} />
+              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} isCaptain={isCaptain} />
             </div>
           </div>
         </TabsContent>
