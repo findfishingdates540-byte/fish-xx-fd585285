@@ -275,7 +275,7 @@ const CreateTournament = () => {
           <Badge className="sb-bg-cyan border-0 mb-2">
             <Swords className="h-3 w-3 mr-1" /> New Tournament
           </Badge>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground text-white">
             {title || "Create Your Tournament"}
           </h1>
         </div>
