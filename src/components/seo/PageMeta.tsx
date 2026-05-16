@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-const SITE = "https://fish-xx.lovable.app";
+const SITE = "https://fish-x.com";
 
 interface PageMetaProps {
   title: string;

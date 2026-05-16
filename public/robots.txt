@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://fish-xx.lovable.app/sitemap.xml
+Sitemap: https://fish-x.com/sitemap.xml
