@@ -27,7 +27,7 @@ function useSearchData(q: string) {
           .limit(30),
         supabase
           .from("feed_posts")
-          .select("id, user_id, content, media_urls, created_at, likes_count, comments_count")
+          .select("id, user_id, content, created_at, likes_count, comments_count")
           .ilike("content", term)
           .order("created_at", { ascending: false })
           .limit(30),
