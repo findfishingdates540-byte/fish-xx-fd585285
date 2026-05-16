@@ -1,97 +1,95 @@
+## Goals
 
-# Team Pages & Team Groups
+1. Public Team Page discoverability + followers (non-members can find a team and subscribe to Page updates).
+2. Audit realtime subscriptions across notifications/messages/team posts and fix gaps.
+3. Notifications when someone likes/comments on my team Page/Group posts.
+4. Video moderation pipeline (transcode + admin review before public).
+5. Feed filters on Page/Group: sort by recency and filter by nearby location.
 
-Bring Facebook-style "Page + Group" to every Team. Each `fishing_teams` row gets two surfaces:
+---
 
-- **Team Page** — public-facing. Captain + officers post announcements, teasers, winnings, next matchups, current bracket stage. Anyone can view; only roles can post.
-- **Team Group** — members-only. Any accepted member can post catches, photos, banter. Hidden from non-members.
+## 1. Public Team Discovery + Followers
 
-Posts are authored *by the team* but attributed to the user who posted them (Facebook style: "Team Name · posted by @user").
+**DB (migration):**
+- New table `team_followers` (`team_id`, `user_id`, `created_at`, unique).
+- Add `followers_count` to `fishing_teams`.
+- Trigger to keep `followers_count` synced.
+- RLS: anyone can `SELECT` from `team_followers` (counts), users insert/delete only their own row.
+- `fishing_teams` SELECT policy already public — confirm and add an index on `name`/`category` for search.
 
-## 1. Data model (new migration)
+**Frontend:**
+- `src/pages/app/TeamsDirectory.tsx` (route `/app/teams`) already lists teams — add a search bar (name/category/skill), and a "Follow" button on each card and on `TeamProfile` header.
+- New hook `useTeamFollow(teamId)` — returns `isFollowing`, `followersCount`, `toggle()`.
+- Surface followed teams in main Feed: extend feed query to include `team_posts` (surface='page') from teams the user follows, mixed by `created_at`. (Cross-post already exists, but this guarantees non-members see ALL page posts, not only ones the author opted to cross-post.)
+- Public team page route already at `/app/teams/:teamId` — make sure About/Page tabs render for non-members (already do); ensure Group tab hidden if not member.
 
-New tables (all with RLS):
+---
 
-- `team_post_authors` — extend roles. Add `role` column to `team_members` (enum: `member`, `officer`) and keep `captain_id` on `fishing_teams` as the owner role. Officers + captain = "page posters".
-- `team_posts`
-  - `id`, `team_id`, `author_id` (user who wrote it), `surface` enum (`page` | `group`), `content` text, `media` jsonb[] (array of `{url, type: image|video, width, height}`), `location_name`, `location_lat`, `location_lng`, `pinned` bool, `post_type` enum (`announcement`, `matchup`, `winning`, `teaser`, `update`, `catch`, `general`), `created_at`, `updated_at`, `is_hidden` bool (moderation), `report_count` int.
-- `team_post_likes` — `post_id`, `user_id`, unique.
-- `team_post_comments` — `post_id`, `user_id`, `parent_id` (nested), `content`, `created_at`, `is_hidden`.
-- `team_post_reports` — `post_id`, `reporter_id`, `reason`, `status` (`pending`, `reviewed`, `actioned`, `dismissed`), `created_at`, `reviewed_by`, `reviewed_at`. Mirrors existing reported-photos admin pattern.
+## 2. Realtime Audit
 
-Helper SECURITY DEFINER functions:
-- `is_team_member(_user, _team)` — accepted member OR captain.
-- `is_team_poster(_user, _team)` — captain OR officer.
+Sweep through and verify channel subscriptions and cleanup:
+- `useTeamPosts` — already uses `postgres_changes` on `team_posts`. Verify channel name uniqueness per `(teamId, surface)`.
+- `notifications` — check `src/hooks/use-notifications.ts` subscribes to INSERT on `notifications` for current user.
+- `messages` / `buddy_messages` — check `useMessages`/`useBuddyChat`.
+- Add `team_post_likes` and `team_post_comments` realtime so counts/UI refresh live.
+- Fix any missing `supabase.removeChannel` on unmount.
 
-Storage: new public bucket `team-media` with RLS requiring path prefix `{team_id}/{user_id}/...` and `is_team_member` check for upload.
+Deliverable: 1-page checklist in chat reply + code fixes where gaps found.
 
-## 2. RLS rules (plain English)
+---
 
-- **Team Page posts (`surface='page'`)**: anyone authenticated can read. Only captain or officers of the team can insert. Author or captain can update/delete. Admins bypass.
-- **Team Group posts (`surface='group'`)**: only team members + captain can read or insert. Author or captain can edit/delete.
-- **Likes/comments**: read follows the parent post's visibility. Insert requires the same visibility rule (anyone for page, members for group). Users edit/delete their own.
-- **Reports**: any logged-in user can insert one report per post. Only admins (`has_role(uid,'admin')`) can read/update.
-- **Roles**: only captain can promote/demote officers (update `team_members.role`).
+## 3. Like/Comment Notifications for Team Posts
 
-## 3. Frontend
+**DB (migration):**
+- Trigger `notify_team_post_like` on `team_post_likes` INSERT → insert into `notifications` for post `author_id` (skip self-likes). Type: `team_post_like`. Data: `{team_id, post_id, surface, liker_id}`.
+- Trigger `notify_team_post_comment` on `team_post_comments` INSERT → same pattern. Type: `team_post_comment`.
+- Also notify mentions in team comments (regex same as `notify_comment_mention`).
 
-### Routes (under `ScoreboardHubLayout`)
-- `/app/teams/:teamId` — refactor existing `TeamProfile.tsx` into a tabbed layout:
-  - **About** (existing info, roster, stats)
-  - **Page** (new) — public feed of `surface='page'` posts
-  - **Group** (new, gated) — members-only feed of `surface='group'` posts; non-members see "Join the team to see group posts"
-  - **Members** (existing roster, with role badges + captain controls to promote/demote/remove)
-- `/app/teams/:teamId/posts/:postId` — single post view (optional, for deep linking).
+**Frontend:**
+- Extend `NotificationItem` rendering to handle new types and deep-link to `/app/teams/:teamId?tab=page&post=:postId`.
 
-### New components (`src/components/teams/`)
-- `TeamHeaderCard` — banner, logo, name, captain, follow/join button, tab nav.
-- `TeamComposer` — Facebook-style composer (textarea + media picker + post type dropdown + optional location). Auto-selects allowed surface based on tab + role.
-- `TeamPostCard` — header shows team logo + "Team Name", subline "posted by @author · 2h", body, media carousel, like/comment/share row, pinned badge, post-type chip, report menu.
-- `TeamPostComments` — nested comments, mirrors `feed/CommentList` patterns.
-- `TeamMediaUploader` — uploads to `team-media` bucket, returns media jsonb entries; supports images + short video (mp4, ≤50MB).
-- `TeamRoleBadge` — Captain / Officer / Member chip used across roster and post headers.
+---
 
-### Hooks (`src/hooks/`)
-- `use-team-posts.ts` — TanStack infinite query keyed by `['team-posts', teamId, surface]`, sorted by `pinned desc, created_at desc`. Realtime channel for inserts/updates.
-- `use-team-post-mutations.ts` — create / update / delete / like / unlike / comment / report.
-- `use-team-role.ts` — returns `{ isCaptain, isOfficer, isMember, canPostPage, canPostGroup }` for current user + team.
+## 4. Video Moderation Pipeline
 
-### Feed details
-- Sorted by `pinned DESC, created_at DESC`. When `location_lat/lng` present and user has location, show "X mi away" badge (reuse haversine helper).
-- Realtime via Supabase channel `team-posts:{teamId}:{surface}`.
-- Like + comment counts denormalized on `team_posts` via triggers (mirrors `feed_posts`).
+**DB (migration):**
+- Add columns to `team_posts.media` items (jsonb already): introduce `moderation_status` enum (`pending`, `approved`, `rejected`) and `media_kind` (`image`, `video`).
+- New table `team_post_media_reviews` (`id`, `post_id`, `media_index`, `kind`, `url`, `status`, `reviewed_by`, `reviewed_at`, `notes`).
+- New status column `team_posts.visibility` enum (`public`, `pending_review`, `hidden`). When a video is attached → set to `pending_review` until approved.
+- RLS: only admins read/update reviews; authors can read their own.
+- Update `team_posts` SELECT policy: page posts visible if `visibility='public'` OR viewer is author/captain/admin.
 
-### Permissions UI
-- Composer hidden if user lacks role for that surface.
-- Members tab shows promote/demote/remove menu only for captain.
-- Report menu on every post for any logged-in user (not author).
+**Edge function `process-team-video`:**
+- Triggered on upload (call from `TeamMediaUploader` after successful storage put).
+- Generates a poster thumbnail (using `ffmpeg.wasm` is heavy; v1: just record metadata + queue for admin). Mark `moderation_status='pending'`, create review row.
+- Optional: integrate with a third-party moderation API later (left as a hook).
 
-## 4. Admin moderation
+**Admin UI:**
+- Extend `AdminTeamPosts.tsx` with a "Pending Media" tab listing `team_post_media_reviews` where `status='pending'`. Approve → set post `visibility='public'` (if all media approved). Reject → set `visibility='hidden'` and notify author.
 
-Extend admin sidebar with **Team Posts** entry:
-- `src/pages/admin/AdminTeamPosts.tsx` lists `team_post_reports` filtered by status with the same table styling as `AdminPhotoChallenges` reports.
-- Actions: hide post (`is_hidden=true`), delete post, dismiss report, ban author from posting (sets `team_members.is_muted`). Hooks into existing audit log via `create_audit_log`.
+---
 
-## 5. Technical notes
+## 5. Page/Group Feed Filters
 
-- Use `(SELECT auth.uid())` inside RLS for performance (project convention).
-- Media uploads must prefix path with `{team_id}/{user_id}/` to satisfy storage RLS.
-- Add denormalized `likes_count`, `comments_count` to `team_posts` with triggers (`update_team_post_likes_count`, `update_team_post_comments_count`).
-- Notification triggers: notify captain on new group post, notify all members on new page post, notify post author on like/comment, notify admins on new report. Reuse `notifications` table with new types `team_page_post`, `team_group_post`, `team_post_like`, `team_post_comment`, `team_post_reported`.
-- TypeScript: `ReturnType<typeof setTimeout>` for any timers in realtime hooks.
-- TanStack query keys must be strictly distinct per surface; invalidate with `exact: true`.
+**Frontend only:**
+- Add a filter bar to `TeamFeedTab.tsx`:
+  - Sort: `Recent` (default, `created_at DESC`) | `Top` (`likes_count DESC` within last 7d).
+  - Location: `All` | `Nearby` (uses browser geolocation + haversine on `location_lat/lng` columns already present on `team_posts`, radius slider 10/25/50/100mi).
+- Add `location_lat`, `location_lng` columns to `team_posts` if not present (current schema has `location` text; add geo cols in migration).
+- Update `useTeamPosts(teamId, surface, { sort, near })` to accept filters.
 
-## 6. Rollout order
+---
 
-1. Migration: tables, enums, helper functions, RLS, storage bucket, triggers, notification types.
-2. Hooks (`use-team-role`, `use-team-posts`, mutations).
-3. Components (header tabs, composer, post card, comments, media uploader, role badge).
-4. Refactor `TeamProfile.tsx` to tabbed layout; wire Page + Group + Members tabs.
-5. Admin moderation page + sidebar entry.
-6. Polish: empty states, pinned banner, "X mi away" badge, realtime, notifications.
+## Technical Notes
+- New enum types created with `CREATE TYPE IF NOT EXISTS`-style guards via `DO $$ ... $$`.
+- All triggers use `SECURITY DEFINER` + `SET search_path = public`.
+- All new RLS policies use `(SELECT auth.uid())` pattern per project core rule.
+- Storage path for videos unchanged (`team-media/{team_id}/{user_id}/...`); just gate publish via DB `visibility`.
 
-## Open questions
+---
 
-1. Should **video uploads** be enabled in v1, or images-only first (videos can land in v2)?
-2. For the **Group**, should pending join requests be required (captain approves), or auto-join from the existing team roster only?
-3. Should Page posts be **cross-posted to the main Feed** (`feed_posts`) so followers see them, or stay only on the team page?
+## Open Questions
+
+1. **Video transcoding**: do you want real transcoding (mp4→hls, requires an external service like Mux/Cloudflare Stream and a paid API key), or v1 = just admin review of raw mp4 + auto-poster thumbnail? Real transcoding adds cost.
+2. **"Nearby" location for filter**: use the device's current location, or the user's saved `profile.location_lat/lng`?
+3. **Follow vs cross-post in main Feed**: currently Page posts cross-post only if the author toggles it. Should followers also see *non*-cross-posted Page posts in their main feed, or only on the team's page?
