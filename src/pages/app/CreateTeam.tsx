@@ -30,6 +30,9 @@ const TEAM_TYPES = [
   { value: "charter_boat", label: "Charter Boat", description: "A licensed charter operation" },
 ];
 
+const inputCls =
+  "mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]";
+
 export default function CreateTeam() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -84,7 +87,6 @@ export default function CreateTeam() {
       }).select("id").single();
       if (error) throw error;
 
-      // Captain automatically joins as member
       await supabase.from("team_members").insert({
         team_id: data.id,
         user_id: user.id,
@@ -104,49 +106,57 @@ export default function CreateTeam() {
   const selectedCategory = CATEGORIES.find((c) => c.value === category);
 
   return (
-    <div className="pb-24 min-h-screen">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/app/teams")}>
+    <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-24">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 backdrop-blur bg-[hsl(var(--sb-surface)/0.85)] border-b sb-border">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/app/teams")}
+            className="hover:bg-[hsl(var(--sb-surface-2))]"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-lg font-bold">Create a Team</h1>
-            <p className="text-xs text-muted-foreground">Build your fishing squad and compete together</p>
+            <h1 className="text-base font-bold flex items-center gap-2">
+              <Shield className="h-4 w-4 sb-cyan" />
+              Create a Team
+            </h1>
+            <p className="text-[11px] sb-text-muted">Build your fishing squad and compete together</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 mt-6 space-y-6">
-        {/* Team Logo */}
-        <section className="rounded-xl border bg-card p-5">
+      <div className="max-w-2xl mx-auto px-4 mt-5 space-y-5">
+        {/* Team Identity */}
+        <section className="sb-card p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Shield className="h-5 w-5 text-primary" />
+            <Shield className="h-5 w-5 sb-cyan" />
             <h2 className="font-bold">Team Identity</h2>
           </div>
           <div className="flex items-center gap-5 mb-4">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-20 h-20 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden hover:border-primary/50 transition-colors shrink-0"
+              className="w-20 h-20 rounded-full border-2 border-dashed border-[hsl(var(--sb-border))] flex items-center justify-center overflow-hidden hover:border-[hsl(var(--sb-cyan))] transition-colors shrink-0 bg-[hsl(var(--sb-surface-2))]"
             >
               {logoPreview ? (
                 <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
               ) : (
-                <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                <ImagePlus className="h-6 w-6 sb-text-muted" />
               )}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
             <div>
               <p className="text-sm font-medium">Team Logo</p>
-              <p className="text-xs text-muted-foreground">Optional. Upload a square image for your team badge.</p>
+              <p className="text-xs sb-text-muted">Optional. Upload a square image for your team badge.</p>
             </div>
           </div>
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium">Team Name *</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Reel Warriors" className="mt-1.5" maxLength={50} />
-              <p className="text-[10px] text-muted-foreground mt-1">{name.length}/50 characters</p>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Reel Warriors" className={inputCls} maxLength={50} />
+              <p className="text-[10px] sb-text-muted mt-1">{name.length}/50 characters</p>
             </div>
             <div>
               <Label className="text-sm font-medium">Description</Label>
@@ -155,16 +165,16 @@ export default function CreateTeam() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Tell others about your team's goals, fishing style, and what kind of members you're looking for..."
                 rows={3}
-                className="mt-1.5"
+                className={inputCls}
               />
             </div>
           </div>
         </section>
 
         {/* Type & Contact */}
-        <section className="rounded-xl border bg-card p-5">
+        <section className="sb-card p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Phone className="h-5 w-5 text-primary" />
+            <Phone className="h-5 w-5 sb-cyan" />
             <h2 className="font-bold">Type & Contact</h2>
           </div>
           <div className="space-y-4">
@@ -178,38 +188,38 @@ export default function CreateTeam() {
                     onClick={() => setTeamType(t.value)}
                     className={`p-3 rounded-lg border-2 text-left transition-all ${
                       teamType === t.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-muted-foreground/30"
+                        ? "border-[hsl(var(--sb-cyan))] bg-[hsl(var(--sb-cyan-soft))]"
+                        : "border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:border-[hsl(var(--sb-cyan))]/50"
                     }`}
                   >
                     <p className="font-semibold text-sm">{t.label}</p>
-                    <p className="text-[11px] text-muted-foreground leading-tight">{t.description}</p>
+                    <p className="text-[11px] sb-text-muted leading-tight">{t.description}</p>
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <Label className="text-sm font-medium">Location <span className="text-muted-foreground font-normal">(optional)</span></Label>
-              <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Miami, FL" className="mt-1.5" />
+              <Label className="text-sm font-medium">Location <span className="sb-text-muted font-normal">(optional)</span></Label>
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Miami, FL" className={inputCls} />
             </div>
             <div>
-              <Label className="text-sm font-medium">Phone <span className="text-muted-foreground font-normal">(optional)</span></Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className="mt-1.5" type="tel" />
+              <Label className="text-sm font-medium">Phone <span className="sb-text-muted font-normal">(optional)</span></Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className={inputCls} type="tel" />
             </div>
             <div>
-              <Label className="text-sm font-medium">Website <span className="text-muted-foreground font-normal">(optional)</span></Label>
-              <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" className="mt-1.5" type="url" />
+              <Label className="text-sm font-medium">Website <span className="sb-text-muted font-normal">(optional)</span></Label>
+              <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" className={inputCls} type="url" />
             </div>
           </div>
         </section>
 
         {/* Category */}
-        <section className="rounded-xl border bg-card p-5">
+        <section className="sb-card p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Trophy className="h-5 w-5 text-primary" />
+            <Trophy className="h-5 w-5 sb-cyan" />
             <h2 className="font-bold">Team Category</h2>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Choose the category for your team. This determines which group you compete in.</p>
+          <p className="text-xs sb-text-muted mb-3">Choose the category for your team. This determines which group you compete in.</p>
           <div className="space-y-2">
             {CATEGORIES.map((cat) => (
               <button
@@ -217,18 +227,18 @@ export default function CreateTeam() {
                 onClick={() => setCategory(cat.value)}
                 className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${
                   category === cat.value
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground/30"
+                    ? "border-[hsl(var(--sb-cyan))] bg-[hsl(var(--sb-cyan-soft))]"
+                    : "border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:border-[hsl(var(--sb-cyan))]/50"
                 }`}
               >
                 <span className="text-2xl">{cat.emoji}</span>
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{cat.label}</p>
-                  <p className="text-xs text-muted-foreground">{cat.description}</p>
+                  <p className="text-xs sb-text-muted">{cat.description}</p>
                 </div>
                 {category === cat.value && (
-                  <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0">
-                    <Sparkles className="h-3 w-3 text-primary-foreground" />
+                  <div className="h-5 w-5 rounded-full sb-bg-cyan flex items-center justify-center shrink-0">
+                    <Sparkles className="h-3 w-3" />
                   </div>
                 )}
               </button>
@@ -238,13 +248,13 @@ export default function CreateTeam() {
 
         {/* Preview */}
         {name && (
-          <section className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-5">
-            <h3 className="font-bold text-sm text-primary mb-3 flex items-center gap-2">
+          <section className="rounded-xl border-2 border-dashed border-[hsl(var(--sb-cyan))]/40 bg-[hsl(var(--sb-cyan-soft))] p-5">
+            <h3 className="font-bold text-sm sb-cyan mb-3 flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               Team Preview
             </h3>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden shrink-0">
+              <div className="w-12 h-12 rounded-full bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-sm font-bold sb-cyan overflow-hidden shrink-0">
                 {logoPreview ? (
                   <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
                 ) : (
@@ -253,7 +263,7 @@ export default function CreateTeam() {
               </div>
               <div>
                 <p className="font-bold">{name}</p>
-                <p className="text-xs text-muted-foreground">{selectedCategory?.label} • You as Captain</p>
+                <p className="text-xs sb-text-muted">{selectedCategory?.label} • You as Captain</p>
               </div>
             </div>
           </section>
@@ -261,9 +271,15 @@ export default function CreateTeam() {
 
         {/* Actions */}
         <div className="flex gap-3 pb-6">
-          <Button variant="outline" className="flex-1" onClick={() => navigate("/app/teams")}>Cancel</Button>
           <Button
-            className="flex-1 gap-2"
+            variant="outline"
+            className="flex-1 border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:bg-[hsl(var(--sb-surface))]"
+            onClick={() => navigate("/app/teams")}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="flex-1 gap-2 sb-bg-cyan border-0 hover:opacity-90"
             onClick={() => createMutation.mutate()}
             disabled={createMutation.isPending || !name.trim()}
           >

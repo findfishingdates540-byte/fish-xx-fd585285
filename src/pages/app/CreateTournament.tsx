@@ -161,7 +161,7 @@ const CreateTournament = () => {
   });
 
   if (gateLoading) {
-    return <div className="max-w-lg mx-auto px-4 py-12 text-center text-muted-foreground">Loading…</div>;
+    return <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0"><div className="max-w-lg mx-auto px-4 py-12 text-center sb-text-muted">Loading…</div></div>;
   }
 
   if (!canCreate) {
@@ -170,66 +170,70 @@ const CreateTournament = () => {
       requirement === "verified" ? "Verified users" :
       requirement === "admin" ? "Admins" : "logged-in users";
     return (
-      <div className="max-w-lg mx-auto px-4 pb-32">
-        <div className="flex items-center gap-3 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+      <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-32">
+        <div className="max-w-lg mx-auto px-4 flex items-center gap-3 py-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-[hsl(var(--sb-surface-2))]">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-bold">Create Tournament</h1>
         </div>
-        <div className="rounded-xl border bg-card p-8 text-center space-y-4">
-          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Lock className="h-6 w-6 text-primary" />
+        <div className="max-w-lg mx-auto px-4">
+        <div className="sb-card p-8 text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-[hsl(var(--sb-cyan-soft))] flex items-center justify-center">
+            <Lock className="h-6 w-6 sb-cyan" />
           </div>
           <h2 className="text-lg font-semibold">Tournament hosting is restricted</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm sb-text-muted">
             Only {requirementLabel} can create tournaments right now.
           </p>
           {requirement === "premium" && (
-            <Button asChild className="w-full">
+            <Button asChild className="w-full sb-bg-cyan border-0 hover:opacity-90">
               <Link to="/pricing">Upgrade to Premium</Link>
             </Button>
           )}
-          <Button variant="ghost" className="w-full" onClick={() => navigate("/app/tournaments")}>
+          <Button variant="ghost" className="w-full hover:bg-[hsl(var(--sb-surface-2))]" onClick={() => navigate("/app/tournaments")}>
             Back to tournaments
           </Button>
+        </div>
         </div>
       </div>
     );
   }
 
   if (teamCheckLoading) {
-    return <div className="max-w-lg mx-auto px-4 py-12 text-center text-muted-foreground">Checking team membership…</div>;
+    return <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0"><div className="max-w-lg mx-auto px-4 py-12 text-center sb-text-muted">Checking team membership…</div></div>;
   }
 
   if (captainTeams.length === 0) {
     return (
-      <div className="max-w-lg mx-auto px-4 pb-32">
-        <div className="flex items-center gap-3 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+      <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-32">
+        <div className="max-w-lg mx-auto px-4 flex items-center gap-3 py-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-[hsl(var(--sb-surface-2))]">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-bold">Create Tournament</h1>
         </div>
-        <div className="rounded-xl border bg-card p-8 text-center space-y-4">
-          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <ShieldAlert className="h-6 w-6 text-primary" />
+        <div className="max-w-lg mx-auto px-4">
+        <div className="sb-card p-8 text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-[hsl(var(--sb-cyan-soft))] flex items-center justify-center">
+            <ShieldAlert className="h-6 w-6 sb-cyan" />
           </div>
           <h2 className="text-lg font-semibold">You need to captain a team first</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm sb-text-muted">
             Tournaments are team-based and only team captains can host or register. Create a team (you'll be its captain) before launching a tournament.
           </p>
           <div className="grid gap-2">
-            <Button asChild className="w-full">
+            <Button asChild className="w-full sb-bg-cyan border-0 hover:opacity-90">
               <Link to="/app/teams/new">Create a team</Link>
             </Button>
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild variant="outline" className="w-full border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))]">
               <Link to="/app/teams">Browse existing teams</Link>
             </Button>
-            <Button variant="ghost" className="w-full" onClick={() => navigate("/app/tournaments")}>
+            <Button variant="ghost" className="w-full hover:bg-[hsl(var(--sb-surface-2))]" onClick={() => navigate("/app/tournaments")}>
               Back to tournaments
             </Button>
           </div>
+        </div>
         </div>
       </div>
     );
@@ -240,7 +244,7 @@ const CreateTournament = () => {
   const selectedTeam = captainTeams.find((t) => t.id === creatorTeamId);
 
   return (
-    <div className="pb-24 min-h-screen">
+    <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-24">
       {/* Banner hero */}
       <div className="relative h-48 md:h-64 overflow-hidden">
         <img
@@ -248,27 +252,27 @@ const CreateTournament = () => {
           alt="Tournament banner"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--sb-surface))] via-[hsl(var(--sb-surface))]/60 to-transparent" />
         <div className="absolute top-4 left-4 z-10">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/app/tournaments")}
-            className="bg-background/60 backdrop-blur-sm hover:bg-background/80"
+            className="bg-[hsl(var(--sb-surface))]/60 backdrop-blur-sm hover:bg-[hsl(var(--sb-surface))]/80"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </div>
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="absolute top-4 right-4 z-10 flex items-center gap-2 px-3 py-2 rounded-lg bg-background/60 backdrop-blur-sm hover:bg-background/80 transition-colors text-sm font-medium"
+          className="absolute top-4 right-4 z-10 flex items-center gap-2 px-3 py-2 rounded-lg bg-[hsl(var(--sb-surface))]/60 backdrop-blur-sm hover:bg-[hsl(var(--sb-surface))]/80 transition-colors text-sm font-medium"
         >
           <ImagePlus className="h-4 w-4" />
           {bannerPreview ? "Change Banner" : "Upload Banner"}
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
         <div className="absolute bottom-4 left-4 right-4 z-10">
-          <Badge className="bg-primary/90 text-primary-foreground border-0 mb-2">
+          <Badge className="sb-bg-cyan border-0 mb-2">
             <Swords className="h-3 w-3 mr-1" /> New Tournament
           </Badge>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -280,39 +284,39 @@ const CreateTournament = () => {
       <div className="max-w-3xl mx-auto px-4 md:px-6 -mt-2">
         <div className="space-y-6 mt-6">
           {/* Teams-only notice */}
-          <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-start gap-3">
-            <Users className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <div className="rounded-xl border border-[hsl(var(--sb-cyan))]/40 bg-[hsl(var(--sb-cyan-soft))] p-4 flex items-start gap-3">
+            <Users className="h-4 w-4 sb-cyan mt-0.5 shrink-0" />
             <div className="text-xs leading-relaxed">
               <p className="font-semibold text-foreground mb-0.5">Team-based bracket</p>
-              <p className="text-muted-foreground">
+              <p className="sb-text-muted">
                 Tournaments are played between teams. Only team captains can register a team to compete in your bracket.
               </p>
             </div>
           </div>
 
           {/* Your team selector */}
-          <section className="rounded-xl border bg-card p-5 space-y-4">
+          <section className="sb-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <Users className="h-5 w-5 text-primary" />
+              <Users className="h-5 w-5 sb-cyan" />
               <h2 className="font-bold">Your Team</h2>
             </div>
-            <p className="text-xs text-muted-foreground -mt-2">
+            <p className="text-xs sb-text-muted -mt-2">
               Pick the team you'll compete with. They'll be auto-registered as the first entrant when the tournament launches.
             </p>
             {captainTeams.length === 1 ? (
-              <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/30">
+              <div className="flex items-center gap-3 rounded-lg border border-[hsl(var(--sb-border))] p-3 bg-[hsl(var(--sb-surface-2))]">
                 {selectedTeam?.logo_url ? (
                   <img src={selectedTeam.logo_url} alt={selectedTeam.name} className="h-10 w-10 rounded-full object-cover" />
                 ) : (
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
+                  <div className="h-10 w-10 rounded-full bg-[hsl(var(--sb-cyan-soft))] flex items-center justify-center">
+                    <Users className="h-5 w-5 sb-cyan" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{selectedTeam?.name}</p>
-                  <p className="text-xs text-muted-foreground">You're the captain</p>
+                  <p className="text-xs sb-text-muted">You're the captain</p>
                 </div>
-                <Badge variant="secondary" className="text-[10px]">Captain</Badge>
+                <Badge className="text-[10px] sb-bg-cyan border-0">Captain</Badge>
               </div>
             ) : (
               <div className="grid gap-2">
@@ -322,24 +326,24 @@ const CreateTournament = () => {
                     onClick={() => setCreatorTeamId(t.id)}
                     className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
                       creatorTeamId === t.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-muted-foreground/30 hover:bg-muted/30"
+                        ? "border-[hsl(var(--sb-cyan))] bg-[hsl(var(--sb-cyan-soft))]"
+                        : "border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:border-[hsl(var(--sb-cyan))]/50"
                     }`}
                   >
                     {t.logo_url ? (
                       <img src={t.logo_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-primary" />
+                      <div className="h-10 w-10 rounded-full bg-[hsl(var(--sb-cyan-soft))] flex items-center justify-center">
+                        <Users className="h-5 w-5 sb-cyan" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">You're the captain</p>
+                      <p className="text-xs sb-text-muted">You're the captain</p>
                     </div>
                     {creatorTeamId === t.id && (
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <Sparkles className="h-3 w-3 text-primary-foreground" />
+                      <div className="h-5 w-5 rounded-full sb-bg-cyan flex items-center justify-center">
+                        <Sparkles className="h-3 w-3" />
                       </div>
                     )}
                   </button>
@@ -349,9 +353,9 @@ const CreateTournament = () => {
           </section>
 
           {/* Basic Info */}
-          <section className="rounded-xl border bg-card p-5 space-y-4">
+          <section className="sb-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <Trophy className="h-5 w-5 text-primary" />
+              <Trophy className="h-5 w-5 sb-cyan" />
               <h2 className="font-bold">Tournament Details</h2>
             </div>
             <div>
@@ -360,7 +364,7 @@ const CreateTournament = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Spring Bass Showdown 2026"
-                className="mt-1.5"
+                className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
               />
             </div>
             <div>
@@ -370,15 +374,15 @@ const CreateTournament = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What's at stake, the vibe, sponsors, anything teams should know before they register…"
                 rows={4}
-                className="mt-1.5"
+                className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
               />
             </div>
           </section>
 
           {/* Format */}
-          <section className="rounded-xl border bg-card p-5 space-y-4">
+          <section className="sb-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <Swords className="h-5 w-5 text-primary" />
+              <Swords className="h-5 w-5 sb-cyan" />
               <h2 className="font-bold">Bracket Format</h2>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -388,16 +392,16 @@ const CreateTournament = () => {
                   onClick={() => setFormat(f.value)}
                   className={`relative rounded-xl border-2 p-4 text-left transition-all ${
                     format === f.value
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-muted-foreground/30 hover:bg-muted/30"
+                      ? "border-[hsl(var(--sb-cyan))] bg-[hsl(var(--sb-cyan-soft))] shadow-sm"
+                      : "border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:border-[hsl(var(--sb-cyan))]/50"
                   }`}
                 >
                   <span className="text-2xl block mb-2">{f.icon}</span>
                   <p className="font-semibold text-sm">{f.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{f.description}</p>
+                  <p className="text-xs sb-text-muted mt-0.5">{f.description}</p>
                   {format === f.value && (
-                    <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                      <Sparkles className="h-3 w-3 text-primary-foreground" />
+                    <div className="absolute top-2 right-2 h-5 w-5 rounded-full sb-bg-cyan flex items-center justify-center">
+                      <Sparkles className="h-3 w-3" />
                     </div>
                   )}
                 </button>
@@ -406,9 +410,9 @@ const CreateTournament = () => {
           </section>
 
           {/* Scoring */}
-          <section className="rounded-xl border bg-card p-5 space-y-4">
+          <section className="sb-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <Target className="h-5 w-5 text-primary" />
+              <Target className="h-5 w-5 sb-cyan" />
               <h2 className="font-bold">Scoring & Seeding</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -418,13 +422,13 @@ const CreateTournament = () => {
                   onClick={() => setScoring(s.value)}
                   className={`relative rounded-xl border-2 p-3 text-left transition-all ${
                     scoring === s.value
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-muted-foreground/30 hover:bg-muted/30"
+                      ? "border-[hsl(var(--sb-cyan))] bg-[hsl(var(--sb-cyan-soft))] shadow-sm"
+                      : "border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:border-[hsl(var(--sb-cyan))]/50"
                   }`}
                 >
                   <span className="text-xl block mb-1">{s.icon}</span>
                   <p className="font-semibold text-xs">{s.label}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{s.description}</p>
+                  <p className="text-[11px] sb-text-muted mt-0.5 leading-snug">{s.description}</p>
                 </button>
               ))}
             </div>
@@ -433,7 +437,7 @@ const CreateTournament = () => {
               <div>
                 <Label className="text-sm font-medium">Seeding Method</Label>
                 <Select value={seeding} onValueChange={setSeeding}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="random">Random Draw</SelectItem>
                     <SelectItem value="ranked">Ranked (by team score)</SelectItem>
@@ -444,7 +448,7 @@ const CreateTournament = () => {
               <div>
                 <Label className="text-sm font-medium">Max Teams</Label>
                 <Select value={maxParticipants} onValueChange={setMaxParticipants}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="4">4 teams</SelectItem>
                     <SelectItem value="8">8 teams</SelectItem>
@@ -458,9 +462,9 @@ const CreateTournament = () => {
           </section>
 
           {/* Schedule */}
-          <section className="rounded-xl border bg-card p-5 space-y-4">
+          <section className="sb-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <Calendar className="h-5 w-5 text-primary" />
+              <Calendar className="h-5 w-5 sb-cyan" />
               <h2 className="font-bold">Schedule</h2>
             </div>
             <div>
@@ -469,7 +473,7 @@ const CreateTournament = () => {
                 type="datetime-local"
                 value={registrationEnd}
                 onChange={(e) => setRegistrationEnd(e.target.value)}
-                className="mt-1.5"
+                className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -479,7 +483,7 @@ const CreateTournament = () => {
                   type="datetime-local"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="mt-1.5"
+                  className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
                 />
               </div>
               <div>
@@ -488,21 +492,21 @@ const CreateTournament = () => {
                   type="datetime-local"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="mt-1.5"
+                  className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
                 />
               </div>
             </div>
             {startDate && endDate && new Date(endDate) > new Date(startDate) && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs sb-text-muted">
                 Duration: {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} days
               </p>
             )}
           </section>
 
           {/* Prizes */}
-          <section className="rounded-xl border bg-card p-5 space-y-4">
+          <section className="sb-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <Gift className="h-5 w-5 text-primary" />
+              <Gift className="h-5 w-5 sb-cyan" />
               <h2 className="font-bold">Prize & Entry</h2>
             </div>
 
@@ -510,7 +514,7 @@ const CreateTournament = () => {
               <div>
                 <Label className="text-sm font-medium">Prize Type</Label>
                 <Select value={prizeType} onValueChange={(v) => setPrizeType(v as "cash" | "gift_card")}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cash">Cash (paid pool)</SelectItem>
                     <SelectItem value="gift_card">Gift Card</SelectItem>
@@ -523,7 +527,7 @@ const CreateTournament = () => {
                   value={prizeDescription}
                   onChange={(e) => setPrizeDescription(e.target.value)}
                   placeholder="e.g. $500 cash + trophy"
-                  className="mt-1.5"
+                  className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
                 />
               </div>
             </div>
@@ -535,16 +539,16 @@ const CreateTournament = () => {
                   value={giftCardCode}
                   onChange={(e) => setGiftCardCode(e.target.value)}
                   placeholder="XXXX-XXXX-XXXX"
-                  className="mt-1.5"
+                  className="mt-1.5 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
                 />
               </div>
             )}
 
             {prizeType === "cash" && (
-              <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+              <div className="flex items-center justify-between rounded-lg border border-[hsl(var(--sb-border))] p-3 bg-[hsl(var(--sb-surface-2))]">
                 <div>
                   <p className="text-sm font-medium">Charge entry fee</p>
-                  <p className="text-xs text-muted-foreground">Captains pay via Stripe to register their team</p>
+                  <p className="text-xs sb-text-muted">Captains pay via Stripe to register their team</p>
                 </div>
                 <Switch checked={entryFeeEnabled} onCheckedChange={setEntryFeeEnabled} />
               </div>
@@ -555,19 +559,19 @@ const CreateTournament = () => {
                 <div>
                   <Label className="text-sm font-medium">Entry Fee per Team ($)</Label>
                   <div className="relative mt-1.5">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted" />
                     <Input
                       type="number"
                       min="1"
                       step="0.01"
                       value={entryFee}
                       onChange={(e) => setEntryFee(e.target.value)}
-                      className="pl-9"
+                      className="pl-9 bg-[hsl(var(--sb-surface-2))] border-[hsl(var(--sb-border))] focus-visible:ring-[hsl(var(--sb-cyan))]"
                     />
                   </div>
                 </div>
-                <div className="rounded-lg border p-3 bg-primary/5">
-                  <p className="text-xs text-muted-foreground">
+                <div className="rounded-lg border border-[hsl(var(--sb-cyan))]/30 p-3 bg-[hsl(var(--sb-cyan-soft))]">
+                  <p className="text-xs sb-text-muted">
                     ℹ️ A {platformFeePercent}% platform fee is deducted from the prize pool. The winning team receives{" "}
                     <span className="font-semibold text-foreground">{Math.max(0, 100 - platformFeePercent)}%</span>{" "}
                     of total entries collected. No fee applies to gift card prizes.
@@ -579,26 +583,26 @@ const CreateTournament = () => {
 
           {/* Preview */}
           {title && (
-            <section className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-5">
-              <h3 className="font-bold text-sm text-primary mb-3 flex items-center gap-2">
+            <section className="rounded-xl border-2 border-dashed border-[hsl(var(--sb-cyan))]/40 bg-[hsl(var(--sb-cyan-soft))] p-5">
+              <h3 className="font-bold text-sm sb-cyan mb-3 flex items-center gap-2">
                 <Sparkles className="h-4 w-4" /> Tournament Preview
               </h3>
               <div className="space-y-2 text-sm">
-                <p><span className="text-muted-foreground">Title:</span> <span className="font-medium">{title}</span></p>
-                <p><span className="text-muted-foreground">Format:</span> <span className="font-medium">{selectedFormat?.label}</span></p>
-                <p><span className="text-muted-foreground">Scoring:</span> <span className="font-medium">{selectedScoring?.label}</span></p>
-                <p><span className="text-muted-foreground">Teams:</span> <span className="font-medium">Up to {maxParticipants}</span></p>
+                <p><span className="sb-text-muted">Title:</span> <span className="font-medium">{title}</span></p>
+                <p><span className="sb-text-muted">Format:</span> <span className="font-medium">{selectedFormat?.label}</span></p>
+                <p><span className="sb-text-muted">Scoring:</span> <span className="font-medium">{selectedScoring?.label}</span></p>
+                <p><span className="sb-text-muted">Teams:</span> <span className="font-medium">Up to {maxParticipants}</span></p>
                 {startDate && (
-                  <p><span className="text-muted-foreground">Starts:</span> <span className="font-medium">{new Date(startDate).toLocaleString()}</span></p>
+                  <p><span className="sb-text-muted">Starts:</span> <span className="font-medium">{new Date(startDate).toLocaleString()}</span></p>
                 )}
                 {prizeType === "cash" && entryFeeEnabled && (
-                  <p><span className="text-muted-foreground">Entry:</span> <span className="font-medium">${entryFee} per team</span></p>
+                  <p><span className="sb-text-muted">Entry:</span> <span className="font-medium">${entryFee} per team</span></p>
                 )}
                 {prizeDescription && (
-                  <p><span className="text-muted-foreground">Prize:</span> <span className="font-medium">{prizeDescription}</span></p>
+                  <p><span className="sb-text-muted">Prize:</span> <span className="font-medium">{prizeDescription}</span></p>
                 )}
                 {selectedTeam && (
-                  <p><span className="text-muted-foreground">Your Team:</span> <span className="font-medium">{selectedTeam.name}</span></p>
+                  <p><span className="sb-text-muted">Your Team:</span> <span className="font-medium">{selectedTeam.name}</span></p>
                 )}
               </div>
             </section>
@@ -606,11 +610,15 @@ const CreateTournament = () => {
 
           {/* Submit */}
           <div className="flex gap-3 pb-6">
-            <Button variant="outline" className="flex-1" onClick={() => navigate("/app/tournaments")}>
+            <Button
+              variant="outline"
+              className="flex-1 border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:bg-[hsl(var(--sb-surface))]"
+              onClick={() => navigate("/app/tournaments")}
+            >
               Cancel
             </Button>
             <Button
-              className="flex-1 gap-2"
+              className="flex-1 gap-2 sb-bg-cyan border-0 hover:opacity-90"
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !title.trim() || !registrationEnd || !startDate || !creatorTeamId}
             >
