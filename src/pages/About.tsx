@@ -11,13 +11,12 @@ import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scr
 
 const About = () => {
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <PageMeta
         title="About FishX — Our Mission for Anglers"
         description="FishX is the social home for anglers — built to help you find spots, log catches, compete fairly, and connect with a global fishing community."
         path="/about"
       />
-    <div className="min-h-screen bg-background">
       <PublicHeader />
 
       {/* Hero Section */}
