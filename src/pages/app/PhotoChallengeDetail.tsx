@@ -316,7 +316,7 @@ export default function PhotoChallengeDetail() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="h-48 rounded-xl bg-muted animate-pulse mb-6" />
         <div className="h-8 w-48 bg-muted animate-pulse rounded mb-4" />
       </div>
@@ -325,7 +325,7 @@ export default function PhotoChallengeDetail() {
 
   if (!challenge) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+      <div className="max-w-6xl mx-auto px-4 py-12 text-center">
         <p className="text-muted-foreground">Challenge not found</p>
         <Button variant="outline" onClick={() => navigate("/app/photo-challenges")} className="mt-4">
           Back
@@ -346,7 +346,7 @@ export default function PhotoChallengeDetail() {
   const submissionsOpenByTime = isSubmissionPhase && nowMs < submissionsEndMs;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
       <Button variant="ghost" size="sm" onClick={() => navigate("/app/photo-challenges")}>
         <ArrowLeft className="h-4 w-4 mr-1" /> Photo Challenges
       </Button>
