@@ -277,7 +277,7 @@ export default function TeamProfile() {
         {/* Identity row */}
         <div className="px-4 md:px-6 pb-4 -mt-12 md:-mt-14 relative">
           <div className="flex flex-col md:flex-row md:items-end gap-4">
-            <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-background ring-4 ring-card shadow-lg overflow-hidden grid place-items-center text-2xl font-bold text-primary">
+            <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-background ring-4 ring-card shadow-lg overflow-hidden grid place-items-center text-2xl font-bold text-primary">
               {team.logo_url ? (
                 <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
               ) : (
