@@ -2706,18 +2706,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          notifications_muted: boolean
           team_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          notifications_muted?: boolean
           team_id: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          notifications_muted?: boolean
           team_id?: string
           user_id?: string
         }
@@ -2770,6 +2773,42 @@ export type Database = {
           },
           {
             foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_team_round_scores"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
+      team_page_views: {
+        Row: {
+          created_at: string
+          id: string
+          team_id: string
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          team_id: string
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          team_id?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_page_views_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_page_views_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "tournament_team_round_scores"
@@ -4256,6 +4295,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_team_page_insights: { Args: { p_team_id: string }; Returns: Json }
       get_team_scores:
         | {
             Args: { p_category?: string }
