@@ -21,8 +21,6 @@ import {
   Target,
   Shield,
   ShieldOff,
-  Bell,
-  BellOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTeamFollow } from "@/hooks/use-team-follow";
