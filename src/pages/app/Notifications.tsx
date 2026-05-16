@@ -161,6 +161,9 @@ export default function Notifications() {
         return '/app/feed';
       case 'comment_mention':
         return `/app/feed?post=${notification.data?.post_id}&comment=${notification.data?.comment_id}`;
+      case 'team_post_like':
+      case 'team_post_comment':
+        return `/app/teams/${(notification.data as any)?.team_id}?tab=${(notification.data as any)?.surface || 'page'}`;
       case 'spot_update':
       case 'fishing_alert':
         return '/app/spots';
