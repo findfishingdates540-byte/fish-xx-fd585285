@@ -912,11 +912,13 @@ const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string
 
 const MatchupCard = ({
   matchup,
+  roundName,
   teamMap,
   getPlayerName,
   getPlayerPhoto,
 }: {
   matchup: any;
+  roundName?: string;
   teamMap: Record<string, any>;
   getPlayerName: (id: string | null) => string;
   getPlayerPhoto: (id: string | null) => string | null;
@@ -938,24 +940,87 @@ const MatchupCard = ({
     (matchup.winner_team_id && matchup.winner_team_id === matchup.team2_id) ||
     (!matchup.winner_team_id && matchup.winner_id === matchup.player2_id)
   );
+  const bothPresent = !!(matchup.team1_id && matchup.team2_id);
+  const isBye = (matchup.team1_id && !matchup.team2_id) || (!matchup.team1_id && matchup.team2_id);
+  const statusPill = isComplete
+    ? null
+    : isBye
+    ? <span className="text-[9px] uppercase tracking-wide text-muted-foreground">BYE</span>
+    : bothPresent
+    ? <span className="text-[9px] uppercase tracking-wide text-amber-600">Pending</span>
+    : <span className="text-[9px] uppercase tracking-wide text-muted-foreground">TBD</span>;
 
   return (
     <div className="rounded-lg border bg-background overflow-hidden">
-      <TeamRow name={team1Name} photo={team1Photo} score={team1Score} isWinner={team1Wins} />
+      <TeamRow
+        name={team1Name}
+        photo={team1Photo}
+        score={team1Score}
+        isWinner={team1Wins}
+        isLoser={isComplete && team2Wins}
+        eliminatedLabel={isComplete && team2Wins ? `Out · ${roundName ?? ""}`.trim() : null}
+      />
       <div className="h-px bg-border" />
-      <TeamRow name={team2Name} photo={team2Photo} score={team2Score} isWinner={team2Wins} />
+      <TeamRow
+        name={team2Name}
+        photo={team2Photo}
+        score={team2Score}
+        isWinner={team2Wins}
+        isLoser={isComplete && team1Wins}
+        eliminatedLabel={isComplete && team1Wins ? `Out · ${roundName ?? ""}`.trim() : null}
+      />
+      {statusPill && (
+        <div className="px-3 py-1 border-t bg-muted/30 text-center">{statusPill}</div>
+      )}
     </div>
   );
 };
 
-const TeamRow = ({ name, photo, score, isWinner }: { name: string; photo: string | null; score: number; isWinner: boolean }) => (
-  <div className={`flex items-center gap-2 px-3 py-2 ${isWinner ? "bg-emerald-500/10" : ""}`}>
+const TeamRow = ({
+  name,
+  photo,
+  score,
+  isWinner,
+  isLoser,
+  eliminatedLabel,
+}: {
+  name: string;
+  photo: string | null;
+  score: number;
+  isWinner: boolean;
+  isLoser?: boolean;
+  eliminatedLabel?: string | null;
+}) => (
+  <div
+    className={`flex items-center gap-2 px-3 py-2 border-l-2 ${
+      isWinner
+        ? "bg-emerald-500/10 border-emerald-500"
+        : isLoser
+        ? "bg-destructive/5 border-destructive/60 opacity-70"
+        : "border-transparent"
+    }`}
+  >
     <Avatar className="h-5 w-5">
       <AvatarImage src={photo || undefined} />
       <AvatarFallback className="text-[8px]">{(name || "?").charAt(0)}</AvatarFallback>
     </Avatar>
-    <span className={`text-xs flex-1 truncate ${isWinner ? "font-semibold" : ""}`}>{name || "TBD"}</span>
-    <span className={`text-xs tabular-nums ${isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"}`}>{Number(score || 0)}</span>
+    <span
+      className={`text-xs flex-1 truncate ${
+        isWinner ? "font-semibold" : isLoser ? "line-through" : ""
+      }`}
+    >
+      {name || "TBD"}
+    </span>
+    {eliminatedLabel && (
+      <span className="text-[9px] uppercase tracking-wide text-destructive">{eliminatedLabel}</span>
+    )}
+    <span
+      className={`text-xs tabular-nums ${
+        isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"
+      }`}
+    >
+      {Number(score || 0)}
+    </span>
   </div>
 );
 
