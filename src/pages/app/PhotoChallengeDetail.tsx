@@ -312,6 +312,8 @@ export default function PhotoChallengeDetail() {
     }
   };
 
+  const nowMs = useNowTick(1000);
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -338,7 +340,6 @@ export default function PhotoChallengeDetail() {
 
   const submissionsEndMs = new Date(challenge.end_date).getTime();
   const votingEndMs = new Date(challenge.voting_end_date).getTime();
-  const nowMs = useNowTick(1000);
   // Voting is only allowed if the DB status is `voting` AND the current time
   // is still before voting_end_date (defends against cron lag).
   const votingOpenByTime = isVotingPhase && nowMs < votingEndMs;
