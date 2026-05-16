@@ -218,6 +218,59 @@ const TournamentDetail = () => {
     enabled: !!id && !!user && participants.length > 0,
   });
 
+  // Per-round team scores (powers the "By round" filter in the Teams tab)
+  const { data: teamRoundScores = [] } = useQuery({
+    queryKey: ["tournament-team-round-scores", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_team_round_scores" as any)
+        .select("*")
+        .eq("tournament_id", id!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // Per-matchup MVPs (powers the MVPs tab)
+  const { data: matchupMvps = [] } = useQuery({
+    queryKey: ["tournament-matchup-mvps", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_matchup_mvps" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("round_number", { ascending: false })
+        .order("score", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // On-demand catch log for an expanded MVP row
+  const { data: expandedMvpCatches = [] } = useQuery({
+    queryKey: ["mvp-catches", expandedMvp],
+    queryFn: async () => {
+      if (!expandedMvp) return [];
+      const mvp = (matchupMvps as any[]).find((m: any) => m.matchup_id === expandedMvp);
+      if (!mvp) return [];
+      const round = (rounds as any[]).find((r: any) => r.id === mvp.round_id);
+      if (!round) return [];
+      const { data, error } = await supabase
+        .from("catches")
+        .select("id, species_name, weight_lbs, length_in, caught_at, photos, cover_photo_url")
+        .eq("user_id", mvp.user_id)
+        .gte("caught_at", round.start_date)
+        .lte("caught_at", round.end_date)
+        .order("weight_lbs", { ascending: false, nullsFirst: false })
+        .limit(25);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!expandedMvp,
+  });
+
   // Fetch prize payout for current user
   const { data: myPayout } = useQuery({
     queryKey: ["my-tournament-payout", id],
