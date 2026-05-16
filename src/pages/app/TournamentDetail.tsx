@@ -740,17 +740,44 @@ const TournamentDetail = () => {
               Bracket will appear once seeding is complete.
             </div>
           ) : (
-            <div className="rounded-xl border bg-card p-4">
+            <div className="rounded-xl border bg-card p-4 space-y-3">
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                  <CheckCircle className="h-3 w-3" /> Advancing
+                </span>
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/30">
+                  <XCircle className="h-3 w-3" /> Eliminated
+                </span>
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground border">
+                  <Clock className="h-3 w-3" /> Pending
+                </span>
+              </div>
               <div className="overflow-x-auto -mx-4 px-4">
-                <div className="flex gap-6 min-w-max">
+                <div className="flex gap-6 min-w-max items-stretch">
                   {rounds.filter((r: any) => r.bracket_type === "winners").map((round: any) => {
                     const rMatchups = roundMatchups[round.id] || [];
                     return (
-                      <div key={round.id} className="flex flex-col gap-3 min-w-[200px]">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">{round.round_name}</p>
+                      <div key={round.id} className="flex flex-col gap-3 min-w-[230px]">
+                        <div className="text-center">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{round.round_name}</p>
+                          {round.start_date && (
+                            <p className="text-[10px] text-muted-foreground/70">
+                              {format(new Date(round.start_date), "MMM d")}
+                              {round.end_date ? ` – ${format(new Date(round.end_date), "MMM d")}` : ""}
+                            </p>
+                          )}
+                        </div>
                         <div className="flex flex-col justify-around flex-1 gap-3">
                           {rMatchups.map((m: any) => (
-                            <MatchupCard key={m.id} matchup={m} teamMap={teamMap} getPlayerName={getPlayerName} getPlayerPhoto={getPlayerPhoto} />
+                            <MatchupCard
+                              key={m.id}
+                              matchup={m}
+                              roundName={round.round_name}
+                              teamMap={teamMap}
+                              getPlayerName={getPlayerName}
+                              getPlayerPhoto={getPlayerPhoto}
+                            />
                           ))}
                           {rMatchups.length === 0 && (
                             <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">TBD</div>
@@ -769,11 +796,18 @@ const TournamentDetail = () => {
                       {rounds.filter((r: any) => r.bracket_type === "losers").map((round: any) => {
                         const rMatchups = roundMatchups[round.id] || [];
                         return (
-                          <div key={round.id} className="flex flex-col gap-3 min-w-[200px]">
+                          <div key={round.id} className="flex flex-col gap-3 min-w-[230px]">
                             <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">{round.round_name}</p>
                             <div className="flex flex-col justify-around flex-1 gap-3">
                               {rMatchups.map((m: any) => (
-                                <MatchupCard key={m.id} matchup={m} teamMap={teamMap} getPlayerName={getPlayerName} getPlayerPhoto={getPlayerPhoto} />
+                                <MatchupCard
+                                  key={m.id}
+                                  matchup={m}
+                                  roundName={round.round_name}
+                                  teamMap={teamMap}
+                                  getPlayerName={getPlayerName}
+                                  getPlayerPhoto={getPlayerPhoto}
+                                />
                               ))}
                             </div>
                           </div>
