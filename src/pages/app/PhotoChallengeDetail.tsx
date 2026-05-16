@@ -35,6 +35,15 @@ function Countdown({ targetMs }: { targetMs: number }) {
   return <>{m}m {s}s</>;
 }
 
+function useNowTick(intervalMs: number) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
 export default function PhotoChallengeDetail() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
