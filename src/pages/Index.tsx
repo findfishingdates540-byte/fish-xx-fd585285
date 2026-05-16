@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Apple, Smartphone, Check, Trophy, Heart, Fish } from 'lucide-react';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { FishXIcon } from '@/components/ui/fishx-icon';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
