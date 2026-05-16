@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTournamentMatchAlerts } from "@/hooks/use-tournament-match-alerts";
+import { BracketConnectors } from "@/components/tournaments/BracketConnectors";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +56,16 @@ const TournamentDetail = () => {
   const [expandedMvp, setExpandedMvp] = useState<string | null>(null);
 
   useTournamentMatchAlerts(id);
+
+  // Refs for bracket connector positioning
+  const winnersBracketRef = useRef<HTMLDivElement>(null);
+  const losersBracketRef = useRef<HTMLDivElement>(null);
+  const matchupNodeRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const setMatchupNode = (id: string) => (el: HTMLElement | null) => {
+    if (el) matchupNodeRefs.current.set(id, el);
+    else matchupNodeRefs.current.delete(id);
+  };
+  const getMatchupNode = (id: string) => matchupNodeRefs.current.get(id) ?? null;
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ["tournament", id],
