@@ -22,6 +22,9 @@ export interface TeamPost {
   content: string | null;
   media: TeamPostMedia[];
   location_name: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  visibility?: "public" | "pending_review" | "hidden";
   pinned: boolean;
   likes_count: number;
   comments_count: number;
@@ -31,26 +34,58 @@ export interface TeamPost {
   viewer_liked?: boolean;
 }
 
-export function useTeamPosts(teamId: string | undefined, surface: TeamPostSurface) {
+export interface TeamPostsFilters {
+  sort?: "recent" | "top";
+  near?: { lat: number; lng: number; radiusMi: number } | null;
+}
+
+function haversineMi(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 3958.8;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+export function useTeamPosts(
+  teamId: string | undefined,
+  surface: TeamPostSurface,
+  filters: TeamPostsFilters = {},
+) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const queryKey = ["team-posts", teamId, surface] as const;
+  const sort = filters.sort || "recent";
+  const near = filters.near || null;
+  const queryKey = ["team-posts", teamId, surface, sort, near?.radiusMi || 0, near?.lat || 0, near?.lng || 0] as const;
 
   const query = useQuery({
     queryKey,
     enabled: !!teamId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("team_posts")
         .select("*")
         .eq("team_id", teamId!)
         .eq("surface", surface)
         .eq("is_hidden", false)
-        .order("pinned", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(50);
+        .order("pinned", { ascending: false });
+      if (sort === "top") {
+        q = q.order("likes_count", { ascending: false }).order("created_at", { ascending: false });
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
+      const { data, error } = await q.limit(100);
       if (error) throw error;
-      const posts = (data || []) as unknown as TeamPost[];
+      let posts = (data || []) as unknown as TeamPost[];
+      if (near) {
+        posts = posts.filter((p) => {
+          if (p.location_lat == null || p.location_lng == null) return false;
+          return haversineMi({ lat: near.lat, lng: near.lng }, { lat: Number(p.location_lat), lng: Number(p.location_lng) }) <= near.radiusMi;
+        });
+      }
       const authorIds = Array.from(new Set(posts.map((p) => p.author_id)));
       if (authorIds.length === 0) return [];
       const { data: profs } = await supabase
@@ -78,15 +113,26 @@ export function useTeamPosts(teamId: string | undefined, surface: TeamPostSurfac
     },
   });
 
-  // Realtime
+  // Realtime — posts + likes + comments
   useEffect(() => {
     if (!teamId) return;
+    const invalidate = () => queryClient.invalidateQueries({ queryKey: ["team-posts", teamId, surface], exact: false });
     const channel = supabase
       .channel(`team-posts:${teamId}:${surface}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "team_posts", filter: `team_id=eq.${teamId}` },
-        () => queryClient.invalidateQueries({ queryKey, exact: true }),
+        invalidate,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "team_post_likes" },
+        invalidate,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "team_post_comments" },
+        invalidate,
       )
       .subscribe();
     return () => {
@@ -109,6 +155,8 @@ export function useTeamPostMutations(teamId: string, surface: TeamPostSurface) {
       media: TeamPostMedia[];
       post_type: TeamPostType;
       location_name?: string | null;
+      location_lat?: number | null;
+      location_lng?: number | null;
       crossPostToFeed?: boolean;
     }) => {
       if (!user) throw new Error("Login required");
@@ -137,6 +185,8 @@ export function useTeamPostMutations(teamId: string, surface: TeamPostSurface) {
         content: input.content || null,
         media: input.media as any,
         location_name: input.location_name || null,
+        location_lat: input.location_lat ?? null,
+        location_lng: input.location_lng ?? null,
         cross_posted_feed_id: feedId,
       });
       if (error) throw error;
