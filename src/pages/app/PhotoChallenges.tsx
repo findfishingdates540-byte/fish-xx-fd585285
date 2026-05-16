@@ -172,25 +172,25 @@ export default function PhotoChallenges() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Photo Challenges</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-3xl md:text-4xl font-bold">Photo Challenges</h1>
+          <p className="text-muted-foreground text-base mt-1">
             Submit your best fish photos, vote for winners, and win prizes
           </p>
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="active" className="flex-1">
+      <Tabs value={tab} onValueChange={setTab} className="space-y-6">
+        <TabsList className="w-full h-12 p-1">
+          <TabsTrigger value="active" className="flex-1 text-base h-10">
             Active ({active.length})
           </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex-1">
+          <TabsTrigger value="upcoming" className="flex-1 text-base h-10">
             Upcoming ({upcoming.length})
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1">
+          <TabsTrigger value="completed" className="flex-1 text-base h-10">
             Completed ({completed.length})
           </TabsTrigger>
         </TabsList>
