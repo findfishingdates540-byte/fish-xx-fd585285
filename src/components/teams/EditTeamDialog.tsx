@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,8 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Bold, Camera, Eye, ImagePlus, Italic, ListOrdered, Loader2, ScrollText } from "lucide-react";
+import { Bold, Camera, Eye, ImagePlus, Italic, ListOrdered, Loader2, ScrollText, Trash2 } from "lucide-react";
 import { FormattedRules } from "@/lib/format-rules";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   open: boolean;
@@ -31,6 +36,7 @@ async function uploadImage(userId: string, kind: "logo" | "cover", file: File): 
 export function EditTeamDialog({ open, onOpenChange, team }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [name, setName] = useState(team.name || "");
   const [description, setDescription] = useState(team.description || "");
@@ -105,6 +111,21 @@ export function EditTeamDialog({ open, onOpenChange, team }: Props) {
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e.message || "Failed to update"),
+  });
+
+  const del = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("fishing_teams").delete().eq("id", team.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-teams"] });
+      qc.removeQueries({ queryKey: ["team-detail", team.id] });
+      toast.success("Team deleted");
+      onOpenChange(false);
+      navigate("/app/teams", { replace: true });
+    },
+    onError: (e: any) => toast.error(e?.message || "Failed to delete team"),
   });
 
   return (
@@ -220,12 +241,41 @@ export function EditTeamDialog({ open, onOpenChange, team }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={() => save.mutate()} disabled={save.isPending} className="gap-1.5">
-            {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            Save changes
-          </Button>
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 gap-1.5 sm:mr-auto">
+                <Trash2 className="h-3.5 w-3.5" /> Delete team
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this team?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently removes <span className="font-semibold text-foreground">{team.name}</span>, all
+                  posts, memberships, and followers. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={del.isPending}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+                  disabled={del.isPending}
+                  onClick={(e) => { e.preventDefault(); del.mutate(); }}
+                >
+                  {del.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Yes, delete team
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <div className="flex gap-2 sm:ml-auto">
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button onClick={() => save.mutate()} disabled={save.isPending} className="gap-1.5">
+              {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              Save changes
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
