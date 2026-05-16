@@ -1,83 +1,97 @@
-# Tournament team experience — bracket, leaderboards, MVPs, alerts, admin (Should use the color sckeme of the pages under scoreboard hub)
 
-## 1. Bracket progression UI (TournamentDetail "Bracket" tab)
+# Team Pages & Team Groups
 
-Refactor the existing bracket so progression is obvious at a glance.
+Bring Facebook-style "Page + Group" to every Team. Each `fishing_teams` row gets two surfaces:
 
-- Render rounds as labeled columns ("Round of 16 → Quarterfinals → Semifinals → Final") with the round date range under the title.
-- For each `MatchupCard`:
-  - Highlight the winning team row (green left-border + check icon) and dim/strike the losing team row (red left-border + "Eliminated R{n}" pill).
-  - Show team scores aligned right; show "vs" + "Pending" pill when both teams present but unscored, "BYE" when one slot is null, "TBD" when waiting on previous match.
-  - Connector lines/arrows between a matchup and its `next_matchup_id` so the eye can follow the path. Implement with absolutely positioned SVG paths between card refs (no library).
-- Add a small "Team path" legend chip on the tab header (advancing / eliminated / pending) so the color meaning is explicit.
-- Mobile: keep columns horizontally scrollable; sticky round headers.
+- **Team Page** — public-facing. Captain + officers post announcements, teasers, winnings, next matchups, current bracket stage. Anyone can view; only roles can post.
+- **Team Group** — members-only. Any accepted member can post catches, photos, banter. Hidden from non-members.
 
-## 2. Team Leaderboard tab
+Posts are authored *by the team* but attributed to the user who posted them (Facebook style: "Team Name · posted by @user").
 
-New tab "Teams" backed by the existing `tournament_team_leaderboard` view, augmented with per-round breakdown.
+## 1. Data model (new migration)
 
-- Header filter pills: **Overall** (default) | **By round** (dropdown of completed rounds).
-- Overall mode: ranked list with rank, team logo+name, total score, catches, rounds won, status badge (Active / Eliminated R{n} / Champion).
-- By-round mode: pulls the team's `team1_score`/`team2_score` from `tournament_matchups` for the selected round, sorted desc; shows opponent + W/L.
-- Add a new SQL view `tournament_team_round_scores` (round_number, team_id, score, opponent_team_id, result) to avoid client-side join gymnastics.
-- Click a team row → opens the existing TeamProfile route in a new tab.
+New tables (all with RLS):
 
-## 3. MVPs tab
+- `team_post_authors` — extend roles. Add `role` column to `team_members` (enum: `member`, `officer`) and keep `captain_id` on `fishing_teams` as the owner role. Officers + captain = "page posters".
+- `team_posts`
+  - `id`, `team_id`, `author_id` (user who wrote it), `surface` enum (`page` | `group`), `content` text, `media` jsonb[] (array of `{url, type: image|video, width, height}`), `location_name`, `location_lat`, `location_lng`, `pinned` bool, `post_type` enum (`announcement`, `matchup`, `winning`, `teaser`, `update`, `catch`, `general`), `created_at`, `updated_at`, `is_hidden` bool (moderation), `report_count` int.
+- `team_post_likes` — `post_id`, `user_id`, unique.
+- `team_post_comments` — `post_id`, `user_id`, `parent_id` (nested), `content`, `created_at`, `is_hidden`.
+- `team_post_reports` — `post_id`, `reporter_id`, `reason`, `status` (`pending`, `reviewed`, `actioned`, `dismissed`), `created_at`, `reviewed_by`, `reviewed_at`. Mirrors existing reported-photos admin pattern.
 
-New tab "MVPs" listing the top contributor on the **winning team** of every completed matchup.
+Helper SECURITY DEFINER functions:
+- `is_team_member(_user, _team)` — accepted member OR captain.
+- `is_team_poster(_user, _team)` — captain OR officer.
 
-- Backed by a new view `tournament_matchup_mvps` joining `tournament_matchups` → `tournament_team_roster` → `catches` (filtered to the round's `start_at`/`end_at` window) → top contributor per matchup per `scoring_method`.
-- Each row shows: round label, matchup #, MVP avatar+name, winning team, MVP score (with unit per scoring method), and an expandable section listing the catches that contributed (species, weight/length, caught_at, thumbnail) — fetched on demand.
-- Sort: most recent round first; secondary sort by MVP score desc.
+Storage: new public bucket `team-media` with RLS requiring path prefix `{team_id}/{user_id}/...` and `is_team_member` check for upload.
 
-## 4. Real-time team match notifications
+## 2. RLS rules (plain English)
 
-Server-side: extend `update-challenge-statuses` so when a matchup transitions to `completed`:
+- **Team Page posts (`surface='page'`)**: anyone authenticated can read. Only captain or officers of the team can insert. Author or captain can update/delete. Admins bypass.
+- **Team Group posts (`surface='group'`)**: only team members + captain can read or insert. Author or captain can edit/delete.
+- **Likes/comments**: read follows the parent post's visibility. Insert requires the same visibility rule (anyone for page, members for group). Users edit/delete their own.
+- **Reports**: any logged-in user can insert one report per post. Only admins (`has_role(uid,'admin')`) can read/update.
+- **Roles**: only captain can promote/demote officers (update `team_members.role`).
 
-- Insert a `notifications` row for every member of both teams with type `tournament_matchup_completed` (title "Match complete", body "{TeamA} {scoreA} – {scoreB} {TeamB}").
-- For the **losing** team's members: extra notification `tournament_team_eliminated` ("Your team was eliminated in {Round}").
-- For the **winning** team's members: extra notification `tournament_team_advanced` ("Your team advances to {NextRound}") or `tournament_team_champion` if it's the final.
-- Fire the existing `send-push-notification` edge function for each.
+## 3. Frontend
 
-Client-side: extend `useNotifications` filter map so the three new types are surfaced in the notification center; add a small `useTournamentMatchAlerts` hook that subscribes to `tournament_matchups` UPDATEs filtered by tournaments the user participates in, plays the standard alert sound, and invalidates the bracket / standings queries.
+### Routes (under `ScoreboardHubLayout`)
+- `/app/teams/:teamId` — refactor existing `TeamProfile.tsx` into a tabbed layout:
+  - **About** (existing info, roster, stats)
+  - **Page** (new) — public feed of `surface='page'` posts
+  - **Group** (new, gated) — members-only feed of `surface='group'` posts; non-members see "Join the team to see group posts"
+  - **Members** (existing roster, with role badges + captain controls to promote/demote/remove)
+- `/app/teams/:teamId/posts/:postId` — single post view (optional, for deep linking).
 
-## 5. Admin: scoring method & bracket format + recalculation
+### New components (`src/components/teams/`)
+- `TeamHeaderCard` — banner, logo, name, captain, follow/join button, tab nav.
+- `TeamComposer` — Facebook-style composer (textarea + media picker + post type dropdown + optional location). Auto-selects allowed surface based on tab + role.
+- `TeamPostCard` — header shows team logo + "Team Name", subline "posted by @author · 2h", body, media carousel, like/comment/share row, pinned badge, post-type chip, report menu.
+- `TeamPostComments` — nested comments, mirrors `feed/CommentList` patterns.
+- `TeamMediaUploader` — uploads to `team-media` bucket, returns media jsonb entries; supports images + short video (mp4, ≤50MB).
+- `TeamRoleBadge` — Captain / Officer / Member chip used across roster and post headers.
 
-In `AdminTournaments`:
+### Hooks (`src/hooks/`)
+- `use-team-posts.ts` — TanStack infinite query keyed by `['team-posts', teamId, surface]`, sorted by `pinned desc, created_at desc`. Realtime channel for inserts/updates.
+- `use-team-post-mutations.ts` — create / update / delete / like / unlike / comment / report.
+- `use-team-role.ts` — returns `{ isCaptain, isOfficer, isMember, canPostPage, canPostGroup }` for current user + team.
 
-- Add an "Edit" action per tournament opening a dialog with `scoring_method` (biggest_catch / total_weight / most_catches) and `format` (single_elimination / double_elimination) selects, plus a "Recalculate bracket" button.
-- Edits are only allowed when status is `upcoming` or `active` AND no matchup has scores yet (guarded both client-side and via an edge function check). Changing `format` after any matchup is scored is blocked with a clear toast.
-- New edge function `recalculate-tournament-bracket` (admin-only via JWT + `has_role`):
-  - Deletes existing `tournament_matchups` + `tournament_rounds` for the tournament.
-  - Re-seeds participants per `seeding_method` and re-creates rounds + matchups for the new `format`.
-  - For each already-completed round window, re-aggregates `catches` against the new `scoring_method` and rewrites `team1_score`/`team2_score`/`winner_team_id`, marking eliminations.
-  - Returns a summary `{ rounds_created, matches_scored, winner_team_id }`.
-- After success, invalidate all tournament queries and toast "Bracket recalculated".
+### Feed details
+- Sorted by `pinned DESC, created_at DESC`. When `location_lat/lng` present and user has location, show "X mi away" badge (reuse haversine helper).
+- Realtime via Supabase channel `team-posts:{teamId}:{surface}`.
+- Like + comment counts denormalized on `team_posts` via triggers (mirrors `feed_posts`).
 
-## 6. Out of scope
+### Permissions UI
+- Composer hidden if user lacks role for that surface.
+- Members tab shows promote/demote/remove menu only for captain.
+- Report menu on every post for any logged-in user (not author).
 
-- Manual per-match score override (separate request).
-- Editing team rosters mid-tournament.
-- Push notification copy localization.
+## 4. Admin moderation
 
-## Files
+Extend admin sidebar with **Team Posts** entry:
+- `src/pages/admin/AdminTeamPosts.tsx` lists `team_post_reports` filtered by status with the same table styling as `AdminPhotoChallenges` reports.
+- Actions: hide post (`is_hidden=true`), delete post, dismiss report, ban author from posting (sets `team_members.is_muted`). Hooks into existing audit log via `create_audit_log`.
 
-**Migration**
+## 5. Technical notes
 
-- `supabase/migrations/<ts>_tournament_progression_views.sql` — `tournament_team_round_scores` view, `tournament_matchup_mvps` view, indices on `tournament_matchups(tournament_id, round_id)`.
+- Use `(SELECT auth.uid())` inside RLS for performance (project convention).
+- Media uploads must prefix path with `{team_id}/{user_id}/` to satisfy storage RLS.
+- Add denormalized `likes_count`, `comments_count` to `team_posts` with triggers (`update_team_post_likes_count`, `update_team_post_comments_count`).
+- Notification triggers: notify captain on new group post, notify all members on new page post, notify post author on like/comment, notify admins on new report. Reuse `notifications` table with new types `team_page_post`, `team_group_post`, `team_post_like`, `team_post_comment`, `team_post_reported`.
+- TypeScript: `ReturnType<typeof setTimeout>` for any timers in realtime hooks.
+- TanStack query keys must be strictly distinct per surface; invalidate with `exact: true`.
 
-**Edge functions**
+## 6. Rollout order
 
-- `supabase/functions/update-challenge-statuses/index.ts` — emit completed/advanced/eliminated/champion notifications + push.
-- `supabase/functions/recalculate-tournament-bracket/index.ts` — new, admin-only recalculation.
+1. Migration: tables, enums, helper functions, RLS, storage bucket, triggers, notification types.
+2. Hooks (`use-team-role`, `use-team-posts`, mutations).
+3. Components (header tabs, composer, post card, comments, media uploader, role badge).
+4. Refactor `TeamProfile.tsx` to tabbed layout; wire Page + Group + Members tabs.
+5. Admin moderation page + sidebar entry.
+6. Polish: empty states, pinned banner, "X mi away" badge, realtime, notifications.
 
-**Frontend**
+## Open questions
 
-- `src/pages/app/TournamentDetail.tsx` — bracket connectors + winner/loser styling, new Teams/MVPs tabs with filters, MVP catch drill-down.
-- `src/components/tournaments/BracketColumn.tsx` (new) and `BracketConnectors.tsx` (new) — extracted for clarity.
-- `src/hooks/use-tournament-match-alerts.ts` (new) — realtime subscription + toast/sound + query invalidation.
-- `src/hooks/use-notifications.ts` — register the three new notification types.
-- `src/pages/admin/AdminTournaments.tsx` — Edit dialog (scoring method, format) + Recalculate action.
-- `src/components/admin/TournamentEditDialog.tsx` (new) — form + recalculate trigger.
-
-No changes to `src/integrations/supabase/types.ts` (auto-regenerated).
+1. Should **video uploads** be enabled in v1, or images-only first (videos can land in v2)?
+2. For the **Group**, should pending join requests be required (captain approves), or auto-join from the existing team roster only?
+3. Should Page posts be **cross-posted to the main Feed** (`feed_posts`) so followers see them, or stay only on the team page?
