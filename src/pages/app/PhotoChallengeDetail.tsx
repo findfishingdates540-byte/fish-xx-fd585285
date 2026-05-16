@@ -15,8 +15,25 @@ import {
   ArrowLeft, Calendar, Camera, Clock, Crown, DollarSign, Gift, Heart,
   Trophy, Upload, Users, Vote, ImageIcon, CreditCard, Copy, CheckCircle,
 } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { format } from "date-fns";
 import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
+
+function Countdown({ targetMs }: { targetMs: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const diff = Math.max(0, targetMs - now);
+  const d = Math.floor(diff / 86_400_000);
+  const h = Math.floor((diff % 86_400_000) / 3_600_000);
+  const m = Math.floor((diff % 3_600_000) / 60_000);
+  const s = Math.floor((diff % 60_000) / 1000);
+  if (diff <= 0) return <>Closed</>;
+  if (d > 0) return <>{d}d {h}h {m}m</>;
+  if (h > 0) return <>{h}h {m}m {s}s</>;
+  return <>{m}m {s}s</>;
+}
 
 export default function PhotoChallengeDetail() {
   const { id } = useParams<{ id: string }>();
