@@ -234,7 +234,6 @@ export default function TeamProfile() {
     );
   }
 
-  const captainProfile = profiles[team.captain_id];
   const allMembers = [
     { userId: team.captain_id, role: "captain" },
     ...members.filter((m) => m.user_id !== team.captain_id).map((m) => ({ userId: m.user_id, role: m.role })),
