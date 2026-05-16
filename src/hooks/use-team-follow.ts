@@ -15,10 +15,11 @@ export function useTeamFollow(teamId: string | undefined) {
       const [{ count }, mine] = await Promise.all([
         supabase.from("team_followers").select("*", { count: "exact", head: true }).eq("team_id", teamId!),
         user
-          ? supabase.from("team_followers").select("id").eq("team_id", teamId!).eq("user_id", user.id).maybeSingle()
+          ? supabase.from("team_followers").select("id, notifications_muted").eq("team_id", teamId!).eq("user_id", user.id).maybeSingle()
           : Promise.resolve({ data: null } as any),
       ]);
-      return { count: count || 0, isFollowing: !!(mine as any).data };
+      const row = (mine as any).data;
+      return { count: count || 0, isFollowing: !!row, muted: !!row?.notifications_muted };
     },
   });
 
@@ -41,5 +42,22 @@ export function useTeamFollow(teamId: string | undefined) {
     onError: (e: any) => toast.error(e.message || "Could not update follow"),
   });
 
-  return { ...q, toggle };
+  const setMuted = useMutation({
+    mutationFn: async (muted: boolean) => {
+      if (!user || !teamId) throw new Error("Login to update");
+      const { error } = await supabase
+        .from("team_followers")
+        .update({ notifications_muted: muted })
+        .eq("team_id", teamId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, muted) => {
+      qc.invalidateQueries({ queryKey: key, exact: true });
+      toast.success(muted ? "Notifications muted" : "Notifications on");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not update notifications"),
+  });
+
+  return { ...q, toggle, setMuted };
 }
