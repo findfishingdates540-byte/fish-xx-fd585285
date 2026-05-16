@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Crown,
@@ -18,8 +19,12 @@ import {
   UserPlus,
   BarChart3,
   Target,
+  Shield,
+  ShieldOff,
 } from "lucide-react";
 import { toast } from "sonner";
+import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
+import { useTeamRole } from "@/hooks/use-team-role";
 
 interface MemberProfile {
   id: string;
@@ -91,6 +96,26 @@ export default function TeamProfile() {
 
   const isCaptain = !!user && team?.captain_id === user.id;
   const isMember = !!user && (isCaptain || members.some((m) => m.user_id === user.id));
+  const { data: role } = useTeamRole(teamId);
+  const [tab, setTab] = useState<string>("page");
+
+  const promoteMutation = useMutation({
+    mutationFn: async (p: { userId: string; toRole: "officer" | "member" }) => {
+      if (!isCaptain) throw new Error("Captain only");
+      const { error } = await supabase
+        .from("team_members")
+        .update({ role: p.toRole })
+        .eq("team_id", teamId!)
+        .eq("user_id", p.userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-members", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["team-role", teamId] });
+      toast.success("Role updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const joinMutation = useMutation({
     mutationFn: async () => {
@@ -253,79 +278,128 @@ export default function TeamProfile() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="rounded-xl border bg-card p-4 text-center">
-          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-            <Fish className="h-4 w-4 text-primary" />
-          </div>
-          <p className="text-lg font-bold">{teamStats.totalCatches}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Catches</p>
-        </div>
-        <div className="rounded-xl border bg-card p-4 text-center">
-          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-            <BarChart3 className="h-4 w-4 text-primary" />
-          </div>
-          <p className="text-lg font-bold">{teamStats.totalWeight} lbs</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Weight</p>
-        </div>
-        <div className="rounded-xl border bg-card p-4 text-center">
-          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-            <Target className="h-4 w-4 text-primary" />
-          </div>
-          <p className="text-lg font-bold truncate text-sm">{teamStats.topSpecies || "—"}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Top Species</p>
-        </div>
-      </div>
+      {/* Tabs */}
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <TabsList className="grid grid-cols-4 w-full">
+          <TabsTrigger value="page">Page</TabsTrigger>
+          <TabsTrigger value="group">Group</TabsTrigger>
+          <TabsTrigger value="about">About</TabsTrigger>
+          <TabsTrigger value="members">Members</TabsTrigger>
+        </TabsList>
 
-      {/* Members List */}
-      <section className="rounded-xl border bg-card overflow-hidden">
-        <div className="px-5 py-3 border-b flex items-center justify-between">
-          <h2 className="font-bold text-sm flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" />Team Members</h2>
-          <span className="text-xs text-muted-foreground">{allMembers.length} total</span>
-        </div>
-        <div className="divide-y divide-border">
-          {allMembers.map(({ userId, role }) => {
-            const profile = profiles[userId];
-            const memberIsCaptain = role === "captain";
-            return (
-              <div key={userId} className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors">
-                <button onClick={() => navigate(`/app/u/${userId}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={profile?.photos?.[0] || ""} />
-                    <AvatarFallback className="text-xs">{(profile?.display_name || "?")[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm truncate">{profile?.display_name || "Angler"}</p>
-                      {memberIsCaptain && <Crown className="h-3.5 w-3.5 text-primary shrink-0" />}
-                    </div>
-                    <p className="text-xs text-muted-foreground capitalize">{role}</p>
-                  </div>
-                </button>
-                {isCaptain && !memberIsCaptain && userId !== user?.id && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive text-xs"
-                    onClick={() => removeMemberMutation.mutate(userId)}
-                  >
-                    Remove
-                  </Button>
-                )}
+        <TabsContent value="page" className="mt-4">
+          <TeamFeedTab
+            teamId={teamId!}
+            surface="page"
+            teamName={team.name}
+            teamLogo={team.logo_url}
+            canPost={!!role?.canPostPage}
+            canView={true}
+            isCaptain={isCaptain}
+          />
+        </TabsContent>
+
+        <TabsContent value="group" className="mt-4">
+          <TeamFeedTab
+            teamId={teamId!}
+            surface="group"
+            teamName={team.name}
+            teamLogo={team.logo_url}
+            canPost={!!role?.canPostGroup}
+            canView={isMember}
+            isCaptain={isCaptain}
+          />
+        </TabsContent>
+
+        <TabsContent value="about" className="mt-4 space-y-6">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <Fish className="h-4 w-4 text-primary" />
               </div>
-            );
-          })}
-        </div>
-      </section>
+              <p className="text-lg font-bold">{teamStats.totalCatches}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Catches</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <BarChart3 className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-lg font-bold">{teamStats.totalWeight} lbs</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Weight</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <Target className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-lg font-bold truncate text-sm">{teamStats.topSpecies || "—"}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Top Species</p>
+            </div>
+          </div>
+          <div className="rounded-xl border bg-primary/5 p-5 text-center">
+            <Trophy className="h-6 w-6 text-primary mx-auto mb-2" />
+            <h3 className="font-bold text-sm mb-1">Team Rankings</h3>
+            <p className="text-xs text-muted-foreground mb-3">See how your team stacks up against the competition</p>
+            <Button variant="default" size="sm" onClick={() => navigate("/app/leaderboard")}>View Scoreboard</Button>
+          </div>
+        </TabsContent>
 
-      {/* Leaderboard Link */}
-      <div className="mt-6 rounded-xl border bg-primary/5 p-5 text-center">
-        <Trophy className="h-6 w-6 text-primary mx-auto mb-2" />
-        <h3 className="font-bold text-sm mb-1">Team Rankings</h3>
-        <p className="text-xs text-muted-foreground mb-3">See how your team stacks up against the competition</p>
-        <Button variant="default" size="sm" onClick={() => navigate("/app/leaderboard")}>View Scoreboard</Button>
-      </div>
+        <TabsContent value="members" className="mt-4">
+          <section className="rounded-xl border bg-card overflow-hidden">
+            <div className="px-5 py-3 border-b flex items-center justify-between">
+              <h2 className="font-bold text-sm flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" />Team Members</h2>
+              <span className="text-xs text-muted-foreground">{allMembers.length} total</span>
+            </div>
+            <div className="divide-y divide-border">
+              {allMembers.map(({ userId, role: memberRole }) => {
+                const profile = profiles[userId];
+                const memberIsCaptain = memberRole === "captain";
+                const memberIsOfficer = memberRole === "officer";
+                return (
+                  <div key={userId} className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors">
+                    <button onClick={() => navigate(`/app/u/${userId}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={profile?.photos?.[0] || ""} />
+                        <AvatarFallback className="text-xs">{(profile?.display_name || "?")[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-sm truncate">{profile?.display_name || "Angler"}</p>
+                          {memberIsCaptain && <Badge variant="secondary" className="h-4 text-[10px] gap-0.5"><Crown className="h-2.5 w-2.5" />Captain</Badge>}
+                          {memberIsOfficer && <Badge variant="secondary" className="h-4 text-[10px] gap-0.5"><Shield className="h-2.5 w-2.5" />Officer</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground capitalize">{memberRole}</p>
+                      </div>
+                    </button>
+                    {isCaptain && !memberIsCaptain && userId !== user?.id && (
+                      <div className="flex items-center gap-1">
+                        {memberIsOfficer ? (
+                          <Button variant="ghost" size="sm" className="text-xs gap-1"
+                            onClick={() => promoteMutation.mutate({ userId, toRole: "member" })}>
+                            <ShieldOff className="h-3 w-3" />Demote
+                          </Button>
+                        ) : (
+                          <Button variant="ghost" size="sm" className="text-xs gap-1"
+                            onClick={() => promoteMutation.mutate({ userId, toRole: "officer" })}>
+                            <Shield className="h-3 w-3" />Make officer
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive text-xs"
+                          onClick={() => removeMemberMutation.mutate(userId)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
