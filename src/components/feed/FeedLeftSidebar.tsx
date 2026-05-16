@@ -110,6 +110,7 @@ export function FeedLeftSidebar() {
     { to: '/app/challenges', icon: 'achievement', label: 'Challenges' },
     { to: '/app/photo-challenges', icon: 'photo', label: 'Photo Challenges' },
     { to: '/app/tournaments', icon: 'tournament', label: 'Tournaments' },
+    { to: '/app/pages', icon: 'social', label: 'Pages' },
   ];
 
   return (
