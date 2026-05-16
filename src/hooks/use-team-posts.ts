@@ -208,8 +208,14 @@ export function useTeamPostMutations(teamId: string, surface: TeamPostSurface) {
     mutationFn: async (p: { id: string; pinned: boolean }) => {
       const { error } = await supabase.from("team_posts").update({ pinned: !p.pinned }).eq("id", p.id);
       if (error) throw error;
+      return { willBePinned: !p.pinned };
     },
-    onSuccess: invalidate,
+    onSuccess: (res) => {
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["team-rail-pinned", teamId] });
+      toast.success(res?.willBePinned ? "Pinned to Featured" : "Unpinned");
+    },
+    onError: (e: any) => toast.error(e?.message || "Could not update pin"),
   });
 
   const toggleLike = useMutation({

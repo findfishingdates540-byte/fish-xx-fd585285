@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, ImagePlus, Loader2 } from "lucide-react";
+import { Bold, Camera, Eye, ImagePlus, Italic, ListOrdered, Loader2, ScrollText } from "lucide-react";
+import { FormattedRules } from "@/lib/format-rules";
 
 interface Props {
   open: boolean;
@@ -36,6 +37,7 @@ export function EditTeamDialog({ open, onOpenChange, team }: Props) {
   const [location, setLocation] = useState(team.location || "");
   const [website, setWebsite] = useState(team.website || "");
   const [rules, setRules] = useState(team.rules || "");
+  const rulesRef = useRef<HTMLTextAreaElement>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(team.logo_url);
   const [coverPreview, setCoverPreview] = useState<string | null>(team.cover_url);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -56,6 +58,28 @@ export function EditTeamDialog({ open, onOpenChange, team }: Props) {
     const r = new FileReader();
     r.onloadend = () => setCoverPreview(r.result as string);
     r.readAsDataURL(f);
+  };
+
+  const wrapSelection = (before: string, after = before) => {
+    const ta = rulesRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart ?? rules.length;
+    const end = ta.selectionEnd ?? rules.length;
+    const sel = rules.slice(start, end) || "text";
+    const next = rules.slice(0, start) + before + sel + after + rules.slice(end);
+    setRules(next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(start + before.length, start + before.length + sel.length);
+    });
+  };
+
+  const insertNumberedTemplate = () => {
+    const ta = rulesRef.current;
+    const tpl = "1. Be respectful.\n2. No spam or self-promo.\n3. Keep posts fishing-related.";
+    const next = rules.trim() ? rules + "\n\n" + tpl : tpl;
+    setRules(next);
+    requestAnimationFrame(() => ta?.focus());
   };
 
   const save = useMutation({
@@ -150,16 +174,49 @@ export function EditTeamDialog({ open, onOpenChange, team }: Props) {
             </div>
           </div>
           <div>
-            <Label htmlFor="t-rules">Group rules</Label>
-            <Textarea
-              id="t-rules"
-              value={rules}
-              onChange={(e) => setRules(e.target.value)}
-              rows={5}
-              maxLength={2000}
-              placeholder={`1. Be respectful.\n2. No spam or self-promo.\n3. Keep posts fishing-related.`}
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">Shown in the right sidebar so members know the expectations.</p>
+            <div className="flex items-center justify-between mb-1.5">
+              <Label htmlFor="t-rules" className="m-0">Group rules</Label>
+              <span className="text-[10px] text-muted-foreground">{rules.length}/2000</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1 mb-1.5">
+              <Button type="button" variant="outline" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => wrapSelection("**")}>
+                <Bold className="h-3 w-3" /> Bold
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={() => wrapSelection("*")}>
+                <Italic className="h-3 w-3" /> Italic
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={insertNumberedTemplate}>
+                <ListOrdered className="h-3 w-3" /> Numbered list
+              </Button>
+              <span className="text-[10px] text-muted-foreground ml-auto inline-flex items-center gap-1">
+                <Eye className="h-3 w-3" /> Live preview below
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Textarea
+                id="t-rules"
+                ref={rulesRef}
+                value={rules}
+                onChange={(e) => setRules(e.target.value)}
+                rows={8}
+                maxLength={2000}
+                className="font-mono text-xs"
+                placeholder={`1. Be respectful.\n2. No spam or self-promo.\n3. Keep posts fishing-related.\n\nUse **bold** or *italic* for emphasis.`}
+              />
+              <div className="rounded-xl border bg-card p-4 max-h-64 overflow-y-auto">
+                <h4 className="font-bold text-xs mb-2 flex items-center gap-1.5">
+                  <ScrollText className="h-3.5 w-3.5 text-primary" /> Sidebar preview
+                </h4>
+                {rules.trim() ? (
+                  <FormattedRules text={rules} className="text-xs text-foreground/90" />
+                ) : (
+                  <p className="text-[11px] text-muted-foreground italic">Your formatted rules will appear here in the team's right sidebar.</p>
+                )}
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Supports <code>**bold**</code>, <code>*italic*</code>, numbered (<code>1.</code>) and bulleted (<code>-</code>) lists.
+            </p>
           </div>
         </div>
 

@@ -9,7 +9,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, MoreHorizontal, Pin, Trash2, Flag, MapPin, Sparkles } from "lucide-react";
+import { Heart, Loader2, MessageCircle, MoreHorizontal, Pin, PinOff, Trash2, Flag, MapPin, Sparkles } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -109,8 +109,21 @@ export function TeamPostCard({ post, teamName, teamLogo, surface, isCaptain }: P
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {isCaptain && (
-                <DropdownMenuItem onClick={() => togglePin.mutate({ id: post.id, pinned: post.pinned })}>
-                  <Pin className="h-3.5 w-3.5 mr-2" /> {post.pinned ? "Unpin" : "Pin"}
+                <DropdownMenuItem
+                  disabled={togglePin.isPending}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    togglePin.mutate({ id: post.id, pinned: post.pinned });
+                  }}
+                >
+                  {togglePin.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                  ) : post.pinned ? (
+                    <PinOff className="h-3.5 w-3.5 mr-2" />
+                  ) : (
+                    <Pin className="h-3.5 w-3.5 mr-2" />
+                  )}
+                  {post.pinned ? "Unpin from Featured" : "Pin to Featured"}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={shareToStory} disabled={createStory.isPending}>

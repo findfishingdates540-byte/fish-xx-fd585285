@@ -1,21 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Crown, Fish, Info, Lock, MapPin, Pin, ScrollText, Trophy, Users } from "lucide-react";
+import { Calendar, Crown, Fish, Info, Loader2, Lock, MapPin, Pin, PinOff, ScrollText, Trophy, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { FormattedRules } from "@/lib/format-rules";
 
 interface Props {
   team: any;
   memberCount: number;
   memberUserIds: string[];
   profiles: Record<string, { id: string; display_name: string | null; photos: string[] | null }>;
+  isCaptain?: boolean;
 }
 
-export function TeamRightRail({ team, memberCount, memberUserIds, profiles }: Props) {
+export function TeamRightRail({ team, memberCount, memberUserIds, profiles, isCaptain = false }: Props) {
   const teamId = team.id as string;
+  const qc = useQueryClient();
 
   // Pinned page posts
   const { data: pinned = [] } = useQuery({
@@ -31,6 +35,20 @@ export function TeamRightRail({ team, memberCount, memberUserIds, profiles }: Pr
         .limit(3);
       return data || [];
     },
+  });
+
+  const unpin = useMutation({
+    mutationFn: async (postId: string) => {
+      const { error } = await supabase.from("team_posts").update({ pinned: false }).eq("id", postId);
+      if (error) throw error;
+      return postId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-rail-pinned", teamId] });
+      qc.invalidateQueries({ queryKey: ["team-posts", teamId] });
+      toast.success("Unpinned");
+    },
+    onError: (e: any) => toast.error(e?.message || "Could not unpin"),
   });
 
   // Top contributors — by catch count among team members
@@ -108,28 +126,36 @@ export function TeamRightRail({ team, memberCount, memberUserIds, profiles }: Pr
       </section>
 
       {/* Rules */}
-      {team.rules && (
+      {team.rules ? (
         <section className="rounded-xl border bg-card p-5">
           <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
             <ScrollText className="h-4 w-4 text-primary" /> Group rules
           </h3>
-          <p className="text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed">{team.rules}</p>
+          <FormattedRules text={team.rules} className="text-xs text-foreground/90" />
         </section>
-      )}
+      ) : isCaptain ? (
+        <section className="rounded-xl border border-dashed bg-card/50 p-5">
+          <h3 className="font-bold text-sm mb-1 flex items-center gap-2">
+            <ScrollText className="h-4 w-4 text-muted-foreground" /> Group rules
+          </h3>
+          <p className="text-xs text-muted-foreground">Set expectations for your members. Use the edit pencil on the cover to add rules.</p>
+        </section>
+      ) : null}
 
-      {/* Pinned */}
-      {pinned.length > 0 && (
+      {/* Pinned / Featured */}
+      {pinned.length > 0 ? (
         <section className="rounded-xl border bg-card p-5">
           <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
-            <Pin className="h-4 w-4 text-primary" /> Pinned
+            <Pin className="h-4 w-4 text-primary" /> Pinned / Featured
           </h3>
           <div className="space-y-3">
             {pinned.map((p: any) => {
               const firstImg = Array.isArray(p.media)
                 ? p.media.find((m: any) => m?.type === "image")?.url
                 : null;
+              const busy = unpin.isPending && unpin.variables === p.id;
               return (
-                <div key={p.id} className="flex gap-3 items-start">
+                <div key={p.id} className="flex gap-3 items-start group">
                   {firstImg ? (
                     <img src={firstImg} alt="" className="w-12 h-12 rounded-md object-cover shrink-0" />
                   ) : (
@@ -142,12 +168,33 @@ export function TeamRightRail({ team, memberCount, memberUserIds, profiles }: Pr
                       {" · "}<Badge variant="outline" className="h-3.5 text-[9px] px-1 ml-0.5">{p.surface}</Badge>
                     </p>
                   </div>
+                  {isCaptain && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 -mr-1 opacity-60 hover:opacity-100"
+                      title="Unpin"
+                      disabled={busy}
+                      onClick={() => unpin.mutate(p.id)}
+                    >
+                      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PinOff className="h-3.5 w-3.5" />}
+                    </Button>
+                  )}
                 </div>
               );
             })}
           </div>
         </section>
-      )}
+      ) : isCaptain ? (
+        <section className="rounded-xl border border-dashed bg-card/50 p-5">
+          <h3 className="font-bold text-sm mb-1 flex items-center gap-2">
+            <Pin className="h-4 w-4 text-muted-foreground" /> Pinned / Featured
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Highlight a post by opening its menu and choosing <span className="font-medium text-foreground">Pin to Featured</span>.
+          </p>
+        </section>
+      ) : null}
 
       {/* Top contributors */}
       {topContribs.length > 0 && (
