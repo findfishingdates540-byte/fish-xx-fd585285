@@ -2738,6 +2738,202 @@ export type Database = {
           },
         ]
       }
+      team_post_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_hidden: boolean
+          parent_id: string | null
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          parent_id?: string | null
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          parent_id?: string | null
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "team_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "team_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "team_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_post_reports: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["team_report_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["team_report_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["team_report_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "team_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_posts: {
+        Row: {
+          author_id: string
+          comments_count: number
+          content: string | null
+          created_at: string
+          cross_posted_feed_id: string | null
+          id: string
+          is_hidden: boolean
+          likes_count: number
+          location_lat: number | null
+          location_lng: number | null
+          location_name: string | null
+          media: Json
+          pinned: boolean
+          post_type: Database["public"]["Enums"]["team_post_type"]
+          report_count: number
+          surface: Database["public"]["Enums"]["team_post_surface"]
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          comments_count?: number
+          content?: string | null
+          created_at?: string
+          cross_posted_feed_id?: string | null
+          id?: string
+          is_hidden?: boolean
+          likes_count?: number
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          media?: Json
+          pinned?: boolean
+          post_type?: Database["public"]["Enums"]["team_post_type"]
+          report_count?: number
+          surface: Database["public"]["Enums"]["team_post_surface"]
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          comments_count?: number
+          content?: string | null
+          created_at?: string
+          cross_posted_feed_id?: string | null
+          id?: string
+          is_hidden?: boolean
+          likes_count?: number
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          media?: Json
+          pinned?: boolean
+          post_type?: Database["public"]["Enums"]["team_post_type"]
+          report_count?: number
+          surface?: Database["public"]["Enums"]["team_post_surface"]
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_posts_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_posts_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_team_round_scores"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
       tournament_matchups: {
         Row: {
           created_at: string
@@ -4007,6 +4203,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_team_captain: {
+        Args: { _team: string; _user: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team: string; _user: string }
+        Returns: boolean
+      }
+      is_team_poster: {
+        Args: { _team: string; _user: string }
+        Returns: boolean
+      }
       is_trip_owner: {
         Args: { _trip_id: string; _user_id: string }
         Returns: boolean
@@ -4052,6 +4260,16 @@ export type Database = {
       matching_style: "mutual" | "women_first"
       personality_type: "introvert" | "extrovert" | "ambivert"
       smoking_habit: "never" | "sometimes" | "regularly"
+      team_post_surface: "page" | "group"
+      team_post_type:
+        | "announcement"
+        | "matchup"
+        | "winning"
+        | "teaser"
+        | "update"
+        | "catch"
+        | "general"
+      team_report_status: "pending" | "reviewed" | "actioned" | "dismissed"
       tournament_format: "single_elimination" | "double_elimination"
       tournament_scoring: "biggest_catch" | "total_weight" | "most_catches"
       tournament_seeding: "random" | "ranked" | "manual"
@@ -4211,6 +4429,17 @@ export const Constants = {
       matching_style: ["mutual", "women_first"],
       personality_type: ["introvert", "extrovert", "ambivert"],
       smoking_habit: ["never", "sometimes", "regularly"],
+      team_post_surface: ["page", "group"],
+      team_post_type: [
+        "announcement",
+        "matchup",
+        "winning",
+        "teaser",
+        "update",
+        "catch",
+        "general",
+      ],
+      team_report_status: ["pending", "reviewed", "actioned", "dismissed"],
       tournament_format: ["single_elimination", "double_elimination"],
       tournament_scoring: ["biggest_catch", "total_weight", "most_catches"],
       tournament_seeding: ["random", "ranked", "manual"],
