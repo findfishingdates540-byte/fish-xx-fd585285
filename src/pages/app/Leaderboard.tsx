@@ -353,7 +353,7 @@ export default function Leaderboard() {
                 })}
               </div>
             )}
-            <button onClick={() => setSearchQuery("")} className="w-full mt-4 py-2 rounded-lg border sb-border text-xs font-semibold sb-cyan hover:bg-[hsl(var(--sb-surface-2))] transition-colors">View Full Rankings</button>
+            <button onClick={() => navigate("/app/leaderboard/anglers")} className="w-full mt-4 py-2 rounded-lg border sb-border text-xs font-semibold sb-cyan hover:bg-[hsl(var(--sb-surface-2))] transition-colors">View Full Rankings</button>
           </div>
 
           {latestVerified && (

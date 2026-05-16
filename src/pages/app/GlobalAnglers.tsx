@@ -1,0 +1,240 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Search, Trophy, Medal, Fish, Scale, Crown } from "lucide-react";
+
+interface AnglerRow {
+  user_id: string;
+  total_caught: number;
+  total_released: number;
+  species_count: number;
+  largest_weight_lbs: number | null;
+}
+
+interface ProfileInfo {
+  id: string;
+  display_name: string | null;
+  photos: string[] | null;
+  location_name: string | null;
+  id_verified: boolean | null;
+  live_verified: boolean | null;
+}
+
+const PAGE_SIZE = 50;
+
+const GlobalAnglers = () => {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<"points" | "catches" | "biggest" | "species">("points");
+
+  // Aggregate every angler from leaderboard_entries (one row per user/species).
+  const { data: anglers = [], isLoading } = useQuery({
+    queryKey: ["global-anglers-full"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leaderboard_entries")
+        .select("user_id, species_id, total_caught, total_released, largest_weight_lbs")
+        .limit(5000);
+      if (error) throw error;
+      const map = new Map<string, AnglerRow>();
+      (data || []).forEach((e: any) => {
+        const cur = map.get(e.user_id) || {
+          user_id: e.user_id,
+          total_caught: 0,
+          total_released: 0,
+          species_count: 0,
+          largest_weight_lbs: null,
+        };
+        cur.total_caught += e.total_caught || 0;
+        cur.total_released += e.total_released || 0;
+        cur.species_count += e.species_id ? 1 : 0;
+        if (e.largest_weight_lbs != null && (cur.largest_weight_lbs == null || e.largest_weight_lbs > cur.largest_weight_lbs)) {
+          cur.largest_weight_lbs = e.largest_weight_lbs;
+        }
+        map.set(e.user_id, cur);
+      });
+      return Array.from(map.values());
+    },
+  });
+
+  const ids = useMemo(() => anglers.map((a) => a.user_id), [anglers]);
+
+  const { data: profiles = {} } = useQuery({
+    queryKey: ["global-anglers-profiles", ids.length],
+    queryFn: async () => {
+      if (ids.length === 0) return {};
+      const map: Record<string, ProfileInfo> = {};
+      // chunk in 500s to respect URL/row caps
+      for (let i = 0; i < ids.length; i += 500) {
+        const chunk = ids.slice(i, i + 500);
+        const { data } = await supabase
+          .from("profiles_safe")
+          .select("id, display_name, photos, location_name, id_verified, live_verified")
+          .in("id", chunk);
+        (data || []).forEach((p: any) => { map[p.id] = p; });
+      }
+      return map;
+    },
+    enabled: ids.length > 0,
+  });
+
+  const ranked = useMemo(() => {
+    const enriched = anglers.map((a) => ({
+      ...a,
+      points: a.total_caught * 10,
+      profile: profiles[a.user_id],
+    }));
+    const filtered = search
+      ? enriched.filter((a) =>
+          (a.profile?.display_name || "").toLowerCase().includes(search.toLowerCase()) ||
+          (a.profile?.location_name || "").toLowerCase().includes(search.toLowerCase()),
+        )
+      : enriched;
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sort) {
+        case "catches": return b.total_caught - a.total_caught;
+        case "biggest": return (b.largest_weight_lbs || 0) - (a.largest_weight_lbs || 0);
+        case "species": return b.species_count - a.species_count;
+        default: return b.points - a.points;
+      }
+    });
+    return sorted.slice(0, PAGE_SIZE * 4);
+  }, [anglers, profiles, search, sort]);
+
+  const top3 = ranked.slice(0, 3);
+  const rest = ranked.slice(3);
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      <div className="sticky top-0 z-10 backdrop-blur bg-background/80 border-b">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-base font-bold flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-amber-500" />
+              Global Angler Rankings
+            </h1>
+            <p className="text-[11px] text-muted-foreground">All-time leaderboard across every species</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search anglers or locations…"
+              className="pl-9"
+            />
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1">
+            {([
+              { k: "points", label: "Points" },
+              { k: "catches", label: "Catches" },
+              { k: "biggest", label: "Biggest" },
+              { k: "species", label: "Species" },
+            ] as const).map((opt) => (
+              <button
+                key={opt.k}
+                onClick={() => setSort(opt.k)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-colors ${
+                  sort === opt.k ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+          </div>
+        ) : ranked.length === 0 ? (
+          <div className="rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">
+            No anglers match your filters yet.
+          </div>
+        ) : (
+          <>
+            {/* Podium */}
+            {top3.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {[top3[1], top3[0], top3[2]].filter(Boolean).map((a, idx) => {
+                  const realRank = a === top3[0] ? 1 : a === top3[1] ? 2 : 3;
+                  const heightClass = realRank === 1 ? "pt-2" : realRank === 2 ? "pt-6" : "pt-8";
+                  const medalColor = realRank === 1 ? "text-amber-500" : realRank === 2 ? "text-slate-300" : "text-amber-700";
+                  return (
+                    <button
+                      key={a.user_id}
+                      onClick={() => navigate(`/app/u/${a.user_id}`)}
+                      className={`${heightClass} rounded-xl border bg-card p-3 text-center hover:border-primary transition-colors`}
+                    >
+                      <Medal className={`h-5 w-5 mx-auto mb-1 ${medalColor}`} />
+                      <Avatar className={`mx-auto mb-2 ${realRank === 1 ? "h-16 w-16" : "h-12 w-12"} ring-2 ring-border`}>
+                        <AvatarImage src={a.profile?.photos?.[0] || ""} />
+                        <AvatarFallback>{(a.profile?.display_name || "?")[0]}</AvatarFallback>
+                      </Avatar>
+                      <p className="text-sm font-semibold truncate">{a.profile?.display_name || "Angler"}</p>
+                      <p className="text-[11px] text-muted-foreground">#{realRank} · {a.points.toLocaleString()} pts</p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* List */}
+            <div className="rounded-xl border bg-card divide-y">
+              {rest.map((a, i) => (
+                <button
+                  key={a.user_id}
+                  onClick={() => navigate(`/app/u/${a.user_id}`)}
+                  className="w-full flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors text-left"
+                >
+                  <span className="w-7 text-center text-sm font-bold text-muted-foreground">{i + 4}</span>
+                  <Avatar className="h-10 w-10 ring-1 ring-border">
+                    <AvatarImage src={a.profile?.photos?.[0] || ""} />
+                    <AvatarFallback>{(a.profile?.display_name || "?")[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-sm truncate">{a.profile?.display_name || "Angler"}</p>
+                      {a.profile?.id_verified && <Badge variant="secondary" className="h-4 px-1 text-[9px]">ID</Badge>}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {a.profile?.location_name || "Unknown"}
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex flex-col items-end text-xs gap-0.5">
+                    <span className="flex items-center gap-1 text-muted-foreground"><Fish className="h-3 w-3" />{a.total_caught}</span>
+                    {a.largest_weight_lbs != null && (
+                      <span className="flex items-center gap-1 text-muted-foreground"><Scale className="h-3 w-3" />{a.largest_weight_lbs} lb</span>
+                    )}
+                    <span className="flex items-center gap-1 text-muted-foreground"><Crown className="h-3 w-3" />{a.species_count} spp.</span>
+                  </div>
+                  <div className="text-right shrink-0 min-w-[64px]">
+                    <p className="text-sm font-bold text-primary">{a.points.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">pts</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default GlobalAnglers;
