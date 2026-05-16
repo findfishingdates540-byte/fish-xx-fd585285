@@ -249,6 +249,28 @@
     --sb-cyan-soft: 187 92% 55% / 0.12;
     --sb-gold: 40 92% 58%;
     --sb-emerald: 152 72% 48%;
+
+    /* Remap shadcn semantic tokens within scoreboard hub scope so any
+       bg-card / text-muted-foreground / border / etc. automatically picks
+       up the blue theme. */
+    --background: 212 45% 9%;
+    --foreground: 210 20% 96%;
+    --card: 212 40% 13%;
+    --card-foreground: 210 20% 96%;
+    --popover: 212 40% 13%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 187 92% 55%;
+    --primary-foreground: 212 45% 9%;
+    --secondary: 212 35% 17%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 212 35% 17%;
+    --muted-foreground: 212 15% 65%;
+    --accent: 212 35% 17%;
+    --accent-foreground: 210 20% 96%;
+    --border: 212 30% 22%;
+    --input: 212 30% 22%;
+    --ring: 187 92% 55%;
+
     background-color: hsl(var(--sb-bg));
     color: hsl(var(--sb-text));
     font-family: 'Lexend', 'Outfit', system-ui, sans-serif;
