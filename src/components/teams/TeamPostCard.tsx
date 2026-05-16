@@ -63,6 +63,11 @@ export function TeamPostCard({ post, teamName, teamLogo, surface, isCaptain }: P
                 {TYPE_LABELS[post.post_type]}
               </Badge>
             )}
+            {post.visibility === "pending_review" && post.author_id === user?.id && (
+              <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-amber-500/50 text-amber-600 dark:text-amber-400">
+                Pending review
+              </Badge>
+            )}
           </div>
           <div className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
             <span>posted by</span>
