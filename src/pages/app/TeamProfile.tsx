@@ -424,6 +424,12 @@ export default function TeamProfile() {
             </div>
           </section>
         </TabsContent>
+
+        {isCaptain && (
+          <TabsContent value="insights" className="mt-4">
+            <TeamInsightsTab teamId={teamId!} isCaptain={isCaptain} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
