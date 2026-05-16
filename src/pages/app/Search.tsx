@@ -20,11 +20,7 @@ function useSearchData(q: string) {
       const term = `%${q.trim()}%`;
 
       const [peopleRes, postsRes, teamsRes] = await Promise.all([
-        supabase
-          .from("public_profiles")
-          .select("id, display_name, photos, location_name, fishing_experience")
-          .ilike("display_name", term)
-          .limit(30),
+        supabase.rpc("search_users", { p_query: q.trim(), p_limit: 30 }),
         supabase
           .from("feed_posts")
           .select("id, user_id, content, created_at, likes_count, comments_count")
@@ -55,6 +51,19 @@ export default function Search() {
   const [input, setInput] = useState(q);
 
   useEffect(() => setInput(q), [q]);
+
+  // Debounce input → URL ?q= (300ms) so users get live results without spamming the API
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      if (input.trim() === q) return;
+      const next = new URLSearchParams(params);
+      if (input.trim()) next.set("q", input.trim());
+      else next.delete("q");
+      setParams(next, { replace: true });
+    }, 300);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input]);
 
   const { data, isLoading } = useSearchData(q);
 

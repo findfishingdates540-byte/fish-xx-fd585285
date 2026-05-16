@@ -182,6 +182,7 @@ function AppLayoutContent() {
 
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
 
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile-mode', user?.id],
@@ -189,7 +190,7 @@ export function AppLayout() {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('account_mode, onboarding_completed, is_premium, premium_expires_at')
+        .select('account_mode, onboarding_completed, is_premium, premium_expires_at, photos')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -244,6 +245,16 @@ export function AppLayout() {
 
   if (!profile?.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  // Require a profile photo before allowing access to the app.
+  // Allow the edit page and settings through so users can upload.
+  const hasPhoto = Array.isArray(profile?.photos) && profile.photos.length > 0 && !!profile.photos[0];
+  const photoExempt =
+    location.pathname.startsWith('/app/profile/edit') ||
+    location.pathname.startsWith('/app/settings');
+  if (!hasPhoto && !photoExempt) {
+    return <Navigate to="/app/profile/edit?require=photo" replace />;
   }
 
   // App access is free while FishX grows; paid checks only apply to paid fishing challenges later.
