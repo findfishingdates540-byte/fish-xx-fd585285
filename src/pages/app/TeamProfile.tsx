@@ -100,7 +100,7 @@ export default function TeamProfile() {
 
   const isCaptain = !!user && team?.captain_id === user.id;
   const isMember = !!user && (isCaptain || members.some((m) => m.user_id === user.id));
-  const { data: followInfo, toggle: toggleFollow } = useTeamFollow(teamId);
+  const { data: followInfo } = useTeamFollow(teamId);
   const { data: role } = useTeamRole(teamId);
   const [tab, setTab] = useState<string>("page");
 
