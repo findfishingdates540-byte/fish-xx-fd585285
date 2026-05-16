@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,9 @@ import { toast } from "sonner";
 import { useTeamFollow } from "@/hooks/use-team-follow";
 import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
 import { useTeamRole } from "@/hooks/use-team-role";
+import { FollowPageButton } from "@/components/teams/FollowPageButton";
+import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
+import { logTeamPageView } from "@/hooks/use-team-page-insights";
 
 interface MemberProfile {
   id: string;
@@ -102,6 +105,11 @@ export default function TeamProfile() {
   const { data: followInfo, toggle: toggleFollow } = useTeamFollow(teamId);
   const { data: role } = useTeamRole(teamId);
   const [tab, setTab] = useState<string>("page");
+
+  useEffect(() => {
+    if (!teamId) return;
+    logTeamPageView(teamId, user?.id || null);
+  }, [teamId, user?.id]);
 
   const promoteMutation = useMutation({
     mutationFn: async (p: { userId: string; toRole: "officer" | "member" }) => {
@@ -272,24 +280,21 @@ export default function TeamProfile() {
                 <UserPlus className="h-4 w-4" />
                 {joinMutation.isPending ? "Joining..." : "Join Team"}
               </Button>
-              <Button
-                variant={followInfo?.isFollowing ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => toggleFollow.mutate()}
-                disabled={toggleFollow.isPending}
-                className="gap-1.5"
-              >
-                {followInfo?.isFollowing ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
-                {followInfo?.isFollowing ? "Following" : "Follow Page"}
-              </Button>
+              <FollowPageButton teamId={teamId!} teamName={team.name} />
             </>
           ) : isCaptain ? (
-            <Badge className="bg-primary/10 text-primary border-0 gap-1"><Crown className="h-3 w-3" />You're the Captain</Badge>
+            <>
+              <Badge className="bg-primary/10 text-primary border-0 gap-1"><Crown className="h-3 w-3" />You're the Captain</Badge>
+              <FollowPageButton teamId={teamId!} teamName={team.name} />
+            </>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => leaveMutation.mutate()} disabled={leaveMutation.isPending} className="gap-1.5 text-destructive hover:text-destructive">
-              <LogOut className="h-4 w-4" />
-              {leaveMutation.isPending ? "Leaving..." : "Leave Team"}
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={() => leaveMutation.mutate()} disabled={leaveMutation.isPending} className="gap-1.5 text-destructive hover:text-destructive">
+                <LogOut className="h-4 w-4" />
+                {leaveMutation.isPending ? "Leaving..." : "Leave Team"}
+              </Button>
+              <FollowPageButton teamId={teamId!} teamName={team.name} />
+            </>
           )}
           {followInfo && (
             <span className="ml-auto text-xs text-muted-foreground">
@@ -301,11 +306,12 @@ export default function TeamProfile() {
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className={`grid w-full ${isCaptain ? "grid-cols-5" : "grid-cols-4"}`}>
           <TabsTrigger value="page">Page</TabsTrigger>
           <TabsTrigger value="group">Group</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
+          {isCaptain && <TabsTrigger value="insights">Insights</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="page" className="mt-4">
