@@ -93,6 +93,23 @@ const Contact = () => {
         title="Contact FishX — Get in Touch"
         description="Reach the FishX team for support, partnerships, press, or feedback. We typically reply within one business day."
         path="/contact"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: "FishX",
+          url: "https://fish-x.com",
+          email: "support@fishx.app",
+          telephone: "1-800-FISHX-APP",
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "123 Fishing Lane",
+            addressLocality: "Lake City",
+            addressRegion: "FL",
+            postalCode: "32055",
+            addressCountry: "US",
+          },
+          openingHours: "Mo-Su 00:00-23:59",
+        }}
       />
       <PublicHeader />
 
