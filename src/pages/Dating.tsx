@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, MessageCircle, Users, MapPin, Shield, Star, Check, Sparkles, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -12,6 +13,11 @@ import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scr
 const Dating = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="FishX Dating — Meet Anglers Who Share Your Passion"
+        description="Optional dating mode for anglers 18+. Match with people who love fishing — plan trips, share spots, and build real connections."
+        path="/dating"
+      />
       <PublicHeader />
 
       {/* Hero Section */}

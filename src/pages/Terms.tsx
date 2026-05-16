@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
@@ -57,6 +58,11 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Terms of Service — FishX"
+        description="Read the FishX Terms of Service covering account use, content, payments, prizes, and your rights as a member."
+        path="/terms"
+      />
       <PublicHeader />
 
       {/* Hero Banner */}

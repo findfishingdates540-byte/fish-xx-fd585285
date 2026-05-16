@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Camera, Trophy, Users, Check, DollarSign, Vote, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -11,6 +12,11 @@ import { ScrollReveal } from '@/components/ui/scroll-reveal';
 const Challenges = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Photo & Fishing Challenges on FishX"
+        description="Enter live photo challenges, vote on entries, and win cash and gear. New fishing challenges every week on FishX."
+        path="/challenges"
+      />
       <PublicHeader />
 
       {/* Hero Section */}

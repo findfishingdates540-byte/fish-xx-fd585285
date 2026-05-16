@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowLeft, Fish, MapPin, Users, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -74,6 +75,11 @@ const stories = [
 const Stories = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Angler Stories — Real Catches, Real People"
+        description="Stories from the FishX community: epic catches, lifelong fishing buddies, and dating connections that started on the water."
+        path="/stories"
+      />
       <PublicHeader />
 
       {/* Hero */}

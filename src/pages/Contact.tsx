@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { contactFormSchema } from '@/lib/validation';
@@ -88,6 +89,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Contact FishX — Get in Touch"
+        description="Reach the FishX team for support, partnerships, press, or feedback. We typically reply within one business day."
+        path="/contact"
+      />
       <PublicHeader />
 
       {/* Hero Section */}
