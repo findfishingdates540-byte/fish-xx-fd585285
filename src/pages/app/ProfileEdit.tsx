@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +81,11 @@ export default function ProfileEdit() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shouldStartGuide = searchParams.get('guide') === 'true';
+  const queryClient = useQueryClient();
+
+  // If we landed here because the photo gate was triggered, refetch the gate
+  // query whenever the locally-loaded photo list confirms a photo exists, so
+  // users with an existing photo aren't stuck on this page.
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -224,6 +230,10 @@ export default function ProfileEdit() {
       setAgeRange([data.min_age_preference || 18, data.max_age_preference || 50]);
       setMaxDistance(data.max_distance_miles || 50);
       setPhotos(data.photos || []);
+      // Clear the app-wide photo gate cache the moment we confirm a photo exists
+      if ((data.photos || []).length > 0) {
+        queryClient.invalidateQueries({ queryKey: ['profile-mode', user!.id] });
+      }
       setCoverPhoto((data as any).cover_photo || null);
       
       // New fields
@@ -310,6 +320,9 @@ export default function ProfileEdit() {
         .from("profiles")
         .update({ photos: newPhotos })
         .eq("id", user!.id);
+
+      // Invalidate the app-wide profile gate so the photo requirement clears immediately
+      queryClient.invalidateQueries({ queryKey: ['profile-mode', user!.id] });
 
       toast.success("Photo uploaded successfully");
     } catch (error) {
