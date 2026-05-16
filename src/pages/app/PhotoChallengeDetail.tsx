@@ -310,6 +310,14 @@ export default function PhotoChallengeDetail() {
   const isVotingPhase = challenge.status === "voting";
   const isCompleted = challenge.status === "completed";
 
+  const submissionsEndMs = new Date(challenge.end_date).getTime();
+  const votingEndMs = new Date(challenge.voting_end_date).getTime();
+  const nowMs = Date.now();
+  // Voting is only allowed if the DB status is `voting` AND the current time
+  // is still before voting_end_date (defends against cron lag).
+  const votingOpenByTime = isVotingPhase && nowMs < votingEndMs;
+  const submissionsOpenByTime = isSubmissionPhase && nowMs < submissionsEndMs;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       <Button variant="ghost" size="sm" onClick={() => navigate("/app/photo-challenges")}>
@@ -364,15 +372,22 @@ export default function PhotoChallengeDetail() {
         <Card className="flex items-center gap-2 px-4 py-3">
           <Clock className="h-4 w-4 text-primary" />
           <div>
-            <p className="text-xs text-muted-foreground">
-              {isSubmissionPhase ? "Submissions close" : isVotingPhase ? "Voting ends" : "Ended"}
+            <p className="text-xs text-muted-foreground">Submissions close</p>
+            <p className="font-bold text-sm tabular-nums">
+              {nowMs < submissionsEndMs
+                ? <Countdown targetMs={submissionsEndMs} />
+                : "Closed"}
             </p>
-            <p className="font-bold text-sm">
-              {isSubmissionPhase
-                ? formatDistanceToNow(new Date(challenge.end_date), { addSuffix: true })
-                : isVotingPhase
-                ? formatDistanceToNow(new Date(challenge.voting_end_date), { addSuffix: true })
-                : format(new Date(challenge.voting_end_date), "MMM d, yyyy")}
+          </div>
+        </Card>
+        <Card className="flex items-center gap-2 px-4 py-3">
+          <Vote className="h-4 w-4 text-primary" />
+          <div>
+            <p className="text-xs text-muted-foreground">Voting closes</p>
+            <p className="font-bold text-sm tabular-nums">
+              {nowMs < votingEndMs
+                ? <Countdown targetMs={votingEndMs} />
+                : "Closed"}
             </p>
           </div>
         </Card>
@@ -494,12 +509,21 @@ export default function PhotoChallengeDetail() {
         </Card>
       )}
 
-      {isVotingPhase && (
+      {isVotingPhase && votingOpenByTime && (
         <Card className="p-4 bg-secondary/50">
           <p className="text-sm font-medium">
             <Vote className="h-4 w-4 inline mr-1" />
             Voting is open! Tap a photo to vote. You can only vote once.
             {myVote && " (You've already voted — tap another to change)"}
+          </p>
+        </Card>
+      )}
+
+      {isVotingPhase && !votingOpenByTime && (
+        <Card className="p-4 bg-muted/50">
+          <p className="text-sm font-medium text-muted-foreground">
+            <Clock className="h-4 w-4 inline mr-1" />
+            Voting window has ended. Final results will be posted shortly.
           </p>
         </Card>
       )}
@@ -528,7 +552,7 @@ export default function PhotoChallengeDetail() {
                 ? Number(item.vote_count)
                 : voteCounts[entry.id] || 0;
               const canVote =
-                isVotingPhase && user && entry.user_id !== user.id;
+                votingOpenByTime && user && entry.user_id !== user.id;
 
               return (
                 <div
