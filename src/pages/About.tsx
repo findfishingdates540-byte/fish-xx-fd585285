@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Fish, Users, Target, Award, Globe, Sparkles } from 'lucide-react';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { motion } from 'framer-motion';
 import aboutHero from '@/assets/about-hero.jpg';
 import coupleFishing from '@/assets/couple-fishing.jpg';
@@ -10,6 +11,12 @@ import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scr
 
 const About = () => {
   return (
+    <>
+      <PageMeta
+        title="About FishX — Our Mission for Anglers"
+        description="FishX is the social home for anglers — built to help you find spots, log catches, compete fairly, and connect with a global fishing community."
+        path="/about"
+      />
     <div className="min-h-screen bg-background">
       <PublicHeader />
 
