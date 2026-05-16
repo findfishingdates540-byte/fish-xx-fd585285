@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import fishxLogo from "@/assets/fishx-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +24,6 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Search, Trophy } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FishXIcon, type FishXIconName } from "@/components/ui/fishx-icon";
