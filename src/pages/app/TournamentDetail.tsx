@@ -823,10 +823,39 @@ const TournamentDetail = () => {
 
         {/* TEAM STANDINGS */}
         <TabsContent value="standings" className="mt-0">
-          <div className="rounded-xl border bg-card p-4">
+          <div className="rounded-xl border bg-card p-4 space-y-3">
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                onClick={() => setTeamsView("overall")}
+                className={`px-2.5 py-1 rounded-full border ${teamsView === "overall" ? "bg-primary text-primary-foreground border-primary" : "bg-background"}`}
+              >
+                Overall
+              </button>
+              <button
+                onClick={() => {
+                  setTeamsView("round");
+                  if (!teamsRoundId && completedRounds[0]) setTeamsRoundId(completedRounds[0].id);
+                }}
+                disabled={completedRounds.length === 0}
+                className={`px-2.5 py-1 rounded-full border disabled:opacity-50 ${teamsView === "round" ? "bg-primary text-primary-foreground border-primary" : "bg-background"}`}
+              >
+                By round
+              </button>
+              {teamsView === "round" && (
+                <Select value={teamsRoundId} onValueChange={setTeamsRoundId}>
+                  <SelectTrigger className="h-7 w-auto text-xs ml-auto"><SelectValue placeholder="Round" /></SelectTrigger>
+                  <SelectContent>
+                    {completedRounds.map((r: any) => (
+                      <SelectItem key={r.id} value={r.id}>{r.round_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
             {teamLeaderboard.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">No team scores yet.</p>
-            ) : (
+            ) : teamsView === "overall" ? (
               <div className="space-y-2">
                 {teamLeaderboard.map((row: any, idx: number) => (
                   <div key={row.team_id} className={`flex items-center gap-3 p-2.5 rounded-lg border ${idx === 0 ? "bg-amber-500/10 border-amber-500/30" : "bg-muted/30"}`}>
@@ -843,31 +872,108 @@ const TournamentDetail = () => {
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="space-y-2">
+                {(teamRoundScores as any[])
+                  .filter((r) => r.round_id === teamsRoundId)
+                  .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+                  .map((row: any) => {
+                    const team = teamMap[row.team_id];
+                    const opp = teamMap[row.opponent_team_id];
+                    const won = row.result === "won";
+                    const lost = row.result === "lost";
+                    return (
+                      <div key={`${row.matchup_id}-${row.team_id}`} className={`flex items-center gap-3 p-2.5 rounded-lg border ${won ? "bg-emerald-500/10 border-emerald-500/30" : lost ? "bg-destructive/5 border-destructive/30" : "bg-muted/30"}`}>
+                        <Avatar className="h-8 w-8"><AvatarImage src={team?.logo_url} /><AvatarFallback className="text-[10px]">{team?.name?.charAt(0)}</AvatarFallback></Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{team?.name || "—"}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">vs {opp?.name || "TBD"} · {won ? "Won" : lost ? "Lost" : "Pending"}</p>
+                        </div>
+                        <p className="text-sm font-bold tabular-nums">{Number(row.score || 0).toFixed(1)}</p>
+                      </div>
+                    );
+                  })}
+                {(teamRoundScores as any[]).filter((r) => r.round_id === teamsRoundId).length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">No scores for this round yet.</p>
+                )}
+              </div>
             )}
           </div>
         </TabsContent>
 
         {/* MVP LEADERBOARD */}
         <TabsContent value="mvp" className="mt-0">
-          <div className="rounded-xl border bg-card p-4">
-            {mvpLeaderboard.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No catches logged yet.</p>
+          <div className="rounded-xl border bg-card p-4 space-y-2">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+              Winning-team MVP per matchup
+            </p>
+            {matchupMvps.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                No completed matchups yet.
+              </p>
             ) : (
-              <div className="space-y-2">
-                {mvpLeaderboard.filter((m: any) => Number(m.total_score) > 0).map((row: any, idx: number) => (
-                  <div key={`${row.user_id}-${row.team_id}`} className={`flex items-center gap-3 p-2.5 rounded-lg border ${idx === 0 ? "bg-primary/10 border-primary/30" : "bg-muted/30"}`}>
-                    <div className="w-7 h-7 rounded-full bg-background border flex items-center justify-center">
-                      {idx < 3 ? <Medal className={`h-3.5 w-3.5 ${idx === 0 ? "text-amber-500" : idx === 1 ? "text-slate-400" : "text-orange-600"}`} /> : <span className="text-xs font-bold">{idx + 1}</span>}
-                    </div>
-                    <Avatar className="h-8 w-8"><AvatarImage src={row.photos?.[0]} /><AvatarFallback className="text-[10px]">{row.display_name?.charAt(0)}</AvatarFallback></Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{row.display_name}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{row.team_name} · {row.catches} catches</p>
-                    </div>
-                    <p className="text-sm font-bold tabular-nums">{Number(row.total_score).toFixed(1)}</p>
-                  </div>
-                ))}
-              </div>
+              matchupMvps.map((row: any) => {
+                const isOpen = expandedMvp === row.matchup_id;
+                const unit = scoringUnit(tournament.scoring_method as string);
+                return (
+                  <Collapsible
+                    key={row.matchup_id}
+                    open={isOpen}
+                    onOpenChange={(v) => setExpandedMvp(v ? row.matchup_id : null)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <button className="w-full flex items-center gap-3 p-2.5 rounded-lg border bg-muted/30 hover:bg-muted/50 transition">
+                        <Badge variant="outline" className="text-[9px] shrink-0">{row.round_name}</Badge>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={row.photos?.[0]} />
+                          <AvatarFallback className="text-[10px]">{row.display_name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="text-sm font-semibold truncate flex items-center gap-1">
+                            <Medal className="h-3 w-3 text-amber-500" />
+                            {row.display_name || "Unknown"}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {row.team_name} · {row.catches_count} catches
+                          </p>
+                        </div>
+                        <p className="text-sm font-bold tabular-nums">
+                          {Number(row.score || 0).toFixed(1)} <span className="text-[9px] text-muted-foreground">{unit}</span>
+                        </p>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${isOpen ? "rotate-180" : ""}`} />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="mt-2 ml-4 pl-3 border-l-2 border-amber-500/30 space-y-1.5">
+                        {expandedMvpCatches.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-2">No catches recorded in window.</p>
+                        ) : (
+                          expandedMvpCatches.map((c: any) => (
+                            <div key={c.id} className="flex items-center gap-2 text-xs">
+                              {c.cover_photo_url || c.photos?.[0] ? (
+                                <img src={c.cover_photo_url || c.photos?.[0]} className="h-8 w-8 rounded object-cover" alt="" />
+                              ) : (
+                                <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
+                                  <Fish className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{c.species_name || "Catch"}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {c.caught_at ? format(new Date(c.caught_at), "MMM d, p") : ""}
+                                </p>
+                              </div>
+                              {c.weight_lbs && (
+                                <span className="tabular-nums text-muted-foreground">{Number(c.weight_lbs).toFixed(1)} lbs</span>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })
             )}
           </div>
         </TabsContent>
