@@ -70,6 +70,11 @@ const Index = () => {
   // Desktop/Tablet: Show full marketing homepage
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="FishX — Catch More Fish. Compete. Win Money."
+        description="Find spots, log catches, join tournaments, and connect with anglers. The #1 social app for fishing."
+        path="/"
+      />
       <PublicHeader />
 
       {/* Hero Section */}
