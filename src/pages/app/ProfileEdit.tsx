@@ -230,6 +230,10 @@ export default function ProfileEdit() {
       setAgeRange([data.min_age_preference || 18, data.max_age_preference || 50]);
       setMaxDistance(data.max_distance_miles || 50);
       setPhotos(data.photos || []);
+      // Clear the app-wide photo gate cache the moment we confirm a photo exists
+      if ((data.photos || []).length > 0) {
+        queryClient.invalidateQueries({ queryKey: ['profile-mode', user!.id] });
+      }
       setCoverPhoto((data as any).cover_photo || null);
       
       // New fields
