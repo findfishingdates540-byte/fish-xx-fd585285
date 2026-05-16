@@ -46,6 +46,7 @@ import Teams from "./pages/app/Teams";
 import CreateTeam from "./pages/app/CreateTeam";
 import TeamProfile from "./pages/app/TeamProfile";
 import Pages from "./pages/app/Pages";
+import Search from "./pages/app/Search";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
@@ -168,6 +169,7 @@ const App = () => (
               
               {/* Shared routes (all account types) */}
               <Route path="feed" element={<Feed />} />
+              <Route path="search" element={<Search />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="my-tickets" element={<MyTickets />} />
               <Route path="call-history" element={<CallHistory />} />

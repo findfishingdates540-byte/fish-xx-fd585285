@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import fishxLogo from "@/assets/fishx-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,6 +52,7 @@ export function FishingHeader() {
   const { isComboUser } = useActiveMode();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState("");
 
   const { data: profile } = useQuery({
     queryKey: ["profile-header", user?.id],
@@ -242,13 +243,23 @@ export function FishingHeader() {
         {/* Right side - Search, Notifications, and Profile */}
         <div className="flex items-center gap-4">
           {/* Search */}
-          <div className="hidden sm:flex relative">
+          <form
+            className="hidden sm:flex relative"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = searchInput.trim();
+              if (!q) return;
+              navigate(`/app/search?q=${encodeURIComponent(q)}`);
+            }}
+          >
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search locations..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search people, posts, pages..."
               className="pl-9 w-48 lg:w-64 bg-muted/50 border-0 focus-visible:ring-1"
             />
-          </div>
+          </form>
 
           {/* Notifications */}
           <NotificationCenter mode="fishing" />
