@@ -12,7 +12,7 @@ import { Lightbox } from "@/components/ui/lightbox";
 import { LiveCameraCapture, type CaptureMetadata } from "@/components/ui/live-camera-capture";
 import { toast } from "@/hooks/use-toast";
 import {
-  ArrowLeft, Camera, Clock, Crown, DollarSign, Gift, Heart,
+  ArrowLeft, Calendar, Camera, Clock, Crown, DollarSign, Gift, Heart,
   Trophy, Upload, Users, Vote, ImageIcon, CreditCard, Copy, CheckCircle,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
@@ -373,6 +373,15 @@ export default function PhotoChallengeDetail() {
                 : isVotingPhase
                 ? formatDistanceToNow(new Date(challenge.voting_end_date), { addSuffix: true })
                 : format(new Date(challenge.voting_end_date), "MMM d, yyyy")}
+            </p>
+          </div>
+        </Card>
+        <Card className="flex items-center gap-2 px-4 py-3">
+          <Calendar className="h-4 w-4 text-primary" />
+          <div>
+            <p className="text-xs text-muted-foreground">Dates</p>
+            <p className="font-bold text-sm">
+              {format(new Date(challenge.start_date), "MMM d")} – {format(new Date(challenge.end_date), "MMM d, yyyy")}
             </p>
           </div>
         </Card>
