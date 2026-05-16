@@ -1,0 +1,2 @@
+ALTER TABLE public.team_posts ADD COLUMN IF NOT EXISTS pinned_order integer NOT NULL DEFAULT 0;
+CREATE INDEX IF NOT EXISTS idx_team_posts_pinned_order ON public.team_posts(team_id, pinned, pinned_order) WHERE pinned = true;

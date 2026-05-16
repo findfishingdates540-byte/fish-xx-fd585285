@@ -3002,6 +3002,7 @@ export type Database = {
           location_name: string | null
           media: Json
           pinned: boolean
+          pinned_order: number
           post_type: Database["public"]["Enums"]["team_post_type"]
           report_count: number
           surface: Database["public"]["Enums"]["team_post_surface"]
@@ -3023,6 +3024,7 @@ export type Database = {
           location_name?: string | null
           media?: Json
           pinned?: boolean
+          pinned_order?: number
           post_type?: Database["public"]["Enums"]["team_post_type"]
           report_count?: number
           surface: Database["public"]["Enums"]["team_post_surface"]
@@ -3044,6 +3046,7 @@ export type Database = {
           location_name?: string | null
           media?: Json
           pinned?: boolean
+          pinned_order?: number
           post_type?: Database["public"]["Enums"]["team_post_type"]
           report_count?: number
           surface?: Database["public"]["Enums"]["team_post_surface"]
