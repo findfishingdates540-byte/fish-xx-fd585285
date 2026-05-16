@@ -13,3 +13,4 @@ export { ReportDialog } from './ReportDialog';
 export { SponsoredPost } from './SponsoredPost';
 export { InviteFriendsCard } from './InviteFriendsCard';
 export { MentionText } from './MentionText';
+export { FollowedPagesStrip } from './FollowedPagesStrip';

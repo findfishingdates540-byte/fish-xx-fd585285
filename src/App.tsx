@@ -45,6 +45,7 @@ import CreateChallenge from "./pages/app/CreateChallenge";
 import Teams from "./pages/app/Teams";
 import CreateTeam from "./pages/app/CreateTeam";
 import TeamProfile from "./pages/app/TeamProfile";
+import Pages from "./pages/app/Pages";
 import Followers from "./pages/app/Followers";
 import Notifications from "./pages/app/Notifications";
 import SpotDetail from "./pages/app/SpotDetail";
@@ -146,6 +147,7 @@ const App = () => (
                 <Route path="teams" element={<Teams />} />
                 <Route path="teams/new" element={<CreateTeam />} />
                 <Route path="teams/:teamId" element={<TeamProfile />} />
+                <Route path="pages" element={<Pages />} />
                 <Route path="tournaments" element={<Tournaments />} />
                 <Route path="tournaments/new" element={<CreateTournament />} />
                 <Route path="tournaments/:id" element={<TournamentDetail />} />
