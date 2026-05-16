@@ -287,7 +287,7 @@ const CreateTournament = () => {
           <div className="rounded-xl border border-[hsl(var(--sb-cyan))]/40 bg-[hsl(var(--sb-cyan-soft))] p-4 flex items-start gap-3">
             <Users className="h-4 w-4 sb-cyan mt-0.5 shrink-0" />
             <div className="text-xs leading-relaxed">
-              <p className="font-semibold text-foreground mb-0.5">Team-based bracket</p>
+              <p className="font-semibold text-foreground mb-0.5 text-white">Team-based bracket</p>
               <p className="sb-text-muted">
                 Tournaments are played between teams. Only team captains can register a team to compete in your bracket.
               </p>
