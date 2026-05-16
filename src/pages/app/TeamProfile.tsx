@@ -29,6 +29,8 @@ import { useTeamRole } from "@/hooks/use-team-role";
 import { FollowPageButton } from "@/components/teams/FollowPageButton";
 import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
+import { TeamRightRail } from "@/components/teams/TeamRightRail";
+import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
 
 interface MemberProfile {
   id: string;
@@ -238,102 +240,155 @@ export default function TeamProfile() {
     ...members.filter((m) => m.user_id !== team.captain_id).map((m) => ({ userId: m.user_id, role: m.role })),
   ];
 
+  const previewAvatars = allMembers.slice(0, 8);
+  const followerCount = followInfo?.count ?? team.followers_count ?? 0;
+
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-6 pb-24">
+    <div className="max-w-6xl mx-auto p-4 md:p-6 pb-24">
       {/* Back */}
       <Button variant="ghost" size="sm" onClick={() => navigate("/app/teams")} className="mb-4 gap-1.5 -ml-2">
         <ArrowLeft className="h-4 w-4" /> Teams
       </Button>
 
-      {/* Team Header */}
+      {/* Team Header — cover + identity */}
       <div className="rounded-xl border bg-card overflow-hidden mb-6">
-        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary/20 flex items-center justify-center text-lg font-bold text-primary shrink-0 overflow-hidden border-2 border-primary/30">
+        {/* Cover */}
+        <div className="relative h-40 md:h-56 bg-gradient-to-br from-primary/40 via-primary/20 to-primary/5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.35),transparent_55%),radial-gradient(circle_at_80%_80%,hsl(var(--primary)/0.25),transparent_50%)]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+        </div>
+
+        {/* Identity row */}
+        <div className="px-4 md:px-6 pb-4 -mt-12 md:-mt-14 relative">
+          <div className="flex flex-col md:flex-row md:items-end gap-4">
+            <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-background ring-4 ring-card shadow-lg overflow-hidden grid place-items-center text-2xl font-bold text-primary">
               {team.logo_url ? (
                 <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
               ) : (
-                team.name.slice(0, 2).toUpperCase()
+                <span>{team.name.slice(0, 2).toUpperCase()}</span>
               )}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 md:pb-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl md:text-2xl font-bold">{team.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold leading-tight">{team.name}</h1>
                 <Badge className={`text-xs border-0 ${skillColor(team.skill_level)}`}>{skillLabel(team.skill_level)}</Badge>
               </div>
-              {team.description && <p className="text-sm text-muted-foreground mt-1">{team.description}</p>}
-              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{allMembers.length} members</span>
-                <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />Est. {new Date(team.created_at).toLocaleDateString()}</span>
+              <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
+                <span className="inline-flex items-center gap-1">
+                  <Users className="h-3.5 w-3.5" />
+                  <span className="font-medium text-foreground">{allMembers.length}</span> members
+                </span>
+                {followerCount > 0 && (
+                  <>
+                    <span>·</span>
+                    <span><span className="font-medium text-foreground">{followerCount}</span> {followerCount === 1 ? "follower" : "followers"}</span>
+                  </>
+                )}
+                <span>·</span>
+                <span className="inline-flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Est. {new Date(team.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
+                </span>
               </div>
+
+              {/* Member avatar stack */}
+              {previewAvatars.length > 0 && (
+                <div className="flex items-center gap-2 mt-3">
+                  <div className="flex -space-x-2">
+                    {previewAvatars.map(({ userId }) => {
+                      const p = profiles[userId];
+                      return (
+                        <Avatar key={userId} className="h-7 w-7 ring-2 ring-card">
+                          <AvatarImage src={p?.photos?.[0] || ""} />
+                          <AvatarFallback className="text-[10px]">{(p?.display_name || "?")[0]}</AvatarFallback>
+                        </Avatar>
+                      );
+                    })}
+                  </div>
+                  {allMembers.length > previewAvatars.length && (
+                    <button
+                      onClick={() => setTab("members")}
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      +{allMembers.length - previewAvatars.length} more
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 md:pb-1 flex-wrap">
+              {!isMember ? (
+                <Button onClick={() => joinMutation.mutate()} disabled={joinMutation.isPending} className="gap-1.5">
+                  <UserPlus className="h-4 w-4" />
+                  {joinMutation.isPending ? "Joining…" : "Join Team"}
+                </Button>
+              ) : isCaptain ? (
+                <Badge className="bg-primary/10 text-primary border-0 gap-1 h-8 px-3">
+                  <Crown className="h-3 w-3" />Captain
+                </Badge>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => leaveMutation.mutate()} disabled={leaveMutation.isPending} className="gap-1.5 text-destructive hover:text-destructive h-9">
+                  <LogOut className="h-4 w-4" />
+                  {leaveMutation.isPending ? "Leaving…" : "Leave"}
+                </Button>
+              )}
+              <FollowPageButton teamId={teamId!} teamName={team.name} />
             </div>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="px-6 py-3 border-t flex items-center gap-2">
-          {!isMember ? (
-            <>
-              <Button onClick={() => joinMutation.mutate()} disabled={joinMutation.isPending} className="gap-1.5">
-                <UserPlus className="h-4 w-4" />
-                {joinMutation.isPending ? "Joining..." : "Join Team"}
-              </Button>
-              <FollowPageButton teamId={teamId!} teamName={team.name} />
-            </>
-          ) : isCaptain ? (
-            <>
-              <Badge className="bg-primary/10 text-primary border-0 gap-1"><Crown className="h-3 w-3" />You're the Captain</Badge>
-              <FollowPageButton teamId={teamId!} teamName={team.name} />
-            </>
-          ) : (
-            <>
-              <Button variant="outline" size="sm" onClick={() => leaveMutation.mutate()} disabled={leaveMutation.isPending} className="gap-1.5 text-destructive hover:text-destructive">
-                <LogOut className="h-4 w-4" />
-                {leaveMutation.isPending ? "Leaving..." : "Leave Team"}
-              </Button>
-              <FollowPageButton teamId={teamId!} teamName={team.name} />
-            </>
-          )}
-          {followInfo && (
-            <span className="ml-auto text-xs text-muted-foreground">
-              {followInfo.count} {followInfo.count === 1 ? "follower" : "followers"}
-            </span>
-          )}
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className={`grid w-full ${isCaptain ? "grid-cols-5" : "grid-cols-4"}`}>
-          <TabsTrigger value="page">Page</TabsTrigger>
-          <TabsTrigger value="group">Group</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
-          {isCaptain && <TabsTrigger value="insights">Insights</TabsTrigger>}
-        </TabsList>
+        <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-2 bg-background/85 backdrop-blur border-b mb-4">
+          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-6" : "grid-cols-5"}`}>
+            <TabsTrigger value="page">Page</TabsTrigger>
+            <TabsTrigger value="group">Group</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            {isCaptain && <TabsTrigger value="insights">Insights</TabsTrigger>}
+          </TabsList>
+        </div>
 
-        <TabsContent value="page" className="mt-4">
-          <TeamFeedTab
-            teamId={teamId!}
-            surface="page"
-            teamName={team.name}
-            teamLogo={team.logo_url}
-            canPost={!!role?.canPostPage}
-            canView={true}
-            isCaptain={isCaptain}
-          />
+        <TabsContent value="page" className="mt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+            <TeamFeedTab
+              teamId={teamId!}
+              surface="page"
+              teamName={team.name}
+              teamLogo={team.logo_url}
+              canPost={!!role?.canPostPage}
+              canView={true}
+              isCaptain={isCaptain}
+            />
+            <div className="hidden lg:block sticky top-20">
+              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} />
+            </div>
+          </div>
         </TabsContent>
 
-        <TabsContent value="group" className="mt-4">
-          <TeamFeedTab
-            teamId={teamId!}
-            surface="group"
-            teamName={team.name}
-            teamLogo={team.logo_url}
-            canPost={!!role?.canPostGroup}
-            canView={isMember}
-            isCaptain={isCaptain}
-          />
+        <TabsContent value="group" className="mt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+            <TeamFeedTab
+              teamId={teamId!}
+              surface="group"
+              teamName={team.name}
+              teamLogo={team.logo_url}
+              canPost={!!role?.canPostGroup}
+              canView={isMember}
+              isCaptain={isCaptain}
+            />
+            <div className="hidden lg:block sticky top-20">
+              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="media" className="mt-0">
+          <TeamMediaTab teamId={teamId!} />
         </TabsContent>
 
         <TabsContent value="about" className="mt-4 space-y-6">
