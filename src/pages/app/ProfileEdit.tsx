@@ -81,6 +81,7 @@ export default function ProfileEdit() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shouldStartGuide = searchParams.get('guide') === 'true';
+  const queryClient = useQueryClient();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -311,6 +312,9 @@ export default function ProfileEdit() {
         .from("profiles")
         .update({ photos: newPhotos })
         .eq("id", user!.id);
+
+      // Invalidate the app-wide profile gate so the photo requirement clears immediately
+      queryClient.invalidateQueries({ queryKey: ['profile-mode', user!.id] });
 
       toast.success("Photo uploaded successfully");
     } catch (error) {
