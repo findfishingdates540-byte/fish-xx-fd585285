@@ -21,6 +21,7 @@ import {
   Target,
   Shield,
   ShieldOff,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTeamFollow } from "@/hooks/use-team-follow";
@@ -31,6 +32,7 @@ import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
 import { TeamRightRail } from "@/components/teams/TeamRightRail";
 import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
+import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
 
 interface MemberProfile {
   id: string;
@@ -105,6 +107,7 @@ export default function TeamProfile() {
   const { data: followInfo } = useTeamFollow(teamId);
   const { data: role } = useTeamRole(teamId);
   const [tab, setTab] = useState<string>("page");
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (!teamId) return;
@@ -252,9 +255,23 @@ export default function TeamProfile() {
       {/* Team Header — cover + identity */}
       <div className="rounded-xl border bg-card overflow-hidden mb-6">
         {/* Cover */}
-        <div className="relative h-40 md:h-56 bg-gradient-to-br from-primary/40 via-primary/20 to-primary/5">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.35),transparent_55%),radial-gradient(circle_at_80%_80%,hsl(var(--primary)/0.25),transparent_50%)]" />
+        <div className="relative h-40 md:h-56 bg-gradient-to-br from-primary/40 via-primary/20 to-primary/5 overflow-hidden">
+          {(team as any).cover_url ? (
+            <img src={(team as any).cover_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.35),transparent_55%),radial-gradient(circle_at_80%_80%,hsl(var(--primary)/0.25),transparent_50%)]" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+          {isCaptain && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setEditOpen(true)}
+              className="absolute top-3 right-3 gap-1.5 backdrop-blur bg-background/80 hover:bg-background"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit page
+            </Button>
+          )}
         </div>
 
         {/* Identity row */}
@@ -324,9 +341,14 @@ export default function TeamProfile() {
                   {joinMutation.isPending ? "Joining…" : "Join Team"}
                 </Button>
               ) : isCaptain ? (
-                <Badge className="bg-primary/10 text-primary border-0 gap-1 h-8 px-3">
-                  <Crown className="h-3 w-3" />Captain
-                </Badge>
+                <>
+                  <Badge className="bg-primary/10 text-primary border-0 gap-1 h-8 px-3">
+                    <Crown className="h-3 w-3" />Captain
+                  </Badge>
+                  <Button size="sm" variant="outline" onClick={() => setEditOpen(true)} className="gap-1.5 h-9">
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Button>
+                </>
               ) : (
                 <Button variant="outline" size="sm" onClick={() => leaveMutation.mutate()} disabled={leaveMutation.isPending} className="gap-1.5 text-destructive hover:text-destructive h-9">
                   <LogOut className="h-4 w-4" />
@@ -338,6 +360,10 @@ export default function TeamProfile() {
           </div>
         </div>
       </div>
+
+      {isCaptain && (
+        <EditTeamDialog open={editOpen} onOpenChange={setEditOpen} team={team} />
+      )}
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">

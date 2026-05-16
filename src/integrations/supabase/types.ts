@@ -1206,6 +1206,7 @@ export type Database = {
         Row: {
           captain_id: string
           category: string
+          cover_url: string | null
           created_at: string
           description: string | null
           followers_count: number
@@ -1214,6 +1215,7 @@ export type Database = {
           logo_url: string | null
           name: string
           phone: string | null
+          rules: string | null
           skill_level: Database["public"]["Enums"]["fishing_experience"]
           team_type: string
           website: string | null
@@ -1221,6 +1223,7 @@ export type Database = {
         Insert: {
           captain_id: string
           category?: string
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           followers_count?: number
@@ -1229,6 +1232,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           phone?: string | null
+          rules?: string | null
           skill_level?: Database["public"]["Enums"]["fishing_experience"]
           team_type?: string
           website?: string | null
@@ -1236,6 +1240,7 @@ export type Database = {
         Update: {
           captain_id?: string
           category?: string
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           followers_count?: number
@@ -1244,6 +1249,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           phone?: string | null
+          rules?: string | null
           skill_level?: Database["public"]["Enums"]["fishing_experience"]
           team_type?: string
           website?: string | null

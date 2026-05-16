@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Crown, Fish, Info, Lock, MapPin, Pin, Trophy, Users } from "lucide-react";
+import { Calendar, Crown, Fish, Info, Lock, MapPin, Pin, ScrollText, Trophy, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
@@ -106,6 +106,16 @@ export function TeamRightRail({ team, memberCount, memberUserIds, profiles }: Pr
           </li>
         </ul>
       </section>
+
+      {/* Rules */}
+      {team.rules && (
+        <section className="rounded-xl border bg-card p-5">
+          <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
+            <ScrollText className="h-4 w-4 text-primary" /> Group rules
+          </h3>
+          <p className="text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed">{team.rules}</p>
+        </section>
+      )}
 
       {/* Pinned */}
       {pinned.length > 0 && (
