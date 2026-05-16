@@ -50,6 +50,11 @@ const TournamentDetail = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [teamsView, setTeamsView] = useState<"overall" | "round">("overall");
+  const [teamsRoundId, setTeamsRoundId] = useState<string>("");
+  const [expandedMvp, setExpandedMvp] = useState<string | null>(null);
+
+  useTournamentMatchAlerts(id);
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ["tournament", id],
