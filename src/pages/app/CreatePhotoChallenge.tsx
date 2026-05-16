@@ -41,6 +41,22 @@ export default function CreatePhotoChallenge() {
         throw new Error("Please fill all required fields");
       }
 
+      const startMs = new Date(startDate).getTime();
+      const endMs = new Date(endDate).getTime();
+      const voteEndMs = new Date(votingEndDate).getTime();
+      if (endMs <= startMs) {
+        throw new Error("Submissions end date must be after the start date");
+      }
+      if (voteEndMs <= endMs) {
+        throw new Error(
+          "Voting end date must be AFTER submissions end — otherwise nobody can vote",
+        );
+      }
+      // Require at least a 1-hour voting window so users actually have time to vote
+      if (voteEndMs - endMs < 60 * 60 * 1000) {
+        throw new Error("Voting window must be at least 1 hour long");
+      }
+
       const { error } = await supabase.from("photo_challenges").insert({
         title,
         description: description || null,
