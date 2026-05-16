@@ -82,6 +82,10 @@ export default function ProfileEdit() {
   const [searchParams] = useSearchParams();
   const shouldStartGuide = searchParams.get('guide') === 'true';
   const queryClient = useQueryClient();
+
+  // If we landed here because the photo gate was triggered, refetch the gate
+  // query whenever the locally-loaded photo list confirms a photo exists, so
+  // users with an existing photo aren't stuck on this page.
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
