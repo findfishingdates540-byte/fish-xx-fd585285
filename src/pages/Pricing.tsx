@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Link, useNavigate } from 'react-router-dom';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
@@ -142,6 +143,20 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="FishX Pricing — Free, Premium & Pro Plans"
+        description="Compare FishX plans for free anglers, premium members, and pro competitors. Annual billing saves 20%, includes a 7-day free trial."
+        path="/pricing"
+        jsonLd={{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqItems.map((f) => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+  }))
+}}
+      />
       <PublicHeader />
       
       {/* Hero Section */}

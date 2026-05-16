@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { 
   Heart, 
@@ -27,6 +28,11 @@ import { PublicHeader, PublicFooter } from '@/components/layout';
 const CommunityGuidelines = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Community Guidelines — FishX"
+        description="The rules that keep FishX safe and fair: respectful conduct, honest catches, no harassment, and zero tolerance for fraud."
+        path="/guidelines"
+      />
       <PublicHeader />
 
       {/* Hero Banner */}

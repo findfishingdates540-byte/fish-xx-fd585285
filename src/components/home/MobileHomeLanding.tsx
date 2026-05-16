@@ -133,10 +133,7 @@ const MobileHomeLanding = () => {
           className="text-center mb-2"
         >
           <h1 className="text-2xl font-bold text-foreground">
-            Fish. Connect.
-          </h1>
-          <h1 className="text-2xl font-bold italic text-foreground">
-            Explore.
+            Fish. Connect. <span className="italic">Explore.</span>
           </h1>
         </motion.div>
 

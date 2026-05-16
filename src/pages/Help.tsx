@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -152,6 +153,11 @@ const Help = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Help Center — FishX"
+        description="Answers about catches, trips, tournaments, billing, and account settings. Search the FishX help center."
+        path="/help"
+      />
       <PublicHeader />
 
       {/* Hero Section */}

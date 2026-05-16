@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
@@ -61,6 +62,11 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Privacy Policy — FishX"
+        description="How FishX collects, uses, and protects your data — location, photos, and account details — across our fishing and dating features."
+        path="/privacy"
+      />
       <PublicHeader />
 
       {/* Hero Banner */}

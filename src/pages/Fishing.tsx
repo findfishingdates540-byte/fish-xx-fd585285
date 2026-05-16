@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Fish, MapPin, Camera, Users, Trophy, Compass, Anchor, Check, Star, Award, Medal } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -13,6 +14,11 @@ import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scr
 const Fishing = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta
+        title="Fishing on FishX — Find Spots, Log Catches, Compete"
+        description="Discover top fishing spots, log every catch with weight and species, climb leaderboards, and join tournaments with anglers near you."
+        path="/fishing"
+      />
       <PublicHeader />
 
       {/* Hero Section */}
