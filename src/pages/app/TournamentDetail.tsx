@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTournamentMatchAlerts } from "@/hooks/use-tournament-match-alerts";
+import { BracketConnectors } from "@/components/tournaments/BracketConnectors";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +56,16 @@ const TournamentDetail = () => {
   const [expandedMvp, setExpandedMvp] = useState<string | null>(null);
 
   useTournamentMatchAlerts(id);
+
+  // Refs for bracket connector positioning
+  const winnersBracketRef = useRef<HTMLDivElement>(null);
+  const losersBracketRef = useRef<HTMLDivElement>(null);
+  const matchupNodeRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const setMatchupNode = (id: string) => (el: HTMLElement | null) => {
+    if (el) matchupNodeRefs.current.set(id, el);
+    else matchupNodeRefs.current.delete(id);
+  };
+  const getMatchupNode = (id: string) => matchupNodeRefs.current.get(id) ?? null;
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ["tournament", id],
@@ -754,7 +765,7 @@ const TournamentDetail = () => {
                 </span>
               </div>
               <div className="overflow-x-auto -mx-4 px-4">
-                <div className="flex gap-6 min-w-max items-stretch">
+                <div ref={winnersBracketRef} className="relative flex gap-6 min-w-max items-stretch">
                   {rounds.filter((r: any) => r.bracket_type === "winners").map((round: any) => {
                     const rMatchups = roundMatchups[round.id] || [];
                     return (
@@ -770,14 +781,15 @@ const TournamentDetail = () => {
                         </div>
                         <div className="flex flex-col justify-around flex-1 gap-3">
                           {rMatchups.map((m: any) => (
-                            <MatchupCard
-                              key={m.id}
-                              matchup={m}
-                              roundName={round.round_name}
-                              teamMap={teamMap}
-                              getPlayerName={getPlayerName}
-                              getPlayerPhoto={getPlayerPhoto}
-                            />
+                            <div key={m.id} data-matchup-id={m.id} ref={setMatchupNode(m.id)}>
+                              <MatchupCard
+                                matchup={m}
+                                roundName={round.round_name}
+                                teamMap={teamMap}
+                                getPlayerName={getPlayerName}
+                                getPlayerPhoto={getPlayerPhoto}
+                              />
+                            </div>
                           ))}
                           {rMatchups.length === 0 && (
                             <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">TBD</div>
@@ -786,13 +798,22 @@ const TournamentDetail = () => {
                       </div>
                     );
                   })}
+                  <BracketConnectors
+                    containerRef={winnersBracketRef}
+                    matchups={matchups.filter((m: any) => {
+                      const r = (rounds as any[]).find((x) => x.id === m.round_id);
+                      return r?.bracket_type === "winners";
+                    })}
+                    getNodeEl={getMatchupNode}
+                    deps={[rounds.length, matchups.length]}
+                  />
                 </div>
               </div>
               {rounds.some((r: any) => r.bracket_type === "losers") && (
                 <div className="mt-6 pt-4 border-t">
                   <p className="text-xs font-semibold text-muted-foreground mb-3">Losers Bracket</p>
                   <div className="overflow-x-auto -mx-4 px-4">
-                    <div className="flex gap-6 min-w-max">
+                    <div ref={losersBracketRef} className="relative flex gap-6 min-w-max">
                       {rounds.filter((r: any) => r.bracket_type === "losers").map((round: any) => {
                         const rMatchups = roundMatchups[round.id] || [];
                         return (
@@ -800,19 +821,29 @@ const TournamentDetail = () => {
                             <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">{round.round_name}</p>
                             <div className="flex flex-col justify-around flex-1 gap-3">
                               {rMatchups.map((m: any) => (
-                                <MatchupCard
-                                  key={m.id}
-                                  matchup={m}
-                                  roundName={round.round_name}
-                                  teamMap={teamMap}
-                                  getPlayerName={getPlayerName}
-                                  getPlayerPhoto={getPlayerPhoto}
-                                />
+                                <div key={m.id} data-matchup-id={m.id} ref={setMatchupNode(m.id)}>
+                                  <MatchupCard
+                                    matchup={m}
+                                    roundName={round.round_name}
+                                    teamMap={teamMap}
+                                    getPlayerName={getPlayerName}
+                                    getPlayerPhoto={getPlayerPhoto}
+                                  />
+                                </div>
                               ))}
                             </div>
                           </div>
                         );
                       })}
+                      <BracketConnectors
+                        containerRef={losersBracketRef}
+                        matchups={matchups.filter((m: any) => {
+                          const r = (rounds as any[]).find((x) => x.id === m.round_id);
+                          return r?.bracket_type === "losers";
+                        })}
+                        getNodeEl={getMatchupNode}
+                        deps={[rounds.length, matchups.length]}
+                      />
                     </div>
                   </div>
                 </div>
