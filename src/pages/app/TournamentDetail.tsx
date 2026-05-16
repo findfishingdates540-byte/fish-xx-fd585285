@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTournamentMatchAlerts } from "@/hooks/use-tournament-match-alerts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   ArrowLeft,
   Trophy,
@@ -32,6 +34,9 @@ import {
   Users2,
   Medal,
   Crown,
+  ChevronDown,
+  XCircle,
+  Fish,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -45,6 +50,11 @@ const TournamentDetail = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [teamsView, setTeamsView] = useState<"overall" | "round">("overall");
+  const [teamsRoundId, setTeamsRoundId] = useState<string>("");
+  const [expandedMvp, setExpandedMvp] = useState<string | null>(null);
+
+  useTournamentMatchAlerts(id);
 
   const { data: tournament, isLoading } = useQuery({
     queryKey: ["tournament", id],
@@ -206,6 +216,59 @@ const TournamentDetail = () => {
       return data || [];
     },
     enabled: !!id && !!user && participants.length > 0,
+  });
+
+  // Per-round team scores (powers the "By round" filter in the Teams tab)
+  const { data: teamRoundScores = [] } = useQuery({
+    queryKey: ["tournament-team-round-scores", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_team_round_scores" as any)
+        .select("*")
+        .eq("tournament_id", id!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // Per-matchup MVPs (powers the MVPs tab)
+  const { data: matchupMvps = [] } = useQuery({
+    queryKey: ["tournament-matchup-mvps", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_matchup_mvps" as any)
+        .select("*")
+        .eq("tournament_id", id!)
+        .order("round_number", { ascending: false })
+        .order("score", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  // On-demand catch log for an expanded MVP row
+  const { data: expandedMvpCatches = [] } = useQuery({
+    queryKey: ["mvp-catches", expandedMvp],
+    queryFn: async () => {
+      if (!expandedMvp) return [];
+      const mvp = (matchupMvps as any[]).find((m: any) => m.matchup_id === expandedMvp);
+      if (!mvp) return [];
+      const round = (rounds as any[]).find((r: any) => r.id === mvp.round_id);
+      if (!round) return [];
+      const { data, error } = await supabase
+        .from("catches")
+        .select("id, species_name, weight_lbs, length_in, caught_at, photos, cover_photo_url")
+        .eq("user_id", mvp.user_id)
+        .gte("caught_at", round.start_date)
+        .lte("caught_at", round.end_date)
+        .order("weight_lbs", { ascending: false, nullsFirst: false })
+        .limit(25);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!expandedMvp,
   });
 
   // Fetch prize payout for current user
@@ -396,6 +459,16 @@ const TournamentDetail = () => {
     return map;
   }, [matchups]);
 
+  const completedRounds = useMemo(
+    () =>
+      (rounds as any[]).filter((r: any) =>
+        (roundMatchups[r.id] || []).some((m: any) => m.status === "completed"),
+      ),
+    [rounds, roundMatchups],
+  );
+
+  const scoringUnit = (s: string) =>
+    s === "most_catches" ? "catches" : "lbs";
   // For tournaments, "players" are teams. Resolve via the participant's team_id.
   const participantByUser = useMemo(() => {
     const map: Record<string, any> = {};
@@ -667,17 +740,44 @@ const TournamentDetail = () => {
               Bracket will appear once seeding is complete.
             </div>
           ) : (
-            <div className="rounded-xl border bg-card p-4">
+            <div className="rounded-xl border bg-card p-4 space-y-3">
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                  <CheckCircle className="h-3 w-3" /> Advancing
+                </span>
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/30">
+                  <XCircle className="h-3 w-3" /> Eliminated
+                </span>
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground border">
+                  <Clock className="h-3 w-3" /> Pending
+                </span>
+              </div>
               <div className="overflow-x-auto -mx-4 px-4">
-                <div className="flex gap-6 min-w-max">
+                <div className="flex gap-6 min-w-max items-stretch">
                   {rounds.filter((r: any) => r.bracket_type === "winners").map((round: any) => {
                     const rMatchups = roundMatchups[round.id] || [];
                     return (
-                      <div key={round.id} className="flex flex-col gap-3 min-w-[200px]">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">{round.round_name}</p>
+                      <div key={round.id} className="flex flex-col gap-3 min-w-[230px]">
+                        <div className="text-center">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{round.round_name}</p>
+                          {round.start_date && (
+                            <p className="text-[10px] text-muted-foreground/70">
+                              {format(new Date(round.start_date), "MMM d")}
+                              {round.end_date ? ` – ${format(new Date(round.end_date), "MMM d")}` : ""}
+                            </p>
+                          )}
+                        </div>
                         <div className="flex flex-col justify-around flex-1 gap-3">
                           {rMatchups.map((m: any) => (
-                            <MatchupCard key={m.id} matchup={m} teamMap={teamMap} getPlayerName={getPlayerName} getPlayerPhoto={getPlayerPhoto} />
+                            <MatchupCard
+                              key={m.id}
+                              matchup={m}
+                              roundName={round.round_name}
+                              teamMap={teamMap}
+                              getPlayerName={getPlayerName}
+                              getPlayerPhoto={getPlayerPhoto}
+                            />
                           ))}
                           {rMatchups.length === 0 && (
                             <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">TBD</div>
@@ -696,11 +796,18 @@ const TournamentDetail = () => {
                       {rounds.filter((r: any) => r.bracket_type === "losers").map((round: any) => {
                         const rMatchups = roundMatchups[round.id] || [];
                         return (
-                          <div key={round.id} className="flex flex-col gap-3 min-w-[200px]">
+                          <div key={round.id} className="flex flex-col gap-3 min-w-[230px]">
                             <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">{round.round_name}</p>
                             <div className="flex flex-col justify-around flex-1 gap-3">
                               {rMatchups.map((m: any) => (
-                                <MatchupCard key={m.id} matchup={m} teamMap={teamMap} getPlayerName={getPlayerName} getPlayerPhoto={getPlayerPhoto} />
+                                <MatchupCard
+                                  key={m.id}
+                                  matchup={m}
+                                  roundName={round.round_name}
+                                  teamMap={teamMap}
+                                  getPlayerName={getPlayerName}
+                                  getPlayerPhoto={getPlayerPhoto}
+                                />
                               ))}
                             </div>
                           </div>
@@ -716,10 +823,39 @@ const TournamentDetail = () => {
 
         {/* TEAM STANDINGS */}
         <TabsContent value="standings" className="mt-0">
-          <div className="rounded-xl border bg-card p-4">
+          <div className="rounded-xl border bg-card p-4 space-y-3">
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                onClick={() => setTeamsView("overall")}
+                className={`px-2.5 py-1 rounded-full border ${teamsView === "overall" ? "bg-primary text-primary-foreground border-primary" : "bg-background"}`}
+              >
+                Overall
+              </button>
+              <button
+                onClick={() => {
+                  setTeamsView("round");
+                  if (!teamsRoundId && completedRounds[0]) setTeamsRoundId(completedRounds[0].id);
+                }}
+                disabled={completedRounds.length === 0}
+                className={`px-2.5 py-1 rounded-full border disabled:opacity-50 ${teamsView === "round" ? "bg-primary text-primary-foreground border-primary" : "bg-background"}`}
+              >
+                By round
+              </button>
+              {teamsView === "round" && (
+                <Select value={teamsRoundId} onValueChange={setTeamsRoundId}>
+                  <SelectTrigger className="h-7 w-auto text-xs ml-auto"><SelectValue placeholder="Round" /></SelectTrigger>
+                  <SelectContent>
+                    {completedRounds.map((r: any) => (
+                      <SelectItem key={r.id} value={r.id}>{r.round_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
             {teamLeaderboard.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">No team scores yet.</p>
-            ) : (
+            ) : teamsView === "overall" ? (
               <div className="space-y-2">
                 {teamLeaderboard.map((row: any, idx: number) => (
                   <div key={row.team_id} className={`flex items-center gap-3 p-2.5 rounded-lg border ${idx === 0 ? "bg-amber-500/10 border-amber-500/30" : "bg-muted/30"}`}>
@@ -736,31 +872,108 @@ const TournamentDetail = () => {
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="space-y-2">
+                {(teamRoundScores as any[])
+                  .filter((r) => r.round_id === teamsRoundId)
+                  .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+                  .map((row: any) => {
+                    const team = teamMap[row.team_id];
+                    const opp = teamMap[row.opponent_team_id];
+                    const won = row.result === "won";
+                    const lost = row.result === "lost";
+                    return (
+                      <div key={`${row.matchup_id}-${row.team_id}`} className={`flex items-center gap-3 p-2.5 rounded-lg border ${won ? "bg-emerald-500/10 border-emerald-500/30" : lost ? "bg-destructive/5 border-destructive/30" : "bg-muted/30"}`}>
+                        <Avatar className="h-8 w-8"><AvatarImage src={team?.logo_url} /><AvatarFallback className="text-[10px]">{team?.name?.charAt(0)}</AvatarFallback></Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{team?.name || "—"}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">vs {opp?.name || "TBD"} · {won ? "Won" : lost ? "Lost" : "Pending"}</p>
+                        </div>
+                        <p className="text-sm font-bold tabular-nums">{Number(row.score || 0).toFixed(1)}</p>
+                      </div>
+                    );
+                  })}
+                {(teamRoundScores as any[]).filter((r) => r.round_id === teamsRoundId).length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">No scores for this round yet.</p>
+                )}
+              </div>
             )}
           </div>
         </TabsContent>
 
         {/* MVP LEADERBOARD */}
         <TabsContent value="mvp" className="mt-0">
-          <div className="rounded-xl border bg-card p-4">
-            {mvpLeaderboard.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No catches logged yet.</p>
+          <div className="rounded-xl border bg-card p-4 space-y-2">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+              Winning-team MVP per matchup
+            </p>
+            {matchupMvps.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                No completed matchups yet.
+              </p>
             ) : (
-              <div className="space-y-2">
-                {mvpLeaderboard.filter((m: any) => Number(m.total_score) > 0).map((row: any, idx: number) => (
-                  <div key={`${row.user_id}-${row.team_id}`} className={`flex items-center gap-3 p-2.5 rounded-lg border ${idx === 0 ? "bg-primary/10 border-primary/30" : "bg-muted/30"}`}>
-                    <div className="w-7 h-7 rounded-full bg-background border flex items-center justify-center">
-                      {idx < 3 ? <Medal className={`h-3.5 w-3.5 ${idx === 0 ? "text-amber-500" : idx === 1 ? "text-slate-400" : "text-orange-600"}`} /> : <span className="text-xs font-bold">{idx + 1}</span>}
-                    </div>
-                    <Avatar className="h-8 w-8"><AvatarImage src={row.photos?.[0]} /><AvatarFallback className="text-[10px]">{row.display_name?.charAt(0)}</AvatarFallback></Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{row.display_name}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{row.team_name} · {row.catches} catches</p>
-                    </div>
-                    <p className="text-sm font-bold tabular-nums">{Number(row.total_score).toFixed(1)}</p>
-                  </div>
-                ))}
-              </div>
+              matchupMvps.map((row: any) => {
+                const isOpen = expandedMvp === row.matchup_id;
+                const unit = scoringUnit(tournament.scoring_method as string);
+                return (
+                  <Collapsible
+                    key={row.matchup_id}
+                    open={isOpen}
+                    onOpenChange={(v) => setExpandedMvp(v ? row.matchup_id : null)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <button className="w-full flex items-center gap-3 p-2.5 rounded-lg border bg-muted/30 hover:bg-muted/50 transition">
+                        <Badge variant="outline" className="text-[9px] shrink-0">{row.round_name}</Badge>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={row.photos?.[0]} />
+                          <AvatarFallback className="text-[10px]">{row.display_name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="text-sm font-semibold truncate flex items-center gap-1">
+                            <Medal className="h-3 w-3 text-amber-500" />
+                            {row.display_name || "Unknown"}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {row.team_name} · {row.catches_count} catches
+                          </p>
+                        </div>
+                        <p className="text-sm font-bold tabular-nums">
+                          {Number(row.score || 0).toFixed(1)} <span className="text-[9px] text-muted-foreground">{unit}</span>
+                        </p>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${isOpen ? "rotate-180" : ""}`} />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="mt-2 ml-4 pl-3 border-l-2 border-amber-500/30 space-y-1.5">
+                        {expandedMvpCatches.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-2">No catches recorded in window.</p>
+                        ) : (
+                          expandedMvpCatches.map((c: any) => (
+                            <div key={c.id} className="flex items-center gap-2 text-xs">
+                              {c.cover_photo_url || c.photos?.[0] ? (
+                                <img src={c.cover_photo_url || c.photos?.[0]} className="h-8 w-8 rounded object-cover" alt="" />
+                              ) : (
+                                <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
+                                  <Fish className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{c.species_name || "Catch"}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {c.caught_at ? format(new Date(c.caught_at), "MMM d, p") : ""}
+                                </p>
+                              </div>
+                              {c.weight_lbs && (
+                                <span className="tabular-nums text-muted-foreground">{Number(c.weight_lbs).toFixed(1)} lbs</span>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })
             )}
           </div>
         </TabsContent>
@@ -805,11 +1018,13 @@ const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string
 
 const MatchupCard = ({
   matchup,
+  roundName,
   teamMap,
   getPlayerName,
   getPlayerPhoto,
 }: {
   matchup: any;
+  roundName?: string;
   teamMap: Record<string, any>;
   getPlayerName: (id: string | null) => string;
   getPlayerPhoto: (id: string | null) => string | null;
@@ -831,24 +1046,87 @@ const MatchupCard = ({
     (matchup.winner_team_id && matchup.winner_team_id === matchup.team2_id) ||
     (!matchup.winner_team_id && matchup.winner_id === matchup.player2_id)
   );
+  const bothPresent = !!(matchup.team1_id && matchup.team2_id);
+  const isBye = (matchup.team1_id && !matchup.team2_id) || (!matchup.team1_id && matchup.team2_id);
+  const statusPill = isComplete
+    ? null
+    : isBye
+    ? <span className="text-[9px] uppercase tracking-wide text-muted-foreground">BYE</span>
+    : bothPresent
+    ? <span className="text-[9px] uppercase tracking-wide text-amber-600">Pending</span>
+    : <span className="text-[9px] uppercase tracking-wide text-muted-foreground">TBD</span>;
 
   return (
     <div className="rounded-lg border bg-background overflow-hidden">
-      <TeamRow name={team1Name} photo={team1Photo} score={team1Score} isWinner={team1Wins} />
+      <TeamRow
+        name={team1Name}
+        photo={team1Photo}
+        score={team1Score}
+        isWinner={team1Wins}
+        isLoser={isComplete && team2Wins}
+        eliminatedLabel={isComplete && team2Wins ? `Out · ${roundName ?? ""}`.trim() : null}
+      />
       <div className="h-px bg-border" />
-      <TeamRow name={team2Name} photo={team2Photo} score={team2Score} isWinner={team2Wins} />
+      <TeamRow
+        name={team2Name}
+        photo={team2Photo}
+        score={team2Score}
+        isWinner={team2Wins}
+        isLoser={isComplete && team1Wins}
+        eliminatedLabel={isComplete && team1Wins ? `Out · ${roundName ?? ""}`.trim() : null}
+      />
+      {statusPill && (
+        <div className="px-3 py-1 border-t bg-muted/30 text-center">{statusPill}</div>
+      )}
     </div>
   );
 };
 
-const TeamRow = ({ name, photo, score, isWinner }: { name: string; photo: string | null; score: number; isWinner: boolean }) => (
-  <div className={`flex items-center gap-2 px-3 py-2 ${isWinner ? "bg-emerald-500/10" : ""}`}>
+const TeamRow = ({
+  name,
+  photo,
+  score,
+  isWinner,
+  isLoser,
+  eliminatedLabel,
+}: {
+  name: string;
+  photo: string | null;
+  score: number;
+  isWinner: boolean;
+  isLoser?: boolean;
+  eliminatedLabel?: string | null;
+}) => (
+  <div
+    className={`flex items-center gap-2 px-3 py-2 border-l-2 ${
+      isWinner
+        ? "bg-emerald-500/10 border-emerald-500"
+        : isLoser
+        ? "bg-destructive/5 border-destructive/60 opacity-70"
+        : "border-transparent"
+    }`}
+  >
     <Avatar className="h-5 w-5">
       <AvatarImage src={photo || undefined} />
       <AvatarFallback className="text-[8px]">{(name || "?").charAt(0)}</AvatarFallback>
     </Avatar>
-    <span className={`text-xs flex-1 truncate ${isWinner ? "font-semibold" : ""}`}>{name || "TBD"}</span>
-    <span className={`text-xs tabular-nums ${isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"}`}>{Number(score || 0)}</span>
+    <span
+      className={`text-xs flex-1 truncate ${
+        isWinner ? "font-semibold" : isLoser ? "line-through" : ""
+      }`}
+    >
+      {name || "TBD"}
+    </span>
+    {eliminatedLabel && (
+      <span className="text-[9px] uppercase tracking-wide text-destructive">{eliminatedLabel}</span>
+    )}
+    <span
+      className={`text-xs tabular-nums ${
+        isWinner ? "font-bold text-emerald-600" : "text-muted-foreground"
+      }`}
+    >
+      {Number(score || 0)}
+    </span>
   </div>
 );
 

@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Swords, Trash2, X, ExternalLink, Search } from "lucide-react";
+import { Swords, Trash2, X, ExternalLink, Search, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { TournamentEditDialog } from "@/components/admin/TournamentEditDialog";
 
 const STATUSES = ["all", "draft", "registration", "seeding", "in_progress", "completed", "cancelled"];
 
@@ -17,6 +18,7 @@ export default function AdminTournaments() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [editing, setEditing] = useState<any>(null);
 
   const { data: tournaments = [], isLoading } = useQuery({
     queryKey: ["admin-tournaments"],
@@ -166,6 +168,15 @@ export default function AdminTournaments() {
                         <ExternalLink className="w-4 h-4" />
                       </Link>
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-slate-300 hover:text-white"
+                      onClick={() => setEditing(t)}
+                      title="Edit format & scoring"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
                     {t.status !== "cancelled" && t.status !== "completed" && (
                       <Button
                         size="sm"
@@ -195,6 +206,11 @@ export default function AdminTournaments() {
           </TableBody>
         </Table>
       </div>
+      <TournamentEditDialog
+        tournament={editing}
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+      />
     </div>
   );
 }
