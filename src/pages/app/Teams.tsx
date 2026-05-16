@@ -192,7 +192,7 @@ export default function Teams() {
                     className="shrink-0 w-44 sb-card p-3 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors group"
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-10 h-10 rounded-lg bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-xs font-bold sb-cyan overflow-hidden shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-xs font-bold sb-cyan overflow-hidden shrink-0">
                         {team.logo_url ? (
                           <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
                         ) : (
@@ -246,7 +246,7 @@ export default function Teams() {
                     className="sb-card p-3.5 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors group"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-sm font-bold sb-cyan overflow-hidden shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-sm font-bold sb-cyan overflow-hidden shrink-0">
                         {team.logo_url ? (
                           <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
                         ) : (
