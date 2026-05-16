@@ -157,6 +157,15 @@ const Help = () => {
         title="Help Center — FishX"
         description="Answers about catches, trips, tournaments, billing, and account settings. Search the FishX help center."
         path="/help"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: Object.values(faqs).flat().map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: { "@type": "Answer", text: f.answer },
+          })),
+        }}
       />
       <PublicHeader />
 
