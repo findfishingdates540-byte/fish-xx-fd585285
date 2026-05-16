@@ -1208,6 +1208,7 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          followers_count: number
           id: string
           location: string | null
           logo_url: string | null
@@ -1222,6 +1223,7 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          followers_count?: number
           id?: string
           location?: string | null
           logo_url?: string | null
@@ -1236,6 +1238,7 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          followers_count?: number
           id?: string
           location?: string | null
           logo_url?: string | null
@@ -2699,6 +2702,42 @@ export type Database = {
           },
         ]
       }
+      team_followers: {
+        Row: {
+          created_at: string
+          id: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_followers_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_followers_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_team_round_scores"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           id: string
@@ -2815,6 +2854,53 @@ export type Database = {
           },
         ]
       }
+      team_post_media_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          media_index: number
+          notes: string | null
+          post_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          media_index: number
+          notes?: string | null
+          post_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          media_index?: number
+          notes?: string | null
+          post_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_post_media_reviews_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "team_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_post_reports: {
         Row: {
           created_at: string
@@ -2876,6 +2962,7 @@ export type Database = {
           surface: Database["public"]["Enums"]["team_post_surface"]
           team_id: string
           updated_at: string
+          visibility: Database["public"]["Enums"]["team_post_visibility"]
         }
         Insert: {
           author_id: string
@@ -2896,6 +2983,7 @@ export type Database = {
           surface: Database["public"]["Enums"]["team_post_surface"]
           team_id: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["team_post_visibility"]
         }
         Update: {
           author_id?: string
@@ -2916,6 +3004,7 @@ export type Database = {
           surface?: Database["public"]["Enums"]["team_post_surface"]
           team_id?: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["team_post_visibility"]
         }
         Relationships: [
           {
@@ -4269,6 +4358,7 @@ export type Database = {
         | "update"
         | "catch"
         | "general"
+      team_post_visibility: "public" | "pending_review" | "hidden"
       team_report_status: "pending" | "reviewed" | "actioned" | "dismissed"
       tournament_format: "single_elimination" | "double_elimination"
       tournament_scoring: "biggest_catch" | "total_weight" | "most_catches"
@@ -4439,6 +4529,7 @@ export const Constants = {
         "catch",
         "general",
       ],
+      team_post_visibility: ["public", "pending_review", "hidden"],
       team_report_status: ["pending", "reviewed", "actioned", "dismissed"],
       tournament_format: ["single_elimination", "double_elimination"],
       tournament_scoring: ["biggest_catch", "total_weight", "most_catches"],
