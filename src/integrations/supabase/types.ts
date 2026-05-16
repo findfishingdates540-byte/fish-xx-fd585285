@@ -4316,6 +4316,18 @@ export type Database = {
         Args: { p_species_id?: string }
         Returns: undefined
       }
+      search_users: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          display_name: string
+          fishing_experience: Database["public"]["Enums"]["fishing_experience"]
+          id: string
+          id_verified: boolean
+          live_verified: boolean
+          location_name: string
+          photos: string[]
+        }[]
+      }
       tally_photo_challenge_votes: {
         Args: { p_challenge_id: string }
         Returns: {
