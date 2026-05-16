@@ -1,60 +1,83 @@
-## Team-based tournament mechanics
+# Tournament team experience — bracket, leaderboards, MVPs, alerts, admin (Should use the color sckeme of the pages under scoreboard hub)
 
-Make tournaments truly team-vs-team with proper aggregation, leaderboards, and an MVP view.
+## 1. Bracket progression UI (TournamentDetail "Bracket" tab)
 
-### 1. Schema changes (migration)
+Refactor the existing bracket so progression is obvious at a glance.
 
-`tournament_matchups`:
-- Add `team1_id uuid` and `team2_id uuid` (FK → `fishing_teams`, nullable for backfill).
-- Keep `player1_id` / `player2_id` as optional "match MVP" slots.
-- Add `team1_score numeric default 0`, `team2_score numeric default 0`, `winner_team_id uuid`.
+- Render rounds as labeled columns ("Round of 16 → Quarterfinals → Semifinals → Final") with the round date range under the title.
+- For each `MatchupCard`:
+  - Highlight the winning team row (green left-border + check icon) and dim/strike the losing team row (red left-border + "Eliminated R{n}" pill).
+  - Show team scores aligned right; show "vs" + "Pending" pill when both teams present but unscored, "BYE" when one slot is null, "TBD" when waiting on previous match.
+  - Connector lines/arrows between a matchup and its `next_matchup_id` so the eye can follow the path. Implement with absolutely positioned SVG paths between card refs (no library).
+- Add a small "Team path" legend chip on the tab header (advancing / eliminated / pending) so the color meaning is explicit.
+- Mobile: keep columns horizontally scrollable; sticky round headers.
 
-`tournaments`:
-- Add `winner_team_id uuid` (alongside existing `winner_id`, which becomes "MVP captain").
+## 2. Team Leaderboard tab
 
-New view `tournament_team_leaderboard` (per tournament, cumulative):
-- team_id, team_name, logo, total_score, catches_count, rounds_won, eliminated.
+New tab "Teams" backed by the existing `tournament_team_leaderboard` view, augmented with per-round breakdown.
 
-New view `tournament_member_contributions` (per tournament, per member within team):
-- tournament_id, team_id, user_id, display_name, catches, score_contribution.
+- Header filter pills: **Overall** (default) | **By round** (dropdown of completed rounds).
+- Overall mode: ranked list with rank, team logo+name, total score, catches, rounds won, status badge (Active / Eliminated R{n} / Champion).
+- By-round mode: pulls the team's `team1_score`/`team2_score` from `tournament_matchups` for the selected round, sorted desc; shows opponent + W/L.
+- Add a new SQL view `tournament_team_round_scores` (round_number, team_id, score, opponent_team_id, result) to avoid client-side join gymnastics.
+- Click a team row → opens the existing TeamProfile route in a new tab.
 
-New view `tournament_mvp_leaderboard` (per tournament, across all teams):
-- tournament_id, user_id, display_name, team_id, team_name, total_score, catches.
+## 3. MVPs tab
 
-All views: SECURITY INVOKER, readable by any authenticated user.
+New tab "MVPs" listing the top contributor on the **winning team** of every completed matchup.
 
-### 2. Scoring engine (edge function update)
+- Backed by a new view `tournament_matchup_mvps` joining `tournament_matchups` → `tournament_team_roster` → `catches` (filtered to the round's `start_at`/`end_at` window) → top contributor per matchup per `scoring_method`.
+- Each row shows: round label, matchup #, MVP avatar+name, winning team, MVP score (with unit per scoring method), and an expandable section listing the catches that contributed (species, weight/length, caught_at, thumbnail) — fetched on demand.
+- Sort: most recent round first; secondary sort by MVP score desc.
 
-Update `update-challenge-statuses` (and add a helper edge function `score-tournament-matchup` callable on demand):
+## 4. Real-time team match notifications
 
-For each `in_progress` tournament with active matchups whose round window has elapsed:
-1. For each matchup, fetch all `team_members` (+ captain) of `team1_id` and `team2_id`.
-2. Aggregate `catches` between `round.start_at` and `round.end_at` per the tournament's `scoring_method`:
-   - `biggest_catch` → MAX(weight_lbs)
-   - `total_weight` → SUM(weight_lbs)
-   - `most_catches` → COUNT(*)
-3. Write `team1_score`, `team2_score`, `winner_team_id`, advance to `next_matchup_id` (set the next slot's `team1_id` or `team2_id`).
-4. Mark losing team's participants `eliminated = true, eliminated_in_round`.
-5. When the final matchup completes → set `tournaments.winner_team_id`, derive `winner_id` = top contributor on winning team (MVP).
+Server-side: extend `update-challenge-statuses` so when a matchup transitions to `completed`:
 
-Prize payout logic stays — just notify all members of `winner_team_id` (already partially done).
+- Insert a `notifications` row for every member of both teams with type `tournament_matchup_completed` (title "Match complete", body "{TeamA} {scoreA} – {scoreB} {TeamB}").
+- For the **losing** team's members: extra notification `tournament_team_eliminated` ("Your team was eliminated in {Round}").
+- For the **winning** team's members: extra notification `tournament_team_advanced` ("Your team advances to {NextRound}") or `tournament_team_champion` if it's the final.
+- Fire the existing `send-push-notification` edge function for each.
 
-### 3. Frontend — TournamentDetail
+Client-side: extend `useNotifications` filter map so the three new types are surfaced in the notification center; add a small `useTournamentMatchAlerts` hook that subscribes to `tournament_matchups` UPDATEs filtered by tournaments the user participates in, plays the standard alert sound, and invalidates the bracket / standings queries.
 
-Add three tabs below the bracket:
-- **Bracket** (existing) — show team names + logos in matchup cards instead of player names.
-- **Team leaderboard** — uses `tournament_team_leaderboard`, shows rank, team logo/name, score, rounds won, eliminated badge.
-- **MVP leaderboard** — uses `tournament_mvp_leaderboard`, shows top individuals across all teams.
-- **My team** (only if viewer is on a registered team) — uses `tournament_member_contributions` to show each teammate's contribution.
+## 5. Admin: scoring method & bracket format + recalculation
 
-### Files
+In `AdminTournaments`:
 
-- New migration: matchup team columns + tournament `winner_team_id` + 3 views.
-- Edited: `supabase/functions/update-challenge-statuses/index.ts` (scoring loop).
-- Edited: `src/pages/app/TournamentDetail.tsx` (3 new tabs, team-aware bracket cards).
-- `src/integrations/supabase/types.ts` regenerates automatically after migration.
+- Add an "Edit" action per tournament opening a dialog with `scoring_method` (biggest_catch / total_weight / most_catches) and `format` (single_elimination / double_elimination) selects, plus a "Recalculate bracket" button.
+- Edits are only allowed when status is `upcoming` or `active` AND no matchup has scores yet (guarded both client-side and via an edge function check). Changing `format` after any matchup is scored is blocked with a clear toast.
+- New edge function `recalculate-tournament-bracket` (admin-only via JWT + `has_role`):
+  - Deletes existing `tournament_matchups` + `tournament_rounds` for the tournament.
+  - Re-seeds participants per `seeding_method` and re-creates rounds + matchups for the new `format`.
+  - For each already-completed round window, re-aggregates `catches` against the new `scoring_method` and rewrites `team1_score`/`team2_score`/`winner_team_id`, marking eliminations.
+  - Returns a summary `{ rounds_created, matches_scored, winner_team_id }`.
+- After success, invalidate all tournament queries and toast "Bracket recalculated".
 
-### Out of scope
+## 6. Out of scope
 
-- Live in-tournament catch logging UI changes (catches are already attributed to user; aggregation is done server-side by team membership).
-- Manual admin override of team scores (can be added later in `AdminTournaments`).
+- Manual per-match score override (separate request).
+- Editing team rosters mid-tournament.
+- Push notification copy localization.
+
+## Files
+
+**Migration**
+
+- `supabase/migrations/<ts>_tournament_progression_views.sql` — `tournament_team_round_scores` view, `tournament_matchup_mvps` view, indices on `tournament_matchups(tournament_id, round_id)`.
+
+**Edge functions**
+
+- `supabase/functions/update-challenge-statuses/index.ts` — emit completed/advanced/eliminated/champion notifications + push.
+- `supabase/functions/recalculate-tournament-bracket/index.ts` — new, admin-only recalculation.
+
+**Frontend**
+
+- `src/pages/app/TournamentDetail.tsx` — bracket connectors + winner/loser styling, new Teams/MVPs tabs with filters, MVP catch drill-down.
+- `src/components/tournaments/BracketColumn.tsx` (new) and `BracketConnectors.tsx` (new) — extracted for clarity.
+- `src/hooks/use-tournament-match-alerts.ts` (new) — realtime subscription + toast/sound + query invalidation.
+- `src/hooks/use-notifications.ts` — register the three new notification types.
+- `src/pages/admin/AdminTournaments.tsx` — Edit dialog (scoring method, format) + Recalculate action.
+- `src/components/admin/TournamentEditDialog.tsx` (new) — form + recalculate trigger.
+
+No changes to `src/integrations/supabase/types.ts` (auto-regenerated).
