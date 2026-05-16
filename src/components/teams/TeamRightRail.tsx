@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Crown, Fish, Info, Loader2, Lock, MapPin, Pin, PinOff, ScrollText, Trophy, Users } from "lucide-react";
+import { Calendar, Crown, Fish, GripVertical, Info, Loader2, Lock, MapPin, Pin, PinOff, ScrollText, Trophy, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -27,15 +28,54 @@ export function TeamRightRail({ team, memberCount, memberUserIds, profiles, isCa
     queryFn: async () => {
       const { data } = await supabase
         .from("team_posts")
-        .select("id, content, created_at, media, surface")
+        .select("id, content, created_at, media, surface, pinned_order")
         .eq("team_id", teamId)
         .eq("pinned", true)
         .eq("is_hidden", false)
+        .order("pinned_order", { ascending: true })
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(isCaptain ? 8 : 3);
       return data || [];
     },
   });
+
+  // Local copy so drag reordering feels instant.
+  const [orderedPinned, setOrderedPinned] = useState<any[]>([]);
+  useEffect(() => { setOrderedPinned(pinned); }, [pinned]);
+  const [dragId, setDragId] = useState<string | null>(null);
+
+  const reorder = useMutation({
+    mutationFn: async (rows: { id: string; pinned_order: number }[]) => {
+      // Update each row's pinned_order; small N (≤8) so sequential is fine.
+      for (const r of rows) {
+        const { error } = await supabase.from("team_posts")
+          .update({ pinned_order: r.pinned_order }).eq("id", r.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-rail-pinned", teamId] });
+      qc.invalidateQueries({ queryKey: ["team-posts", teamId] });
+    },
+    onError: (e: any) => {
+      toast.error(e?.message || "Could not save order");
+      setOrderedPinned(pinned);
+    },
+  });
+
+  const handleDrop = (overId: string) => {
+    if (!dragId || dragId === overId) { setDragId(null); return; }
+    const ids = orderedPinned.map((p) => p.id);
+    const from = ids.indexOf(dragId);
+    const to = ids.indexOf(overId);
+    if (from === -1 || to === -1) { setDragId(null); return; }
+    const next = [...orderedPinned];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setOrderedPinned(next);
+    setDragId(null);
+    reorder.mutate(next.map((p, i) => ({ id: p.id, pinned_order: i })));
+  };
 
   const unpin = useMutation({
     mutationFn: async (postId: string) => {
@@ -143,19 +183,45 @@ export function TeamRightRail({ team, memberCount, memberUserIds, profiles, isCa
       ) : null}
 
       {/* Pinned / Featured */}
-      {pinned.length > 0 ? (
+      {orderedPinned.length > 0 ? (
         <section className="rounded-xl border bg-card p-5">
-          <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
+          <h3 className="font-bold text-sm mb-1 flex items-center gap-2">
             <Pin className="h-4 w-4 text-primary" /> Pinned / Featured
+            {reorder.isPending && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground ml-1" />}
           </h3>
+          {isCaptain && orderedPinned.length > 1 && (
+            <p className="text-[10px] text-muted-foreground mb-3">Drag <GripVertical className="inline h-3 w-3 -mt-0.5" /> to reorder.</p>
+          )}
+          {!(isCaptain && orderedPinned.length > 1) && <div className="mb-2" />}
           <div className="space-y-3">
-            {pinned.map((p: any) => {
+            {orderedPinned.map((p: any) => {
               const firstImg = Array.isArray(p.media)
                 ? p.media.find((m: any) => m?.type === "image")?.url
                 : null;
               const busy = unpin.isPending && unpin.variables === p.id;
+              const isDragging = dragId === p.id;
               return (
-                <div key={p.id} className="flex gap-3 items-start group">
+                <div
+                  key={p.id}
+                  draggable={isCaptain}
+                  onDragStart={(e) => { if (!isCaptain) return; setDragId(p.id); e.dataTransfer.effectAllowed = "move"; }}
+                  onDragOver={(e) => { if (isCaptain && dragId) e.preventDefault(); }}
+                  onDrop={(e) => { if (!isCaptain) return; e.preventDefault(); handleDrop(p.id); }}
+                  onDragEnd={() => setDragId(null)}
+                  className={`flex gap-2 items-start group rounded-md -mx-1 px-1 py-1 transition ${
+                    isDragging ? "opacity-40" : "hover:bg-muted/40"
+                  } ${isCaptain && dragId && !isDragging ? "outline-dashed outline-1 outline-primary/40" : ""}`}
+                >
+                  {isCaptain && (
+                    <button
+                      type="button"
+                      className="cursor-grab active:cursor-grabbing text-muted-foreground/70 hover:text-foreground touch-none pt-3"
+                      title="Drag to reorder"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      <GripVertical className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                   {firstImg ? (
                     <img src={firstImg} alt="" className="w-12 h-12 rounded-md object-cover shrink-0" />
                   ) : (
