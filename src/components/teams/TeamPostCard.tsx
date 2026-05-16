@@ -9,7 +9,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, MoreHorizontal, Pin, Trash2, Flag, MapPin } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, Pin, Trash2, Flag, MapPin, Sparkles } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,8 @@ import {
   useTeamPostMutations, type TeamPost, type TeamPostSurface,
 } from "@/hooks/use-team-posts";
 import { TeamComments } from "./TeamComments";
+import { useCreateStory } from "@/hooks/use-stories";
+import { toast } from "sonner";
 
 interface Props {
   post: TeamPost;
@@ -43,6 +45,20 @@ export function TeamPostCard({ post, teamName, teamLogo, surface, isCaptain }: P
   const [showComments, setShowComments] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const createStory = useCreateStory();
+
+  const firstImage = post.media.find((m) => m.type === "image")?.url;
+  const shareToStory = () => {
+    if (!user) { toast.error("Sign in to share"); return; }
+    const overlay = `${teamName}${post.content ? ` — ${post.content.slice(0, 80)}` : ""}`;
+    if (firstImage) {
+      createStory.mutate({ media_url: firstImage, media_type: "image", text_overlay: overlay });
+    } else if (post.content) {
+      createStory.mutate({ media_type: "text", text_overlay: overlay, background_color: "#1454AE" });
+    } else {
+      toast.error("Nothing to share");
+    }
+  };
 
   const canManage = isCaptain || post.author_id === user?.id;
   const liked = !!post.viewer_liked;
@@ -97,6 +113,9 @@ export function TeamPostCard({ post, teamName, teamLogo, surface, isCaptain }: P
                   <Pin className="h-3.5 w-3.5 mr-2" /> {post.pinned ? "Unpin" : "Pin"}
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={shareToStory} disabled={createStory.isPending}>
+                <Sparkles className="h-3.5 w-3.5 mr-2" /> Share to story
+              </DropdownMenuItem>
               {canManage && (
                 <DropdownMenuItem
                   className="text-destructive"
