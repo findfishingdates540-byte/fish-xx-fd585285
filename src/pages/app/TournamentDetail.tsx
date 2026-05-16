@@ -459,6 +459,16 @@ const TournamentDetail = () => {
     return map;
   }, [matchups]);
 
+  const completedRounds = useMemo(
+    () =>
+      (rounds as any[]).filter((r: any) =>
+        (roundMatchups[r.id] || []).some((m: any) => m.status === "completed"),
+      ),
+    [rounds, roundMatchups],
+  );
+
+  const scoringUnit = (s: string) =>
+    s === "most_catches" ? "catches" : "lbs";
   // For tournaments, "players" are teams. Resolve via the participant's team_id.
   const participantByUser = useMemo(() => {
     const map: Record<string, any> = {};
