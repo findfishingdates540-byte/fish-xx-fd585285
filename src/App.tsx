@@ -130,21 +130,24 @@ const App = () => (
               <Route path="spots/:id" element={<FishingRoute><SpotDetail /></FishingRoute>} />
               <Route path="catches" element={<FishingRoute><Catches /></FishingRoute>} />
               <Route path="catches/:catchId" element={<FishingRoute><CatchDetail /></FishingRoute>} />
-              <Route path="leaderboard" element={<FishingRoute><Leaderboard /></FishingRoute>} />
-              <Route path="leaderboard/anglers" element={<FishingRoute><GlobalAnglers /></FishingRoute>} />
-              <Route path="leaderboard/species/:speciesId" element={<FishingRoute><SpeciesLeaderboard /></FishingRoute>} />
-              <Route path="species" element={<FishingRoute><SpeciesExplorer /></FishingRoute>} />
-              <Route path="challenges" element={<FishingRoute><Challenges /></FishingRoute>} />
-              <Route path="photo-challenges" element={<FishingRoute><PhotoChallenges /></FishingRoute>} />
-              <Route path="photo-challenges/new" element={<FishingRoute><Navigate to="/app/photo-challenges" replace /></FishingRoute>} />
-              <Route path="photo-challenges/:id" element={<FishingRoute><PhotoChallengeDetail /></FishingRoute>} />
-              <Route path="challenges/new" element={<FishingRoute><CreateChallenge /></FishingRoute>} />
-              <Route path="teams" element={<FishingRoute><Teams /></FishingRoute>} />
-              <Route path="teams/new" element={<FishingRoute><CreateTeam /></FishingRoute>} />
-              <Route path="teams/:teamId" element={<FishingRoute><TeamProfile /></FishingRoute>} />
-              <Route path="tournaments" element={<FishingRoute><Tournaments /></FishingRoute>} />
-              <Route path="tournaments/new" element={<FishingRoute><CreateTournament /></FishingRoute>} />
-              <Route path="tournaments/:id" element={<FishingRoute><TournamentDetail /></FishingRoute>} />
+              {/* Scoreboard Hub pages share the dark blue theme */}
+              <Route element={<FishingRoute><ScoreboardHubLayout /></FishingRoute>}>
+                <Route path="leaderboard" element={<Leaderboard />} />
+                <Route path="leaderboard/anglers" element={<GlobalAnglers />} />
+                <Route path="leaderboard/species/:speciesId" element={<SpeciesLeaderboard />} />
+                <Route path="species" element={<SpeciesExplorer />} />
+                <Route path="challenges" element={<Challenges />} />
+                <Route path="photo-challenges" element={<PhotoChallenges />} />
+                <Route path="photo-challenges/new" element={<Navigate to="/app/photo-challenges" replace />} />
+                <Route path="photo-challenges/:id" element={<PhotoChallengeDetail />} />
+                <Route path="challenges/new" element={<CreateChallenge />} />
+                <Route path="teams" element={<Teams />} />
+                <Route path="teams/new" element={<CreateTeam />} />
+                <Route path="teams/:teamId" element={<TeamProfile />} />
+                <Route path="tournaments" element={<Tournaments />} />
+                <Route path="tournaments/new" element={<CreateTournament />} />
+                <Route path="tournaments/:id" element={<TournamentDetail />} />
+              </Route>
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
               <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>}>
                 <Route path=":buddyId" element={<BuddyChat />} />
