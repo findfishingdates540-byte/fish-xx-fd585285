@@ -21,8 +21,11 @@ import {
   Target,
   Shield,
   ShieldOff,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTeamFollow } from "@/hooks/use-team-follow";
 import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
 import { useTeamRole } from "@/hooks/use-team-role";
 
@@ -96,6 +99,7 @@ export default function TeamProfile() {
 
   const isCaptain = !!user && team?.captain_id === user.id;
   const isMember = !!user && (isCaptain || members.some((m) => m.user_id === user.id));
+  const { data: followInfo, toggle: toggleFollow } = useTeamFollow(teamId);
   const { data: role } = useTeamRole(teamId);
   const [tab, setTab] = useState<string>("page");
 
@@ -263,10 +267,22 @@ export default function TeamProfile() {
         {/* Actions */}
         <div className="px-6 py-3 border-t flex items-center gap-2">
           {!isMember ? (
-            <Button onClick={() => joinMutation.mutate()} disabled={joinMutation.isPending} className="gap-1.5">
-              <UserPlus className="h-4 w-4" />
-              {joinMutation.isPending ? "Joining..." : "Join Team"}
-            </Button>
+            <>
+              <Button onClick={() => joinMutation.mutate()} disabled={joinMutation.isPending} className="gap-1.5">
+                <UserPlus className="h-4 w-4" />
+                {joinMutation.isPending ? "Joining..." : "Join Team"}
+              </Button>
+              <Button
+                variant={followInfo?.isFollowing ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => toggleFollow.mutate()}
+                disabled={toggleFollow.isPending}
+                className="gap-1.5"
+              >
+                {followInfo?.isFollowing ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+                {followInfo?.isFollowing ? "Following" : "Follow Page"}
+              </Button>
+            </>
           ) : isCaptain ? (
             <Badge className="bg-primary/10 text-primary border-0 gap-1"><Crown className="h-3 w-3" />You're the Captain</Badge>
           ) : (
@@ -274,6 +290,11 @@ export default function TeamProfile() {
               <LogOut className="h-4 w-4" />
               {leaveMutation.isPending ? "Leaving..." : "Leave Team"}
             </Button>
+          )}
+          {followInfo && (
+            <span className="ml-auto text-xs text-muted-foreground">
+              {followInfo.count} {followInfo.count === 1 ? "follower" : "followers"}
+            </span>
           )}
         </div>
       </div>

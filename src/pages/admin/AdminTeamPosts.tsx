@@ -4,9 +4,47 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function AdminTeamPosts() {
   const qc = useQueryClient();
+  const { data: pendingMedia = [] } = useQuery({
+    queryKey: ["admin-team-media-reviews"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_post_media_reviews")
+        .select("*, post:team_posts(*, team:fishing_teams(name))")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const reviewMedia = useMutation({
+    mutationFn: async (p: { id: string; postId: string; approve: boolean; notes?: string }) => {
+      const { error } = await supabase
+        .from("team_post_media_reviews")
+        .update({ status: p.approve ? "approved" : "rejected", reviewed_at: new Date().toISOString(), notes: p.notes || null })
+        .eq("id", p.id);
+      if (error) throw error;
+      if (p.approve) {
+        const { data: remaining } = await supabase
+          .from("team_post_media_reviews")
+          .select("id")
+          .eq("post_id", p.postId)
+          .eq("status", "pending");
+        if (!remaining || remaining.length === 0) {
+          await supabase.from("team_posts").update({ visibility: "public" }).eq("id", p.postId);
+        }
+      } else {
+        await supabase.from("team_posts").update({ visibility: "hidden", is_hidden: true }).eq("id", p.postId);
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-team-media-reviews"] }); toast.success("Media reviewed"); },
+  });
+
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["admin-team-post-reports"],
     queryFn: async () => {
@@ -52,6 +90,12 @@ export default function AdminTeamPosts() {
   return (
     <div className="p-6 max-w-6xl">
       <h1 className="text-2xl font-bold text-white mb-6">Team Post Reports</h1>
+      <Tabs defaultValue="reports">
+        <TabsList className="mb-4">
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="media">Pending Media ({pendingMedia.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="reports">
       {isLoading ? (
         <p className="text-slate-400">Loading…</p>
       ) : reports.length === 0 ? (
@@ -85,6 +129,36 @@ export default function AdminTeamPosts() {
           ))}
         </div>
       )}
+        </TabsContent>
+        <TabsContent value="media">
+          {pendingMedia.length === 0 ? (
+            <p className="text-slate-400">No media pending review.</p>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {pendingMedia.map((m: any) => (
+                <div key={m.id} className="rounded-lg border border-slate-800 bg-slate-900 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline" className="text-slate-300 border-slate-700 capitalize">{m.kind}</Badge>
+                    <span className="text-xs text-slate-500">{m.post?.team?.name || "—"}</span>
+                  </div>
+                  {m.kind === "video" ? (
+                    <video src={m.url} controls className="w-full rounded bg-black aspect-video" />
+                  ) : (
+                    <img src={m.url} alt="" className="w-full rounded" />
+                  )}
+                  {m.post?.content && (
+                    <p className="text-xs text-slate-400 mt-2 line-clamp-3">{m.post.content}</p>
+                  )}
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" onClick={() => reviewMedia.mutate({ id: m.id, postId: m.post_id, approve: true })}>Approve</Button>
+                    <Button size="sm" variant="destructive" onClick={() => reviewMedia.mutate({ id: m.id, postId: m.post_id, approve: false })}>Reject</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
