@@ -189,7 +189,7 @@ export function AppLayout() {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('account_mode, onboarding_completed, is_premium, premium_expires_at')
+        .select('account_mode, onboarding_completed, is_premium, premium_expires_at, photos')
         .eq('id', user.id)
         .maybeSingle();
 
