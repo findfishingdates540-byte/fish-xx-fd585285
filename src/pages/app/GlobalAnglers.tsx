@@ -111,18 +111,18 @@ const GlobalAnglers = () => {
   const rest = ranked.slice(3);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="sticky top-0 z-10 backdrop-blur bg-background/80 border-b">
+    <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-24">
+      <div className="sticky top-0 z-10 backdrop-blur bg-[hsl(var(--sb-surface)/0.85)] border-b sb-border">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Back">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Back" className="hover:bg-[hsl(var(--sb-surface-2))]">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
             <h1 className="text-base font-bold flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-amber-500" />
+              <Trophy className="h-4 w-4 sb-cyan" />
               Global Angler Rankings
             </h1>
-            <p className="text-[11px] text-muted-foreground">All-time leaderboard across every species</p>
+            <p className="text-[11px] sb-text-muted">All-time leaderboard across every species</p>
           </div>
         </div>
       </div>
@@ -130,12 +130,12 @@ const GlobalAnglers = () => {
       <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search anglers or locations…"
-              className="pl-9"
+              className="pl-9 sb-card border-0 bg-[hsl(var(--sb-surface))] focus-visible:ring-[hsl(var(--sb-cyan))]"
             />
           </div>
           <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1">
@@ -148,8 +148,10 @@ const GlobalAnglers = () => {
               <button
                 key={opt.k}
                 onClick={() => setSort(opt.k)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-colors ${
-                  sort === opt.k ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border sb-border whitespace-nowrap transition-colors ${
+                  sort === opt.k
+                    ? "sb-bg-cyan text-[hsl(var(--sb-surface))] border-transparent"
+                    : "bg-[hsl(var(--sb-surface))] sb-text-muted hover:bg-[hsl(var(--sb-surface-2))] hover:text-foreground"
                 }`}
               >
                 {opt.label}
@@ -160,10 +162,10 @@ const GlobalAnglers = () => {
 
         {isLoading ? (
           <div className="space-y-2">
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl bg-[hsl(var(--sb-surface-2))]" />)}
           </div>
         ) : ranked.length === 0 ? (
-          <div className="rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">
+          <div className="sb-card p-10 text-center text-sm sb-text-muted">
             No anglers match your filters yet.
           </div>
         ) : (
@@ -174,20 +176,20 @@ const GlobalAnglers = () => {
                 {[top3[1], top3[0], top3[2]].filter(Boolean).map((a, idx) => {
                   const realRank = a === top3[0] ? 1 : a === top3[1] ? 2 : 3;
                   const heightClass = realRank === 1 ? "pt-2" : realRank === 2 ? "pt-6" : "pt-8";
-                  const medalColor = realRank === 1 ? "text-amber-500" : realRank === 2 ? "text-slate-300" : "text-amber-700";
+                  const medalColor = realRank === 1 ? "sb-gold" : realRank === 2 ? "text-slate-300" : "text-amber-700";
                   return (
                     <button
                       key={a.user_id}
                       onClick={() => navigate(`/app/u/${a.user_id}`)}
-                      className={`${heightClass} rounded-xl border bg-card p-3 text-center hover:border-primary transition-colors`}
+                      className={`${heightClass} sb-card p-3 text-center hover:border-[hsl(var(--sb-cyan))] transition-colors`}
                     >
                       <Medal className={`h-5 w-5 mx-auto mb-1 ${medalColor}`} />
-                      <Avatar className={`mx-auto mb-2 ${realRank === 1 ? "h-16 w-16" : "h-12 w-12"} ring-2 ring-border`}>
+                      <Avatar className={`mx-auto mb-2 ${realRank === 1 ? "h-16 w-16" : "h-12 w-12"} ring-2 ring-[hsl(var(--sb-border))]`}>
                         <AvatarImage src={a.profile?.photos?.[0] || ""} />
-                        <AvatarFallback>{(a.profile?.display_name || "?")[0]}</AvatarFallback>
+                        <AvatarFallback className="bg-[hsl(var(--sb-surface-2))]">{(a.profile?.display_name || "?")[0]}</AvatarFallback>
                       </Avatar>
                       <p className="text-sm font-semibold truncate">{a.profile?.display_name || "Angler"}</p>
-                      <p className="text-[11px] text-muted-foreground">#{realRank} · {a.points.toLocaleString()} pts</p>
+                      <p className="text-[11px] sb-text-muted">#{realRank} · <span className="sb-cyan font-semibold">{a.points.toLocaleString()}</span> pts</p>
                     </button>
                   );
                 })}
@@ -195,37 +197,37 @@ const GlobalAnglers = () => {
             )}
 
             {/* List */}
-            <div className="rounded-xl border bg-card divide-y">
+            <div className="sb-card divide-y divide-[hsl(var(--sb-border))] overflow-hidden">
               {rest.map((a, i) => (
                 <button
                   key={a.user_id}
                   onClick={() => navigate(`/app/u/${a.user_id}`)}
-                  className="w-full flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-3 hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left"
                 >
-                  <span className="w-7 text-center text-sm font-bold text-muted-foreground">{i + 4}</span>
-                  <Avatar className="h-10 w-10 ring-1 ring-border">
+                  <span className="w-7 text-center text-sm font-bold sb-text-muted">{i + 4}</span>
+                  <Avatar className="h-10 w-10 ring-1 ring-[hsl(var(--sb-border))]">
                     <AvatarImage src={a.profile?.photos?.[0] || ""} />
-                    <AvatarFallback>{(a.profile?.display_name || "?")[0]}</AvatarFallback>
+                    <AvatarFallback className="bg-[hsl(var(--sb-surface-2))]">{(a.profile?.display_name || "?")[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="font-semibold text-sm truncate">{a.profile?.display_name || "Angler"}</p>
-                      {a.profile?.id_verified && <Badge variant="secondary" className="h-4 px-1 text-[9px]">ID</Badge>}
+                      {a.profile?.id_verified && <Badge className="h-4 px-1 text-[9px] sb-bg-cyan border-0 text-[hsl(var(--sb-surface))]">ID</Badge>}
                     </div>
-                    <p className="text-[11px] text-muted-foreground truncate">
+                    <p className="text-[11px] sb-text-muted truncate">
                       {a.profile?.location_name || "Unknown"}
                     </p>
                   </div>
                   <div className="hidden sm:flex flex-col items-end text-xs gap-0.5">
-                    <span className="flex items-center gap-1 text-muted-foreground"><Fish className="h-3 w-3" />{a.total_caught}</span>
+                    <span className="flex items-center gap-1 sb-text-muted"><Fish className="h-3 w-3" />{a.total_caught}</span>
                     {a.largest_weight_lbs != null && (
-                      <span className="flex items-center gap-1 text-muted-foreground"><Scale className="h-3 w-3" />{a.largest_weight_lbs} lb</span>
+                      <span className="flex items-center gap-1 sb-text-muted"><Scale className="h-3 w-3" />{a.largest_weight_lbs} lb</span>
                     )}
-                    <span className="flex items-center gap-1 text-muted-foreground"><Crown className="h-3 w-3" />{a.species_count} spp.</span>
+                    <span className="flex items-center gap-1 sb-text-muted"><Crown className="h-3 w-3" />{a.species_count} spp.</span>
                   </div>
                   <div className="text-right shrink-0 min-w-[64px]">
-                    <p className="text-sm font-bold text-primary">{a.points.toLocaleString()}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">pts</p>
+                    <p className="text-sm font-bold sb-cyan">{a.points.toLocaleString()}</p>
+                    <p className="text-[10px] sb-text-muted uppercase tracking-wider">pts</p>
                   </div>
                 </button>
               ))}
