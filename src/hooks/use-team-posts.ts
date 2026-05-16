@@ -50,7 +50,7 @@ export function useTeamPosts(teamId: string | undefined, surface: TeamPostSurfac
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      const posts = (data || []) as TeamPost[];
+      const posts = (data || []) as unknown as TeamPost[];
       const authorIds = Array.from(new Set(posts.map((p) => p.author_id)));
       if (authorIds.length === 0) return [];
       const { data: profs } = await supabase
