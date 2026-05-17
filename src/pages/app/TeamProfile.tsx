@@ -334,6 +334,12 @@ export default function TeamProfile() {
 
             {/* Actions */}
             <div className="flex items-center gap-2 md:pb-1 flex-wrap">
+              <Button size="sm" onClick={() => navigate(`/app/teams/${teamId}/page`)} className="gap-1.5 h-9">
+                <Globe className="h-4 w-4" /> Page
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/app/teams/${teamId}/group`)} className="gap-1.5 h-9">
+                <Lock className="h-4 w-4" /> Group
+              </Button>
               {!isMember ? (
                 <Button onClick={() => joinMutation.mutate()} disabled={joinMutation.isPending} className="gap-1.5">
                   <UserPlus className="h-4 w-4" />
@@ -368,14 +374,14 @@ export default function TeamProfile() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
         <button
           onClick={() => navigate(`/app/teams/${teamId}/page`)}
-          className="group text-left rounded-xl border bg-card hover:border-primary/40 hover:bg-primary/[0.03] transition p-5 flex items-start gap-4"
+          className="group text-left rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/[0.02] hover:border-primary hover:from-primary/15 transition p-5 flex items-start gap-4"
         >
-          <div className="h-11 w-11 rounded-full bg-primary/10 text-primary grid place-items-center shrink-0">
+          <div className="h-11 w-11 rounded-full bg-primary text-primary-foreground grid place-items-center shrink-0 shadow">
             <Globe className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-bold">Visit Page</p>
+              <p className="font-bold">Open Page →</p>
               <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">Public-facing wall. Catches, highlights and announcements anyone can see.</p>
@@ -383,14 +389,14 @@ export default function TeamProfile() {
         </button>
         <button
           onClick={() => navigate(`/app/teams/${teamId}/group`)}
-          className="group text-left rounded-xl border bg-card hover:border-primary/40 hover:bg-primary/[0.03] transition p-5 flex items-start gap-4"
+          className="group text-left rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/[0.02] hover:border-primary hover:from-primary/15 transition p-5 flex items-start gap-4"
         >
-          <div className="h-11 w-11 rounded-full bg-primary/10 text-primary grid place-items-center shrink-0">
+          <div className="h-11 w-11 rounded-full bg-primary text-primary-foreground grid place-items-center shrink-0 shadow">
             <Lock className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-bold">Visit Group</p>
+              <p className="font-bold">Open Group →</p>
               <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
