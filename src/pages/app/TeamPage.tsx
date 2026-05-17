@@ -6,10 +6,11 @@ import { Users } from "lucide-react";
 import { useTeamContext } from "@/hooks/use-team-context";
 import { useTeamRole } from "@/hooks/use-team-role";
 import { useTeamFollow } from "@/hooks/use-team-follow";
-import { TeamSurfaceHeader } from "@/components/teams/TeamSurfaceHeader";
+import { TeamSurfaceHeader, type TeamHeaderTab } from "@/components/teams/TeamSurfaceHeader";
 import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
 import { TeamRightRail } from "@/components/teams/TeamRightRail";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
+import { TeamMentionsFeed } from "@/components/teams/TeamMentionsFeed";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -21,6 +22,7 @@ export default function TeamPage() {
   const { data: role } = useTeamRole(teamId);
   const { data: followInfo } = useTeamFollow(teamId);
   const [editOpen, setEditOpen] = useState(false);
+  const [tab, setTab] = useState<TeamHeaderTab>("posts");
 
   useEffect(() => {
     if (teamId) logTeamPageView(teamId, user?.id || null);
@@ -55,19 +57,25 @@ export default function TeamPage() {
         isCaptain={isCaptain}
         isMember={isMember}
         onEdit={() => setEditOpen(true)}
+        activeTab={tab}
+        onTabChange={setTab}
       />
       {isCaptain && <EditTeamDialog open={editOpen} onOpenChange={setEditOpen} team={team} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-        <TeamFeedTab
-          teamId={teamId!}
-          surface="page"
-          teamName={team.name}
-          teamLogo={team.logo_url}
-          canPost={!!role?.canPostPage}
-          canView={true}
-          isCaptain={isCaptain}
-        />
+        {tab === "mentions" ? (
+          <TeamMentionsFeed teamName={team.name} />
+        ) : (
+          <TeamFeedTab
+            teamId={teamId!}
+            surface="page"
+            teamName={team.name}
+            teamLogo={team.logo_url}
+            canPost={!!role?.canPostPage}
+            canView={true}
+            isCaptain={isCaptain}
+          />
+        )}
         <div className="hidden lg:block sticky top-20">
           <TeamRightRail
             team={team}

@@ -751,15 +751,26 @@ export function useMentionSuggestions() {
           .filter((p): p is { id: string; display_name: string | null; photos: string[] | null } => p !== null);
       }
 
-      // Search by name
-      const { data, error } = await supabase
-        .from('public_profiles')
-        .select('id, display_name, photos')
-        .ilike('display_name', `%${searchTerm}%`)
-        .limit(5);
-
-      if (error) throw error;
-      return data || [];
+      // Search users + teams by name
+      const [{ data: users, error: uErr }, { data: teams }] = await Promise.all([
+        supabase
+          .from('public_profiles')
+          .select('id, display_name, photos')
+          .ilike('display_name', `%${searchTerm}%`)
+          .limit(5),
+        supabase
+          .from('fishing_teams')
+          .select('id, name, logo_url')
+          .ilike('name', `%${searchTerm}%`)
+          .limit(5),
+      ]);
+      if (uErr) throw uErr;
+      const teamResults = (teams || []).map((t: any) => ({
+        id: t.id,
+        display_name: t.name,
+        photos: t.logo_url ? [t.logo_url] : null,
+      }));
+      return [...teamResults, ...(users || [])];
     },
   });
 }
