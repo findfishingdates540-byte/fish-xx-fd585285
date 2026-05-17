@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Crown, Globe, Lock, Pencil, Users } from "lucide-react";
+import { ArrowLeft, Crown, Globe, Lock, MessageCircle, Pencil, Share2 } from "lucide-react";
 import { FollowPageButton } from "@/components/teams/FollowPageButton";
 
 interface Props {
@@ -42,13 +42,13 @@ export function TeamSurfaceHeader({
     <>
       {/* Full-bleed cover (escapes container) */}
       <div className="relative left-1/2 -translate-x-1/2 w-screen">
-        <div className="relative h-44 md:h-72 overflow-hidden">
+        <div className="relative h-56 md:h-[22rem] overflow-hidden">
           {team.cover_url ? (
             <img src={team.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.45),transparent_55%),radial-gradient(circle_at_80%_80%,hsl(var(--primary)/0.3),transparent_50%)] bg-card" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/60 to-transparent" />
 
           {/* Back / surface switcher */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
@@ -76,18 +76,29 @@ export function TeamSurfaceHeader({
         </div>
       </div>
 
-      {/* Identity row */}
-      <div className="-mt-16 md:-mt-20 relative px-1 md:px-2 mb-6">
-        <div className="flex flex-col md:flex-row md:items-end gap-4">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-background ring-4 ring-background shadow-lg overflow-hidden grid place-items-center text-2xl font-bold text-primary shrink-0">
+      {/* Identity row — Facebook-style: logo overlaps cover, name centered, actions right */}
+      <div className="-mt-12 md:-mt-16 relative mb-4">
+        <div className="flex items-end gap-4 md:gap-6">
+          {/* Circular logo overlapping cover */}
+          <div className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-background ring-4 ring-background shadow-xl overflow-hidden grid place-items-center text-3xl font-bold text-primary shrink-0">
             {team.logo_url ? (
               <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
             ) : (
               <span>{team.name.slice(0, 2).toUpperCase()}</span>
             )}
           </div>
-          <div className="flex-1 min-w-0 md:pb-2">
-            <div className="flex items-center gap-2 flex-wrap">
+
+          {/* Name + meta */}
+          <div className="flex-1 min-w-0 pb-1 md:pb-3">
+            <h1 className="text-2xl md:text-3xl font-bold leading-tight truncate">{team.name}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              <span className="font-medium text-foreground">{!isGroup ? followerCount : memberCount}</span>{" "}
+              {!isGroup ? (followerCount === 1 ? "follower" : "followers") : "members"}
+              {!isGroup && (
+                <> · <span className="font-medium text-foreground">{memberCount}</span> {memberCount === 1 ? "member" : "members"}</>
+              )}
+            </p>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <Badge variant="secondary" className="gap-1 text-[10px] uppercase tracking-wider">
                 {isGroup ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
                 {isGroup ? "Group" : "Page"}
@@ -98,32 +109,62 @@ export function TeamSurfaceHeader({
                 </Badge>
               )}
             </div>
-            <h1 className="text-2xl md:text-4xl font-bold leading-tight mt-1">{team.name}</h1>
-            <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
-              <span className="inline-flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" />
-                <span className="font-medium text-foreground">{memberCount}</span> members
-              </span>
-              {!isGroup && followerCount > 0 && (
-                <>
-                  <span>·</span>
-                  <span><span className="font-medium text-foreground">{followerCount}</span> {followerCount === 1 ? "follower" : "followers"}</span>
-                </>
-              )}
-              {isGroup && (
-                <>
-                  <span>·</span>
-                  <span>Members-only conversation</span>
-                </>
-              )}
-            </div>
           </div>
 
-          <div className="flex items-center gap-2 md:pb-2 flex-wrap">
+          {/* Actions on the right (Facebook-style row) */}
+          <div className="hidden md:flex items-center gap-2 pb-3 shrink-0">
             {!isGroup && <FollowPageButton teamId={teamId} teamName={team.name} />}
+            <Button size="sm" variant="secondary" className="gap-1.5">
+              <MessageCircle className="h-4 w-4" /> Message
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                if (navigator.share) navigator.share({ title: team.name, url: window.location.href }).catch(() => {});
+                else navigator.clipboard?.writeText(window.location.href);
+              }}
+              className="gap-1.5"
+            >
+              <Share2 className="h-4 w-4" /> Share
+            </Button>
             {rightSlot}
           </div>
         </div>
+
+        {/* Mobile actions row */}
+        <div className="md:hidden flex items-center gap-2 mt-3 flex-wrap">
+          {!isGroup && <FollowPageButton teamId={teamId} teamName={team.name} />}
+          <Button size="sm" variant="secondary" className="gap-1.5">
+            <MessageCircle className="h-4 w-4" /> Message
+          </Button>
+          {rightSlot}
+        </div>
+      </div>
+
+      {/* Tab/nav strip beneath identity (visual mirror of FB) */}
+      <div className="border-b mb-6 -mx-4 md:-mx-6 px-4 md:px-6">
+        <nav className="flex items-center gap-1 overflow-x-auto">
+          {[
+            { key: surface, label: "Posts", active: true, onClick: () => {} },
+            { key: "about", label: "About", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=about`) },
+            { key: "members", label: "Members", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=members`) },
+            { key: "media", label: "Photos", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=media`) },
+            ...(!isGroup ? [{ key: "group", label: "Group", active: false, onClick: () => navigate(`/app/teams/${teamId}/group`) }] : [{ key: "page", label: "Page", active: false, onClick: () => navigate(`/app/teams/${teamId}/page`) }]),
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={t.onClick}
+              className={`px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition ${
+                t.active
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-md"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* Sticky compact bar */}
