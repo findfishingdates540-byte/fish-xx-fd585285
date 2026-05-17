@@ -20,14 +20,14 @@ export function MentionText({ content, className }: MentionTextProps) {
   const mentions = [...safeContent.matchAll(mentionRegex)].map(m => m[1]);
   const uniqueMentions = [...new Set(mentions)];
 
-  // Fetch user IDs for all mentioned usernames
-  const { data: mentionMap = {} } = useQuery({
+  // Fetch user IDs + team IDs for all mentioned usernames
+  const { data: mentionMap = {} } = useQuery<Record<string, { kind: 'user' | 'team'; id: string }>>({
     queryKey: ['mention-users', uniqueMentions.join(',')],
     queryFn: async () => {
       if (uniqueMentions.length === 0) return {};
       
-      // Build a map of username -> userId
-      const map: Record<string, string> = {};
+      // Build a map of username -> { kind, id }
+      const map: Record<string, { kind: 'user' | 'team'; id: string }> = {};
       
       for (const username of uniqueMentions) {
         const lowerUsername = username.toLowerCase();
@@ -52,17 +52,19 @@ export function MentionText({ content, className }: MentionTextProps) {
           ])
         );
 
-        const orFilters = patterns.map((p) => `display_name.ilike.${p}`).join(',');
+        const userOr = patterns.map((p) => `display_name.ilike.${p}`).join(',');
+        const teamOr = patterns.map((p) => `name.ilike.${p}`).join(',');
 
-        const { data } = await supabase
-          .from('public_profiles')
-          .select('id, display_name')
-          .or(orFilters)
-          .limit(1)
-          .maybeSingle();
+        const [{ data: userData }, { data: teamData }] = await Promise.all([
+          supabase.from('public_profiles').select('id, display_name').or(userOr).limit(1).maybeSingle(),
+          supabase.from('fishing_teams').select('id, name').or(teamOr).limit(1).maybeSingle(),
+        ]);
 
-        if (data?.id) {
-          map[lowerUsername] = data.id;
+        // Prefer team match (pages are typically more deliberate)
+        if (teamData?.id) {
+          map[lowerUsername] = { kind: 'team', id: teamData.id };
+        } else if (userData?.id) {
+          map[lowerUsername] = { kind: 'user', id: userData.id };
         }
       }
       
@@ -80,13 +82,14 @@ export function MentionText({ content, className }: MentionTextProps) {
       {parts.map((part, index) => {
         if (part.startsWith('@')) {
           const username = part.slice(1).toLowerCase();
-          const userId = mentionMap[username];
-          
-          if (userId) {
+          const match = mentionMap[username];
+
+          if (match) {
+            const to = match.kind === 'team' ? `/app/teams/${match.id}/page` : `/app/u/${match.id}`;
             return (
               <Link
                 key={index}
-                to={`/app/u/${userId}`}
+                to={to}
                 className="text-primary font-medium hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >
