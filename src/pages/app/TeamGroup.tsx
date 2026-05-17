@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Lock, Users } from "lucide-react";
 import { useTeamContext } from "@/hooks/use-team-context";
 import { useTeamRole } from "@/hooks/use-team-role";
-import { TeamSurfaceHeader } from "@/components/teams/TeamSurfaceHeader";
+import { TeamSurfaceHeader, type TeamHeaderTab } from "@/components/teams/TeamSurfaceHeader";
 import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
 import { TeamRightRail } from "@/components/teams/TeamRightRail";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
+import { TeamMentionsFeed } from "@/components/teams/TeamMentionsFeed";
 
 export default function TeamGroup() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -16,6 +17,7 @@ export default function TeamGroup() {
   const { team, teamLoading, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
   const { data: role } = useTeamRole(teamId);
   const [editOpen, setEditOpen] = useState(false);
+  const [tab, setTab] = useState<TeamHeaderTab>("posts");
 
   if (teamLoading) {
     return (
@@ -45,6 +47,8 @@ export default function TeamGroup() {
         isCaptain={isCaptain}
         isMember={isMember}
         onEdit={() => setEditOpen(true)}
+        activeTab={tab}
+        onTabChange={setTab}
       />
       {isCaptain && <EditTeamDialog open={editOpen} onOpenChange={setEditOpen} team={team} />}
 
@@ -59,15 +63,19 @@ export default function TeamGroup() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-          <TeamFeedTab
-            teamId={teamId!}
-            surface="group"
-            teamName={team.name}
-            teamLogo={team.logo_url}
-            canPost={!!role?.canPostGroup}
-            canView={true}
-            isCaptain={isCaptain}
-          />
+          {tab === "mentions" ? (
+            <TeamMentionsFeed teamName={team.name} />
+          ) : (
+            <TeamFeedTab
+              teamId={teamId!}
+              surface="group"
+              teamName={team.name}
+              teamLogo={team.logo_url}
+              canPost={!!role?.canPostGroup}
+              canView={true}
+              isCaptain={isCaptain}
+            />
+          )}
           <div className="hidden lg:block sticky top-20">
             <TeamRightRail
               team={team}
