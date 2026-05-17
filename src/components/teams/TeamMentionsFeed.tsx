@@ -17,34 +17,46 @@ export function TeamMentionsFeed({ teamName }: Props) {
     queryKey: ["team-mentions", noSpaces],
     enabled: !!noSpaces,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: posts, error } = await supabase
         .from("feed_posts")
-        .select(`
-          id, user_id, catch_id, content, photos, video_url, location_name,
-          likes_count, comments_count, created_at, updated_at,
-          profile:profiles!feed_posts_user_id_fkey(id, display_name, photos, id_verified, live_verified),
-          catch_data:catches(id, species_name, weight_lbs, length_in, photos)
-        `)
+        .select("*")
         .ilike("content", `%@${noSpaces}%`)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
+      if (!posts?.length) return [];
 
-      const ids = (data || []).map((p: any) => p.id);
-      let likedIds = new Set<string>();
-      if (user?.id && ids.length) {
-        const { data: likes } = await supabase
-          .from("feed_likes")
-          .select("post_id")
-          .eq("user_id", user.id)
-          .in("post_id", ids);
-        likedIds = new Set((likes || []).map((l: any) => l.post_id));
-      }
+      const userIds = [...new Set(posts.map((p: any) => p.user_id))];
+      const catchIds = posts.map((p: any) => p.catch_id).filter(Boolean) as string[];
 
-      return (data || []).map((p: any) => ({
+      const [{ data: profiles }, { data: catches }, { data: likes }] = await Promise.all([
+        supabase
+          .from("profiles_safe")
+          .select("id, display_name, photos, id_verified, live_verified")
+          .in("id", userIds),
+        catchIds.length
+          ? supabase
+              .from("catches")
+              .select("id, species_name, weight_lbs, length_in, photos")
+              .in("id", catchIds)
+          : Promise.resolve({ data: [] as any[] }),
+        user?.id
+          ? supabase
+              .from("feed_likes")
+              .select("post_id")
+              .eq("user_id", user.id)
+              .in("post_id", posts.map((p: any) => p.id))
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+      const catchMap = new Map((catches || []).map((c: any) => [c.id, c]));
+      const likedIds = new Set((likes || []).map((l: any) => l.post_id));
+
+      return posts.map((p: any) => ({
         ...p,
-        profile: Array.isArray(p.profile) ? p.profile[0] : p.profile,
-        catch_data: Array.isArray(p.catch_data) ? p.catch_data[0] : p.catch_data,
+        profile: profileMap.get(p.user_id) || null,
+        catch_data: p.catch_id ? catchMap.get(p.catch_id) || null : null,
         user_has_liked: likedIds.has(p.id),
       })) as FeedPostType[];
     },
