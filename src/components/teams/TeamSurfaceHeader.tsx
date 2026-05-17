@@ -89,8 +89,8 @@ export function TeamSurfaceHeader({
           </div>
 
           {/* Name + meta */}
-          <div className="flex-1 min-w-0 pb-1 md:pb-3">
-            <h1 className="text-2xl md:text-3xl font-bold leading-tight truncate pt-6 md:pt-10">{team.name}</h1>
+          <div className="flex-1 min-w-0 self-end pt-4 md:pt-6">
+            <h1 className="text-2xl md:text-3xl font-bold leading-tight truncate">{team.name}</h1>
             {team.description && (
               <p className="text-sm text-foreground/80 mt-2 line-clamp-2">{team.description}</p>
             )}
