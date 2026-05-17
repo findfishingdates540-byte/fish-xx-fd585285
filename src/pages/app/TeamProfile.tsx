@@ -22,15 +22,16 @@ import {
   Shield,
   ShieldOff,
   Pencil,
+  Globe,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTeamFollow } from "@/hooks/use-team-follow";
-import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
 import { useTeamRole } from "@/hooks/use-team-role";
 import { FollowPageButton } from "@/components/teams/FollowPageButton";
 import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
-import { TeamRightRail } from "@/components/teams/TeamRightRail";
 import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
 
@@ -106,7 +107,7 @@ export default function TeamProfile() {
   const isMember = !!user && (isCaptain || members.some((m) => m.user_id === user.id));
   const { data: followInfo } = useTeamFollow(teamId);
   const { data: role } = useTeamRole(teamId);
-  const [tab, setTab] = useState<string>("page");
+  const [tab, setTab] = useState<string>("about");
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
