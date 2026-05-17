@@ -369,49 +369,13 @@ export default function TeamProfile() {
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-2 bg-background/85 backdrop-blur border-b mb-4">
-          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-6" : "grid-cols-5"}`}>
-            <TabsTrigger value="page">Page</TabsTrigger>
-            <TabsTrigger value="group">Group</TabsTrigger>
+          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-4" : "grid-cols-3"}`}>
             <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             {isCaptain && <TabsTrigger value="insights">Insights</TabsTrigger>}
           </TabsList>
         </div>
-
-        <TabsContent value="page" className="mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            <TeamFeedTab
-              teamId={teamId!}
-              surface="page"
-              teamName={team.name}
-              teamLogo={team.logo_url}
-              canPost={!!role?.canPostPage}
-              canView={true}
-              isCaptain={isCaptain}
-            />
-            <div className="hidden lg:block sticky top-20">
-              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} isCaptain={isCaptain} />
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="group" className="mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            <TeamFeedTab
-              teamId={teamId!}
-              surface="group"
-              teamName={team.name}
-              teamLogo={team.logo_url}
-              canPost={!!role?.canPostGroup}
-              canView={isMember}
-              isCaptain={isCaptain}
-            />
-            <div className="hidden lg:block sticky top-20">
-              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} isCaptain={isCaptain} />
-            </div>
-          </div>
-        </TabsContent>
 
         <TabsContent value="media" className="mt-0">
           <TeamMediaTab teamId={teamId!} />
