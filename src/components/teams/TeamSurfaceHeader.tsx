@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Crown, Globe, Lock, MessageCircle, Pencil, Share2 } from "lucide-react";
+import { ArrowLeft, AtSign, Crown, Globe, Lock, MessageCircle, Pencil, Share2 } from "lucide-react";
 import { FollowPageButton } from "@/components/teams/FollowPageButton";
+
+export type TeamHeaderTab = "posts" | "mentions";
 
 interface Props {
   team: any;
@@ -14,6 +16,8 @@ interface Props {
   isMember: boolean;
   onEdit?: () => void;
   rightSlot?: React.ReactNode;
+  activeTab?: TeamHeaderTab;
+  onTabChange?: (t: TeamHeaderTab) => void;
 }
 
 export function TeamSurfaceHeader({
@@ -25,6 +29,8 @@ export function TeamSurfaceHeader({
   isMember,
   onEdit,
   rightSlot,
+  activeTab = "posts",
+  onTabChange,
 }: Props) {
   const navigate = useNavigate();
   const teamId = team.id as string;
@@ -149,11 +155,11 @@ export function TeamSurfaceHeader({
       <div className="border-b mb-6 -mx-4 md:-mx-6 px-4 md:px-6">
         <nav className="flex items-center gap-1 overflow-x-auto">
           {[
-            { key: surface, label: "Posts", active: true, onClick: () => {} },
+            { key: "posts", label: "Posts", active: activeTab === "posts", onClick: () => onTabChange?.("posts") },
             { key: "about", label: "About", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=about`) },
             { key: "members", label: "Members", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=members`) },
             { key: "media", label: "Photos", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=media`) },
-            ...(!isGroup ? [{ key: "group", label: "Group", active: false, onClick: () => navigate(`/app/teams/${teamId}/group`) }] : [{ key: "page", label: "Page", active: false, onClick: () => navigate(`/app/teams/${teamId}/page`) }]),
+            { key: "mentions", label: "Mentions", active: activeTab === "mentions", onClick: () => onTabChange?.("mentions") },
           ].map((t) => (
             <button
               key={t.key}
