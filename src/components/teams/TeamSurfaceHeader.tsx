@@ -90,7 +90,10 @@ export function TeamSurfaceHeader({
 
           {/* Name + meta */}
           <div className="flex-1 min-w-0 pb-1 md:pb-3">
-            <h1 className="text-2xl md:text-3xl font-bold leading-tight truncate">{team.name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold leading-tight truncate pt-6 md:pt-10">{team.name}</h1>
+            {team.description && (
+              <p className="text-sm text-foreground/80 mt-2 line-clamp-2">{team.description}</p>
+            )}
             <p className="text-sm text-muted-foreground mt-1">
               <span className="font-medium text-foreground">{!isGroup ? followerCount : memberCount}</span>{" "}
               {!isGroup ? (followerCount === 1 ? "follower" : "followers") : "members"}
