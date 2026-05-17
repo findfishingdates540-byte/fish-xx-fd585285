@@ -22,15 +22,15 @@ import {
   Shield,
   ShieldOff,
   Pencil,
+  Globe,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTeamFollow } from "@/hooks/use-team-follow";
-import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
-import { useTeamRole } from "@/hooks/use-team-role";
 import { FollowPageButton } from "@/components/teams/FollowPageButton";
 import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
-import { TeamRightRail } from "@/components/teams/TeamRightRail";
 import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
 
@@ -105,8 +105,7 @@ export default function TeamProfile() {
   const isCaptain = !!user && team?.captain_id === user.id;
   const isMember = !!user && (isCaptain || members.some((m) => m.user_id === user.id));
   const { data: followInfo } = useTeamFollow(teamId);
-  const { data: role } = useTeamRole(teamId);
-  const [tab, setTab] = useState<string>("page");
+  const [tab, setTab] = useState<string>("about");
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
@@ -365,52 +364,54 @@ export default function TeamProfile() {
         <EditTeamDialog open={editOpen} onOpenChange={setEditOpen} team={team} />
       )}
 
+      {/* Surface entry cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        <button
+          onClick={() => navigate(`/app/teams/${teamId}/page`)}
+          className="group text-left rounded-xl border bg-card hover:border-primary/40 hover:bg-primary/[0.03] transition p-5 flex items-start gap-4"
+        >
+          <div className="h-11 w-11 rounded-full bg-primary/10 text-primary grid place-items-center shrink-0">
+            <Globe className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="font-bold">Visit Page</p>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Public-facing wall. Catches, highlights and announcements anyone can see.</p>
+          </div>
+        </button>
+        <button
+          onClick={() => navigate(`/app/teams/${teamId}/group`)}
+          className="group text-left rounded-xl border bg-card hover:border-primary/40 hover:bg-primary/[0.03] transition p-5 flex items-start gap-4"
+        >
+          <div className="h-11 w-11 rounded-full bg-primary/10 text-primary grid place-items-center shrink-0">
+            <Lock className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="font-bold">Visit Group</p>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {isMember
+                ? "Private members-only conversation, planning and trip talk."
+                : "Members-only conversation. Join the team to enter the group."}
+            </p>
+          </div>
+        </button>
+      </div>
+
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-2 bg-background/85 backdrop-blur border-b mb-4">
-          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-6" : "grid-cols-5"}`}>
-            <TabsTrigger value="page">Page</TabsTrigger>
-            <TabsTrigger value="group">Group</TabsTrigger>
+          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-4" : "grid-cols-3"}`}>
             <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             {isCaptain && <TabsTrigger value="insights">Insights</TabsTrigger>}
           </TabsList>
         </div>
-
-        <TabsContent value="page" className="mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            <TeamFeedTab
-              teamId={teamId!}
-              surface="page"
-              teamName={team.name}
-              teamLogo={team.logo_url}
-              canPost={!!role?.canPostPage}
-              canView={true}
-              isCaptain={isCaptain}
-            />
-            <div className="hidden lg:block sticky top-20">
-              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} isCaptain={isCaptain} />
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="group" className="mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            <TeamFeedTab
-              teamId={teamId!}
-              surface="group"
-              teamName={team.name}
-              teamLogo={team.logo_url}
-              canPost={!!role?.canPostGroup}
-              canView={isMember}
-              isCaptain={isCaptain}
-            />
-            <div className="hidden lg:block sticky top-20">
-              <TeamRightRail team={team} memberCount={allMembers.length} memberUserIds={memberUserIds} profiles={profiles} isCaptain={isCaptain} />
-            </div>
-          </div>
-        </TabsContent>
 
         <TabsContent value="media" className="mt-0">
           <TeamMediaTab teamId={teamId!} />
