@@ -1,50 +1,76 @@
-# Standalone Page & Group experiences
+## Fish-X IGFA Scoring System — Implementation Plan
 
-Right now the team profile crams everything (Page feed, Group feed, Media, About, Members, Insights) into one tabbed view at `/app/teams/:teamId`. The Page and Group surfaces deserve their own dedicated routes with a full-bleed cover, immersive header, and their own sidebar layout — like a Facebook Page vs Group.
+The PDF defines a multi-factor angler scoring system. Rolling it out cleanly in one pass; broken into 5 phases that can be merged together.
 
-## New routes
+### Phase 1 — Database foundation
 
-- `/app/teams/:teamId` → **Team Profile** (identity hub). Keeps About, Members, Media, Insights. Removes the Page and Group tabs. Adds two prominent entry cards/buttons: "Visit Page" and "Visit Group" (Group only shown to members, or shows "Join to enter group").
-- `/app/teams/:teamId/page` → **Team Page** (new standalone view). Full-bleed cover, large logo, name + follower count, follow/share actions, then the Page feed in a 2‑column layout with the right rail (Pinned, Featured, About snippet, Members preview).
-- `/app/teams/:teamId/group` → **Team Group** (new standalone view). Full-bleed cover styled distinctly (e.g., subtle "Group" chip, member-only chrome), members-only feed in 2‑column layout with right rail (Rules, Pinned, Members, Admins).
+Add to `fish_species`:
+- `base_score` int (1–10)
+- `category` text (`billfish`, `tuna_pelagic`, `reef_bottom`, `inshore_saltwater`, `shark`, `bass`, `trout_salmon`, `exotic_freshwater`, `catfish`, `international_exotic`)
+- `water_type` text (`saltwater` | `freshwater`)
+- `measurement_type` text (`TL` | `FL` | `LJFL`)
+- `safe_release` bool (no measure required)
+- `trophy_quality`, `trophy_trophy`, `trophy_exceptional` numeric + `trophy_unit` text (`in` | `lb` | `ft`)
 
-Both standalone views get a back link to the team profile and a small contextual switcher ("Page · Group · Profile") in the header so captains/members can hop between surfaces.
+New reference tables (admin editable):
+- `scoring_catch_methods` (key, label, multiplier) — Shore 1.30 → Charter 0.85
+- `scoring_trophy_bonuses` (level, bonus) — Quality +0.5, Trophy +1, Exceptional +2
+- `scoring_variety_milestones` (species_count, bonus)
+- `scoring_streak_bonuses` (type, bonus)
+- `scoring_tournament_multipliers` (type, multiplier)
 
-## UX details
+Add to `catches`:
+- `catch_method` text (one of the 7 methods)
+- `is_estimated_size` bool (for safe-release species)
+- `trophy_level` text (`keeper` | `quality` | `trophy` | `exceptional`)
+- `computed_score` numeric (denormalized)
 
-- Full-bleed cover: 240px desktop / 160px mobile, edge-to-edge (escape the `max-w-6xl` container), gradient fallback when no `cover_url`.
-- Logo overlaps cover bottom, circular, 96–112px.
-- Sticky compact header on scroll: small logo + name + primary action (Follow / Join / + Post).
-- Captain edit affordance ("Edit page" / "Edit group") stays on the cover.
-- Right rail becomes sticky and surface-specific (Page rail vs Group rail), reusing `TeamRightRail` with a `surface` prop so Pinned/Featured/Rules render contextually.
-- Mobile: cover + header stack, rail collapses to a top "About this Page/Group" card and "Members" strip above the feed.
+Trigger / SQL function `public.compute_catch_score(catch_id)` recomputes on insert/update of relevant fields.
 
-## Team Profile changes
+Seed all species + scores from the PDF (≈110 species). Existing rows matched by lowercase name, missing rows inserted.
 
-- Drop `page` and `group` tabs from `TabsList`.
-- Replace with two hero entry cards directly under the identity header:
-  - "Page" card → public-facing feed teaser (post count, latest post thumbnail), CTA "Open Page".
-  - "Group" card → private members feed teaser (member count, today's activity), CTA "Open Group" or "Join to access".
-- Keep About, Members, Media, Insights tabs as the profile's own content.
+### Phase 2 — Capture UX
 
-## Files to add / change
+`LogCatchForm`:
+- Add Catch Method selector (radio chips with multiplier shown).
+- For safe-release species, swap exact length/weight inputs for a size-class picker (Quality / Trophy / Exceptional) + estimate toggle.
+- Show live computed score preview ("Score: 11.7 pts").
 
-**New**
-- `src/pages/app/TeamPage.tsx` — standalone Page route, full-bleed cover + `TeamFeedTab surface="page"` + right rail.
-- `src/pages/app/TeamGroup.tsx` — standalone Group route, full-bleed cover + `TeamFeedTab surface="group"` + right rail, gated by membership.
-- `src/components/teams/TeamSurfaceHeader.tsx` — shared full-bleed cover/header used by both routes (cover, logo, title, actions, surface switcher, sticky compact bar).
+### Phase 3 — Public Rules & Scoreboard hub
 
-**Edit**
-- `src/App.tsx` — register the two new routes.
-- `src/pages/app/TeamProfile.tsx` — remove Page/Group tabs, add entry cards, link to new routes; keep `EditTeamDialog` and right rail logic available to the new pages via a small shared hook.
-- `src/components/teams/TeamRightRail.tsx` — accept `surface: "page" | "group"` to render the right modules per surface (Pinned/Featured for Page; Rules/Pinned/Admins for Group). Existing behavior preserved when surface omitted.
-- `src/components/teams/EditTeamDialog.tsx` — no logic change; reused from new routes (captain-only).
-- Update any in-app links that currently set `?tab=page|group` on the profile to point to the new routes (search for `setTab("page")` / `setTab("group")`).
+New page `/app/scoring-rules` linked from the Scoreboard sheet:
+- Formula explainer, method multipliers, trophy bonuses, variety + streak ladders.
+- Searchable species table (category filter) showing base score, measurement type, trophy thresholds, safe-release badge.
 
-## Technical notes
+### Phase 4 — Leaderboard variants
 
-- Data fetching (`team-detail`, `team-members`, `team-member-profiles`, `useTeamRole`, `useTeamFollow`) is extracted into a `useTeamContext(teamId)` hook so all three routes share one source of truth without duplicating queries.
-- Full-bleed implemented with `relative left-1/2 -translate-x-1/2 w-screen` inside a normal container, then content returns to `max-w-6xl mx-auto` below the cover.
-- Membership/permission gates reuse existing `useTeamRole` (`canPostPage`, `canPostGroup`, `isMember`, `isCaptain`).
-- Insights logging: call `logTeamPageView` from each route with a `surface` discriminator if we want per-surface analytics later (optional, not required for this change).
-- No DB or RLS changes required.
+Extend `Leaderboard` page with tabs:
+- Overall, Monthly, Yearly, Species Diversity, Streaks
+- Land-Based, Kayak, Offshore, Freshwater, Saltwater, Junior
+Each tab queries an aggregated view filtered by `catch_method` / `water_type` / age group.
+
+### Phase 5 — Admin
+
+Extend `AdminFishSpecies` with the new columns (score, category, thresholds, safe-release).
+New `AdminScoringSettings` page to tune method multipliers, trophy bonuses, variety + streak ladders, tournament multipliers — all driven by the reference tables above.
+
+### Technical notes
+
+- All numeric scoring config lives in DB tables so admins can tune without code changes.
+- `compute_catch_score` is the single source of truth; UI just displays `catches.computed_score`.
+- Variety + streak bonuses are computed in a `user_scoring_totals` view (sum of catch scores + milestone/streak bonuses) — recomputed on read for now.
+- IGFA measurement standards (TL/FL/LJFL) shown contextually in LogCatchForm and on the Rules page.
+
+### Out of scope this round
+
+- AI species recognition / duplicate detection / fraud detection.
+- Tournament-system rewiring (will plug new multiplier table into existing tournament scoring in a follow-up).
+- Achievement badges (data model only; surfacing them comes later).
+
+### Suggested merge order
+
+1. Phase 1 migration (must approve first — it adds many columns + seeds ~110 species).
+2. Phase 2 + 3 in one pass (capture + read).
+3. Phase 4 + 5 in a follow-up pass.
+
+Do you want me to proceed with Phase 1's migration now?

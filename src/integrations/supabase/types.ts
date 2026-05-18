@@ -516,14 +516,17 @@ export type Database = {
       catches: {
         Row: {
           bait_used: string | null
+          catch_method: string | null
           catch_status: string
           caught_at: string | null
+          computed_score: number | null
           cover_photo_url: string | null
           created_at: string
           fishing_spot_id: string | null
           gear_used: string[] | null
           general_location: string | null
           id: string
+          is_estimated_size: boolean
           is_private: boolean
           is_verified: boolean
           length_in: number | null
@@ -536,20 +539,24 @@ export type Database = {
           share_location: boolean | null
           species_id: string | null
           species_name: string | null
+          trophy_level: string | null
           user_id: string
           video_url: string | null
           weight_lbs: number | null
         }
         Insert: {
           bait_used?: string | null
+          catch_method?: string | null
           catch_status?: string
           caught_at?: string | null
+          computed_score?: number | null
           cover_photo_url?: string | null
           created_at?: string
           fishing_spot_id?: string | null
           gear_used?: string[] | null
           general_location?: string | null
           id?: string
+          is_estimated_size?: boolean
           is_private?: boolean
           is_verified?: boolean
           length_in?: number | null
@@ -562,20 +569,24 @@ export type Database = {
           share_location?: boolean | null
           species_id?: string | null
           species_name?: string | null
+          trophy_level?: string | null
           user_id: string
           video_url?: string | null
           weight_lbs?: number | null
         }
         Update: {
           bait_used?: string | null
+          catch_method?: string | null
           catch_status?: string
           caught_at?: string | null
+          computed_score?: number | null
           cover_photo_url?: string | null
           created_at?: string
           fishing_spot_id?: string | null
           gear_used?: string[] | null
           general_location?: string | null
           id?: string
+          is_estimated_size?: boolean
           is_private?: boolean
           is_verified?: boolean
           length_in?: number | null
@@ -588,6 +599,7 @@ export type Database = {
           share_location?: boolean | null
           species_id?: string | null
           species_name?: string | null
+          trophy_level?: string | null
           user_id?: string
           video_url?: string | null
           weight_lbs?: number | null
@@ -923,28 +935,55 @@ export type Database = {
       }
       fish_species: {
         Row: {
+          base_score: number | null
+          category: string | null
           created_at: string
           description: string | null
           id: string
           image_url: string | null
+          measurement_type: string | null
           name: string
+          safe_release: boolean
           scientific_name: string | null
+          trophy_exceptional: number | null
+          trophy_quality: number | null
+          trophy_trophy: number | null
+          trophy_unit: string | null
+          water_type: string | null
         }
         Insert: {
+          base_score?: number | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          measurement_type?: string | null
           name: string
+          safe_release?: boolean
           scientific_name?: string | null
+          trophy_exceptional?: number | null
+          trophy_quality?: number | null
+          trophy_trophy?: number | null
+          trophy_unit?: string | null
+          water_type?: string | null
         }
         Update: {
+          base_score?: number | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          measurement_type?: string | null
           name?: string
+          safe_release?: boolean
           scientific_name?: string | null
+          trophy_exceptional?: number | null
+          trophy_quality?: number | null
+          trophy_trophy?: number | null
+          trophy_unit?: string | null
+          water_type?: string | null
         }
         Relationships: []
       }
@@ -2393,6 +2432,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scoring_catch_methods: {
+        Row: {
+          key: string
+          label: string
+          multiplier: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          label: string
+          multiplier: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          label?: string
+          multiplier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scoring_streak_bonuses: {
+        Row: {
+          bonus: number
+          label: string
+          streak_type: string
+        }
+        Insert: {
+          bonus: number
+          label: string
+          streak_type: string
+        }
+        Update: {
+          bonus?: number
+          label?: string
+          streak_type?: string
+        }
+        Relationships: []
+      }
+      scoring_tournament_multipliers: {
+        Row: {
+          key: string
+          label: string
+          multiplier_text: string
+          sort_order: number
+        }
+        Insert: {
+          key: string
+          label: string
+          multiplier_text: string
+          sort_order?: number
+        }
+        Update: {
+          key?: string
+          label?: string
+          multiplier_text?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      scoring_trophy_bonuses: {
+        Row: {
+          bonus: number
+          label: string
+          level: string
+          sort_order: number
+        }
+        Insert: {
+          bonus: number
+          label: string
+          level: string
+          sort_order?: number
+        }
+        Update: {
+          bonus?: number
+          label?: string
+          level?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      scoring_variety_milestones: {
+        Row: {
+          bonus: number
+          species_count: number
+        }
+        Insert: {
+          bonus: number
+          species_count: number
+        }
+        Update: {
+          bonus?: number
+          species_count?: number
+        }
+        Relationships: []
       }
       spot_ratings: {
         Row: {

@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +20,8 @@ import {
   Save,
   Camera,
   Video,
+  Trophy,
+  Sparkles,
 } from "lucide-react";
 
 interface FishSpecies {
@@ -62,6 +65,9 @@ export interface LogCatchFormData {
   measurementPhoto: File | null;
   additionalPhotos: File[];
   videoFile: File | null;
+  catch_method: string;
+  trophy_level: string;
+  is_estimated_size: boolean;
 }
 
 export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
@@ -82,7 +88,50 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     is_private: false,
     location_lat: null as number | null,
     location_lng: null as number | null,
+    catch_method: "flats",
+    trophy_level: "keeper",
+    is_estimated_size: false,
   });
+
+  // Scoring config + selected species details
+  const [methods, setMethods] = useState<Array<{ key: string; label: string; multiplier: number }>>([]);
+  const [bonuses, setBonuses] = useState<Array<{ level: string; label: string; bonus: number }>>([]);
+  const [speciesMeta, setSpeciesMeta] = useState<{
+    base_score: number | null;
+    safe_release: boolean;
+    measurement_type: string | null;
+    trophy_unit: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const [m, b] = await Promise.all([
+        supabase.from("scoring_catch_methods").select("key,label,multiplier").order("sort_order"),
+        supabase.from("scoring_trophy_bonuses").select("level,label,bonus").order("sort_order"),
+      ]);
+      if (m.data) setMethods(m.data as any);
+      if (b.data) setBonuses(b.data as any);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!formData.species_id) { setSpeciesMeta(null); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("fish_species")
+        .select("base_score,safe_release,measurement_type,trophy_unit")
+        .eq("id", formData.species_id)
+        .maybeSingle();
+      if (data) setSpeciesMeta(data as any);
+    })();
+  }, [formData.species_id]);
+
+  const previewScore = useMemo(() => {
+    const base = speciesMeta?.base_score ?? 0;
+    const mult = methods.find((m) => m.key === formData.catch_method)?.multiplier ?? 1;
+    const bonus = bonuses.find((b) => b.level === formData.trophy_level)?.bonus ?? 0;
+    return Math.round((base * Number(mult) + Number(bonus)) * 100) / 100;
+  }, [speciesMeta, methods, bonuses, formData.catch_method, formData.trophy_level]);
 
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
   const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
@@ -283,6 +332,89 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
               value={formData.caught_at}
               onChange={(e) => setFormData({ ...formData, caught_at: e.target.value })}
             />
+          </div>
+
+          <div>
+            <Label className="text-sm font-semibold mb-2 block">Catch Method</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {methods.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, catch_method: m.key })}
+                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                    formData.catch_method === m.key
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span className="truncate">{m.label}</span>
+                  <span className="ml-2 shrink-0 tabular-nums">×{Number(m.multiplier).toFixed(2)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-semibold mb-2 block flex items-center gap-1.5">
+              <Trophy className="h-3.5 w-3.5" /> Trophy Class
+              {speciesMeta?.safe_release && (
+                <span className="ml-2 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600">
+                  Safe-release · estimate ok
+                </span>
+              )}
+            </Label>
+            <div className="grid grid-cols-4 gap-2">
+              {bonuses.map((b) => (
+                <button
+                  key={b.level}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, trophy_level: b.level })}
+                  className={`rounded-lg border px-2 py-2 text-xs font-medium text-center transition-colors ${
+                    formData.trophy_level === b.level
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <div className="truncate">{b.label}</div>
+                  <div className="text-[10px] opacity-70">+{Number(b.bonus)}</div>
+                </button>
+              ))}
+            </div>
+            {speciesMeta?.safe_release && (
+              <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.is_estimated_size}
+                  onChange={(e) => setFormData({ ...formData, is_estimated_size: e.target.checked })}
+                  className="h-3.5 w-3.5 rounded border-border text-primary"
+                />
+                Size is an estimate (no exact measurement taken)
+              </label>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-primary/80 font-semibold flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3" /> Score preview
+              </div>
+              <div className="text-2xl font-bold text-primary mt-0.5 tabular-nums">
+                {previewScore.toFixed(2)} pts
+              </div>
+            </div>
+            <div className="text-right text-[11px] text-muted-foreground leading-tight">
+              {speciesMeta?.base_score != null ? (
+                <>
+                  Base {speciesMeta.base_score}
+                  {speciesMeta.measurement_type && (
+                    <> · {speciesMeta.measurement_type}{speciesMeta.trophy_unit ? ` / ${speciesMeta.trophy_unit}` : ""}</>
+                  )}
+                </>
+              ) : (
+                <>Pick a species to score</>
+              )}
+            </div>
           </div>
 
           <div>

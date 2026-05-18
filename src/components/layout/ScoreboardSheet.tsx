@@ -14,6 +14,7 @@ const scoreboardLinks: Array<{ to: string; label: string; description: string; i
   { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: "photo" },
   { to: "/app/tournaments", label: "Tournaments", description: "Bracket-style head-to-head competitions", icon: "tournament" },
   { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: "team2" },
+  { to: "/app/scoring-rules", label: "Scoring Rules", description: "How points, multipliers & trophies work", icon: "leaderboard" },
 ];
 
 export function ScoreboardSheet({ open, onOpenChange }: ScoreboardSheetProps) {

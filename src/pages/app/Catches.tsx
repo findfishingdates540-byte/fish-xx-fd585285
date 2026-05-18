@@ -174,6 +174,9 @@ export default function Catches() {
         is_private: data.is_private,
         location_lat: data.location_lat,
         location_lng: data.location_lng,
+        catch_method: data.catch_method || null,
+        trophy_level: data.trophy_level || null,
+        is_estimated_size: data.is_estimated_size,
       } as any);
       if (error) throw error;
 
