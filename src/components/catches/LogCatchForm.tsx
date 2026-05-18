@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +20,8 @@ import {
   Save,
   Camera,
   Video,
+  Trophy,
+  Sparkles,
 } from "lucide-react";
 
 interface FishSpecies {
@@ -62,6 +65,9 @@ export interface LogCatchFormData {
   measurementPhoto: File | null;
   additionalPhotos: File[];
   videoFile: File | null;
+  catch_method: string;
+  trophy_level: string;
+  is_estimated_size: boolean;
 }
 
 export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
@@ -82,7 +88,50 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     is_private: false,
     location_lat: null as number | null,
     location_lng: null as number | null,
+    catch_method: "flats",
+    trophy_level: "keeper",
+    is_estimated_size: false,
   });
+
+  // Scoring config + selected species details
+  const [methods, setMethods] = useState<Array<{ key: string; label: string; multiplier: number }>>([]);
+  const [bonuses, setBonuses] = useState<Array<{ level: string; label: string; bonus: number }>>([]);
+  const [speciesMeta, setSpeciesMeta] = useState<{
+    base_score: number | null;
+    safe_release: boolean;
+    measurement_type: string | null;
+    trophy_unit: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const [m, b] = await Promise.all([
+        supabase.from("scoring_catch_methods").select("key,label,multiplier").order("sort_order"),
+        supabase.from("scoring_trophy_bonuses").select("level,label,bonus").order("sort_order"),
+      ]);
+      if (m.data) setMethods(m.data as any);
+      if (b.data) setBonuses(b.data as any);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!formData.species_id) { setSpeciesMeta(null); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("fish_species")
+        .select("base_score,safe_release,measurement_type,trophy_unit")
+        .eq("id", formData.species_id)
+        .maybeSingle();
+      if (data) setSpeciesMeta(data as any);
+    })();
+  }, [formData.species_id]);
+
+  const previewScore = useMemo(() => {
+    const base = speciesMeta?.base_score ?? 0;
+    const mult = methods.find((m) => m.key === formData.catch_method)?.multiplier ?? 1;
+    const bonus = bonuses.find((b) => b.level === formData.trophy_level)?.bonus ?? 0;
+    return Math.round((base * Number(mult) + Number(bonus)) * 100) / 100;
+  }, [speciesMeta, methods, bonuses, formData.catch_method, formData.trophy_level]);
 
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
   const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
