@@ -27,12 +27,15 @@ import {
 } from "lucide-react";
 import { ShareSheet } from "@/components/feed/ShareSheet";
 import { getShareBaseUrl } from "@/lib/config";
+import { CatchComments } from "@/components/catches/CatchComments";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function CatchDetail() {
   const { catchId } = useParams<{ catchId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [shareOpen, setShareOpen] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Fetch catch
   const { data: catchData, isLoading } = useQuery({
@@ -136,6 +139,30 @@ export default function CatchDetail() {
   });
 
   const heroPhoto = catchData?.cover_photo_url || catchPhotos[0]?.photo_url || null;
+
+  // Build a complete, deduplicated, labeled photo gallery
+  type GalleryItem = { url: string; label: string };
+  const gallery: GalleryItem[] = (() => {
+    const items: GalleryItem[] = [];
+    const seen = new Set<string>();
+    const push = (url: string | null | undefined, label: string) => {
+      if (!url || seen.has(url)) return;
+      seen.add(url);
+      items.push({ url, label });
+    };
+    push(catchData?.cover_photo_url, "Trophy Shot");
+    push(catchData?.measurement_photo_url, "Measurement");
+    catchPhotos.forEach((p: any) => {
+      const label =
+        p.photo_type === "scale" ? "On the Scale" :
+        p.photo_type === "measurement" ? "Measurement" :
+        p.photo_type === "trophy" ? "Trophy Shot" :
+        "Additional";
+      push(p.photo_url, label);
+    });
+    (catchData?.photos || []).forEach((u: string) => push(u, "Additional"));
+    return items;
+  })();
   const speciesName = speciesInfo?.name || catchData?.species_name || "Unknown Species";
   const locationName = catchData?.general_location || spotInfo?.location_name || spotInfo?.name || null;
   const caughtAt = catchData?.caught_at ? new Date(catchData.caught_at) : null;
@@ -367,21 +394,32 @@ export default function CatchDetail() {
           </div>
 
           {/* Additional Photos */}
-          {catchPhotos.length > 1 && (
+          {gallery.length > 1 && (
             <div className="space-y-3">
-              <h3 className="font-bold text-sm">Photos</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {catchPhotos.map((photo) => (
-                  <img
-                    key={photo.id}
-                    src={photo.photo_url}
-                    alt="Catch photo"
-                    className="rounded-lg w-full h-32 object-cover"
-                  />
+              <h3 className="font-bold text-sm">All Photos</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {gallery.map((item, idx) => (
+                  <button
+                    key={item.url + idx}
+                    onClick={() => setLightboxUrl(item.url)}
+                    className="relative group rounded-lg overflow-hidden bg-muted"
+                  >
+                    <img
+                      src={item.url}
+                      alt={item.label}
+                      className="w-full h-32 object-cover transition-transform group-hover:scale-[1.02]"
+                    />
+                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-white text-[10px] font-semibold uppercase tracking-wider">
+                      {item.label}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Comments */}
+          <CatchComments catchId={catchData.id} />
         </div>
 
         {/* RIGHT SIDEBAR */}
@@ -492,6 +530,14 @@ export default function CatchDetail() {
           </div>
         </div>
       </div>
+
+      <Dialog open={!!lightboxUrl} onOpenChange={(o) => !o && setLightboxUrl(null)}>
+        <DialogContent className="max-w-4xl bg-black/95 border-0 p-2">
+          {lightboxUrl && (
+            <img src={lightboxUrl} alt="Catch photo" className="w-full max-h-[80vh] object-contain" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
