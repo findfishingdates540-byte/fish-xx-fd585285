@@ -52,20 +52,21 @@ interface ChallengeWithDetails {
 }
 
 function useCountdown(endDate: string) {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, totalMs: 0 });
 
   useEffect(() => {
     const calc = () => {
       const diff = new Date(endDate).getTime() - Date.now();
-      if (diff <= 0) return { days: 0, hours: 0, minutes: 0 };
+      if (diff <= 0) return { days: 0, hours: 0, minutes: 0, totalMs: 0 };
       return {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
         hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((diff / (1000 * 60)) % 60),
+        totalMs: diff,
       };
     };
     setTimeLeft(calc());
-    const interval = setInterval(() => setTimeLeft(calc()), 60000);
+    const interval = setInterval(() => setTimeLeft(calc()), 1000);
     return () => clearInterval(interval);
   }, [endDate]);
 
@@ -73,14 +74,18 @@ function useCountdown(endDate: string) {
 }
 
 function CountdownDisplay({ endDate }: { endDate: string }) {
-  const { days, hours, minutes } = useCountdown(endDate);
+  const { days, hours, minutes, totalMs } = useCountdown(endDate);
+  const urgent = totalMs > 0 && totalMs <= 60 * 60 * 1000;
+  const cellCls = urgent
+    ? "bg-rose-500/15 text-rose-300 border border-rose-500/40 px-1.5 py-0.5 rounded font-bold animate-pulse"
+    : "bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold";
   return (
     <div className="flex items-center gap-1 text-xs font-mono">
-      <span className="bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold">{String(days).padStart(2, "0")}d</span>
+      <span className={cellCls}>{String(days).padStart(2, "0")}d</span>
       <span className="sb-text-muted">:</span>
-      <span className="bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold">{String(hours).padStart(2, "0")}h</span>
+      <span className={cellCls}>{String(hours).padStart(2, "0")}h</span>
       <span className="sb-text-muted">:</span>
-      <span className="bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold">{String(minutes).padStart(2, "0")}m</span>
+      <span className={cellCls}>{String(minutes).padStart(2, "0")}m</span>
     </div>
   );
 }
