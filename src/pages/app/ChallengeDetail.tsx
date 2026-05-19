@@ -11,6 +11,7 @@ import { FormattedRules } from "@/lib/format-rules";
 import { toast } from "sonner";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 function timeAgo(date: Date): string {
   const sec = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
