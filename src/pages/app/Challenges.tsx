@@ -20,6 +20,7 @@ import {
   Fish,
   ArrowRight,
   Flame,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -524,13 +525,13 @@ function LiveChallengeCard({
             <button
               onClick={(e) => { e.stopPropagation(); onJoin(); }}
               disabled={challenge.isJoined || joining}
-              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
+              className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
                 challenge.isJoined
-                  ? "bg-[hsl(var(--sb-surface-2))] sb-text-muted cursor-not-allowed"
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-not-allowed"
                   : "sb-bg-cyan hover:opacity-90"
               } disabled:opacity-60`}
             >
-              {challenge.isJoined ? "Joined" : "Join Challenge"}
+              {challenge.isJoined ? (<><CheckCircle2 className="h-3.5 w-3.5" />Registered</>) : "Join Challenge"}
             </button>
           </div>
         </div>
@@ -608,13 +609,13 @@ function UpcomingChallengeCard({
             <button
               onClick={(e) => { e.stopPropagation(); onJoin(); }}
               disabled={challenge.isJoined || joining}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
+              className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
                 challenge.isJoined
-                  ? "bg-[hsl(var(--sb-surface-2))] sb-text-muted cursor-not-allowed"
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-not-allowed"
                   : "sb-bg-cyan hover:opacity-90"
               } disabled:opacity-60`}
             >
-              {challenge.isJoined ? "Registered" : "Register"}
+              {challenge.isJoined ? (<><CheckCircle2 className="h-3.5 w-3.5" />Registered</>) : "Register"}
             </button>
           </div>
         </div>
