@@ -5,12 +5,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown } from "lucide-react";
 import { getShareBaseUrl } from "@/lib/config";
 import { FormattedRules } from "@/lib/format-rules";
 import { toast } from "sonner";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
+
+function timeAgo(date: Date): string {
+  const sec = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.floor(hr / 24);
+  return `${d}d ago`;
+}
 
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -82,6 +93,49 @@ export default function ChallengeDetail() {
   });
 
   const isJoined = !!user && participants.some((p) => p.user_id === user.id);
+
+  // Metric label + formatter driven by challenge type
+  const challengeType: string = (challenge as any)?.challenge_type || "largest_fish";
+  const isCountType = challengeType === "most_caught" || challengeType === "most_species";
+  const metricSuffix = isCountType ? "" : " lbs";
+  const metricLabel = isCountType ? "Catches" : "Weight";
+  const formatScore = (n: number) =>
+    isCountType ? `${Math.round(n).toLocaleString()}` : `${Number(n).toLocaleString()} lbs`;
+
+  // My rank
+  const myIndex = user ? participants.findIndex((p) => p.user_id === user.id) : -1;
+  const myRank = myIndex >= 0 ? myIndex + 1 : null;
+  const myScore = myIndex >= 0 ? Number(participants[myIndex].score) : 0;
+  const leaderScore = participants.length > 0 ? Number(participants[0].score) : 0;
+  const gapToLeader = myRank && myRank > 1 ? leaderScore - myScore : 0;
+
+  // Recent verified catches from participants (live activity feed)
+  const c2: any = challenge;
+  const startISO = c2?.start_date ? new Date(c2.start_date).toISOString() : null;
+  const endISO = c2?.end_date
+    ? new Date(new Date(c2.end_date).getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
+    : null;
+  const { data: recentCatches = [] } = useQuery({
+    queryKey: ["fishing-challenge-recent-catches", id, userIds.join(","), c2?.species_id, startISO, endISO],
+    queryFn: async () => {
+      if (userIds.length === 0 || !startISO || !endISO) return [];
+      let q = supabase
+        .from("catches")
+        .select("id,user_id,species_name,weight_lbs,length_in,caught_at,cover_photo_url,is_verified")
+        .in("user_id", userIds)
+        .eq("is_verified", true)
+        .eq("is_private", false)
+        .gte("caught_at", startISO)
+        .lte("caught_at", endISO)
+        .order("caught_at", { ascending: false })
+        .limit(10);
+      if (c2?.species_id) q = q.eq("species_id", c2.species_id);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: userIds.length > 0 && !!startISO && !!endISO,
+  });
 
   const handleShare = async () => {
     const url = `${getShareBaseUrl()}/app/challenges/${id}`;
@@ -327,6 +381,41 @@ export default function ChallengeDetail() {
         </div>
       )}
 
+      {/* My rank card */}
+      {isJoined && status !== "completed" && (
+        <div className="mx-4 md:mx-6 mt-4 sb-card p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-full bg-[hsl(var(--sb-cyan)/0.15)] flex items-center justify-center shrink-0">
+                {myRank === 1 ? (
+                  <Crown className="h-5 w-5 sb-gold" />
+                ) : (
+                  <Trophy className="h-5 w-5 sb-cyan" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold">Your standing</p>
+                <p className="text-sm font-bold truncate">
+                  {myRank ? (
+                    <>Rank #{myRank} of {participants.length}</>
+                  ) : (
+                    <>Not ranked yet — log a verified catch</>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-lg font-bold sb-cyan font-mono">{formatScore(myScore)}</p>
+              {gapToLeader > 0 && (
+                <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
+                  −{formatScore(gapToLeader).replace(" lbs", "")}{metricSuffix} to #1
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Rules */}
       {(() => {
         const r: any = c.rules;
@@ -348,9 +437,20 @@ export default function ChallengeDetail() {
 
       {/* Leaderboard */}
       <div className="mx-4 md:mx-6 mt-4 sb-card p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Trophy className="h-4 w-4 sb-gold" />
-          <h2 className="font-bold text-sm">Leaderboard</h2>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 sb-gold" />
+            <h2 className="font-bold text-sm">Leaderboard</h2>
+            <span className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold ml-1">
+              by {metricLabel}
+            </span>
+          </div>
+          <span
+            title="Only verified catches count toward this challenge"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] uppercase tracking-widest font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+          >
+            <ShieldCheck className="h-3 w-3" /> Verified only
+          </span>
         </div>
         {participants.length === 0 ? (
           <div className="text-center py-8">
@@ -362,21 +462,91 @@ export default function ChallengeDetail() {
             {participants.map((p, i) => {
               const prof = profiles[p.user_id];
               const name = prof?.display_name || "Angler";
+              const isMe = !!user && p.user_id === user.id;
               return (
-                <div key={p.user_id} className="flex items-center gap-3 py-2 border-b sb-border last:border-0">
+                <div
+                  key={p.user_id}
+                  className={`flex items-center gap-3 py-2 border-b sb-border last:border-0 ${
+                    isMe ? "bg-[hsl(var(--sb-cyan)/0.08)] -mx-2 px-2 rounded" : ""
+                  }`}
+                >
                   {rankLabel(i + 1)}
                   <Avatar className="h-8 w-8 ring-1 ring-[hsl(var(--sb-border))]">
                     <AvatarImage src={prof?.photos?.[0] || ""} />
                     <AvatarFallback className="text-[10px] bg-[hsl(var(--sb-surface-2))]">{name[0]}</AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium truncate flex-1">{name}</span>
-                  <span className="text-sm font-bold sb-cyan">{Number(p.score).toLocaleString()} lbs</span>
+                  <span className="text-sm font-medium truncate flex-1">
+                    {name}
+                    {isMe && <span className="ml-1.5 text-[9px] uppercase tracking-widest sb-cyan font-bold">You</span>}
+                  </span>
+                  <span className="text-sm font-bold sb-cyan">{formatScore(Number(p.score))}</span>
                 </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {/* Recent activity */}
+      {status !== "upcoming" && (
+        <div className="mx-4 md:mx-6 mt-4 sb-card p-4 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Activity className="h-4 w-4 sb-cyan" />
+            <h2 className="font-bold text-sm">Recent activity</h2>
+            <span className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold ml-1">
+              Verified catches
+            </span>
+          </div>
+          {recentCatches.length === 0 ? (
+            <div className="text-center py-8">
+              <Fish className="h-8 w-8 mx-auto sb-text-muted opacity-30 mb-2" />
+              <p className="text-sm sb-text-muted">No verified catches logged yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recentCatches.map((rc: any) => {
+                const prof = profiles[rc.user_id];
+                const name = prof?.display_name || "Angler";
+                const when = new Date(rc.caught_at);
+                const ago = timeAgo(when);
+                return (
+                  <button
+                    key={rc.id}
+                    onClick={() => navigate(`/app/catches/${rc.id}`)}
+                    className="w-full flex items-center gap-3 py-2 border-b sb-border last:border-0 text-left hover:bg-[hsl(var(--sb-surface-2)/0.5)] rounded transition-colors"
+                  >
+                    {rc.cover_photo_url ? (
+                      <img
+                        src={rc.cover_photo_url}
+                        alt=""
+                        className="h-10 w-10 rounded object-cover ring-1 ring-[hsl(var(--sb-border))] shrink-0"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded bg-[hsl(var(--sb-surface-2))] flex items-center justify-center shrink-0">
+                        <Fish className="h-4 w-4 sb-text-muted" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate">
+                        {name} <span className="sb-text-muted font-normal">landed</span>{" "}
+                        {rc.species_name || "a fish"}
+                      </p>
+                      <p className="text-[11px] sb-text-muted">
+                        {rc.weight_lbs ? `${Number(rc.weight_lbs).toFixed(1)} lbs` : null}
+                        {rc.weight_lbs && rc.length_in ? " · " : ""}
+                        {rc.length_in ? `${Number(rc.length_in).toFixed(1)} in` : null}
+                        {(rc.weight_lbs || rc.length_in) ? " · " : ""}
+                        {ago}
+                      </p>
+                    </div>
+                    <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
