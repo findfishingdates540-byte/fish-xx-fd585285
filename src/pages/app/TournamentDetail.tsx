@@ -777,9 +777,87 @@ const TournamentDetail = () => {
       </Dialog>
 
       {/* Tabs: Bracket / Standings / MVPs / My Team */}
+      {/* Next up card */}
+      {nextMatchupForMe && (() => {
+        const r = roundById[nextMatchupForMe.round_id];
+        const opponentId =
+          nextMatchupForMe.team1_id === myTeamId ? nextMatchupForMe.team2_id : nextMatchupForMe.team1_id;
+        const opponent = opponentId ? teamMap[opponentId] : null;
+        return (
+          <Link
+            to={`/app/tournaments/${id}/matchups/${nextMatchupForMe.id}`}
+            className="block mb-3 rounded-xl border border-primary/30 bg-primary/5 p-4 hover:bg-primary/10 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                <CalendarClock className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Next up · {r?.round_name || "Round"}</p>
+                <p className="text-sm font-bold truncate">
+                  vs {opponent?.name || "TBD"}
+                </p>
+                {r?.start_date && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {format(new Date(r.start_date), "EEE MMM d")}
+                    {r.end_date && ` – ${format(new Date(r.end_date), "MMM d")}`}
+                  </p>
+                )}
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </Link>
+        );
+      })()}
+
+      {/* Live now feed */}
+      {liveMatchups.length > 0 && (
+        <div className="mb-3 rounded-xl border border-rose-500/30 bg-rose-500/5 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold uppercase tracking-wide">
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Live
+            </span>
+            <p className="text-xs font-semibold">{liveMatchups.length} matchup{liveMatchups.length > 1 ? "s" : ""} in progress</p>
+          </div>
+          <div className="flex gap-2 overflow-x-auto -mx-3 px-3 pb-1">
+            {liveMatchups.map((m: any) => {
+              const t1 = m.team1_id ? teamMap[m.team1_id] : null;
+              const t2 = m.team2_id ? teamMap[m.team2_id] : null;
+              const r = roundById[m.round_id];
+              return (
+                <Link
+                  key={m.id}
+                  to={`/app/tournaments/${id}/matchups/${m.id}`}
+                  className="shrink-0 w-56 rounded-lg border bg-background p-2.5 hover:border-primary/50 transition-colors"
+                >
+                  <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold mb-1.5 truncate">
+                    {r?.round_name || "Match"} · #{m.matchup_number}
+                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <Avatar className="h-5 w-5"><AvatarImage src={t1?.logo_url} /><AvatarFallback className="text-[8px]">{t1?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                      <span className="text-xs font-semibold truncate">{t1?.name || "TBD"}</span>
+                    </div>
+                    <span className="text-sm font-bold tabular-nums">{Number(m.team1_score || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <Avatar className="h-5 w-5"><AvatarImage src={t2?.logo_url} /><AvatarFallback className="text-[8px]">{t2?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                      <span className="text-xs font-semibold truncate">{t2?.name || "TBD"}</span>
+                    </div>
+                    <span className="text-sm font-bold tabular-nums">{Number(m.team2_score || 0)}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="bracket" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-3">
+        <TabsList className="grid w-full grid-cols-5 mb-3">
           <TabsTrigger value="bracket" className="text-xs"><Swords className="h-3 w-3 mr-1" />Bracket</TabsTrigger>
+          <TabsTrigger value="schedule" className="text-xs"><CalendarClock className="h-3 w-3 mr-1" />Schedule</TabsTrigger>
           <TabsTrigger value="standings" className="text-xs"><Trophy className="h-3 w-3 mr-1" />Teams</TabsTrigger>
           <TabsTrigger value="mvp" className="text-xs"><Crown className="h-3 w-3 mr-1" />MVPs</TabsTrigger>
           <TabsTrigger value="myteam" className="text-xs" disabled={myTeamContributions.length === 0}>
