@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +17,25 @@ export default function ChallengeDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle Stripe checkout return (?payment=success | ?payment=cancelled)
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    if (!payment) return;
+    if (payment === "success") {
+      toast.success("Payment confirmed — you're registered!");
+      qc.invalidateQueries({ queryKey: ["fishing-challenge-participants", id] });
+      qc.invalidateQueries({ queryKey: ["fishing-challenge", id] });
+    } else if (payment === "cancelled") {
+      toast.error("Payment cancelled — you were not registered.");
+    }
+    // Clean the query param from the URL
+    const next = new URLSearchParams(searchParams);
+    next.delete("payment");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data: challenge, isLoading } = useQuery({
     queryKey: ["fishing-challenge", id],
