@@ -52,7 +52,7 @@ export default function AdminScoringSettings() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const ops: Promise<any>[] = [];
+      const ops: any[] = [];
       methods.forEach((m) => ops.push(
         supabase.from('scoring_catch_methods').update({ label: m.label, multiplier: m.multiplier, sort_order: m.sort_order }).eq('key', m.key)
       ));
