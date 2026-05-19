@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2 } from "lucide-react";
 import { getShareBaseUrl } from "@/lib/config";
+import { FormattedRules } from "@/lib/format-rules";
 import { toast } from "sonner";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
