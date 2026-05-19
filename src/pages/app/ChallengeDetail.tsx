@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2 } from "lucide-react";
+import { getShareBaseUrl } from "@/lib/config";
 import { toast } from "sonner";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
@@ -62,7 +63,7 @@ export default function ChallengeDetail() {
   const isJoined = !!user && participants.some((p) => p.user_id === user.id);
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/app/challenges/${id}`;
+    const url = `${getShareBaseUrl()}/app/challenges/${id}`;
     const ch: any = challenge;
     const title = ch?.title ? `Fish-X Challenge: ${ch.title}` : "Fish-X Challenge";
     const text = ch?.description || "Check out this fishing challenge on Fish-X!";
