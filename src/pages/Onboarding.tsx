@@ -616,7 +616,13 @@ export default function Onboarding() {
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Sign Out</span>
             </button>
-            <button className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
+            <button
+              type="button"
+              onClick={() => window.open('/help', '_blank', 'noopener,noreferrer')}
+              aria-label="Help"
+              title="Help"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+            >
               <HelpCircle className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
