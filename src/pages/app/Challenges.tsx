@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useServerTime, serverNow, getServerTimeStatus } from "@/hooks/use-server-time";
+import { getServerTimeStatus } from "@/hooks/use-server-time";
+import { useCountdown } from "@/hooks/use-countdown";
 
 type TabValue = "live" | "upcoming" | "completed";
 
@@ -50,29 +51,6 @@ interface ChallengeWithDetails {
   speciesName: string | null;
   location: string | null;
   bannerUrl: string | null;
-}
-
-function useCountdown(endDate: string) {
-  useServerTime(); // ensure offset is synced
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, totalMs: 0 });
-
-  useEffect(() => {
-    const calc = () => {
-      const diff = new Date(endDate).getTime() - serverNow();
-      if (diff <= 0) return { days: 0, hours: 0, minutes: 0, totalMs: 0 };
-      return {
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / (1000 * 60)) % 60),
-        totalMs: diff,
-      };
-    };
-    setTimeLeft(calc());
-    const interval = setInterval(() => setTimeLeft(calc()), 1000);
-    return () => clearInterval(interval);
-  }, [endDate]);
-
-  return timeLeft;
 }
 
 function CountdownDisplay({ endDate }: { endDate: string }) {
