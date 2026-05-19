@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2 } from "lucide-react";
 import { getShareBaseUrl } from "@/lib/config";
+import { FormattedRules } from "@/lib/format-rules";
 import { toast } from "sonner";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
@@ -248,14 +249,23 @@ export default function ChallengeDetail() {
       )}
 
       {/* Rules */}
-      {c.rules && (typeof c.rules === "string" ? c.rules.length > 0 : Object.keys(c.rules).length > 0) && (
-        <div className="mx-4 md:mx-6 mt-4 sb-card p-4">
-          <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold mb-2">Rules</h2>
-          <pre className="text-xs leading-relaxed whitespace-pre-wrap font-sans">
-            {typeof c.rules === "string" ? c.rules : JSON.stringify(c.rules, null, 2)}
-          </pre>
-        </div>
-      )}
+      {(() => {
+        const r: any = c.rules;
+        let rulesText = "";
+        if (typeof r === "string") rulesText = r;
+        else if (r && typeof r === "object") {
+          rulesText = [r.description, r.rules, r.text, r.body]
+            .filter((v) => typeof v === "string" && v.trim().length > 0)
+            .join("\n\n");
+        }
+        if (!rulesText.trim()) return null;
+        return (
+          <div className="mx-4 md:mx-6 mt-4 sb-card p-4">
+            <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold mb-2">Rules</h2>
+            <FormattedRules text={rulesText} className="text-sm" />
+          </div>
+        );
+      })()}
 
       {/* Leaderboard */}
       <div className="mx-4 md:mx-6 mt-4 sb-card p-4">
