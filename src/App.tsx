@@ -44,6 +44,7 @@ import AnglerTrophies from "./pages/app/AnglerTrophies";
 import CatchDetail from "./pages/app/CatchDetail";
 import Challenges from "./pages/app/Challenges";
 import CreateChallenge from "./pages/app/CreateChallenge";
+import ChallengeDetail from "./pages/app/ChallengeDetail";
 import Teams from "./pages/app/Teams";
 import CreateTeam from "./pages/app/CreateTeam";
 import TeamProfile from "./pages/app/TeamProfile";
@@ -152,6 +153,7 @@ const App = () => (
                 <Route path="photo-challenges/new" element={<Navigate to="/app/photo-challenges" replace />} />
                 <Route path="photo-challenges/:id" element={<PhotoChallengeDetail />} />
                 <Route path="challenges/new" element={<CreateChallenge />} />
+                <Route path="challenges/:id" element={<ChallengeDetail />} />
                 <Route path="teams" element={<Teams />} />
                 <Route path="teams/new" element={<CreateTeam />} />
                 <Route path="teams/:teamId" element={<TeamProfile />} />
