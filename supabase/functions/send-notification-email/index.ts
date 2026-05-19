@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const FROM = "FishX <team@fish-x.com>";
-const APP_URL = "https://fishx.app";
+const APP_URL = "https://fish-x.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

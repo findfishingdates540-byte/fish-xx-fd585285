@@ -431,7 +431,7 @@ export default function Accessibility() {
                   <div className="space-y-2 text-muted-foreground">
                     <p className="flex items-center gap-2">
                        <Mail className="w-4 h-4 text-primary" />
-                       Email: <a href="mailto:accessibility@fishx.app" className="text-primary hover:underline">accessibility@fishx.app</a>
+                       Email: <a href="mailto:accessibility@fish-x.com" className="text-primary hover:underline">accessibility@fish-x.com</a>
                     </p>
                     <p>
                       We aim to respond to accessibility feedback within 2 business days and to resolve 

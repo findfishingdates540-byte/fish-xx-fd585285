@@ -135,10 +135,10 @@ const Privacy = () => {
                   Our privacy team is available to answer your questions.
                 </p>
                 <a 
-                  href="mailto:privacy@fishx.app" 
+                  href="mailto:privacy@fish-x.com" 
                   className="text-primary text-sm font-medium hover:underline flex items-center gap-1"
                 >
-                  privacy@fishx.app
+                  privacy@fish-x.com
                 </a>
               </div>
             </div>
@@ -167,7 +167,7 @@ const Privacy = () => {
                     This Privacy Policy explains what information we collect, how we use it, who we share it with, and your rights regarding your personal data. By using FishX, you consent to the practices described in this policy.
                   </p>
                   <p>
-                    <strong className="text-foreground">Data Protection Officer:</strong> For privacy-related inquiries, you may contact our Data Protection Officer at <a href="mailto:dpo@fishx.app" className="text-primary hover:underline">dpo@fishx.app</a>.
+                    <strong className="text-foreground">Data Protection Officer:</strong> For privacy-related inquiries, you may contact our Data Protection Officer at <a href="mailto:dpo@fish-x.com" className="text-primary hover:underline">dpo@fish-x.com</a>.
                   </p>
                 </div>
               </section>
@@ -689,7 +689,7 @@ const Privacy = () => {
                     <li><strong>Right to Opt-Out of Sale:</strong> We do not sell personal data, but you may exercise this right.</li>
                     <li><strong>Right to Non-Discrimination:</strong> We will not discriminate against you for exercising your rights.</li>
                   </ul>
-                  <p className="text-sm text-muted-foreground mt-3">To exercise these rights, email <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a> with "California Privacy Rights" in the subject line.</p>
+                  <p className="text-sm text-muted-foreground mt-3">To exercise these rights, email <a href="mailto:privacy@fish-x.com" className="text-primary hover:underline">privacy@fish-x.com</a> with "California Privacy Rights" in the subject line.</p>
                 </div>
 
                 <h3 className="font-semibold text-foreground mb-4">European Users (GDPR)</h3>
@@ -705,7 +705,7 @@ const Privacy = () => {
 
                 <h3 className="font-semibold text-foreground mb-4">Other U.S. State Residents</h3>
                 <div className="bg-muted/30 rounded-xl p-5 border border-border">
-                  <p className="text-sm text-muted-foreground">Residents of Nevada, Virginia, Colorado, Connecticut, and other states with privacy laws may have similar rights. Contact us at <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a> to exercise your state-specific rights.</p>
+                  <p className="text-sm text-muted-foreground">Residents of Nevada, Virginia, Colorado, Connecticut, and other states with privacy laws may have similar rights. Contact us at <a href="mailto:privacy@fish-x.com" className="text-primary hover:underline">privacy@fish-x.com</a> to exercise your state-specific rights.</p>
                 </div>
               </section>
 
@@ -765,7 +765,7 @@ const Privacy = () => {
                     <li>Take steps to prevent future access</li>
                     <li>Notify the appropriate parties if required by law</li>
                   </ul>
-                  <p>If you believe someone under 13 has created an account, please contact us immediately at <a href="mailto:safety@fishx.app" className="text-primary hover:underline">safety@fishx.app</a>.</p>
+                  <p>If you believe someone under 13 has created an account, please contact us immediately at <a href="mailto:safety@fish-x.com" className="text-primary hover:underline">safety@fish-x.com</a>.</p>
                 </div>
               </section>
 
@@ -822,24 +822,24 @@ const Privacy = () => {
                     
                     <div className="flex flex-wrap gap-4">
                       <a 
-                       href="mailto:privacy@fishx.app"
+                       href="mailto:privacy@fish-x.com"
                         className="flex items-center gap-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 rounded-full px-5 py-2.5 transition-colors"
                       >
                         <Mail className="h-4 w-4" />
                         <div className="text-left">
                           <div className="text-xs opacity-80">PRIVACY INQUIRIES</div>
-                          <div className="text-sm font-medium">privacy@fishx.app</div>
+                          <div className="text-sm font-medium">privacy@fish-x.com</div>
                         </div>
                       </a>
                       
                       <a 
-                       href="mailto:dpo@fishx.app"
+                       href="mailto:dpo@fish-x.com"
                         className="flex items-center gap-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 rounded-full px-5 py-2.5 transition-colors"
                       >
                         <Lock className="h-4 w-4" />
                         <div className="text-left">
                           <div className="text-xs opacity-80">DATA PROTECTION OFFICER</div>
-                          <div className="text-sm font-medium">dpo@fishx.app</div>
+                          <div className="text-sm font-medium">dpo@fish-x.com</div>
                         </div>
                       </a>
                       

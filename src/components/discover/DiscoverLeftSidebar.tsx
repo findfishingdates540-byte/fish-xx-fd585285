@@ -228,7 +228,7 @@ export function DiscoverLeftSidebar({
   }, [user?.id, queryClient]);
 
   const handleInvite = async () => {
-    const PRODUCTION_URL = 'https://fishx.app';
+    const PRODUCTION_URL = 'https://fish-x.com';
     const inviteUrl = `${PRODUCTION_URL}?ref=${user?.id?.slice(0, 8)}`;
     
     try {

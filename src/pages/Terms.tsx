@@ -235,7 +235,7 @@ const Terms = () => {
                       <li>Attempt to circumvent security measures</li>
                     </ul>
                     <p className="mt-3 text-sm">
-                      <strong>Appeal Process:</strong> You may appeal a suspension by contacting <a href="mailto:appeals@fishx.app" className="text-primary hover:underline">appeals@fishx.app</a> within 30 days. Appeals are reviewed within 5-7 business days.
+                      <strong>Appeal Process:</strong> You may appeal a suspension by contacting <a href="mailto:appeals@fish-x.com" className="text-primary hover:underline">appeals@fish-x.com</a> within 30 days. Appeals are reviewed within 5-7 business days.
                     </p>
                   </div>
                 </div>
@@ -526,7 +526,7 @@ const Terms = () => {
                   <div className="bg-muted/30 rounded-xl p-5 border border-border text-sm">
                     <ul className="space-y-2">
                       <li><strong>7-Day Money-Back Guarantee:</strong> If you're not satisfied within the first 7 days of a new subscription, contact support for a full refund.</li>
-                      <li><strong>How to Request:</strong> Email <a href="mailto:billing@fishx.app" className="text-primary hover:underline">billing@fishx.app</a> with your account email and reason.</li>
+                      <li><strong>How to Request:</strong> Email <a href="mailto:billing@fish-x.com" className="text-primary hover:underline">billing@fish-x.com</a> with your account email and reason.</li>
                       <li><strong>Exceptions:</strong> Refunds may be denied if the account has been suspended for Terms violations or if refund requests appear to be abusive.</li>
                     </ul>
                   </div>
@@ -654,7 +654,7 @@ const Terms = () => {
                     <li>Provide as much detail as possible with your report</li>
                     <li>Reports are confidential; the reported user will not know who reported them</li>
                     <li>False reports made in bad faith may result in action against the reporter</li>
-                    <li>Urgent safety concerns can be reported to <a href="mailto:safety@fishx.app" className="text-primary hover:underline">safety@fishx.app</a></li>
+                    <li>Urgent safety concerns can be reported to <a href="mailto:safety@fish-x.com" className="text-primary hover:underline">safety@fish-x.com</a></li>
                   </ul>
 
                   <h3 className="font-semibold text-foreground">Meeting Safety</h3>
@@ -704,7 +704,7 @@ const Terms = () => {
                   <div className="bg-muted/30 rounded-xl p-5 border border-border text-sm">
                     <p className="mb-3">If you believe your copyright has been infringed, submit a DMCA takedown notice to:</p>
                     <p>
-                       <strong>Email:</strong> <a href="mailto:dmca@fishx.app" className="text-primary hover:underline">dmca@fishx.app</a><br />
+                       <strong>Email:</strong> <a href="mailto:dmca@fish-x.com" className="text-primary hover:underline">dmca@fish-x.com</a><br />
                        <strong>Mail:</strong> Fish-X LLC, ATTN: DMCA Agent, 123 Fishing Lane, Lake City, FL 32055
                     </p>
                     <p className="mt-3">Your notice must include: identification of the copyrighted work, location of infringing material, your contact information, and a statement of good faith belief and accuracy under penalty of perjury.</p>
@@ -762,7 +762,7 @@ const Terms = () => {
                     Informal Resolution First
                   </h3>
                   <p className="text-sm">
-                    Before initiating formal proceedings, you agree to contact us at <a href="mailto:legal@fishx.app" className="text-primary hover:underline">legal@fishx.app</a> and attempt to resolve the dispute informally for at least 30 days.
+                    Before initiating formal proceedings, you agree to contact us at <a href="mailto:legal@fish-x.com" className="text-primary hover:underline">legal@fish-x.com</a> and attempt to resolve the dispute informally for at least 30 days.
                   </p>
 
                   <h3 className="font-semibold text-foreground flex items-center gap-2">
@@ -783,7 +783,7 @@ const Terms = () => {
                       <strong>Exceptions:</strong> Small claims court actions and injunctive relief for IP violations may proceed in court.
                     </p>
                     <p className="mt-3 text-amber-800">
-                      <strong>Opt-Out:</strong> You may opt out of arbitration by sending written notice to legal@fishx.app within 30 days of account creation.
+                      <strong>Opt-Out:</strong> You may opt out of arbitration by sending written notice to legal@fish-x.com within 30 days of account creation.
                     </p>
                   </div>
 
@@ -825,7 +825,7 @@ const Terms = () => {
                   <div>
                     <h4 className="font-medium text-foreground">Contact</h4>
                     <p>
-                       For questions about these Terms, contact us at <a href="mailto:legal@fishx.app" className="text-primary hover:underline">legal@fishx.app</a> or:
+                       For questions about these Terms, contact us at <a href="mailto:legal@fish-x.com" className="text-primary hover:underline">legal@fish-x.com</a> or:
                      </p>
                      <p className="mt-2">
                        Fish-X LLC<br />
