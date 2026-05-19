@@ -272,3 +272,42 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
     </div>
   );
 }
+
+function CountdownBanner({ label, targetDate }: { label: string; targetDate: string }) {
+  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 });
+  useEffect(() => {
+    const calc = () => {
+      const diff = new Date(targetDate).getTime() - Date.now();
+      if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+      return {
+        d: Math.floor(diff / 86400000),
+        h: Math.floor((diff / 3600000) % 24),
+        m: Math.floor((diff / 60000) % 60),
+        s: Math.floor((diff / 1000) % 60),
+      };
+    };
+    setT(calc());
+    const id = setInterval(() => setT(calc()), 1000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+
+  const units = [
+    { v: t.d, l: "Days" },
+    { v: t.h, l: "Hours" },
+    { v: t.m, l: "Mins" },
+    { v: t.s, l: "Secs" },
+  ];
+  return (
+    <div className="rounded-lg bg-[hsl(var(--sb-surface-2))] border sb-border p-3">
+      <p className="text-[10px] sb-cyan uppercase tracking-widest font-semibold mb-2">{label}</p>
+      <div className="grid grid-cols-4 gap-2">
+        {units.map((u) => (
+          <div key={u.l} className="text-center rounded-md bg-[hsl(var(--sb-surface))] py-2">
+            <div className="text-xl sm:text-2xl font-bold sb-cyan font-mono">{String(u.v).padStart(2, "0")}</div>
+            <div className="text-[9px] sb-text-muted uppercase tracking-widest font-semibold mt-0.5">{u.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
