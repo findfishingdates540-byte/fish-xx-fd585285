@@ -578,30 +578,45 @@ function UpcomingChallengeCard({
         </button>
       </div>
       <div className="p-4">
-        <h3 className="font-bold text-sm mb-1">{challenge.title}</h3>
-        {challenge.speciesName && (
-          <p className="text-xs sb-text-muted flex items-center gap-1 mb-3">
-            <MapPin className="h-3 w-3 sb-cyan" /> {challenge.location || challenge.speciesName}
-          </p>
-        )}
+        <h3 className="font-bold text-sm mb-1 line-clamp-1">{challenge.title}</h3>
+        <p className="text-xs sb-text-muted flex items-center gap-1 mb-3 min-h-[16px] line-clamp-1">
+          {(challenge.location || challenge.speciesName) ? (
+            <>
+              <MapPin className="h-3 w-3 sb-cyan shrink-0" />
+              <span className="truncate">{challenge.location || challenge.speciesName}</span>
+            </>
+          ) : null}
+        </p>
         <div className="mb-3 flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md bg-[hsl(var(--sb-surface-2))] border sb-border">
           <span className="text-[10px] sb-cyan uppercase tracking-widest font-semibold">Starts in</span>
           <CountdownDisplay endDate={challenge.start_date} />
         </div>
-        <div className="flex items-center justify-between">
-          {challenge.prizePool > 0 && (
-            <div>
-              <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Prize Pool</p>
-              <p className="text-sm font-bold sb-gold">${challenge.prizePool.toLocaleString()}</p>
-            </div>
-          )}
-          <button
-            onClick={(e) => { e.stopPropagation(); onJoin(); }}
-            disabled={challenge.isJoined || joining}
-            className="px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border sb-border sb-cyan hover:bg-[hsl(var(--sb-cyan)/0.1)] transition-colors disabled:opacity-60"
-          >
-            {challenge.isJoined ? "Registered" : "Details"}
-          </button>
+        <div className="flex items-end justify-between gap-3 min-h-[44px]">
+          <div>
+            <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Prize Pool</p>
+            <p className="text-sm font-bold sb-gold">
+              {challenge.prizePool > 0 ? `$${challenge.prizePool.toLocaleString()}` : "—"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpen(); }}
+              className="px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border sb-border sb-cyan hover:bg-[hsl(var(--sb-cyan)/0.1)] transition-colors"
+            >
+              Details
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onJoin(); }}
+              disabled={challenge.isJoined || joining}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
+                challenge.isJoined
+                  ? "bg-[hsl(var(--sb-surface-2))] sb-text-muted cursor-not-allowed"
+                  : "sb-bg-cyan hover:opacity-90"
+              } disabled:opacity-60`}
+            >
+              {challenge.isJoined ? "Registered" : "Register"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
