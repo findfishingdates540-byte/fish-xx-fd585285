@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
@@ -226,11 +226,13 @@ export default function ChallengeDetail() {
             <button
               onClick={() => joinMutation.mutate()}
               disabled={isJoined || joinMutation.isPending}
-              className={`w-full px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider transition-opacity ${
-                isJoined ? "bg-[hsl(var(--sb-surface-2))] sb-text-muted cursor-not-allowed" : "sb-bg-cyan hover:opacity-90"
+              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider transition-opacity ${
+                isJoined
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-not-allowed"
+                  : "sb-bg-cyan hover:opacity-90"
               } disabled:opacity-60`}
             >
-              {isJoined ? "Joined" : status === "upcoming" ? "Register" : "Join Challenge"}
+              {isJoined ? (<><CheckCircle2 className="h-4 w-4" />Registered</>) : status === "upcoming" ? "Register" : "Join Challenge"}
             </button>
           </div>
         )}
