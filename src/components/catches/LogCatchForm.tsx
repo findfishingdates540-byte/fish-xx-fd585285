@@ -479,6 +479,57 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             />
           </div>
 
+          {/* Additional Photos — useful for big fish */}
+          <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <Label className="text-sm font-semibold block">Additional Photos</Label>
+              <span className="text-[11px] text-muted-foreground">
+                {additionalPhotos.length}/{MAX_EXTRA_PHOTOS}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Optional extras for big fish — profile shot, on the scale, side-by-side, etc.
+            </p>
+            {additionalPhotos.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {additionalPhotos.map((p, i) => (
+                  <div key={i} className="relative rounded-lg overflow-hidden border bg-muted aspect-square">
+                    <img src={p.preview} alt={`Extra ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeAdditional(i)}
+                      className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-destructive transition-colors"
+                      aria-label="Remove photo"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {showExtraCapture && additionalPhotos.length < MAX_EXTRA_PHOTOS ? (
+              <LiveCameraCapture
+                onCapture={handleAdditionalCapture}
+                preview={null}
+                onClear={() => setShowExtraCapture(false)}
+                label="Take Additional Photo"
+                sublabel="Live camera only"
+                aspectRatio="aspect-[4/3]"
+              />
+            ) : (
+              additionalPhotos.length < MAX_EXTRA_PHOTOS && (
+                <button
+                  type="button"
+                  onClick={() => setShowExtraCapture(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors py-4 text-sm font-medium text-muted-foreground hover:text-primary"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add another photo
+                </button>
+              )
+            )}
+          </div>
+
           {/* Share Location Toggle */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-start gap-3 mb-3">
