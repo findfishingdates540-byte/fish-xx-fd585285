@@ -303,16 +303,17 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
 }
 
 function CountdownBanner({ label, targetDate }: { label: string; targetDate: string }) {
-  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 });
+  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0, total: 0 });
   useEffect(() => {
     const calc = () => {
       const diff = new Date(targetDate).getTime() - Date.now();
-      if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+      if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0, total: 0 };
       return {
         d: Math.floor(diff / 86400000),
         h: Math.floor((diff / 3600000) % 24),
         m: Math.floor((diff / 60000) % 60),
         s: Math.floor((diff / 1000) % 60),
+        total: diff,
       };
     };
     setT(calc());
@@ -320,6 +321,7 @@ function CountdownBanner({ label, targetDate }: { label: string; targetDate: str
     return () => clearInterval(id);
   }, [targetDate]);
 
+  const urgent = t.total > 0 && t.total <= 60 * 60 * 1000;
   const units = [
     { v: t.d, l: "Days" },
     { v: t.h, l: "Hours" },
@@ -327,12 +329,19 @@ function CountdownBanner({ label, targetDate }: { label: string; targetDate: str
     { v: t.s, l: "Secs" },
   ];
   return (
-    <div className="rounded-lg bg-[hsl(var(--sb-surface-2))] border sb-border p-3">
-      <p className="text-[10px] sb-cyan uppercase tracking-widest font-semibold mb-2">{label}</p>
+    <div className={`rounded-lg p-3 border transition-colors ${
+      urgent
+        ? "bg-rose-500/10 border-rose-500/50 animate-pulse"
+        : "bg-[hsl(var(--sb-surface-2))] sb-border"
+    }`}>
+      <p className={`text-[10px] uppercase tracking-widest font-semibold mb-2 flex items-center gap-1.5 ${urgent ? "text-rose-300" : "sb-cyan"}`}>
+        {urgent && <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />}
+        {urgent ? `${label.replace(/ in$/i, "")} soon!` : label}
+      </p>
       <div className="grid grid-cols-4 gap-2">
         {units.map((u) => (
-          <div key={u.l} className="text-center rounded-md bg-[hsl(var(--sb-surface))] py-2">
-            <div className="text-xl sm:text-2xl font-bold sb-cyan font-mono">{String(u.v).padStart(2, "0")}</div>
+          <div key={u.l} className={`text-center rounded-md py-2 ${urgent ? "bg-rose-500/15" : "bg-[hsl(var(--sb-surface))]"}`}>
+            <div className={`text-xl sm:text-2xl font-bold font-mono ${urgent ? "text-rose-300" : "sb-cyan"}`}>{String(u.v).padStart(2, "0")}</div>
             <div className="text-[9px] sb-text-muted uppercase tracking-widest font-semibold mt-0.5">{u.l}</div>
           </div>
         ))}
