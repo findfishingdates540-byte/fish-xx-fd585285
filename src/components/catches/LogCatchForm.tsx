@@ -22,6 +22,8 @@ import {
   Video,
   Trophy,
   Sparkles,
+  Plus,
+  X,
 } from "lucide-react";
 
 interface FishSpecies {
@@ -139,6 +141,9 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
   const [measurementPhotoPreview, setMeasurementPhotoPreview] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [trophyMode, setTrophyMode] = useState<"photo" | "video">("photo");
+  const [additionalPhotos, setAdditionalPhotos] = useState<{ file: File; preview: string }[]>([]);
+  const [showExtraCapture, setShowExtraCapture] = useState(false);
+  const MAX_EXTRA_PHOTOS = 6;
 
   // Handle live camera capture for trophy photo — auto-fill time, GPS, location
   const handleTrophyCapture = useCallback((data: CaptureMetadata) => {
@@ -178,13 +183,29 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     }));
   }, []);
 
+  const handleAdditionalCapture = useCallback((data: CaptureMetadata) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAdditionalPhotos((prev) => [
+        ...prev,
+        { file: data.file, preview: reader.result as string },
+      ]);
+    };
+    reader.readAsDataURL(data.file);
+    setShowExtraCapture(false);
+  }, []);
+
+  const removeAdditional = (idx: number) => {
+    setAdditionalPhotos((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       ...formData,
       coverPhoto,
       measurementPhoto,
-      additionalPhotos: [],
+      additionalPhotos: additionalPhotos.map((p) => p.file),
       videoFile,
     });
   };
