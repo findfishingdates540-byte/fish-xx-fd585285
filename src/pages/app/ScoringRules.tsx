@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Trophy, Sparkles, Search, ShieldCheck, Calculator } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Trophy, Sparkles, Search, ShieldCheck, Calculator, ArrowRight } from "lucide-react";
 
 type Method = { key: string; label: string; multiplier: number; sort_order: number };
 type Bonus = { level: string; label: string; bonus: number; sort_order: number };
@@ -108,6 +110,15 @@ export default function ScoringRules() {
         <p className="font-mono text-sm bg-muted rounded-md p-3">
           (Base Species Score) × Catch Method Multiplier + Trophy Bonus + Tournament Bonus + Variety Bonus + Streak Bonus
         </p>
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="text-sm">
+            <div className="font-semibold">Want to see this in action?</div>
+            <div className="text-muted-foreground text-xs">Walk through 5 real-world catches with full step-by-step math.</div>
+          </div>
+          <Button asChild size="sm">
+            <Link to="/app/scoring-examples">View Scenarios <ArrowRight className="h-4 w-4 ml-1" /></Link>
+          </Button>
+        </div>
       </Card>
 
       {/* Worked examples */}
