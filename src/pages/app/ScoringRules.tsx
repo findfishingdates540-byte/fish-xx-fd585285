@@ -110,6 +110,77 @@ export default function ScoringRules() {
         </p>
       </Card>
 
+      {/* Worked examples */}
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold">Worked Examples</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            {
+              title: "Shore angler — Snook",
+              tag: "Inshore · Shore",
+              steps: [
+                ["Base score (Snook)", "6"],
+                ["Shore multiplier", "× 1.50"],
+                ["Trophy class (Quality)", "+ 1"],
+                ["Daily streak (day 3)", "+ 0.3"],
+              ],
+              total: "10.3 pts",
+              note: "Land-based multipliers keep shore anglers competitive with boats.",
+            },
+            {
+              title: "Kayak angler — Mahi-Mahi",
+              tag: "Pelagic · Kayak",
+              steps: [
+                ["Base score (Mahi-Mahi)", "7"],
+                ["Kayak multiplier", "× 1.30"],
+                ["Trophy class (Trophy)", "+ 1.5"],
+                ["Variety milestone (10 species)", "+ 1"],
+              ],
+              total: "11.6 pts",
+              note: "Variety bonus triggers once per milestone reached this season.",
+            },
+            {
+              title: "Offshore — Blue Marlin (released)",
+              tag: "Billfish · Charter",
+              steps: [
+                ["Base score (Blue Marlin)", "10"],
+                ["Charter multiplier", "× 1.00"],
+                ["Trophy class (Exceptional)", "+ 2"],
+                ["Tournament bonus (IGFA event)", "× 1.25"],
+              ],
+              total: "15.0 pts",
+              note: "Safe-release billfish scored from estimated class + photo/video.",
+            },
+          ].map((ex) => (
+            <div key={ex.title} className="rounded-lg border border-border/60 bg-muted/30 p-4 space-y-3">
+              <div>
+                <div className="font-medium text-sm">{ex.title}</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{ex.tag}</div>
+              </div>
+              <ul className="space-y-1 text-xs font-mono">
+                {ex.steps.map(([k, v]) => (
+                  <li key={k} className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">{k}</span>
+                    <span className="text-foreground tabular-nums">{v}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center justify-between border-t border-border/60 pt-2">
+                <span className="text-xs text-muted-foreground">Final score</span>
+                <span className="font-bold text-primary tabular-nums">{ex.total}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-snug">{ex.note}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground mt-4">
+          Numbers above are illustrative — your live score in the app always reflects the current multipliers and bonuses shown below.
+        </p>
+      </Card>
+
       {/* Multipliers & bonuses grid */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-5">
