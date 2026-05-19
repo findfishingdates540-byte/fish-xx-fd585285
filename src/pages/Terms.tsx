@@ -828,7 +828,7 @@ const Terms = () => {
                        For questions about these Terms, contact us at <a href="mailto:legal@fishx.app" className="text-primary hover:underline">legal@fishx.app</a> or:
                      </p>
                      <p className="mt-2">
-                       FishX LLC<br />
+                       Fish-X LLC<br />
                        123 Fishing Lane<br />
                        Lake City, FL 32055
                      </p>
