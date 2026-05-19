@@ -22,6 +22,8 @@ import {
   Video,
   Trophy,
   Sparkles,
+  Plus,
+  X,
 } from "lucide-react";
 
 interface FishSpecies {
@@ -139,6 +141,9 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
   const [measurementPhotoPreview, setMeasurementPhotoPreview] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [trophyMode, setTrophyMode] = useState<"photo" | "video">("photo");
+  const [additionalPhotos, setAdditionalPhotos] = useState<{ file: File; preview: string }[]>([]);
+  const [showExtraCapture, setShowExtraCapture] = useState(false);
+  const MAX_EXTRA_PHOTOS = 6;
 
   // Handle live camera capture for trophy photo — auto-fill time, GPS, location
   const handleTrophyCapture = useCallback((data: CaptureMetadata) => {
@@ -178,13 +183,29 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
     }));
   }, []);
 
+  const handleAdditionalCapture = useCallback((data: CaptureMetadata) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAdditionalPhotos((prev) => [
+        ...prev,
+        { file: data.file, preview: reader.result as string },
+      ]);
+    };
+    reader.readAsDataURL(data.file);
+    setShowExtraCapture(false);
+  }, []);
+
+  const removeAdditional = (idx: number) => {
+    setAdditionalPhotos((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       ...formData,
       coverPhoto,
       measurementPhoto,
-      additionalPhotos: [],
+      additionalPhotos: additionalPhotos.map((p) => p.file),
       videoFile,
     });
   };
@@ -456,6 +477,57 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
               sublabel="Show catch against ruler/scale"
               aspectRatio="aspect-[4/3]"
             />
+          </div>
+
+          {/* Additional Photos — useful for big fish */}
+          <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <Label className="text-sm font-semibold block">Additional Photos</Label>
+              <span className="text-[11px] text-muted-foreground">
+                {additionalPhotos.length}/{MAX_EXTRA_PHOTOS}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Optional extras for big fish — profile shot, on the scale, side-by-side, etc.
+            </p>
+            {additionalPhotos.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {additionalPhotos.map((p, i) => (
+                  <div key={i} className="relative rounded-lg overflow-hidden border bg-muted aspect-square">
+                    <img src={p.preview} alt={`Extra ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeAdditional(i)}
+                      className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-destructive transition-colors"
+                      aria-label="Remove photo"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {showExtraCapture && additionalPhotos.length < MAX_EXTRA_PHOTOS ? (
+              <LiveCameraCapture
+                onCapture={handleAdditionalCapture}
+                preview={null}
+                onClear={() => setShowExtraCapture(false)}
+                label="Take Additional Photo"
+                sublabel="Live camera only"
+                aspectRatio="aspect-[4/3]"
+              />
+            ) : (
+              additionalPhotos.length < MAX_EXTRA_PHOTOS && (
+                <button
+                  type="button"
+                  onClick={() => setShowExtraCapture(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors py-4 text-sm font-medium text-muted-foreground hover:text-primary"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add another photo
+                </button>
+              )
+            )}
           </div>
 
           {/* Share Location Toggle */}
