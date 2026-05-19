@@ -147,7 +147,11 @@ export default function ChallengeDetail() {
           .eq("user_id", user.id)
           .maybeSingle();
         if (entry?.has_paid) {
-          throw new Error("Paid entries can't be cancelled here — contact support for a refund.");
+          // Block leaving and redirect to the support/help page for refund handling.
+          toast.error("Paid entries can't be cancelled here — redirecting you to support.");
+          navigate(`/help?topic=refund&challenge=${id}`);
+          // Throwing keeps mutation in an "error" state without showing a duplicate toast.
+          throw new Error("PAID_BLOCKED");
         }
       }
       const { error } = await supabase
@@ -162,7 +166,10 @@ export default function ChallengeDetail() {
       qc.invalidateQueries({ queryKey: ["challenge-participants-all"] });
       toast.success("You've left the challenge.");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any) => {
+      if (err?.message === "PAID_BLOCKED") return; // already handled above
+      toast.error(err.message);
+    },
   });
 
   const handleLeave = () => {
