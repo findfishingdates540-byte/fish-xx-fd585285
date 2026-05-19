@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MoreVertical, Fish, MapPin, Calendar, Eye, Trash2, User } from 'lucide-react';
+import { Search, MoreVertical, Fish, MapPin, Calendar, Eye, Trash2, User, CheckCircle2, XCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,8 @@ interface Catch {
   caught_at: string | null;
   created_at: string;
   bait_used: string | null;
+  is_verified: boolean | null;
+  species_id: string | null;
   user: {
     id: string;
     display_name: string | null;
@@ -80,6 +82,22 @@ export default function AdminCatches() {
     onError: (error) => {
       toast.error(`Failed to delete catch: ${error.message}`);
     },
+  });
+
+  const { mutate: toggleVerify, isPending: verifyPending } = useMutation({
+    mutationFn: async ({ id, verified }: { id: string; verified: boolean }) => {
+      const { error } = await supabase
+        .from('catches')
+        .update({ is_verified: verified })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-catches'] });
+      toast.success(vars.verified ? 'Catch verified — counted in scoring' : 'Verification removed');
+      setSelectedCatch((c) => (c ? { ...c, is_verified: vars.verified } : c));
+    },
+    onError: (e: any) => toast.error(`Verify failed: ${e.message}`),
   });
 
   const handleViewDetails = (c: Catch) => {
@@ -149,6 +167,12 @@ export default function AdminCatches() {
                 <Badge className="absolute top-2 right-2 bg-emerald-500/20 text-emerald-400 border-0">
                   {c.species_name || 'Unknown Species'}
                 </Badge>
+                {c.is_verified && (
+                  <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-lg">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Verified
+                  </div>
+                )}
               </div>
 
               {/* Catch Info */}
@@ -183,6 +207,19 @@ export default function AdminCatches() {
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => toggleVerify({ id: c.id, verified: !c.is_verified })}
+                        disabled={verifyPending}
+                        className={c.is_verified
+                          ? "text-amber-400 focus:text-amber-300 focus:bg-slate-700"
+                          : "text-emerald-400 focus:text-emerald-300 focus:bg-slate-700"}
+                      >
+                        {c.is_verified ? (
+                          <><XCircle className="w-4 h-4 mr-2" />Unverify</>
+                        ) : (
+                          <><CheckCircle2 className="w-4 h-4 mr-2" />Verify Catch</>
+                        )}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-slate-700" />
                       <DropdownMenuItem 
@@ -227,6 +264,20 @@ export default function AdminCatches() {
           </DialogHeader>
           {selectedCatch && (
             <div className="space-y-4">
+              {/* Verify toggle in details */}
+              <Button
+                onClick={() => toggleVerify({ id: selectedCatch.id, verified: !selectedCatch.is_verified })}
+                disabled={verifyPending}
+                className={`w-full ${selectedCatch.is_verified
+                  ? 'bg-amber-600 hover:bg-amber-700'
+                  : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
+              >
+                {selectedCatch.is_verified ? (
+                  <><XCircle className="w-4 h-4 mr-2" />Unverify (remove from scoring)</>
+                ) : (
+                  <><CheckCircle2 className="w-4 h-4 mr-2" />Verify Catch (add to scoring)</>
+                )}
+              </Button>
               {selectedCatch.photos?.[0] && (
                 <img 
                   src={selectedCatch.photos[0]} 
