@@ -158,7 +158,7 @@ const Privacy = () => {
                 </div>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    Welcome to FishX ("we," "us," or "our"). Fish-X LLC ("Company") is the data controller responsible for your personal information. We are committed to protecting your privacy and ensuring you understand how we collect, use, and safeguard your data.
+                    Welcome to FishX ("we," "us," or "our"). <strong>Fish-X LLC</strong> ("Company") is the data controller responsible for your personal information. We are committed to protecting your privacy and ensuring you understand how we collect, use, and safeguard your data.
                   </p>
                   <p>
                     FishX is a fishing community platform open to users aged 13 and older. Our core features include catch logging, fishing spot discovery, buddy connections, trip planning, and a social feed. For users 18 and older, we offer an optional <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Dating Add-On</span> that enables romantic matching with fellow anglers.
