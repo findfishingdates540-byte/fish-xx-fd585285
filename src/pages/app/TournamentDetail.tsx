@@ -985,6 +985,82 @@ const TournamentDetail = () => {
           )}
         </TabsContent>
 
+        {/* SCHEDULE */}
+        <TabsContent value="schedule" className="mt-0">
+          {rounds.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+              Schedule will appear once rounds are created.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(rounds as any[]).map((r: any) => {
+                const rMs = roundMatchups[r.id] || [];
+                const isLive = r.status === "active" || r.status === "in_progress";
+                const isDone = r.status === "completed";
+                return (
+                  <div key={r.id} className="rounded-xl border bg-card overflow-hidden">
+                    <div className="px-4 py-2.5 border-b bg-muted/30 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold truncate">{r.round_name}</p>
+                        {r.start_date && (
+                          <p className="text-[11px] text-muted-foreground">
+                            {format(new Date(r.start_date), "EEE MMM d, yyyy")}
+                            {r.end_date && ` – ${format(new Date(r.end_date), "MMM d")}`}
+                          </p>
+                        )}
+                      </div>
+                      <span className={`text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full border ${
+                        isLive
+                          ? "bg-rose-500 text-white border-rose-500"
+                          : isDone
+                          ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
+                        {isLive ? "Live" : isDone ? "Final" : "Upcoming"}
+                      </span>
+                    </div>
+                    {rMs.length === 0 ? (
+                      <p className="p-4 text-xs text-muted-foreground text-center">No matchups yet.</p>
+                    ) : (
+                      <div className="divide-y">
+                        {rMs.map((m: any) => {
+                          const t1 = m.team1_id ? teamMap[m.team1_id] : null;
+                          const t2 = m.team2_id ? teamMap[m.team2_id] : null;
+                          return (
+                            <Link
+                              key={m.id}
+                              to={`/app/tournaments/${id}/matchups/${m.id}`}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
+                            >
+                              <span className="text-[10px] text-muted-foreground font-mono w-6">#{m.matchup_number}</span>
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <Avatar className="h-5 w-5"><AvatarImage src={t1?.logo_url} /><AvatarFallback className="text-[8px]">{t1?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                                <span className="text-xs font-semibold truncate">{t1?.name || "TBD"}</span>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground uppercase">vs</span>
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <Avatar className="h-5 w-5"><AvatarImage src={t2?.logo_url} /><AvatarFallback className="text-[8px]">{t2?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                                <span className="text-xs font-semibold truncate">{t2?.name || "TBD"}</span>
+                              </div>
+                              {m.status === "completed" ? (
+                                <span className="text-xs font-bold tabular-nums">{Number(m.team1_score || 0)}–{Number(m.team2_score || 0)}</span>
+                              ) : (m.status === "in_progress" || m.status === "active") ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-500"><Zap className="h-3 w-3" /> Live</span>
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
         {/* TEAM STANDINGS */}
         <TabsContent value="standings" className="mt-0">
           <div className="rounded-xl border bg-card p-4 space-y-3">
