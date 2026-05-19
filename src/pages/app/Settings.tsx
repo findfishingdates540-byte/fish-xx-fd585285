@@ -65,6 +65,7 @@ import {
 import type { Database } from "@/integrations/supabase/types";
 import { Eye, Lock, Key } from "lucide-react";
 import { getCurrentPosition, locationErrorMessage } from "@/lib/location";
+import { EmailNotificationPrefs } from "@/components/settings/EmailNotificationPrefs";
 
 type AccountMode = Database["public"]["Enums"]["account_mode"];
 
@@ -1771,6 +1772,8 @@ function NotificationsTab({
           </div>
         </CardContent>
       </Card>
+
+      <EmailNotificationPrefs />
     </div>
   );
 }
