@@ -208,7 +208,7 @@ const handler = async (req: Request): Promise<Response> => {
         },
         body: JSON.stringify({
            from: "FishX <onboarding@resend.dev>",
-           to: ["support@fishx.app"],
+           to: ["support@fish-x.com"],
           subject: `[NEW TICKET] ${ticket.ticket_number} - ${safeSubject}`,
           html: adminEmailHtml,
         }),
