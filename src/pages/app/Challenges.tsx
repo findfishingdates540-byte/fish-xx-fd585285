@@ -372,9 +372,6 @@ export default function Challenges() {
                 <h2 className="font-bold text-lg">Upcoming Challenges</h2>
                 <p className="text-xs sb-text-muted">Secure your spot in the next big events</p>
               </div>
-              <button className="text-xs sb-cyan font-semibold hover:underline inline-flex items-center gap-1">
-                View Schedule <ArrowRight className="h-3 w-3" />
-              </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((challenge) => (
