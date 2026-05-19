@@ -587,14 +587,20 @@ function UpcomingChallengeCard({
   onJoin,
   joining,
   onOpen,
+  reminded: remindedProp,
+  onRemind,
+  remindLoading,
 }: {
   challenge: ChallengeWithDetails;
   onJoin: () => void;
   joining: boolean;
   onOpen: () => void;
+  reminded?: boolean;
+  onRemind?: () => void;
+  remindLoading?: boolean;
 }) {
   const startDate = new Date(challenge.start_date);
-  const [reminded, setReminded] = useState(false);
+  const reminded = !!remindedProp;
   const typeLabel = challenge.is_official ? "Pro Series" : challenge.challenge_type === "most_caught" ? "Casual" : "Team Event";
   const typeBadgeClass = challenge.is_official
     ? "sb-bg-cyan"
@@ -622,10 +628,9 @@ function UpcomingChallengeCard({
             e.preventDefault();
             e.stopPropagation();
             if (reminded) return;
-            setReminded(true);
-            toast.success("We'll remind you before it starts");
+            onRemind?.();
           }}
-          disabled={reminded}
+          disabled={reminded || !!remindLoading}
           className={`absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm transition-colors ${
             reminded
               ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-not-allowed"
@@ -633,7 +638,7 @@ function UpcomingChallengeCard({
           }`}
         >
           {reminded ? <BellRing className="h-3 w-3" /> : <Bell className="h-3 w-3" />}
-          {reminded ? "Reminder set" : "Remind me"}
+          {reminded ? "Reminder set" : remindLoading ? "Saving…" : "Remind me"}
         </button>
       </div>
       <div className="p-4">
