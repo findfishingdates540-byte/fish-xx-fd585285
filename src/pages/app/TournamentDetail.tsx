@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +38,9 @@ import {
   ChevronDown,
   XCircle,
   Fish,
+  CalendarClock,
+  Zap,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -477,6 +480,46 @@ const TournamentDetail = () => {
       ),
     [rounds, roundMatchups],
   );
+
+  // Current user's registered team in this tournament
+  const myTeamId = useMemo(() => {
+    if (!user) return null;
+    const captainTeamIds = (myCaptainedTeams || []).map((t: any) => t.id);
+    const myEntry = participants.find(
+      (p: any) => p.user_id === user.id || (p.team_id && captainTeamIds.includes(p.team_id)),
+    );
+    return (myEntry as any)?.team_id || null;
+  }, [user, myCaptainedTeams, participants]);
+
+  // Live (in-progress) matchups
+  const liveMatchups = useMemo(
+    () =>
+      (matchups as any[]).filter(
+        (m: any) => m.status === "in_progress" || m.status === "active",
+      ),
+    [matchups],
+  );
+
+  // Next pending matchup for my team
+  const nextMatchupForMe = useMemo(() => {
+    if (!myTeamId) return null;
+    const mine = (matchups as any[]).filter(
+      (m: any) =>
+        (m.team1_id === myTeamId || m.team2_id === myTeamId) &&
+        m.status !== "completed",
+    );
+    // Sort by round_number ascending using rounds lookup
+    const roundOrder: Record<string, number> = {};
+    (rounds as any[]).forEach((r: any) => (roundOrder[r.id] = r.round_number));
+    mine.sort((a: any, b: any) => (roundOrder[a.round_id] ?? 999) - (roundOrder[b.round_id] ?? 999));
+    return mine[0] || null;
+  }, [matchups, rounds, myTeamId]);
+
+  const roundById = useMemo(() => {
+    const m: Record<string, any> = {};
+    (rounds as any[]).forEach((r: any) => (m[r.id] = r));
+    return m;
+  }, [rounds]);
 
   const scoringUnit = (s: string) =>
     s === "most_catches" ? "catches" : "lbs";
