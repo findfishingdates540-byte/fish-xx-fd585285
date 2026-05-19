@@ -1771,6 +1771,8 @@ function NotificationsTab({
           </div>
         </CardContent>
       </Card>
+
+      <EmailNotificationPrefs />
     </div>
   );
 }
