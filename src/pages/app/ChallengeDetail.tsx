@@ -129,7 +129,7 @@ export default function ChallengeDetail() {
         .gte("caught_at", startISO)
         .lte("caught_at", endISO)
         .order("caught_at", { ascending: false })
-        .limit(10);
+        .limit(25);
       if (c2?.species_id) q = q.eq("species_id", c2.species_id);
       const { data, error } = await q;
       if (error) throw error;
