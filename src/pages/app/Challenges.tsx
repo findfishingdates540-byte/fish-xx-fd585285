@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useServerTime, serverNow } from "@/hooks/use-server-time";
 
 type TabValue = "live" | "upcoming" | "completed";
 
@@ -52,11 +53,12 @@ interface ChallengeWithDetails {
 }
 
 function useCountdown(endDate: string) {
+  useServerTime(); // ensure offset is synced
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, totalMs: 0 });
 
   useEffect(() => {
     const calc = () => {
-      const diff = new Date(endDate).getTime() - Date.now();
+      const diff = new Date(endDate).getTime() - serverNow();
       if (diff <= 0) return { days: 0, hours: 0, minutes: 0, totalMs: 0 };
       return {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),

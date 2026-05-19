@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerTime, serverNow } from "@/hooks/use-server-time";
 
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -303,10 +304,11 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
 }
 
 function CountdownBanner({ label, targetDate }: { label: string; targetDate: string }) {
+  useServerTime();
   const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0, total: 0 });
   useEffect(() => {
     const calc = () => {
-      const diff = new Date(targetDate).getTime() - Date.now();
+      const diff = new Date(targetDate).getTime() - serverNow();
       if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0, total: 0 };
       return {
         d: Math.floor(diff / 86400000),

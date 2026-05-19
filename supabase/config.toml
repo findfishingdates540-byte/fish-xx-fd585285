@@ -3,6 +3,9 @@ project_id = "zjmnlelqoiclkbrqefyv"
 [functions.send-push-notification]
 verify_jwt = true
 
+[functions.server-time]
+verify_jwt = false
+
 [functions.get-mapbox-token]
 verify_jwt = false
 
