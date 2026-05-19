@@ -132,6 +132,46 @@ export default function ChallengeDetail() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const leaveMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Must be logged in");
+      const ch: any = challenge;
+      const wasPaid =
+        ch?.entry_fee_enabled && ch?.prize_type === "cash" && Number(ch?.entry_fee) > 0;
+      if (wasPaid) {
+        // Block client-side; refunds are not handled here.
+        const { data: entry } = await supabase
+          .from("fishing_challenge_entries")
+          .select("has_paid")
+          .eq("challenge_id", id!)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (entry?.has_paid) {
+          throw new Error("Paid entries can't be cancelled here — contact support for a refund.");
+        }
+      }
+      const { error } = await supabase
+        .from("challenge_participants")
+        .delete()
+        .eq("challenge_id", id!)
+        .eq("user_id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fishing-challenge-participants", id] });
+      qc.invalidateQueries({ queryKey: ["challenge-participants-all"] });
+      toast.success("You've left the challenge.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const handleLeave = () => {
+    if (typeof window !== "undefined" && !window.confirm("Leave this challenge? You can rejoin while it's still open.")) {
+      return;
+    }
+    leaveMutation.mutate();
+  };
+
   if (isLoading) {
     return (
       <div className="scoreboard-hub min-h-screen p-6 space-y-4">
@@ -245,17 +285,29 @@ export default function ChallengeDetail() {
         {/* Join button */}
         {status !== "completed" && (
           <div className="px-4 pb-4">
-            <button
-              onClick={() => joinMutation.mutate()}
-              disabled={isJoined || joinMutation.isPending}
-              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider transition-opacity ${
-                isJoined
-                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-not-allowed"
-                  : "sb-bg-cyan hover:opacity-90"
-              } disabled:opacity-60`}
-            >
-              {isJoined ? (<><CheckCircle2 className="h-4 w-4" />Registered</>) : status === "upcoming" ? "Register" : "Join Challenge"}
-            </button>
+            {isJoined ? (
+              <div className="space-y-2">
+                <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/40">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Registered
+                </div>
+                <button
+                  onClick={handleLeave}
+                  disabled={leaveMutation.isPending}
+                  className="w-full text-xs font-semibold sb-text-muted hover:text-rose-400 underline-offset-2 hover:underline transition-colors disabled:opacity-60"
+                >
+                  {leaveMutation.isPending ? "Leaving…" : "Leave challenge"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => joinMutation.mutate()}
+                disabled={joinMutation.isPending}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 disabled:opacity-60 transition-opacity"
+              >
+                {status === "upcoming" ? "Register" : "Join Challenge"}
+              </button>
+            )}
           </div>
         )}
       </div>

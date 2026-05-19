@@ -739,6 +739,41 @@ export type Database = {
           },
         ]
       }
+      challenge_reminders: {
+        Row: {
+          challenge_id: string
+          created_at: string
+          id: string
+          remind_at: string
+          sent: boolean
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string
+          id?: string
+          remind_at: string
+          sent?: boolean
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string
+          id?: string
+          remind_at?: string
+          sent?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_reminders_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       escrow_transactions: {
         Row: {
           amount: number

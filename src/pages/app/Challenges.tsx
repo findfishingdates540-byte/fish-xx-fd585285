@@ -132,6 +132,39 @@ export default function Challenges() {
     enabled: participantUserIds.length > 0,
   });
 
+  // Fetch the user's saved reminders so "Remind me" buttons hydrate correctly
+  const { data: myReminders = [] } = useQuery({
+    queryKey: ["challenge-reminders", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from("challenge_reminders")
+        .select("challenge_id")
+        .eq("user_id", user.id);
+      return (data || []).map((r: any) => r.challenge_id as string);
+    },
+    enabled: !!user,
+  });
+  const remindedIds = useMemo(() => new Set(myReminders), [myReminders]);
+
+  const remindMutation = useMutation({
+    mutationFn: async ({ challengeId, startDate }: { challengeId: string; startDate: string }) => {
+      if (!user) throw new Error("Must be logged in");
+      // Fire reminder 1 hour before start (or immediately if start is sooner).
+      const start = new Date(startDate).getTime();
+      const remindAt = new Date(Math.max(Date.now(), start - 60 * 60 * 1000)).toISOString();
+      const { error } = await supabase
+        .from("challenge_reminders")
+        .insert({ user_id: user.id, challenge_id: challengeId, remind_at: remindAt });
+      if (error && error.code !== "23505") throw error; // 23505 = unique violation (already set)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["challenge-reminders", user?.id] });
+      toast.success("We'll remind you before it starts");
+    },
+    onError: (err: any) => toast.error(err.message || "Could not save reminder"),
+  });
+
 
   // Build enriched challenge data
   const enrichedChallenges: ChallengeWithDetails[] = useMemo(() => {
@@ -375,7 +408,16 @@ export default function Challenges() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((challenge) => (
-                <UpcomingChallengeCard key={challenge.id} challenge={challenge} onJoin={() => joinMutation.mutate(challenge.id)} joining={joinMutation.isPending} onOpen={() => navigate(`/app/challenges/${challenge.id}`)} />
+                <UpcomingChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  onJoin={() => joinMutation.mutate(challenge.id)}
+                  joining={joinMutation.isPending}
+                  onOpen={() => navigate(`/app/challenges/${challenge.id}`)}
+                  reminded={remindedIds.has(challenge.id)}
+                  onRemind={() => remindMutation.mutate({ challengeId: challenge.id, startDate: challenge.start_date })}
+                  remindLoading={remindMutation.isPending}
+                />
               ))}
             </div>
           </div>
@@ -545,14 +587,20 @@ function UpcomingChallengeCard({
   onJoin,
   joining,
   onOpen,
+  reminded: remindedProp,
+  onRemind,
+  remindLoading,
 }: {
   challenge: ChallengeWithDetails;
   onJoin: () => void;
   joining: boolean;
   onOpen: () => void;
+  reminded?: boolean;
+  onRemind?: () => void;
+  remindLoading?: boolean;
 }) {
   const startDate = new Date(challenge.start_date);
-  const [reminded, setReminded] = useState(false);
+  const reminded = !!remindedProp;
   const typeLabel = challenge.is_official ? "Pro Series" : challenge.challenge_type === "most_caught" ? "Casual" : "Team Event";
   const typeBadgeClass = challenge.is_official
     ? "sb-bg-cyan"
@@ -580,10 +628,9 @@ function UpcomingChallengeCard({
             e.preventDefault();
             e.stopPropagation();
             if (reminded) return;
-            setReminded(true);
-            toast.success("We'll remind you before it starts");
+            onRemind?.();
           }}
-          disabled={reminded}
+          disabled={reminded || !!remindLoading}
           className={`absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm transition-colors ${
             reminded
               ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-not-allowed"
@@ -591,7 +638,7 @@ function UpcomingChallengeCard({
           }`}
         >
           {reminded ? <BellRing className="h-3 w-3" /> : <Bell className="h-3 w-3" />}
-          {reminded ? "Reminder set" : "Remind me"}
+          {reminded ? "Reminder set" : remindLoading ? "Saving…" : "Remind me"}
         </button>
       </div>
       <div className="p-4">
