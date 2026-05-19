@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +38,9 @@ import {
   ChevronDown,
   XCircle,
   Fish,
+  CalendarClock,
+  Zap,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -478,6 +481,46 @@ const TournamentDetail = () => {
     [rounds, roundMatchups],
   );
 
+  // Current user's registered team in this tournament
+  const myTeamId = useMemo(() => {
+    if (!user) return null;
+    const captainTeamIds = (myCaptainedTeams || []).map((t: any) => t.id);
+    const myEntry = participants.find(
+      (p: any) => p.user_id === user.id || (p.team_id && captainTeamIds.includes(p.team_id)),
+    );
+    return (myEntry as any)?.team_id || null;
+  }, [user, myCaptainedTeams, participants]);
+
+  // Live (in-progress) matchups
+  const liveMatchups = useMemo(
+    () =>
+      (matchups as any[]).filter(
+        (m: any) => m.status === "in_progress" || m.status === "active",
+      ),
+    [matchups],
+  );
+
+  // Next pending matchup for my team
+  const nextMatchupForMe = useMemo(() => {
+    if (!myTeamId) return null;
+    const mine = (matchups as any[]).filter(
+      (m: any) =>
+        (m.team1_id === myTeamId || m.team2_id === myTeamId) &&
+        m.status !== "completed",
+    );
+    // Sort by round_number ascending using rounds lookup
+    const roundOrder: Record<string, number> = {};
+    (rounds as any[]).forEach((r: any) => (roundOrder[r.id] = r.round_number));
+    mine.sort((a: any, b: any) => (roundOrder[a.round_id] ?? 999) - (roundOrder[b.round_id] ?? 999));
+    return mine[0] || null;
+  }, [matchups, rounds, myTeamId]);
+
+  const roundById = useMemo(() => {
+    const m: Record<string, any> = {};
+    (rounds as any[]).forEach((r: any) => (m[r.id] = r));
+    return m;
+  }, [rounds]);
+
   const scoringUnit = (s: string) =>
     s === "most_catches" ? "catches" : "lbs";
   // For tournaments, "players" are teams. Resolve via the participant's team_id.
@@ -734,9 +777,87 @@ const TournamentDetail = () => {
       </Dialog>
 
       {/* Tabs: Bracket / Standings / MVPs / My Team */}
+      {/* Next up card */}
+      {nextMatchupForMe && (() => {
+        const r = roundById[nextMatchupForMe.round_id];
+        const opponentId =
+          nextMatchupForMe.team1_id === myTeamId ? nextMatchupForMe.team2_id : nextMatchupForMe.team1_id;
+        const opponent = opponentId ? teamMap[opponentId] : null;
+        return (
+          <Link
+            to={`/app/tournaments/${id}/matchups/${nextMatchupForMe.id}`}
+            className="block mb-3 rounded-xl border border-primary/30 bg-primary/5 p-4 hover:bg-primary/10 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                <CalendarClock className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Next up · {r?.round_name || "Round"}</p>
+                <p className="text-sm font-bold truncate">
+                  vs {opponent?.name || "TBD"}
+                </p>
+                {r?.start_date && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {format(new Date(r.start_date), "EEE MMM d")}
+                    {r.end_date && ` – ${format(new Date(r.end_date), "MMM d")}`}
+                  </p>
+                )}
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </Link>
+        );
+      })()}
+
+      {/* Live now feed */}
+      {liveMatchups.length > 0 && (
+        <div className="mb-3 rounded-xl border border-rose-500/30 bg-rose-500/5 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold uppercase tracking-wide">
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Live
+            </span>
+            <p className="text-xs font-semibold">{liveMatchups.length} matchup{liveMatchups.length > 1 ? "s" : ""} in progress</p>
+          </div>
+          <div className="flex gap-2 overflow-x-auto -mx-3 px-3 pb-1">
+            {liveMatchups.map((m: any) => {
+              const t1 = m.team1_id ? teamMap[m.team1_id] : null;
+              const t2 = m.team2_id ? teamMap[m.team2_id] : null;
+              const r = roundById[m.round_id];
+              return (
+                <Link
+                  key={m.id}
+                  to={`/app/tournaments/${id}/matchups/${m.id}`}
+                  className="shrink-0 w-56 rounded-lg border bg-background p-2.5 hover:border-primary/50 transition-colors"
+                >
+                  <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold mb-1.5 truncate">
+                    {r?.round_name || "Match"} · #{m.matchup_number}
+                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <Avatar className="h-5 w-5"><AvatarImage src={t1?.logo_url} /><AvatarFallback className="text-[8px]">{t1?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                      <span className="text-xs font-semibold truncate">{t1?.name || "TBD"}</span>
+                    </div>
+                    <span className="text-sm font-bold tabular-nums">{Number(m.team1_score || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <Avatar className="h-5 w-5"><AvatarImage src={t2?.logo_url} /><AvatarFallback className="text-[8px]">{t2?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                      <span className="text-xs font-semibold truncate">{t2?.name || "TBD"}</span>
+                    </div>
+                    <span className="text-sm font-bold tabular-nums">{Number(m.team2_score || 0)}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="bracket" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-3">
+        <TabsList className="grid w-full grid-cols-5 mb-3">
           <TabsTrigger value="bracket" className="text-xs"><Swords className="h-3 w-3 mr-1" />Bracket</TabsTrigger>
+          <TabsTrigger value="schedule" className="text-xs"><CalendarClock className="h-3 w-3 mr-1" />Schedule</TabsTrigger>
           <TabsTrigger value="standings" className="text-xs"><Trophy className="h-3 w-3 mr-1" />Teams</TabsTrigger>
           <TabsTrigger value="mvp" className="text-xs"><Crown className="h-3 w-3 mr-1" />MVPs</TabsTrigger>
           <TabsTrigger value="myteam" className="text-xs" disabled={myTeamContributions.length === 0}>
@@ -781,7 +902,13 @@ const TournamentDetail = () => {
                         </div>
                         <div className="flex flex-col justify-around flex-1 gap-3">
                           {rMatchups.map((m: any) => (
-                            <div key={m.id} data-matchup-id={m.id} ref={setMatchupNode(m.id)}>
+                            <Link
+                              key={m.id}
+                              to={`/app/tournaments/${id}/matchups/${m.id}`}
+                              data-matchup-id={m.id}
+                              ref={setMatchupNode(m.id) as any}
+                              className="block hover:opacity-90 transition-opacity"
+                            >
                               <MatchupCard
                                 matchup={m}
                                 roundName={round.round_name}
@@ -789,7 +916,7 @@ const TournamentDetail = () => {
                                 getPlayerName={getPlayerName}
                                 getPlayerPhoto={getPlayerPhoto}
                               />
-                            </div>
+                            </Link>
                           ))}
                           {rMatchups.length === 0 && (
                             <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">TBD</div>
@@ -821,7 +948,13 @@ const TournamentDetail = () => {
                             <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">{round.round_name}</p>
                             <div className="flex flex-col justify-around flex-1 gap-3">
                               {rMatchups.map((m: any) => (
-                                <div key={m.id} data-matchup-id={m.id} ref={setMatchupNode(m.id)}>
+                                <Link
+                                  key={m.id}
+                                  to={`/app/tournaments/${id}/matchups/${m.id}`}
+                                  data-matchup-id={m.id}
+                                  ref={setMatchupNode(m.id) as any}
+                                  className="block hover:opacity-90 transition-opacity"
+                                >
                                   <MatchupCard
                                     matchup={m}
                                     roundName={round.round_name}
@@ -829,7 +962,7 @@ const TournamentDetail = () => {
                                     getPlayerName={getPlayerName}
                                     getPlayerPhoto={getPlayerPhoto}
                                   />
-                                </div>
+                                </Link>
                               ))}
                             </div>
                           </div>
@@ -848,6 +981,82 @@ const TournamentDetail = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* SCHEDULE */}
+        <TabsContent value="schedule" className="mt-0">
+          {rounds.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+              Schedule will appear once rounds are created.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(rounds as any[]).map((r: any) => {
+                const rMs = roundMatchups[r.id] || [];
+                const isLive = r.status === "active" || r.status === "in_progress";
+                const isDone = r.status === "completed";
+                return (
+                  <div key={r.id} className="rounded-xl border bg-card overflow-hidden">
+                    <div className="px-4 py-2.5 border-b bg-muted/30 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold truncate">{r.round_name}</p>
+                        {r.start_date && (
+                          <p className="text-[11px] text-muted-foreground">
+                            {format(new Date(r.start_date), "EEE MMM d, yyyy")}
+                            {r.end_date && ` – ${format(new Date(r.end_date), "MMM d")}`}
+                          </p>
+                        )}
+                      </div>
+                      <span className={`text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full border ${
+                        isLive
+                          ? "bg-rose-500 text-white border-rose-500"
+                          : isDone
+                          ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
+                        {isLive ? "Live" : isDone ? "Final" : "Upcoming"}
+                      </span>
+                    </div>
+                    {rMs.length === 0 ? (
+                      <p className="p-4 text-xs text-muted-foreground text-center">No matchups yet.</p>
+                    ) : (
+                      <div className="divide-y">
+                        {rMs.map((m: any) => {
+                          const t1 = m.team1_id ? teamMap[m.team1_id] : null;
+                          const t2 = m.team2_id ? teamMap[m.team2_id] : null;
+                          return (
+                            <Link
+                              key={m.id}
+                              to={`/app/tournaments/${id}/matchups/${m.id}`}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
+                            >
+                              <span className="text-[10px] text-muted-foreground font-mono w-6">#{m.matchup_number}</span>
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <Avatar className="h-5 w-5"><AvatarImage src={t1?.logo_url} /><AvatarFallback className="text-[8px]">{t1?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                                <span className="text-xs font-semibold truncate">{t1?.name || "TBD"}</span>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground uppercase">vs</span>
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <Avatar className="h-5 w-5"><AvatarImage src={t2?.logo_url} /><AvatarFallback className="text-[8px]">{t2?.name?.charAt(0) || "?"}</AvatarFallback></Avatar>
+                                <span className="text-xs font-semibold truncate">{t2?.name || "TBD"}</span>
+                              </div>
+                              {m.status === "completed" ? (
+                                <span className="text-xs font-bold tabular-nums">{Number(m.team1_score || 0)}–{Number(m.team2_score || 0)}</span>
+                              ) : (m.status === "in_progress" || m.status === "active") ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-500"><Zap className="h-3 w-3" /> Live</span>
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </TabsContent>
