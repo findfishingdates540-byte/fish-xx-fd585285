@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle, Ticket, Users } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import authFishingImage from '@/assets/auth-fishing.jpg';
@@ -410,39 +410,6 @@ const Auth = () => {
                       onChange={(e) => setDisplayName(e.target.value)}
                       className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
                     />
-                  </div>
-                </div>
-              )}
-
-              {isSignUp && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="signupSource">Promo or event code</Label>
-                    <div className="relative">
-                      <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="signupSource"
-                        type="text"
-                        placeholder="Tournament, shop, or event"
-                        value={signupSource}
-                        onChange={(e) => setSignupSource(e.target.value)}
-                        className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="referredBy">Who referred you?</Label>
-                    <div className="relative">
-                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        id="referredBy"
-                        type="text"
-                        placeholder="Friend or location"
-                        value={referredBy}
-                        onChange={(e) => setReferredBy(e.target.value)}
-                        className="h-12 pl-12 bg-muted/30 border-border rounded-xl"
-                      />
-                    </div>
                   </div>
                 </div>
               )}
