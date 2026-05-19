@@ -10,6 +10,15 @@ export interface FishSpecies {
   description: string | null;
   image_url: string | null;
   created_at: string;
+  base_score?: number | null;
+  category?: string | null;
+  water_type?: string | null;
+  measurement_type?: string | null;
+  safe_release?: boolean | null;
+  trophy_unit?: string | null;
+  trophy_quality?: number | null;
+  trophy_trophy?: number | null;
+  trophy_exceptional?: number | null;
 }
 
 export interface FishSpeciesInput {
@@ -17,6 +26,15 @@ export interface FishSpeciesInput {
   scientific_name?: string;
   description?: string;
   image_url?: string;
+  base_score?: number | null;
+  category?: string | null;
+  water_type?: string | null;
+  measurement_type?: string | null;
+  safe_release?: boolean | null;
+  trophy_unit?: string | null;
+  trophy_quality?: number | null;
+  trophy_trophy?: number | null;
+  trophy_exceptional?: number | null;
 }
 
 export function useFishSpecies() {
@@ -48,6 +66,15 @@ export function useCreateFishSpecies() {
           scientific_name: input.scientific_name?.trim() || null,
           description: input.description?.trim() || null,
           image_url: input.image_url?.trim() || null,
+          base_score: input.base_score ?? null,
+          category: input.category ?? null,
+          water_type: input.water_type ?? null,
+          measurement_type: input.measurement_type ?? 'TL',
+          safe_release: input.safe_release ?? false,
+          trophy_unit: input.trophy_unit ?? null,
+          trophy_quality: input.trophy_quality ?? null,
+          trophy_trophy: input.trophy_trophy ?? null,
+          trophy_exceptional: input.trophy_exceptional ?? null,
         })
         .select()
         .single();
@@ -79,6 +106,15 @@ export function useUpdateFishSpecies() {
           scientific_name: input.scientific_name?.trim() || null,
           description: input.description?.trim() || null,
           image_url: input.image_url?.trim() || null,
+          base_score: input.base_score ?? null,
+          category: input.category ?? null,
+          water_type: input.water_type ?? null,
+          measurement_type: input.measurement_type ?? 'TL',
+          safe_release: input.safe_release ?? false,
+          trophy_unit: input.trophy_unit ?? null,
+          trophy_quality: input.trophy_quality ?? null,
+          trophy_trophy: input.trophy_trophy ?? null,
+          trophy_exceptional: input.trophy_exceptional ?? null,
         })
         .eq('id', id)
         .select()
