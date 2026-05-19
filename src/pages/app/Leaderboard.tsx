@@ -263,6 +263,9 @@ export default function Leaderboard() {
             )}
           </section>
 
+          {/* Points Leaderboard */}
+          <PointsLeaderboard />
+
           {/* Team Rankings */}
           <section>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
