@@ -20,8 +20,8 @@ import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 import { StepLifestyle } from "@/components/onboarding/StepLifestyle";
 import { OnboardingDebugOverlay } from "@/components/onboarding/OnboardingDebugOverlay";
 
-import fishingRodImage from "@/assets/onboarding-step1.jpg";
-import datingImage from "@/assets/dating-hero.jpg";
+import fishingRodImage from "@/assets/fishing-photo-2.jpg";
+import datingImage from "@/assets/fishing-photo-3.jpg";
 import comboImage from "@/assets/fishing-photo-1.jpg";
 import logoImage from "@/assets/fishx-logo.png";
 
