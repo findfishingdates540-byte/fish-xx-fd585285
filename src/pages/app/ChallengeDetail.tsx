@@ -24,6 +24,58 @@ function timeAgo(date: Date): string {
   return `${d}d ago`;
 }
 
+function scoringSummary(type: string): string {
+  switch (type) {
+    case "most_caught": return "Most verified catches during the challenge window wins.";
+    case "most_species": return "Most distinct verified species during the challenge window wins.";
+    case "total_weight": return "Highest cumulative verified weight during the challenge window wins.";
+    case "largest_fish":
+    default: return "Heaviest single verified catch during the challenge window wins.";
+  }
+}
+
+function formatChallengeType(type: string): string {
+  switch (type) {
+    case "most_caught": return "Most Caught";
+    case "most_species": return "Most Species";
+    case "total_weight": return "Total Weight";
+    case "largest_fish":
+    default: return "Largest Fish";
+  }
+}
+
+function Podium({ top3, profiles, formatScore }: { top3: any[]; profiles: Record<string, any>; formatScore: (n: number) => string }) {
+  const order = [1, 0, 2]; // 2nd, 1st, 3rd
+  const heights = ["h-16", "h-24", "h-12"];
+  const accent = ["text-slate-300", "sb-gold", "text-amber-700"];
+  return (
+    <div className="sb-card p-4">
+      <div className="grid grid-cols-3 gap-3 items-end">
+        {order.map((idx, i) => {
+          const p = top3[idx];
+          if (!p) return <div key={i} />;
+          const prof = profiles[p.user_id];
+          const name = prof?.display_name || "Angler";
+          const rank = idx + 1;
+          return (
+            <div key={p.user_id} className="flex flex-col items-center text-center min-w-0">
+              <Avatar className="h-12 w-12 mb-2 ring-2 ring-[hsl(var(--sb-border))]">
+                <AvatarImage src={prof?.photos?.[0] || ""} />
+                <AvatarFallback className="text-xs bg-[hsl(var(--sb-surface-2))]">{name[0]}</AvatarFallback>
+              </Avatar>
+              <p className="text-xs font-semibold truncate w-full">{name}</p>
+              <p className="text-[11px] sb-cyan font-mono">{formatScore(Number(p.score))}</p>
+              <div className={`mt-2 w-full ${heights[i]} rounded-t-md bg-[hsl(var(--sb-surface-2))] flex items-start justify-center pt-2`}>
+                <span className={`text-sm font-bold ${accent[i]}`}>#{rank}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
