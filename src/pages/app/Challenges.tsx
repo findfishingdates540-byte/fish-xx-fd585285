@@ -21,6 +21,8 @@ import {
   ArrowRight,
   Flame,
   CheckCircle2,
+  Bell,
+  BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -553,6 +555,7 @@ function UpcomingChallengeCard({
   onOpen: () => void;
 }) {
   const startDate = new Date(challenge.start_date);
+  const [reminded, setReminded] = useState(false);
   const typeLabel = challenge.is_official ? "Pro Series" : challenge.challenge_type === "most_caught" ? "Casual" : "Team Event";
   const typeBadgeClass = challenge.is_official
     ? "sb-bg-cyan"
@@ -574,8 +577,24 @@ function UpcomingChallengeCard({
           <p className="text-sm font-bold leading-none">{startDate.toLocaleDateString("en-US", { day: "2-digit" })}</p>
           <p className="text-[9px] sb-cyan uppercase tracking-wider mt-0.5">{startDate.toLocaleDateString("en-US", { month: "short" })}</p>
         </div>
-        <button type="button" onClick={(e) => { e.stopPropagation(); }} className="absolute bottom-3 right-3 text-[10px] sb-cyan font-semibold hover:underline">
-          Remind Me
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (reminded) return;
+            setReminded(true);
+            toast.success("We'll remind you before it starts");
+          }}
+          disabled={reminded}
+          className={`absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm transition-colors ${
+            reminded
+              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-not-allowed"
+              : "bg-[hsl(var(--sb-surface)/0.85)] sb-cyan border sb-border hover:bg-[hsl(var(--sb-cyan)/0.15)]"
+          }`}
+        >
+          {reminded ? <BellRing className="h-3 w-3" /> : <Bell className="h-3 w-3" />}
+          {reminded ? "Reminder set" : "Remind me"}
         </button>
       </div>
       <div className="p-4">
