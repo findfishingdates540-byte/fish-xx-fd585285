@@ -64,6 +64,7 @@ import PhotoChallengeDetail from "./pages/app/PhotoChallengeDetail";
 import CreatePhotoChallenge from "./pages/app/CreatePhotoChallenge"; // kept for potential future use
 import Tournaments from "./pages/app/Tournaments";
 import TournamentDetail from "./pages/app/TournamentDetail";
+import MatchupDetail from "./pages/app/MatchupDetail";
 import CreateTournament from "./pages/app/CreateTournament";
 
 import { AdminLayout } from "@/components/admin";
@@ -163,6 +164,7 @@ const App = () => (
                 <Route path="tournaments" element={<Tournaments />} />
                 <Route path="tournaments/new" element={<CreateTournament />} />
                 <Route path="tournaments/:id" element={<TournamentDetail />} />
+                <Route path="tournaments/:tournamentId/matchups/:matchupId" element={<MatchupDetail />} />
               </Route>
               <Route path="buddies" element={<FishingRoute><Buddies /></FishingRoute>} />
               <Route path="buddy-messages" element={<FishingRoute><BuddyMessages /></FishingRoute>}>
