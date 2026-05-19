@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -170,6 +171,16 @@ export default function ChallengeDetail() {
             )}
           </div>
         </div>
+
+        {/* Countdown */}
+        {status !== "completed" && (
+          <div className="px-4 pt-4">
+            <CountdownBanner
+              label={status === "upcoming" ? "Starts in" : "Ends in"}
+              targetDate={status === "upcoming" ? c.start_date : c.end_date}
+            />
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4">
