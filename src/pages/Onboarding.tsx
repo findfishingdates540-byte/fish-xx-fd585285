@@ -22,8 +22,8 @@ import { OnboardingDebugOverlay } from "@/components/onboarding/OnboardingDebugO
 
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
 import datingImage from "@/assets/dating-hero.jpg";
-import comboImage from "@/assets/couple-fishing.jpg";
-import logoImage from "@/assets/logo.png";
+import comboImage from "@/assets/fishing-photo-1.jpg";
+import logoImage from "@/assets/fishx-logo.png";
 
 // Animation variants - fade only, no sliding
 const stepVariants = {
@@ -603,8 +603,7 @@ export default function Onboarding() {
       <header className="bg-background border-b border-border px-6 py-4 flex-shrink-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logoImage} alt="FishX" className="w-8 h-8 rounded-full object-cover" />
-            <span className="font-bold text-lg text-foreground">FishX</span>
+            <img src={logoImage} alt="FishX" className="h-8 w-auto" />
           </div>
           <div className="flex items-center gap-4">
             <button 
