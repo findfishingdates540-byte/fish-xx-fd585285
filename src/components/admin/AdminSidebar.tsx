@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, User, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, ShieldCheck, Ticket, ChevronDown, Camera, Swords, Flag } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, User, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, ShieldCheck, Ticket, ChevronDown, Camera, Swords, Flag, Award } from 'lucide-react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +44,10 @@ const navItems: NavItem[] = [{
     to: '/admin/fish-species',
     icon: Fish,
     label: 'Fish Species'
+  }, {
+    to: '/admin/scoring',
+    icon: Award,
+    label: 'Scoring Settings'
   }]
 }, {
   to: '/admin/catches',
