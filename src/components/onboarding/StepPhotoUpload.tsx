@@ -122,9 +122,9 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
         />
       )}
       <div className="space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-6">
         {/* Upload Area */}
-        <div className="flex-1 lg:flex-[2]">
+        <div className="flex-1">
           {photos.length > 0 ? (
             <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-border">
               <img
@@ -141,7 +141,7 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
             </div>
           ) : (
             <div
-              className={`relative aspect-[4/3] min-h-[420px] rounded-2xl border-2 border-dashed transition-all duration-200 ${
+              className={`relative aspect-[3/4] rounded-2xl border-2 border-dashed transition-all duration-200 ${
                 dragActive ? 'border-primary bg-primary/5' : 'border-border'
               }`}
               onDragEnter={handleDrag}
@@ -192,30 +192,30 @@ export function StepPhotoUpload({ photos, setPhotos, userId }: StepPhotoUploadPr
         </div>
 
         {/* Guidelines */}
-        <div className="lg:w-60 p-3 rounded-xl bg-primary/5 border border-primary/10">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Lightbulb className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold text-foreground text-sm">Photo Guidelines</h3>
+        <div className="lg:w-80 p-5 rounded-2xl bg-primary/5 border border-primary/10">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Photo Guidelines</h3>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-4">
             {guidelines.do.map((item, i) => (
-              <div key={i} className="flex gap-2">
-                <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+              <div key={i} className="flex gap-3">
+                <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground text-xs">{item.title}</p>
+                  <p className="font-medium text-foreground text-sm">{item.title}</p>
                   <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
               </div>
             ))}
             
-            <div className="border-t border-border my-2" />
+            <div className="border-t border-border my-3" />
             
             {guidelines.dont.map((item, i) => (
-              <div key={i} className="flex gap-2">
-                <X className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+              <div key={i} className="flex gap-3">
+                <X className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground text-xs">{item.title}</p>
+                  <p className="font-medium text-foreground text-sm">{item.title}</p>
                   <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
               </div>
