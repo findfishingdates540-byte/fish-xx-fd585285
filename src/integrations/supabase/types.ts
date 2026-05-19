@@ -481,6 +481,41 @@ export type Database = {
           },
         ]
       }
+      catch_comments: {
+        Row: {
+          body: string
+          catch_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          catch_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          catch_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catch_comments_catch_id_fkey"
+            columns: ["catch_id"]
+            isOneToOne: false
+            referencedRelation: "catches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catch_photos: {
         Row: {
           catch_id: string
