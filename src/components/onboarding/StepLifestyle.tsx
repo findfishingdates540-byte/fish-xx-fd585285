@@ -99,7 +99,7 @@ export function StepLifestyle({
       <div className="space-y-2">
         <Label htmlFor="occupation" className="text-sm font-medium flex items-center gap-2">
           <Briefcase className="h-4 w-4" />
-          Occupation <span className="text-destructive">*</span>
+          Occupation
         </Label>
         <Input
           id="occupation"
@@ -114,7 +114,7 @@ export function StepLifestyle({
       <div className="space-y-2">
         <Label className="text-sm font-medium flex items-center gap-2">
           <Ruler className="h-4 w-4" />
-          Height <span className="text-destructive">*</span>
+          Height
         </Label>
         <Select
           value={heightCm?.toString() || ''}
@@ -138,7 +138,7 @@ export function StepLifestyle({
         <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-2">
             <Cigarette className="h-4 w-4" />
-            Smoking <span className="text-destructive">*</span>
+            Smoking
           </Label>
           <Select value={smoking} onValueChange={setSmoking}>
             <SelectTrigger>
@@ -158,7 +158,7 @@ export function StepLifestyle({
         <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-2">
             <Wine className="h-4 w-4" />
-            Drinking <span className="text-destructive">*</span>
+            Drinking
           </Label>
           <Select value={drinking} onValueChange={setDrinking}>
             <SelectTrigger>
@@ -179,7 +179,7 @@ export function StepLifestyle({
       <div className="space-y-2">
         <Label className="text-sm font-medium flex items-center gap-2">
           <Star className="h-4 w-4" />
-          Zodiac Sign <span className="text-destructive">*</span>
+          Zodiac Sign
         </Label>
         <Select value={zodiacSign} onValueChange={setZodiacSign}>
           <SelectTrigger>
