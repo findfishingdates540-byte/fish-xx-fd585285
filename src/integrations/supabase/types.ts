@@ -1735,6 +1735,63 @@ export type Database = {
           },
         ]
       }
+      notification_email_prefs: {
+        Row: {
+          buddy_message: boolean
+          buddy_request: boolean
+          challenge_new: boolean
+          comment_mention: boolean
+          created_at: string
+          feed_comment: boolean
+          feed_like: boolean
+          master_enabled: boolean
+          match: boolean
+          message: boolean
+          new_follower: boolean
+          prize_won: boolean
+          trip_invite: boolean
+          trip_reminder: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buddy_message?: boolean
+          buddy_request?: boolean
+          challenge_new?: boolean
+          comment_mention?: boolean
+          created_at?: string
+          feed_comment?: boolean
+          feed_like?: boolean
+          master_enabled?: boolean
+          match?: boolean
+          message?: boolean
+          new_follower?: boolean
+          prize_won?: boolean
+          trip_invite?: boolean
+          trip_reminder?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buddy_message?: boolean
+          buddy_request?: boolean
+          challenge_new?: boolean
+          comment_mention?: boolean
+          created_at?: string
+          feed_comment?: boolean
+          feed_like?: boolean
+          master_enabled?: boolean
+          match?: boolean
+          message?: boolean
+          new_follower?: boolean
+          prize_won?: boolean
+          trip_invite?: boolean
+          trip_reminder?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -4388,6 +4445,10 @@ export type Database = {
           p_entity_type: string
           p_user_id: string
         }
+        Returns: undefined
+      }
+      fanout_challenge_new: {
+        Args: { _body: string; _data: Json; _title: string }
         Returns: undefined
       }
       get_birthday_buddies: {
