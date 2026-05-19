@@ -517,7 +517,7 @@ export default function CookiePolicy() {
                     If you have any questions about our use of cookies or this Cookie Policy, please contact us:
                   </p>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>Email: <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a></li>
+                    <li>Email: <a href="mailto:privacy@fish-x.com" className="text-primary hover:underline">privacy@fish-x.com</a></li>
                     <li>Mail: Fish-X LLC, Lake City, FL</li>
                   </ul>
                 </div>

@@ -138,7 +138,7 @@ function generateReminderEmail(displayName: string): string {
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
                 <tr>
                   <td style="background-color: #111827; border-radius: 8px;">
-                    <a href="https://fishx.app/app/settings" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px;">Get Verified Now →</a>
+                    <a href="https://fish-x.com/app/settings" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px;">Get Verified Now →</a>
                   </td>
                 </tr>
               </table>

@@ -45,7 +45,7 @@ const Help = () => {
       { question: 'How do I delete my account?', answer: 'Go to Settings → Account → Delete Account. Please note this action is permanent and will delete all your data, matches, catches, and conversations. You\'ll have 30 days to reactivate before permanent deletion.' },
       { question: 'Can I pause my account instead of deleting it?', answer: 'Yes! Go to Settings → Account → Pause Account. While paused, your profile won\'t be shown to others, you won\'t receive new matches, but your data is preserved. You can unpause at any time.' },
       { question: 'Why was my account suspended?', answer: 'Accounts may be suspended for violating our Terms of Service or Community Guidelines. Common reasons include harassment, fake profiles, inappropriate content, or suspicious activity. Check your email for details about the suspension.' },
-      { question: 'How do I appeal an account suspension?', answer: 'Email appeals@fishx.app within 30 days of suspension. Include your registered email, explain your situation, and provide any relevant context. Our team reviews appeals within 5-7 business days.' },
+      { question: 'How do I appeal an account suspension?', answer: 'Email appeals@fish-x.com within 30 days of suspension. Include your registered email, explain your situation, and provide any relevant context. Our team reviews appeals within 5-7 business days.' },
       { question: 'How do I update my location?', answer: 'Go to Settings → Location. You can enable automatic location updates, or manually set your city and state. Accurate location helps with matches and finding nearby fishing spots.' },
       { question: 'How do I export my data?', answer: 'Go to Settings → Privacy → Export My Data. You\'ll receive a JSON file containing your profile information, catches, messages, and other data within 24-48 hours.' }
     ],
@@ -85,7 +85,7 @@ const Help = () => {
       { question: 'How do I switch from monthly to annual billing?', answer: 'Go to Settings → Subscription → Change Plan. Annual plans save 20% compared to monthly. The change takes effect at your next renewal date.' },
       { question: 'What happens if my payment fails?', answer: 'We\'ll retry the charge after 3 days. If it fails again, your Premium access is suspended. Update your payment method within 7 days to avoid losing your subscription. We\'ll email you about failed payments.' },
       { question: 'How do I cancel my subscription?', answer: 'Go to Settings → Subscription → Cancel Subscription. Your Premium features remain active until the end of your current billing period. You won\'t be charged again after cancellation.' },
-      { question: 'Can I get a refund?', answer: 'We offer a 7-day money-back guarantee on new subscriptions. Email billing@fishx.app within 7 days of purchase. Refunds after 7 days are considered on a case-by-case basis.' },
+      { question: 'Can I get a refund?', answer: 'We offer a 7-day money-back guarantee on new subscriptions. Email billing@fish-x.com within 7 days of purchase. Refunds after 7 days are considered on a case-by-case basis.' },
       { question: 'Are there any discounts available?', answer: 'Annual plans are 20% off vs monthly. We occasionally offer promotions - check your email or the app for special deals. We don\'t currently offer student or military discounts but may in the future.' },
       { question: 'Can I share my subscription with family?', answer: 'Subscriptions are tied to individual accounts and cannot be shared. Each family member needs their own account and subscription.' },
       { question: 'What payment methods do you accept?', answer: 'We accept all major credit cards (Visa, Mastercard, Amex, Discover), PayPal, Apple Pay, and Google Pay. All payments are processed securely through Stripe.' }
@@ -93,7 +93,7 @@ const Help = () => {
     safety: [
       { question: 'How do I block someone?', answer: 'Tap the menu (three dots) on their profile or in chat, then select "Block". Blocked users cannot see your profile, message you, or find you in discovery. You can manage blocked users in Settings → Privacy.' },
       { question: 'How do I report a scammer?', answer: 'Use the report button and select "Scam or Fraud". Provide screenshots and details. Signs of scams: asking for money, moving off-app quickly, inconsistent stories, refusing video calls. Never send money to anyone you\'ve met online.' },
-      { question: 'How do I report harassment?', answer: 'Report from their profile or chat using "Harassment". Include screenshots if possible. Our safety team prioritizes harassment reports and typically responds within 12 hours. You can also email safety@fishx.app.' },
+      { question: 'How do I report harassment?', answer: 'Report from their profile or chat using "Harassment". Include screenshots if possible. Our safety team prioritizes harassment reports and typically responds within 12 hours. You can also email safety@fish-x.com.' },
       { question: 'What happens after I report someone?', answer: 'Our safety team reviews all reports within 24 hours. We may contact you for additional information. The reported user is not told who reported them. Depending on severity, they may receive a warning, suspension, or ban.' },
       { question: 'What information do other users see about me?', answer: 'Other users see: your profile photos, bio, age, approximate distance (not exact location), fishing interests, and verification badges. They cannot see your email, phone, exact address, or private spots.' },
       { question: 'How do I make my profile less visible?', answer: 'Go to Settings → Privacy → Discovery. You can hide from discovery temporarily, show only to people you\'ve liked, or limit who sees your profile based on their verification status.' },
@@ -114,7 +114,7 @@ const Help = () => {
        { question: 'How do I update the app?', answer: 'iOS: App Store → Profile → FishX → Update. Android: Play Store → My Apps → FishX → Update. We recommend enabling auto-updates for the best experience.' },
        { question: 'What browsers are supported?', answer: 'We officially support the latest versions of Chrome, Safari, Firefox, and Edge. For the best experience, use our mobile apps on iOS 14+ or Android 10+.' },
        { question: 'Why is my location inaccurate?', answer: 'Ensure location services are enabled and set to "precise". GPS accuracy varies by device and environment. Urban areas and indoors may reduce accuracy. For fishing spots, you can manually adjust the pin location.' },
-       { question: 'How do I report a bug?', answer: 'Email support@fishx.app with: device model, OS version, app version, description of the issue, and screenshots/videos if possible. The more detail you provide, the faster we can fix it.' }
+       { question: 'How do I report a bug?', answer: 'Email support@fish-x.com with: device model, OS version, app version, description of the issue, and screenshots/videos if possible. The more detail you provide, the faster we can fix it.' }
     ],
     trips: [
       { question: 'How do I create a new trip?', answer: 'Go to Trips → Plan New Trip (+ button). Enter trip details: title, date, location/fishing spot, target species, and notes. You can add buddies, set reminders, and attach gear checklists.' },
@@ -383,7 +383,7 @@ const Help = () => {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <a href="mailto:support@fishx.app">
+              <a href="mailto:support@fish-x.com">
                 <Button size="lg" variant="outline" className="border-background bg-transparent text-background hover:bg-background/10 font-semibold rounded-full px-10 py-6">
                   Email Us
                 </Button>

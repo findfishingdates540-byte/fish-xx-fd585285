@@ -74,7 +74,7 @@ export function ChatSidebar({ conversations, selectedId, onSelect, unreadCount =
     const [copied, setCopied] = useState(false);
     
     const handleInvite = async () => {
-      const PRODUCTION_URL = 'https://fishx.app';
+      const PRODUCTION_URL = 'https://fish-x.com';
       const inviteUrl = `${PRODUCTION_URL}?ref=invite`;
       
       try {

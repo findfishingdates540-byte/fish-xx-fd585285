@@ -3,7 +3,7 @@
  */
 
 // The production domain for share links, referrals, etc.
-export const PRODUCTION_URL = 'https://fishx.app';
+export const PRODUCTION_URL = 'https://fish-x.com';
 
 /**
  * Get the base URL for shareable links.
@@ -14,7 +14,7 @@ export function getShareBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
     // If we're on the production domain or a lovable.app preview, use production URL for shares
-    if (origin.includes('fishx.app') || origin.includes('lovable.app')) {
+    if (origin.includes('fish-x.com') || origin.includes('lovable.app')) {
       return PRODUCTION_URL;
     }
     // For local development, use the current origin

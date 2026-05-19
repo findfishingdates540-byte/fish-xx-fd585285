@@ -471,7 +471,7 @@ const CommunityGuidelines = () => {
                   If you believe your account was suspended or banned in error:
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Email appeals@fishx.app within 30 days</li>
+                  <li>Email appeals@fish-x.com within 30 days</li>
                   <li>Include your account email and explanation</li>
                   <li>Appeals are reviewed within 5-7 business days</li>
                   <li>Zero-tolerance violations (harassment, child safety) cannot be appealed</li>
