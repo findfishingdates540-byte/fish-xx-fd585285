@@ -592,6 +592,10 @@ function UpcomingChallengeCard({
             <MapPin className="h-3 w-3 sb-cyan" /> {challenge.location || challenge.speciesName}
           </p>
         )}
+        <div className="mb-3 flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md bg-[hsl(var(--sb-surface-2))] border sb-border">
+          <span className="text-[10px] sb-cyan uppercase tracking-widest font-semibold">Starts in</span>
+          <CountdownDisplay endDate={challenge.start_date} />
+        </div>
         <div className="flex items-center justify-between">
           {challenge.prizePool > 0 && (
             <div>
