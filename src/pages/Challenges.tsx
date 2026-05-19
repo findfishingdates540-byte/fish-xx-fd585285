@@ -13,8 +13,8 @@ const Challenges = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="Photo & Fishing Challenges on FishX"
-        description="Enter live photo challenges, vote on entries, and win cash and gear. New fishing challenges every week on FishX."
+        title="Photo & Fishing Challenges on Fish-X"
+        description="Enter live photo challenges, vote on entries, and win cash and gear. New fishing challenges every week on Fish-X."
         path="/challenges"
       />
       <PublicHeader />

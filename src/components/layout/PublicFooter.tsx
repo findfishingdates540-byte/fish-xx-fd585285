@@ -7,7 +7,7 @@ export function PublicFooter() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
           <div className="col-span-2 md:col-span-1">
-            <img src={logo} alt="FishX" className="h-12 w-auto mb-6" />
+            <img src={logo} alt="Fish-X" className="h-12 w-auto mb-6" />
             <p className="text-sm text-muted-foreground">
               Connecting fishing enthusiasts worldwide.
             </p>

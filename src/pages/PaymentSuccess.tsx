@@ -80,7 +80,7 @@ Status:         ✓ PAYMENT SUCCESSFUL
 
 --------------------------------------------------------------------------------
 
-Thank you for subscribing to FishX!
+Thank you for subscribing to Fish-X!
 Your premium features are now active.
 
 For support, visit: https://fish-x.com/help
@@ -161,8 +161,8 @@ export default function PaymentSuccess() {
       <header className="bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="FishX" className="h-8 w-auto" />
-            <span className="font-bold text-lg text-foreground">FishX</span>
+            <img src={logo} alt="Fish-X" className="h-8 w-auto" />
+            <span className="font-bold text-lg text-foreground">Fish-X</span>
           </Link>
           <Link to="/app">
             <Button variant="outline" className="text-primary border-primary hover:bg-primary/5">

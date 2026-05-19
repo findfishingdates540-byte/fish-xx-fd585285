@@ -257,7 +257,7 @@ export function AppLayout() {
     return <Navigate to="/app/profile/edit?require=photo" replace />;
   }
 
-  // App access is free while FishX grows; paid checks only apply to paid fishing challenges later.
+  // App access is free while Fish-X grows; paid checks only apply to paid fishing challenges later.
   const isAdmin = !!adminRole;
 
   // Redirect admins to /admin by default when visiting /app

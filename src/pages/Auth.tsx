@@ -173,7 +173,7 @@ const Auth = () => {
           }
         } else {
           toast({
-            title: 'Welcome to FishX!',
+            title: 'Welcome to Fish-X!',
             description: 'Check your email to confirm your account, then complete your profile.',
           });
           // Navigate to onboarding after successful signup
@@ -294,7 +294,7 @@ const Auth = () => {
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="w-full max-w-md">
           <div className="flex justify-center mb-8">
-            <img src={logo} alt="FishX" className="h-16 w-auto" />
+            <img src={logo} alt="Fish-X" className="h-16 w-auto" />
           </div>
           
           <h1 className="text-3xl font-bold mb-2 text-center">Set New Password</h1>
@@ -372,7 +372,7 @@ const Auth = () => {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <img 
           src={authFishingImage} 
-          alt="FishX" 
+          alt="Fish-X" 
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
@@ -383,7 +383,7 @@ const Auth = () => {
         {/* Logo */}
         <div className="flex justify-end p-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="FishX" className="h-12 w-auto" />
+            <img src={logo} alt="Fish-X" className="h-12 w-auto" />
           </Link>
         </div>
 

@@ -1470,7 +1470,7 @@ export default function ProfileEdit() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Choose how you want to use FishX. You can change this anytime.
+                  Choose how you want to use Fish-X. You can change this anytime.
                 </p>
                 <RadioGroup
                   value={accountMode}

@@ -101,7 +101,7 @@ export function FeedLeftSidebar() {
     enabled: !!user?.id,
   });
 
-  // Navigation items (themed FishX icons)
+  // Navigation items (themed Fish-X icons)
   const navItems: Array<{ to: string; icon: FishXIconName; label: string; badge?: number }> = [
     { to: '/app/buddies', icon: 'social', label: 'Friends', badge: pendingCount || undefined },
     { to: '/app/catches', icon: 'catchlog', label: 'My Catches' },

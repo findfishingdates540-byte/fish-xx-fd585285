@@ -164,7 +164,7 @@ export function AppHeader() {
           if (match.is_match && (match.user1_id === user.id || match.user2_id === user.id)) {
             queryClient.invalidateQueries({ queryKey: ['recent-matches', user.id] });
             playNotificationSound();
-            showBrowserNotification('New Match!', 'You have a new match on FishX!');
+            showBrowserNotification('New Match!', 'You have a new match on Fish-X!');
           }
         }
       )

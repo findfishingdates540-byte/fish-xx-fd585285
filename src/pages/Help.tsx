@@ -110,8 +110,8 @@ const Help = () => {
       { question: 'Messages aren\'t sending', answer: 'Check your internet connection. Force close and reopen the app. Check if you\'ve been unmatched (you won\'t see the chat anymore). Make sure the app is updated to the latest version.' },
       { question: 'I\'m not receiving push notifications', answer: 'Check: 1) Device settings have notifications enabled for our app, 2) In-app Settings → Notifications has relevant options on, 3) Do Not Disturb is off, 4) Battery saver isn\'t restricting the app.' },
       { question: 'The map isn\'t loading', answer: 'Ensure location services are enabled. Check your internet connection. Try switching between WiFi and cellular. Clear app cache and restart. Maps require an active data connection.' },
-       { question: 'How do I clear the app cache?', answer: 'On iOS: Delete and reinstall the app. On Android: Settings → Apps → FishX → Storage → Clear Cache. This can resolve many display and performance issues.' },
-       { question: 'How do I update the app?', answer: 'iOS: App Store → Profile → FishX → Update. Android: Play Store → My Apps → FishX → Update. We recommend enabling auto-updates for the best experience.' },
+       { question: 'How do I clear the app cache?', answer: 'On iOS: Delete and reinstall the app. On Android: Settings → Apps → Fish-X → Storage → Clear Cache. This can resolve many display and performance issues.' },
+       { question: 'How do I update the app?', answer: 'iOS: App Store → Profile → Fish-X → Update. Android: Play Store → My Apps → Fish-X → Update. We recommend enabling auto-updates for the best experience.' },
        { question: 'What browsers are supported?', answer: 'We officially support the latest versions of Chrome, Safari, Firefox, and Edge. For the best experience, use our mobile apps on iOS 14+ or Android 10+.' },
        { question: 'Why is my location inaccurate?', answer: 'Ensure location services are enabled and set to "precise". GPS accuracy varies by device and environment. Urban areas and indoors may reduce accuracy. For fishing spots, you can manually adjust the pin location.' },
        { question: 'How do I report a bug?', answer: 'Email support@fish-x.com with: device model, OS version, app version, description of the issue, and screenshots/videos if possible. The more detail you provide, the faster we can fix it.' }
@@ -154,8 +154,8 @@ const Help = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="Help Center — FishX"
-        description="Answers about catches, trips, tournaments, billing, and account settings. Search the FishX help center."
+        title="Help Center — Fish-X"
+        description="Answers about catches, trips, tournaments, billing, and account settings. Search the Fish-X help center."
         path="/help"
         jsonLd={{
           "@context": "https://schema.org",
@@ -174,7 +174,7 @@ const Help = () => {
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <h1 className="text-5xl md:text-6xl font-bold text-foreground">Help Center</h1>
           <p className="text-xl text-muted-foreground">
-            Find answers to your questions and learn how to get the most out of FishX.
+            Find answers to your questions and learn how to get the most out of Fish-X.
           </p>
           <div className="relative max-w-xl mx-auto">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />

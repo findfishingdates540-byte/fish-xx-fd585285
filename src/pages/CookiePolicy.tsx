@@ -23,31 +23,31 @@ export default function CookiePolicy() {
       name: 'sb-auth-token',
       purpose: 'Authentication session management',
       duration: 'Session / 7 days',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'sb-refresh-token',
       purpose: 'Maintains login session across visits',
       duration: '7 days',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'cookie-consent',
       purpose: 'Stores your cookie preferences',
       duration: '1 year',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'csrf-token',
       purpose: 'Security token to prevent cross-site request forgery',
       duration: 'Session',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'device-id',
       purpose: 'Identifies your device for security purposes',
       duration: '1 year',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
   ];
 
@@ -80,7 +80,7 @@ export default function CookiePolicy() {
       name: 'analytics_session',
       purpose: 'Tracks session-level engagement metrics',
       duration: 'Session',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
   ];
 
@@ -89,31 +89,31 @@ export default function CookiePolicy() {
       name: 'theme',
       purpose: 'Stores your light/dark mode preference',
       duration: '1 year',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'locale',
       purpose: 'Stores your language preference',
       duration: '1 year',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'map-style',
       purpose: 'Remembers your preferred map view style',
       duration: '1 year',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'units',
       purpose: 'Stores measurement unit preferences (imperial/metric)',
       duration: '1 year',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
     {
       name: 'notification-prefs',
       purpose: 'Stores in-app notification preferences',
       duration: '1 year',
-      provider: 'FishX',
+      provider: 'Fish-X',
     },
   ];
 
@@ -135,10 +135,10 @@ export default function CookiePolicy() {
   return (
     <>
       <Helmet>
-        <title>Cookie Policy | FishX</title>
+        <title>Cookie Policy | Fish-X</title>
         <meta 
           name="description" 
-          content="Learn about how FishX uses cookies to improve your experience, including essential, analytics, and preference cookies." 
+          content="Learn about how Fish-X uses cookies to improve your experience, including essential, analytics, and preference cookies." 
         />
       </Helmet>
       

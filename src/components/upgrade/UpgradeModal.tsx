@@ -26,7 +26,7 @@ const datingFeatures = [
 
 const comboFeatures = [
   { icon: Heart, label: 'Dating + Fishing Combined' },
-  { icon: Users, label: 'FishX Dating' },
+  { icon: Users, label: 'Fish-X Dating' },
   { icon: Star, label: 'VIP Support & Boosts' },
   { icon: Sparkles, label: 'Exclusive Events' },
 ];
@@ -45,7 +45,7 @@ export function UpgradeModal({ isOpen, onClose, featureName = 'fishing features'
     if (isDating) {
       return "Your current Fishing account doesn't include dating features. Upgrade to start matching with fellow fishing enthusiasts!";
     }
-    return "Your current Dating account doesn't include fishing features. Upgrade to unlock everything FishX has to offer!";
+    return "Your current Dating account doesn't include fishing features. Upgrade to unlock everything Fish-X has to offer!";
   };
 
   const getRecommendedPlan = () => {

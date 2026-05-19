@@ -80,7 +80,7 @@ export function EmailNotificationPrefs() {
         <div>
           <h3 className="font-semibold mb-1">Email Notifications</h3>
           <p className="text-sm text-muted-foreground">
-            Get an email when something happens on FishX. We never email for messages while you're actively in the app.
+            Get an email when something happens on Fish-X. We never email for messages while you're actively in the app.
           </p>
         </div>
 

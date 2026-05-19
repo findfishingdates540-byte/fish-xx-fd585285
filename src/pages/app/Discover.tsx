@@ -304,7 +304,7 @@ export default function Discover() {
             />
             
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg text-primary">FishX</span>
+              <span className="font-bold text-lg text-primary">Fish-X</span>
             </div>
             
             <div className="w-20" /> {/* Spacer for balance */}

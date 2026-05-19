@@ -171,7 +171,7 @@ export default function CatchDetail() {
     : "Angler";
 
   const shareUrl = `${getShareBaseUrl()}/app/catches/${catchId}`;
-  const shareTitle = `${speciesName} Catch on FishX`;
+  const shareTitle = `${speciesName} Catch on Fish-X`;
   const handleShare = () => setShareOpen(true);
 
   const badgeIcon = (type: string) => {
@@ -238,7 +238,7 @@ export default function CatchDetail() {
         onClose={() => setShareOpen(false)}
         shareUrl={shareUrl}
         shareTitle={shareTitle}
-        shareText={`Check out this ${speciesName} catch on FishX`}
+        shareText={`Check out this ${speciesName} catch on Fish-X`}
       />
 
       {/* Main Content */}

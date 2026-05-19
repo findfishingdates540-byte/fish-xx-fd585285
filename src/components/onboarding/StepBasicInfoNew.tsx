@@ -105,7 +105,7 @@ export function StepBasicInfoNew({
         />
         {!dobError && (
           <p className="text-xs text-primary mt-2">
-            You must be at least 13 years old to use FishX.
+            You must be at least 13 years old to use Fish-X.
           </p>
         )}
       </div>

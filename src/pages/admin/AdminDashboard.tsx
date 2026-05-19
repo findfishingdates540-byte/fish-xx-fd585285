@@ -124,7 +124,7 @@ export default function AdminDashboard() {
     let csvContent = "data:text/csv;charset=utf-8,";
     
     // Header
-    csvContent += "FishX - Admin Report\n";
+    csvContent += "Fish-X - Admin Report\n";
     csvContent += `Generated: ${format(new Date(), 'PPpp')}\n`;
     csvContent += `Date Range: Last ${dateRange} Days\n\n`;
     

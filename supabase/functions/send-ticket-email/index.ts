@@ -97,7 +97,7 @@ const handler = async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-           from: "FishX <team@fish-x.com>",
+           from: "Fish-X <team@fish-x.com>",
           to: ["support@fish-x.com"],
           subject: emailSubject,
           html: emailBody,
@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #374151;">Great news! Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${safeSubject}</em>" has been resolved.</p>
               ${message ? `<div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;"><p style="margin: 0; color: #166534; white-space: pre-wrap;">${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>` : ""}
               <p style="color: #374151;">If you have any further questions or need additional assistance, feel free to open a new ticket.</p>
-              <p style="color: #6b7280; margin-top: 24px;">Thanks for your patience,<br>FishX Team</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks for your patience,<br>Fish-X Team</p>
             </div>
           </body>
         </html>
@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #374151;">Your support ticket <strong>#${ticket.ticket_number}</strong> regarding "<em>${safeSubject}</em>" has been closed.</p>
               ${message ? `<div style="background: #f3f4f6; padding: 16px; margin: 20px 0; border-radius: 8px;"><p style="margin: 0; color: #374151; white-space: pre-wrap;">${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>` : ""}
               <p style="color: #374151;">If you need further assistance, you can always submit a new support ticket.</p>
-              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>FishX Team</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Fish-X Team</p>
             </div>
           </body>
         </html>
@@ -163,7 +163,7 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               ${message ? `<p style="color: #374151;"><strong>Message:</strong> ${escapeHtml(message)}</p>` : ""}
               <p style="color: #374151;">You can view your ticket and respond at any time by visiting your account.</p>
-              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>FishX Team</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Fish-X Team</p>
             </div>
           </body>
         </html>
@@ -181,7 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <p style="margin: 0; color: #0c4a6e; white-space: pre-wrap;">${message ? escapeHtml(message).replace(/\n/g, "<br>") : ""}</p>
               </div>
               <p style="color: #374151;">You can reply to this message by logging into your account and visiting your support tickets.</p>
-              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>FishX Team</p>
+              <p style="color: #6b7280; margin-top: 24px;">Thanks,<br>Fish-X Team</p>
             </div>
           </body>
         </html>
@@ -195,7 +195,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "FishX <team@fish-x.com>",
+        from: "Fish-X <team@fish-x.com>",
         to: [ticket.email],
         subject: emailSubject,
         html: emailBody,

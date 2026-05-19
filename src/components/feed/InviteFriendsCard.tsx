@@ -12,7 +12,7 @@ export function InviteFriendsCard() {
     const PRODUCTION_URL = 'https://fish-x.com';
     const inviteUrl = `${PRODUCTION_URL}?ref=${user?.id?.slice(0, 8)}`;
     const shareData = {
-      title: 'Join me on FishX!',
+      title: 'Join me on Fish-X!',
       text: 'Find fishing buddies and connect with anglers who share your passion.',
       url: inviteUrl,
     };

@@ -13,8 +13,8 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="About FishX — Our Mission for Anglers"
-        description="FishX is the social home for anglers — built to help you find spots, log catches, compete fairly, and connect with a global fishing community."
+        title="About Fish-X — Our Mission for Anglers"
+        description="Fish-X is the social home for anglers — built to help you find spots, log catches, compete fairly, and connect with a global fishing community."
         path="/about"
       />
       <PublicHeader />
@@ -34,7 +34,7 @@ const About = () => {
                 Your Ultimate Fishing Community
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                FishX was built by anglers, for anglers. We believe fishing is better together — whether 
+                Fish-X was built by anglers, for anglers. We believe fishing is better together — whether 
                 you're discovering new spots, finding buddies, or logging your personal best.
               </p>
             </motion.div>
@@ -60,18 +60,18 @@ const About = () => {
             </h2>
             <div className="text-lg text-muted-foreground leading-relaxed space-y-6">
               <p>
-                FishX was founded by a group of avid anglers who wanted a better way to connect with 
+                Fish-X was founded by a group of avid anglers who wanted a better way to connect with 
                 the fishing community. Traditional social platforms didn't capture what makes fishing 
                 special — the early mornings, the patience, the thrill of the catch, and the peace of being on the water.
               </p>
               <p>
-                We built FishX as the ultimate fishing platform: log catches, discover spots, find 
+                We built Fish-X as the ultimate fishing platform: log catches, discover spots, find 
                 fishing buddies, plan trips, and share your adventures. Whether you're a beginner 
-                learning the ropes or an expert chasing your next trophy, FishX is your home.
+                learning the ropes or an expert chasing your next trophy, Fish-X is your home.
               </p>
               <p>
                 For adult users (18+), we also offer an optional dating add-on — because some of the 
-                best relationships start with a shared passion for the water. But at its core, FishX 
+                best relationships start with a shared passion for the water. But at its core, Fish-X 
                 is about the fishing community.
               </p>
             </div>
@@ -110,7 +110,7 @@ const About = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-foreground">Inclusive Community</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  FishX welcomes everyone — all ages (13+), all experience levels, all backgrounds. 
+                  Fish-X welcomes everyone — all ages (13+), all experience levels, all backgrounds. 
                   Our community is united by a love of fishing.
                 </p>
               </motion.div>
@@ -163,7 +163,7 @@ const About = () => {
                 <h3 className="text-2xl font-bold text-foreground">Always Improving</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   We're constantly listening to our community and improving our platform. Your feedback 
-                  shapes the future of FishX.
+                  shapes the future of Fish-X.
                 </p>
               </motion.div>
             </StaggerItem>
@@ -195,7 +195,7 @@ const About = () => {
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
                 Our team is made up of passionate fishers who understand exactly what you need. 
-                From freshwater lakes to ocean shores, we've built FishX to be the platform 
+                From freshwater lakes to ocean shores, we've built Fish-X to be the platform 
                 we always wished existed.
               </p>
               <StaggerContainer className="grid grid-cols-2 gap-8" staggerDelay={0.1}>

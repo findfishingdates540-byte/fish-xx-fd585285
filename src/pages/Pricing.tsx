@@ -144,8 +144,8 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="FishX Pricing — Free, Premium & Pro Plans"
-        description="Compare FishX plans for free anglers, premium members, and pro competitors. Annual billing saves 20%, includes a 7-day free trial."
+        title="Fish-X Pricing — Free, Premium & Pro Plans"
+        description="Compare Fish-X plans for free anglers, premium members, and pro competitors. Annual billing saves 20%, includes a 7-day free trial."
         path="/pricing"
         jsonLd={{
   "@context": "https://schema.org",
