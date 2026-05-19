@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useServerTime, serverNow } from "@/hooks/use-server-time";
+import { useServerTime, serverNow, getServerTimeStatus } from "@/hooks/use-server-time";
 
 type TabValue = "live" | "upcoming" | "completed";
 
@@ -78,11 +78,18 @@ function useCountdown(endDate: string) {
 function CountdownDisplay({ endDate }: { endDate: string }) {
   const { days, hours, minutes, totalMs } = useCountdown(endDate);
   const urgent = totalMs > 0 && totalMs <= 60 * 60 * 1000;
+  const { degraded, online } = getServerTimeStatus();
   const cellCls = urgent
     ? "bg-rose-500/15 text-rose-300 border border-rose-500/40 px-1.5 py-0.5 rounded font-bold animate-pulse"
     : "bg-[hsl(var(--sb-surface-2))] sb-cyan border sb-border px-1.5 py-0.5 rounded font-bold";
   return (
-    <div className="flex items-center gap-1 text-xs font-mono">
+    <div className="flex items-center gap-1 text-xs font-mono" title={degraded ? (online ? "Time may be slightly off — reconnecting…" : "Offline — showing last known time") : undefined}>
+      {degraded && (
+        <span
+          aria-label={online ? "Time sync degraded" : "Offline"}
+          className={`h-1.5 w-1.5 rounded-full mr-0.5 ${online ? "bg-amber-400" : "bg-amber-500"} animate-pulse`}
+        />
+      )}
       <span className={cellCls}>{String(days).padStart(2, "0")}d</span>
       <span className="sb-text-muted">:</span>
       <span className={cellCls}>{String(hours).padStart(2, "0")}h</span>
