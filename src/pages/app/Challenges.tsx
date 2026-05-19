@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
+import { localMidnightUtcMs, getUserTimeZone } from "@/lib/timezone";
 
 type TabValue = "live" | "upcoming" | "completed";
 
@@ -150,9 +151,12 @@ export default function Challenges() {
   const remindMutation = useMutation({
     mutationFn: async ({ challengeId, startDate }: { challengeId: string; startDate: string }) => {
       if (!user) throw new Error("Must be logged in");
-      // Fire reminder 1 hour before start (or immediately if start is sooner).
-      const start = new Date(startDate).getTime();
-      const remindAt = new Date(Math.max(Date.now(), start - 60 * 60 * 1000)).toISOString();
+      // Fire reminder 1 hour before the challenge start in the user's local timezone.
+      // start_date is a DATE column ("YYYY-MM-DD"); interpret it as local midnight
+      // in the user's IANA timezone, then subtract one hour.
+      const tz = getUserTimeZone();
+      const localStartMs = localMidnightUtcMs(startDate, tz);
+      const remindAt = new Date(Math.max(Date.now(), localStartMs - 60 * 60 * 1000)).toISOString();
       const { error } = await supabase
         .from("challenge_reminders")
         .insert({ user_id: user.id, challenge_id: challengeId, remind_at: remindAt });
