@@ -22,8 +22,8 @@ import { OnboardingDebugOverlay } from "@/components/onboarding/OnboardingDebugO
 
 import fishingRodImage from "@/assets/onboarding-step1.jpg";
 import datingImage from "@/assets/dating-hero.jpg";
-import comboImage from "@/assets/couple-fishing.jpg";
-import logoImage from "@/assets/logo.png";
+import comboImage from "@/assets/fishing-photo-1.jpg";
+import logoImage from "@/assets/fishx-logo.png";
 
 // Animation variants - fade only, no sliding
 const stepVariants = {
