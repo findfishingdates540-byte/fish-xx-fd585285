@@ -518,7 +518,7 @@ export default function CookiePolicy() {
                   </p>
                   <ul className="space-y-1 text-muted-foreground">
                     <li>Email: <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a></li>
-                    <li>Mail: FishX LLC, Lake City, FL</li>
+                    <li>Mail: Fish-X LLC, Lake City, FL</li>
                   </ul>
                 </div>
               </div>
