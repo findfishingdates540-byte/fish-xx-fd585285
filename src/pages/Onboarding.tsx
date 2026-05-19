@@ -651,7 +651,7 @@ export default function Onboarding() {
                 <img
                   src={accountMode === 'dating' ? datingImage : accountMode === 'fishing' ? fishingRodImage : comboImage}
                   alt={accountMode === 'dating' ? 'Dating' : accountMode === 'fishing' ? 'Fishing' : 'Couple Fishing'}
-                  className="w-full max-w-[260px] mx-auto rounded-2xl object-cover"
+                  className="w-full max-w-sm mx-auto rounded-2xl object-cover"
                 />
               </div>
             </div>
