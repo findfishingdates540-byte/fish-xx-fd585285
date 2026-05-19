@@ -124,6 +124,13 @@ export default function Catches() {
         data.videoFile ? uploadSingleFile(data.videoFile) : Promise.resolve(null),
       ]);
 
+      // Upload additional photos in parallel
+      const additionalUrls = data.additionalPhotos.length > 0
+        ? (await Promise.all(data.additionalPhotos.map((f) => uploadSingleFile(f)))).filter(
+            (u): u is string => !!u,
+          )
+        : [];
+
       let speciesName = data.species_name;
       let speciesId: string | null = data.species_id || null;
 
@@ -154,7 +161,7 @@ export default function Catches() {
 
       const caughtAtISO = data.caught_at ? new Date(data.caught_at).toISOString() : null;
 
-      const { error } = await supabase.from("catches").insert({
+      const { data: insertedCatch, error } = await supabase.from("catches").insert({
         user_id: user.id,
         species_name: speciesName || null,
         species_id: speciesId,
@@ -177,8 +184,19 @@ export default function Catches() {
         catch_method: data.catch_method || null,
         trophy_level: data.trophy_level || null,
         is_estimated_size: data.is_estimated_size,
-      } as any);
+      } as any).select("id").single();
       if (error) throw error;
+
+      // Persist additional photos to catch_photos
+      if (insertedCatch?.id && additionalUrls.length > 0) {
+        await supabase.from("catch_photos").insert(
+          additionalUrls.map((url) => ({
+            catch_id: insertedCatch.id,
+            photo_url: url,
+            photo_type: "general" as const,
+          })),
+        );
+      }
 
       // Refresh community map so new catch appears immediately
       queryClient.invalidateQueries({ queryKey: ['shared-catches-map'] });
