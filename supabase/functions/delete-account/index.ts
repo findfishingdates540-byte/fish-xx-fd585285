@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "FishX <team@fishx.app>",
+            from: "FishX <team@fish-x.com>",
             to: [user.email],
             subject: "Your account has been deleted",
             html: `

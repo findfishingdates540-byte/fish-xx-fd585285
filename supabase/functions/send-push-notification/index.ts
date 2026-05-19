@@ -603,7 +603,7 @@ serve(async (req) => {
               sub.auth,
               vapidPublicKey!,
               vapidPrivateKey!,
-              'mailto:support@fishx.app',
+              'mailto:support@fish-x.com',
               payload
             );
 
