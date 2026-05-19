@@ -197,6 +197,13 @@ export default function Challenges() {
     return list;
   }, [enrichedChallenges, tab, searchQuery]);
 
+  // Counts per tab
+  const tabCounts = useMemo(() => ({
+    live: enrichedChallenges.filter((c) => c.status === "active").length,
+    upcoming: enrichedChallenges.filter((c) => c.status === "upcoming").length,
+    completed: enrichedChallenges.filter((c) => c.status === "completed").length,
+  }), [enrichedChallenges]);
+
   // My stats
   const myStats = useMemo(() => {
     if (!user) return { activeChallenges: 0, totalPurses: 0, bestRank: null };
@@ -310,10 +317,10 @@ export default function Challenges() {
       <div className="px-4 md:px-6 mb-6">
         <div className="inline-flex sb-card-soft p-0.5 gap-0.5">
           {[
-            { key: "live", label: "Live Now", icon: <Flame className="h-3.5 w-3.5" /> },
-            { key: "upcoming", label: "Upcoming" },
-            { key: "completed", label: "Completed" },
-          ].map(({ key, label, icon }) => (
+            { key: "live", label: "Live Now", icon: <Flame className="h-3.5 w-3.5" />, count: tabCounts.live },
+            { key: "upcoming", label: "Upcoming", count: tabCounts.upcoming },
+            { key: "completed", label: "Completed", count: tabCounts.completed },
+          ].map(({ key, label, icon, count }) => (
             <button
               key={key}
               onClick={() => setTab(key as TabValue)}
@@ -323,6 +330,11 @@ export default function Challenges() {
             >
               {icon}
               {label}
+              <span className={`ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold ${
+                tab === key ? "bg-[hsl(var(--sb-bg)/0.25)] text-white" : "bg-[hsl(var(--sb-surface-2))] sb-text-muted"
+              }`}>
+                {count}
+              </span>
             </button>
           ))}
         </div>
@@ -354,6 +366,7 @@ export default function Challenges() {
                 onJoin={() => joinMutation.mutate(challenge.id)}
                 joining={joinMutation.isPending}
                 rankLabel={rankLabel}
+                onOpen={() => navigate(`/app/challenges/${challenge.id}`)}
               />
             ))}
           </div>
@@ -370,14 +383,14 @@ export default function Challenges() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((challenge) => (
-                <UpcomingChallengeCard key={challenge.id} challenge={challenge} onJoin={() => joinMutation.mutate(challenge.id)} joining={joinMutation.isPending} />
+                <UpcomingChallengeCard key={challenge.id} challenge={challenge} onJoin={() => joinMutation.mutate(challenge.id)} joining={joinMutation.isPending} onOpen={() => navigate(`/app/challenges/${challenge.id}`)} />
               ))}
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((challenge) => (
-              <CompletedChallengeCard key={challenge.id} challenge={challenge} rankLabel={rankLabel} />
+              <CompletedChallengeCard key={challenge.id} challenge={challenge} rankLabel={rankLabel} onOpen={() => navigate(`/app/challenges/${challenge.id}`)} />
             ))}
           </div>
         )}
@@ -422,14 +435,16 @@ function LiveChallengeCard({
   onJoin,
   joining,
   rankLabel,
+  onOpen,
 }: {
   challenge: ChallengeWithDetails;
   onJoin: () => void;
   joining: boolean;
   rankLabel: (r: number) => React.ReactNode;
+  onOpen: () => void;
 }) {
   return (
-    <div className="sb-card overflow-hidden">
+    <div onClick={onOpen} className="sb-card overflow-hidden cursor-pointer hover:border-[hsl(var(--sb-cyan))] transition-colors">
       {/* Top section */}
       <div className="relative h-36 bg-gradient-to-br from-[hsl(var(--sb-surface-2))] to-[hsl(var(--sb-surface))] p-4 flex flex-col justify-end overflow-hidden">
         {challenge.bannerUrl && (
@@ -515,7 +530,7 @@ function LiveChallengeCard({
               )}
             </div>
             <button
-              onClick={onJoin}
+              onClick={(e) => { e.stopPropagation(); onJoin(); }}
               disabled={challenge.isJoined || joining}
               className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
                 challenge.isJoined
@@ -537,10 +552,12 @@ function UpcomingChallengeCard({
   challenge,
   onJoin,
   joining,
+  onOpen,
 }: {
   challenge: ChallengeWithDetails;
   onJoin: () => void;
   joining: boolean;
+  onOpen: () => void;
 }) {
   const startDate = new Date(challenge.start_date);
   const typeLabel = challenge.is_official ? "Pro Series" : challenge.challenge_type === "most_caught" ? "Casual" : "Team Event";
@@ -551,7 +568,7 @@ function UpcomingChallengeCard({
       : "bg-violet-500 text-white";
 
   return (
-    <div className="sb-card overflow-hidden group hover:border-[hsl(var(--sb-cyan))] transition-colors">
+    <div onClick={onOpen} className="sb-card overflow-hidden group cursor-pointer hover:border-[hsl(var(--sb-cyan))] transition-colors">
       <div className="relative h-28 bg-gradient-to-br from-[hsl(var(--sb-surface-2))] to-[hsl(var(--sb-surface))] p-3 flex flex-col justify-end overflow-hidden">
         {challenge.bannerUrl && (
           <img src={challenge.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -583,7 +600,7 @@ function UpcomingChallengeCard({
             </div>
           )}
           <button
-            onClick={onJoin}
+            onClick={(e) => { e.stopPropagation(); onJoin(); }}
             disabled={challenge.isJoined || joining}
             className="px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border sb-border sb-cyan hover:bg-[hsl(var(--sb-cyan)/0.1)] transition-colors disabled:opacity-60"
           >
@@ -599,12 +616,14 @@ function UpcomingChallengeCard({
 function CompletedChallengeCard({
   challenge,
   rankLabel,
+  onOpen,
 }: {
   challenge: ChallengeWithDetails;
   rankLabel: (r: number) => React.ReactNode;
+  onOpen: () => void;
 }) {
   return (
-    <div className="sb-card p-4 opacity-90 hover:opacity-100 transition-opacity">
+    <div onClick={onOpen} className="sb-card p-4 opacity-90 hover:opacity-100 cursor-pointer hover:border-[hsl(var(--sb-cyan))] transition-all">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-sm">{challenge.title}</h3>
         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[hsl(var(--sb-surface-2))] sb-text-muted border sb-border">Completed</span>
