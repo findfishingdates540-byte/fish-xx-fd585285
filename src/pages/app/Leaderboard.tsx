@@ -23,6 +23,7 @@ import {
   Minus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import PointsLeaderboard from "@/components/leaderboard/PointsLeaderboard";
 
 interface Species {
   id: string;
@@ -261,6 +262,9 @@ export default function Leaderboard() {
               </div>
             )}
           </section>
+
+          {/* Points Leaderboard */}
+          <PointsLeaderboard />
 
           {/* Team Rankings */}
           <section>
