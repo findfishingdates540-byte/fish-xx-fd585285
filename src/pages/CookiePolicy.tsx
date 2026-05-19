@@ -163,7 +163,7 @@ export default function CookiePolicy() {
             {/* Introduction */}
             <section className="mb-12">
               <p className="text-lg text-muted-foreground mb-6">
-                This Cookie Policy explains how FishX LLC ("we", "us", or "our") uses cookies 
+                This Cookie Policy explains how Fish-X LLC ("we", "us", or "our") uses cookies 
                 and similar tracking technologies when you visit our website and use our services. This policy 
                 should be read alongside our Privacy Policy.
               </p>
@@ -518,7 +518,7 @@ export default function CookiePolicy() {
                   </p>
                   <ul className="space-y-1 text-muted-foreground">
                     <li>Email: <a href="mailto:privacy@fishx.app" className="text-primary hover:underline">privacy@fishx.app</a></li>
-                    <li>Mail: FishX LLC, Lake City, FL</li>
+                    <li>Mail: Fish-X LLC, Lake City, FL</li>
                   </ul>
                 </div>
               </div>

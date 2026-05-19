@@ -146,7 +146,7 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-4 text-muted-foreground">
                   <p>
-                    Welcome to FishX! These Terms and Conditions ("Terms") govern your use of the FishX website and mobile application (collectively, the "Service") operated by FishX LLC ("Company," "we," "us," or "our").
+                    Welcome to FishX! These Terms and Conditions ("Terms") govern your use of the FishX website and mobile application (collectively, the "Service") operated by Fish-X LLC ("Company," "we," "us," or "our").
                   </p>
                   <p>
                     By accessing or using FishX, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use our Service.
@@ -684,7 +684,7 @@ const Terms = () => {
                   
                   <h3 className="font-semibold text-foreground">Our Property</h3>
                   <p className="text-sm">
-                    The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of FishX LLC. This includes:
+                    The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of Fish-X LLC. This includes:
                   </p>
                   <ul className="text-sm list-disc list-inside space-y-1 mt-2">
                     <li>Trademarks: "FishX," logos, and brand assets</li>
@@ -705,7 +705,7 @@ const Terms = () => {
                     <p className="mb-3">If you believe your copyright has been infringed, submit a DMCA takedown notice to:</p>
                     <p>
                        <strong>Email:</strong> <a href="mailto:dmca@fishx.app" className="text-primary hover:underline">dmca@fishx.app</a><br />
-                       <strong>Mail:</strong> FishX LLC, ATTN: DMCA Agent, 123 Fishing Lane, Lake City, FL 32055
+                       <strong>Mail:</strong> Fish-X LLC, ATTN: DMCA Agent, 123 Fishing Lane, Lake City, FL 32055
                     </p>
                     <p className="mt-3">Your notice must include: identification of the copyrighted work, location of infringing material, your contact information, and a statement of good faith belief and accuracy under penalty of perjury.</p>
                   </div>
@@ -828,7 +828,7 @@ const Terms = () => {
                        For questions about these Terms, contact us at <a href="mailto:legal@fishx.app" className="text-primary hover:underline">legal@fishx.app</a> or:
                      </p>
                      <p className="mt-2">
-                       FishX LLC<br />
+                       Fish-X LLC<br />
                        123 Fishing Lane<br />
                        Lake City, FL 32055
                      </p>

@@ -235,7 +235,7 @@ export function FeedRightSidebar() {
           <span>·</span>
           <Link to="/terms" className="hover:underline">Terms</Link>
         </div>
-        <p>© 2025 FishX LLC</p>
+        <p>© 2026 Fish-X LLC</p>
       </div>
     </div>;
 }
