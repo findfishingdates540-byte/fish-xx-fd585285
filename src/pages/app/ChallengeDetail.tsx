@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { useServerTime, serverNow, getServerTimeStatus } from "@/hooks/use-server-time";
+import { getServerTimeStatus } from "@/hooks/use-server-time";
+import { useCountdown } from "@/hooks/use-countdown";
 
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -304,32 +304,14 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
 }
 
 function CountdownBanner({ label, targetDate }: { label: string; targetDate: string }) {
-  useServerTime();
-  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0, total: 0 });
-  useEffect(() => {
-    const calc = () => {
-      const diff = new Date(targetDate).getTime() - serverNow();
-      if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0, total: 0 };
-      return {
-        d: Math.floor(diff / 86400000),
-        h: Math.floor((diff / 3600000) % 24),
-        m: Math.floor((diff / 60000) % 60),
-        s: Math.floor((diff / 1000) % 60),
-        total: diff,
-      };
-    };
-    setT(calc());
-    const id = setInterval(() => setT(calc()), 1000);
-    return () => clearInterval(id);
-  }, [targetDate]);
-
-  const urgent = t.total > 0 && t.total <= 60 * 60 * 1000;
+  const { days, hours, minutes, seconds, totalMs } = useCountdown(targetDate);
+  const urgent = totalMs > 0 && totalMs <= 60 * 60 * 1000;
   const { degraded, online } = getServerTimeStatus();
   const units = [
-    { v: t.d, l: "Days" },
-    { v: t.h, l: "Hours" },
-    { v: t.m, l: "Mins" },
-    { v: t.s, l: "Secs" },
+    { v: days, l: "Days" },
+    { v: hours, l: "Hours" },
+    { v: minutes, l: "Mins" },
+    { v: seconds, l: "Secs" },
   ];
   return (
     <div className={`rounded-lg p-3 border transition-colors ${
