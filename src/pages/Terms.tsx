@@ -146,7 +146,7 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-4 text-muted-foreground">
                   <p>
-                    Welcome to FishX! These Terms and Conditions ("Terms") govern your use of the FishX website and mobile application (collectively, the "Service") operated by FishX LLC ("Company," "we," "us," or "our").
+                    Welcome to FishX! These Terms and Conditions ("Terms") govern your use of the FishX website and mobile application (collectively, the "Service") operated by Fish-X LLC ("Company," "we," "us," or "our").
                   </p>
                   <p>
                     By accessing or using FishX, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use our Service.
