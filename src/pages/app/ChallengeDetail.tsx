@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { useServerTime, serverNow } from "@/hooks/use-server-time";
+import { useServerTime, serverNow, getServerTimeStatus } from "@/hooks/use-server-time";
 
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -324,6 +324,7 @@ function CountdownBanner({ label, targetDate }: { label: string; targetDate: str
   }, [targetDate]);
 
   const urgent = t.total > 0 && t.total <= 60 * 60 * 1000;
+  const { degraded, online } = getServerTimeStatus();
   const units = [
     { v: t.d, l: "Days" },
     { v: t.h, l: "Hours" },
@@ -336,10 +337,21 @@ function CountdownBanner({ label, targetDate }: { label: string; targetDate: str
         ? "bg-rose-500/10 border-rose-500/50 animate-pulse"
         : "bg-[hsl(var(--sb-surface-2))] sb-border"
     }`}>
-      <p className={`text-[10px] uppercase tracking-widest font-semibold mb-2 flex items-center gap-1.5 ${urgent ? "text-rose-300" : "sb-cyan"}`}>
-        {urgent && <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />}
-        {urgent ? `${label.replace(/ in$/i, "")} soon!` : label}
-      </p>
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <p className={`text-[10px] uppercase tracking-widest font-semibold flex items-center gap-1.5 ${urgent ? "text-rose-300" : "sb-cyan"}`}>
+          {urgent && <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />}
+          {urgent ? `${label.replace(/ in$/i, "")} soon!` : label}
+        </p>
+        {degraded && (
+          <span
+            title={online ? "Time may be slightly off — reconnecting…" : "Offline — showing last known time"}
+            className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-amber-400/90"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+            {online ? "Reconnecting" : "Offline"}
+          </span>
+        )}
+      </div>
       <div className="grid grid-cols-4 gap-2">
         {units.map((u) => (
           <div key={u.l} className={`text-center rounded-md py-2 ${urgent ? "bg-rose-500/15" : "bg-[hsl(var(--sb-surface))]"}`}>
