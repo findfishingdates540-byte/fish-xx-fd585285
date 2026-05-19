@@ -574,7 +574,7 @@ function UpcomingChallengeCard({
           <p className="text-sm font-bold leading-none">{startDate.toLocaleDateString("en-US", { day: "2-digit" })}</p>
           <p className="text-[9px] sb-cyan uppercase tracking-wider mt-0.5">{startDate.toLocaleDateString("en-US", { month: "short" })}</p>
         </div>
-        <button className="absolute bottom-3 right-3 text-[10px] sb-cyan font-semibold hover:underline">
+        <button type="button" onClick={(e) => { e.stopPropagation(); }} className="absolute bottom-3 right-3 text-[10px] sb-cyan font-semibold hover:underline">
           Remind Me
         </button>
       </div>
@@ -601,13 +601,15 @@ function UpcomingChallengeCard({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={(e) => { e.stopPropagation(); onOpen(); }}
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpen(); }}
               className="px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border sb-border sb-cyan hover:bg-[hsl(var(--sb-cyan)/0.1)] transition-colors"
             >
               Details
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onJoin(); }}
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onJoin(); }}
               disabled={challenge.isJoined || joining}
               className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-opacity ${
                 challenge.isJoined
