@@ -902,7 +902,13 @@ const TournamentDetail = () => {
                         </div>
                         <div className="flex flex-col justify-around flex-1 gap-3">
                           {rMatchups.map((m: any) => (
-                            <div key={m.id} data-matchup-id={m.id} ref={setMatchupNode(m.id)}>
+                            <Link
+                              key={m.id}
+                              to={`/app/tournaments/${id}/matchups/${m.id}`}
+                              data-matchup-id={m.id}
+                              ref={setMatchupNode(m.id) as any}
+                              className="block hover:opacity-90 transition-opacity"
+                            >
                               <MatchupCard
                                 matchup={m}
                                 roundName={round.round_name}
@@ -910,7 +916,7 @@ const TournamentDetail = () => {
                                 getPlayerName={getPlayerName}
                                 getPlayerPhoto={getPlayerPhoto}
                               />
-                            </div>
+                            </Link>
                           ))}
                           {rMatchups.length === 0 && (
                             <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">TBD</div>
@@ -942,7 +948,13 @@ const TournamentDetail = () => {
                             <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide">{round.round_name}</p>
                             <div className="flex flex-col justify-around flex-1 gap-3">
                               {rMatchups.map((m: any) => (
-                                <div key={m.id} data-matchup-id={m.id} ref={setMatchupNode(m.id)}>
+                                <Link
+                                  key={m.id}
+                                  to={`/app/tournaments/${id}/matchups/${m.id}`}
+                                  data-matchup-id={m.id}
+                                  ref={setMatchupNode(m.id) as any}
+                                  className="block hover:opacity-90 transition-opacity"
+                                >
                                   <MatchupCard
                                     matchup={m}
                                     roundName={round.round_name}
@@ -950,7 +962,7 @@ const TournamentDetail = () => {
                                     getPlayerName={getPlayerName}
                                     getPlayerPhoto={getPlayerPhoto}
                                   />
-                                </div>
+                                </Link>
                               ))}
                             </div>
                           </div>
