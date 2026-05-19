@@ -23,6 +23,7 @@ import {
   Minus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import PointsLeaderboard from "@/components/leaderboard/PointsLeaderboard";
 
 interface Species {
   id: string;
