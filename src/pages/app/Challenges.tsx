@@ -381,12 +381,58 @@ export default function Challenges() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <Trophy className="h-12 w-12 mx-auto sb-text-muted opacity-30 mb-3" />
-            <p className="font-medium mb-1">No {tab === "live" ? "live" : tab} challenges</p>
-            <p className="text-sm sb-text-muted">
-              {tab === "live" ? "Check upcoming challenges or create your own!" : "Check back later for new challenges."}
-            </p>
+          <div className="text-center py-20 px-4 max-w-md mx-auto">
+            {tab === "live" ? (
+              <>
+                <Flame className="h-12 w-12 mx-auto sb-text-muted opacity-30 mb-3" />
+                <p className="font-semibold mb-1">No live challenges right now</p>
+                <p className="text-sm sb-text-muted mb-5">
+                  Check the Upcoming tab to register, or host your own private event.
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <button
+                    onClick={() => setTab("upcoming")}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg sb-card-soft text-xs font-semibold hover:border-[hsl(var(--sb-cyan))] transition-colors"
+                  >
+                    See Upcoming
+                  </button>
+                  <button
+                    onClick={() => navigate("/app/challenges/new")}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg sb-bg-cyan text-xs font-bold"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Host a Challenge
+                  </button>
+                </div>
+              </>
+            ) : tab === "upcoming" ? (
+              <>
+                <Clock className="h-12 w-12 mx-auto sb-text-muted opacity-30 mb-3" />
+                <p className="font-semibold mb-1">Nothing on the schedule yet</p>
+                <p className="text-sm sb-text-muted mb-5">
+                  New tournaments and weekend derbies appear here as soon as they're announced.
+                </p>
+                <button
+                  onClick={() => navigate("/app/challenges/new")}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg sb-bg-cyan text-xs font-bold"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Create One
+                </button>
+              </>
+            ) : (
+              <>
+                <Trophy className="h-12 w-12 mx-auto sb-text-muted opacity-30 mb-3" />
+                <p className="font-semibold mb-1">No completed challenges yet</p>
+                <p className="text-sm sb-text-muted mb-5">
+                  Past winners and final standings will show up here once challenges wrap.
+                </p>
+                <button
+                  onClick={() => setTab("live")}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg sb-card-soft text-xs font-semibold hover:border-[hsl(var(--sb-cyan))] transition-colors"
+                >
+                  Back to Live
+                </button>
+              </>
+            )}
           </div>
         ) : tab === "live" ? (
           /* Live cards - big format */
