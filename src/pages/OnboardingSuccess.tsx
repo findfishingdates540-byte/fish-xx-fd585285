@@ -175,8 +175,8 @@ export default function OnboardingSuccess() {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logoImage} alt="FishX" className="w-8 h-8 rounded-full object-cover" />
-            <span className="font-bold text-lg text-foreground">FishX</span>
+            <img src={logoImage} alt="Fish-X" className="w-8 h-8 rounded-full object-cover" />
+            <span className="font-bold text-lg text-foreground">Fish-X</span>
           </div>
           {displayName && (
             <div className="text-right">

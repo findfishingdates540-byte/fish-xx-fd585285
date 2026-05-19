@@ -432,7 +432,7 @@ export default function AnglerTrophies() {
           onClose={() => setShareCatch(null)}
           shareUrl={`${getShareBaseUrl()}/app/catches/${shareCatch.id}`}
           shareTitle={`${shareCatch.species_name || "Catch"} • ${shareCatch.weight_lbs || "—"} lbs`}
-          shareText={`Check out this catch on FishX`}
+          shareText={`Check out this catch on Fish-X`}
         />
       )}
     </div>

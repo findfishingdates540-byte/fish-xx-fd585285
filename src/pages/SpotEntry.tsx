@@ -224,7 +224,7 @@ export default function SpotEntry() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <img src={logo} alt="FishX" className="h-12 w-auto mx-auto mb-4" />
+            <img src={logo} alt="Fish-X" className="h-12 w-auto mx-auto mb-4" />
             <div className="p-3 rounded-full bg-primary/10 inline-flex mb-3">
               <MapPin className="h-8 w-8 text-primary" />
             </div>
@@ -266,7 +266,7 @@ export default function SpotEntry() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <img src={logo} alt="FishX" className="h-12 w-auto mx-auto mb-4" />
+          <img src={logo} alt="Fish-X" className="h-12 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
           <p className="text-muted-foreground mb-6">Your account doesn't have data entry permissions. Contact an admin to get access.</p>
           <Button onClick={handleLogout} variant="outline">
@@ -283,7 +283,7 @@ export default function SpotEntry() {
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="FishX" className="h-8 w-8 rounded-full object-cover" />
+            <img src={logo} alt="Fish-X" className="h-8 w-8 rounded-full object-cover" />
             <div>
               <h1 className="font-bold text-lg">Spot Data Entry</h1>
               <p className="text-xs text-muted-foreground">{user.email}</p>

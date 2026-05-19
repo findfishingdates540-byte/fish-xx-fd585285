@@ -14,7 +14,7 @@ const Dating = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="FishX Dating — Meet Anglers Who Share Your Passion"
+        title="Fish-X Dating — Meet Anglers Who Share Your Passion"
         description="Optional dating mode for anglers 18+. Match with people who love fishing — plan trips, share spots, and build real connections."
         path="/dating"
       />
@@ -30,21 +30,21 @@ const Dating = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">FishX Dating — 18+ Add-On</span>
+              <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Fish-X Dating — 18+ Add-On</span>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
                 Find Love on the Water
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                FishX Dating is an optional add-on for users 18 and older. Create a dating profile 
+                Fish-X Dating is an optional add-on for users 18 and older. Create a dating profile 
                 from your Settings to discover romantic connections with fellow anglers.
               </p>
               <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-lg p-3">
                 <AlertTriangle className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>You must be 18+ and have a FishX account to use dating features.</span>
+                <span>You must be 18+ and have a Fish-X account to use dating features.</span>
               </div>
               <Link to="/auth?mode=signup">
                 <Button size="lg" className="btn-primary text-lg px-10 py-6">
-                  Join FishX Free
+                  Join Fish-X Free
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
@@ -67,14 +67,14 @@ const Dating = () => {
           <ScrollReveal className="text-center mb-16">
             <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">How It Works</span>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mt-4">
-              Add Dating to Your FishX Account
+              Add Dating to Your Fish-X Account
             </h2>
           </ScrollReveal>
           
           <StaggerContainer className="grid md:grid-cols-4 gap-8" staggerDelay={0.15}>
             <StaggerItem className="text-center space-y-4">
               <motion.div className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold" whileHover={{ scale: 1.1 }}>1</motion.div>
-              <h3 className="text-xl font-bold text-foreground">Sign Up for FishX</h3>
+              <h3 className="text-xl font-bold text-foreground">Sign Up for Fish-X</h3>
               <p className="text-muted-foreground">Create your free fishing account and set up your angler profile.</p>
             </StaggerItem>
             <StaggerItem className="text-center space-y-4">
@@ -90,7 +90,7 @@ const Dating = () => {
             <StaggerItem className="text-center space-y-4">
               <motion.div className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold" whileHover={{ scale: 1.1 }}>4</motion.div>
               <h3 className="text-xl font-bold text-foreground">Plan Your Date</h3>
-              <p className="text-muted-foreground">Use FishX fishing spots to plan the perfect first date on the water.</p>
+              <p className="text-muted-foreground">Use Fish-X fishing spots to plan the perfect first date on the water.</p>
             </StaggerItem>
           </StaggerContainer>
         </div>
@@ -177,11 +177,11 @@ const Dating = () => {
             Ready to find your fishing partner?
           </h2>
           <p className="text-xl text-background/70 mb-10 max-w-2xl mx-auto">
-            Join FishX for free, then add a dating profile from your Settings to start matching with fellow anglers.
+            Join Fish-X for free, then add a dating profile from your Settings to start matching with fellow anglers.
           </p>
           <Link to="/auth?mode=signup">
             <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-12 py-6 text-lg">
-              Join FishX Free
+              Join Fish-X Free
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>

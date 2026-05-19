@@ -63,8 +63,8 @@ const Privacy = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="Privacy Policy — FishX"
-        description="How FishX collects, uses, and protects your data — location, photos, and account details — across our fishing and dating features."
+        title="Privacy Policy — Fish-X"
+        description="How Fish-X collects, uses, and protects your data — location, photos, and account details — across our fishing and dating features."
         path="/privacy"
       />
       <PublicHeader />
@@ -158,13 +158,13 @@ const Privacy = () => {
                 </div>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    Welcome to FishX ("we," "us," or "our"). <strong>Fish-X LLC</strong> ("Company") is the data controller responsible for your personal information. We are committed to protecting your privacy and ensuring you understand how we collect, use, and safeguard your data.
+                    Welcome to Fish-X ("we," "us," or "our"). <strong>Fish-X LLC</strong> ("Company") is the data controller responsible for your personal information. We are committed to protecting your privacy and ensuring you understand how we collect, use, and safeguard your data.
                   </p>
                   <p>
-                    FishX is a fishing community platform open to users aged 13 and older. Our core features include catch logging, fishing spot discovery, buddy connections, trip planning, and a social feed. For users 18 and older, we offer an optional <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Dating Add-On</span> that enables romantic matching with fellow anglers.
+                    Fish-X is a fishing community platform open to users aged 13 and older. Our core features include catch logging, fishing spot discovery, buddy connections, trip planning, and a social feed. For users 18 and older, we offer an optional <span className="bg-primary/10 px-2 py-0.5 rounded font-medium text-primary">Dating Add-On</span> that enables romantic matching with fellow anglers.
                   </p>
                   <p>
-                    This Privacy Policy explains what information we collect, how we use it, who we share it with, and your rights regarding your personal data. By using FishX, you consent to the practices described in this policy.
+                    This Privacy Policy explains what information we collect, how we use it, who we share it with, and your rights regarding your personal data. By using Fish-X, you consent to the practices described in this policy.
                   </p>
                   <p>
                     <strong className="text-foreground">Data Protection Officer:</strong> For privacy-related inquiries, you may contact our Data Protection Officer at <a href="mailto:dpo@fish-x.com" className="text-primary hover:underline">dpo@fish-x.com</a>.
@@ -754,7 +754,7 @@ const Privacy = () => {
                 </div>
                 
                 <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-5 mb-4">
-                   <p className="text-sm text-foreground font-medium">FishX fishing features are available to users aged 13 and older. The Dating Add-On is strictly for users aged 18 and older.</p>
+                   <p className="text-sm text-foreground font-medium">Fish-X fishing features are available to users aged 13 and older. The Dating Add-On is strictly for users aged 18 and older.</p>
                 </div>
                 
                 <div className="text-muted-foreground space-y-4">
@@ -854,7 +854,7 @@ const Privacy = () => {
 
                     <div className="mt-6 pt-6 border-t border-primary-foreground/20">
                       <p className="text-sm text-primary-foreground/70">
-                        <strong>FishX LLC</strong><br />
+                        <strong>Fish-X LLC</strong><br />
                         Registered in Florida, United States
                       </p>
                     </div>

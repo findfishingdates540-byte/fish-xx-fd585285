@@ -67,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       try {
         const emailResponse = await resend.emails.send({
-          from: "FishX <team@fish-x.com>",
+          from: "Fish-X <team@fish-x.com>",
           to: [user.email],
           subject: "🎣 Complete your verification to get more connections!",
           html: generateReminderEmail(user.display_name || "there"),
@@ -147,8 +147,8 @@ function generateReminderEmail(displayName: string): string {
           </tr>
           <tr>
             <td style="background-color: #F9FAFB; padding: 24px 40px; border-top: 1px solid #E5E7EB;">
-              <p style="margin: 0; font-size: 12px; color: #9CA3AF; text-align: center;">© ${new Date().getFullYear()} FishX. All rights reserved.</p>
-              <p style="margin: 8px 0 0; font-size: 11px; color: #9CA3AF; text-align: center;">You're receiving this because you signed up for FishX.</p>
+              <p style="margin: 0; font-size: 12px; color: #9CA3AF; text-align: center;">© ${new Date().getFullYear()} Fish-X. All rights reserved.</p>
+              <p style="margin: 8px 0 0; font-size: 11px; color: #9CA3AF; text-align: center;">You're receiving this because you signed up for Fish-X.</p>
             </td>
           </tr>
         </table>

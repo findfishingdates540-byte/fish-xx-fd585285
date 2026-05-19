@@ -24,7 +24,7 @@ export function RouteGuard({ children, allowedModes, redirectBothToHome = false 
     return <>{children}</>;
   }
 
-  // Dating users can access fishing features while FishX is free during launch.
+  // Dating users can access fishing features while Fish-X is free during launch.
   if (baseAccountMode === 'dating' && allowedModes.includes('fishing')) {
     return <>{children}</>;
   }

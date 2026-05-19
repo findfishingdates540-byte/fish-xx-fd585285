@@ -1,8 +1,8 @@
-# FishX
+# Fish-X
 
 > The #1 social app for anglers — find spots, log catches, compete in tournaments, win real money, and meet fishing buddies (or dates).
 
-FishX is a fishing-first social platform for anglers 13+. Members log catches, share trips, follow buddies and team pages, climb species leaderboards, and enter live photo and bracket tournaments with cash prizes. An optional dating mode (18+) lets anglers match with people who share the passion.
+Fish-X is a fishing-first social platform for anglers 13+. Members log catches, share trips, follow buddies and team pages, climb species leaderboards, and enter live photo and bracket tournaments with cash prizes. An optional dating mode (18+) lets anglers match with people who share the passion.
 
 ## Pages
 
@@ -15,7 +15,7 @@ FishX is a fishing-first social platform for anglers 13+. Members log catches, s
 - [About](/about): Mission and team.
 - [Safety](/safety): Safety center and best practices.
 - [Help](/help): Help center and FAQs.
-- [Contact](/contact): Reach the FishX team.
+- [Contact](/contact): Reach the Fish-X team.
 - [Community Guidelines](/guidelines): Conduct rules.
 
 ## Optional

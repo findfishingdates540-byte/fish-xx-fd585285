@@ -231,7 +231,7 @@ export function DiscoverSidebar({
       try {
         if (navigator.share) {
           await navigator.share({
-            title: 'Join me on FishX!',
+            title: 'Join me on Fish-X!',
             text: 'Find fishing buddies and connect with anglers who share your passion.',
             url: inviteUrl,
           });
@@ -300,8 +300,8 @@ export function DiscoverSidebar({
       {/* Logo */}
       <div className={cn("mb-8", isComboUser && "mb-6")}>
         <div className="flex items-center gap-2">
-          <img src={logoImage} alt="FishX" className="h-8 w-8 rounded-lg" />
-          <span className="font-bold text-lg">FishX</span>
+          <img src={logoImage} alt="Fish-X" className="h-8 w-8 rounded-lg" />
+          <span className="font-bold text-lg">Fish-X</span>
         </div>
         <p className="text-xs text-muted-foreground mt-1">{getModeLabel()}</p>
       </div>

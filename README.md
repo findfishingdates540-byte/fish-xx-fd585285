@@ -1,4 +1,4 @@
-# FishX
+# Fish-X
 
 A fishing-first social platform with optional dating features for anglers 18+.
 

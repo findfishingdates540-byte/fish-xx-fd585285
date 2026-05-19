@@ -603,7 +603,7 @@ export default function Onboarding() {
       <header className="bg-background border-b border-border px-6 py-4 flex-shrink-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logoImage} alt="FishX" className="h-8 w-auto" />
+            <img src={logoImage} alt="Fish-X" className="h-8 w-auto" />
           </div>
           <div className="flex items-center gap-4">
             <button 
@@ -799,7 +799,7 @@ export default function Onboarding() {
 
         {/* Footer */}
         <p className="text-center text-sm text-muted-foreground mt-6">
-          © {new Date().getFullYear()} FishX. All rights reserved.
+          © {new Date().getFullYear()} Fish-X. All rights reserved.
         </p>
       </div>
 

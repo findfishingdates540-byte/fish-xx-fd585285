@@ -215,8 +215,8 @@ const Safety = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="Safety Center — Stay Safe on FishX"
-        description="Profile photo safety, first-date checklists, fishing trip planning, scam prevention, and digital privacy tips for the FishX community."
+        title="Safety Center — Stay Safe on Fish-X"
+        description="Profile photo safety, first-date checklists, fishing trip planning, scam prevention, and digital privacy tips for the Fish-X community."
         path="/safety"
       />
       <PublicHeader />

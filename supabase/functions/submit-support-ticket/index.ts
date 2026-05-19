@@ -140,14 +140,14 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb;">
             <p>Hi ${safeName},</p>
-            <p>Thank you for contacting FishX!</p>
+            <p>Thank you for contacting Fish-X!</p>
             <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
               <p><strong>Ticket Number:</strong> <span style="color: #0ea5e9;">${ticket.ticket_number}</span></p>
               <p><strong>Subject:</strong> ${safeSubject}</p>
               <p><strong>Category:</strong> ${safeCategory}</p>
             </div>
             <p>Our team will respond within 24-48 hours.</p>
-            <p>Best regards,<br><strong>The FishX Team</strong></p>
+            <p>Best regards,<br><strong>The Fish-X Team</strong></p>
           </div>
         </body>
         </html>
@@ -160,7 +160,7 @@ const handler = async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "FishX <onboarding@resend.dev>",
+          from: "Fish-X <onboarding@resend.dev>",
           to: [email],
           subject: `Ticket #${ticket.ticket_number} - We received your message`,
           html: emailHtml,
@@ -207,7 +207,7 @@ const handler = async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-           from: "FishX <onboarding@resend.dev>",
+           from: "Fish-X <onboarding@resend.dev>",
            to: ["support@fish-x.com"],
           subject: `[NEW TICKET] ${ticket.ticket_number} - ${safeSubject}`,
           html: adminEmailHtml,

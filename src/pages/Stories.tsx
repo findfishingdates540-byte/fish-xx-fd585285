@@ -18,7 +18,7 @@ const stories = [
     name: 'Sarah M.',
     location: 'Tampa Bay, FL',
     image: fishingPhoto1,
-    quote: "I joined FishX to find fishing spots near me. Within a week, I connected with a group of inshore anglers who showed me the best snook spots I'd never known about. Now we fish together every weekend!",
+    quote: "I joined Fish-X to find fishing spots near me. Within a week, I connected with a group of inshore anglers who showed me the best snook spots I'd never known about. Now we fish together every weekend!",
     highlight: 'Found her fishing crew',
     icon: <Users className="w-5 h-5" />,
   },
@@ -26,7 +26,7 @@ const stories = [
     name: 'Ashley R.',
     location: 'Islamorada, FL',
     image: fishingPhoto2,
-    quote: "As a female angler, I sometimes felt out of place. FishX connected me with an amazing community of women who fish. We've done permit trips, offshore runs, and even started a local tournament team.",
+    quote: "As a female angler, I sometimes felt out of place. Fish-X connected me with an amazing community of women who fish. We've done permit trips, offshore runs, and even started a local tournament team.",
     highlight: 'Built a tournament team',
     icon: <Fish className="w-5 h-5" />,
   },
@@ -34,7 +34,7 @@ const stories = [
     name: 'Emily K.',
     location: 'Lake Cumberland, KY',
     image: fishingPhoto3,
-    quote: "I moved to a new state and didn't know anyone who fished. FishX helped me find bass fishing buddies within days. We share spots, swap tips, and push each other to land bigger fish.",
+    quote: "I moved to a new state and didn't know anyone who fished. Fish-X helped me find bass fishing buddies within days. We share spots, swap tips, and push each other to land bigger fish.",
     highlight: 'Made friends in a new city',
     icon: <MapPin className="w-5 h-5" />,
   },
@@ -42,7 +42,7 @@ const stories = [
     name: 'Jake & Friends',
     location: 'Ketchikan, AK',
     image: fishingPhoto4,
-    quote: "FishX changed everything for us. We found the best fishing spots, planned amazing trips, and built friendships that last a lifetime. The trip planner feature is a game-changer for group adventures.",
+    quote: "Fish-X changed everything for us. We found the best fishing spots, planned amazing trips, and built friendships that last a lifetime. The trip planner feature is a game-changer for group adventures.",
     highlight: 'Epic group trips',
     icon: <Users className="w-5 h-5" />,
   },
@@ -50,7 +50,7 @@ const stories = [
     name: 'Mike T.',
     location: 'Lake Michigan, MI',
     image: fishingPhoto5,
-    quote: "Night fishing used to be a solo grind. Through FishX I found a crew of lake trout fanatics who fish the rocks after dark. We've logged some monster catches together and even won a local challenge.",
+    quote: "Night fishing used to be a solo grind. Through Fish-X I found a crew of lake trout fanatics who fish the rocks after dark. We've logged some monster catches together and even won a local challenge.",
     highlight: 'Found his night crew',
     icon: <Fish className="w-5 h-5" />,
   },
@@ -58,7 +58,7 @@ const stories = [
     name: 'The Martinez Family',
     location: 'Key West, FL',
     image: fishingPhoto6,
-    quote: "We wanted to get our kids into fishing but didn't know where to start. FishX connected us with family-friendly charters and other fishing families. Our son caught his first mahi-mahi and was hooked for life!",
+    quote: "We wanted to get our kids into fishing but didn't know where to start. Fish-X connected us with family-friendly charters and other fishing families. Our son caught his first mahi-mahi and was hooked for life!",
     highlight: 'Family fishing adventures',
     icon: <Heart className="w-5 h-5" />,
   },
@@ -66,7 +66,7 @@ const stories = [
     name: 'Captain Dave',
     location: 'Cabo San Lucas, MX',
     image: fishingPhoto7,
-    quote: "As a charter captain, FishX has been incredible for connecting with serious anglers. The community here is passionate, knowledgeable, and always ready for the next big catch. Best fishing platform out there.",
+    quote: "As a charter captain, Fish-X has been incredible for connecting with serious anglers. The community here is passionate, knowledgeable, and always ready for the next big catch. Best fishing platform out there.",
     highlight: 'Grew his charter business',
     icon: <MapPin className="w-5 h-5" />,
   },
@@ -77,7 +77,7 @@ const Stories = () => {
     <div className="min-h-screen bg-background">
       <PageMeta
         title="Angler Stories — Real Catches, Real People"
-        description="Stories from the FishX community: epic catches, lifelong fishing buddies, and dating connections that started on the water."
+        description="Stories from the Fish-X community: epic catches, lifelong fishing buddies, and dating connections that started on the water."
         path="/stories"
       />
       <PublicHeader />
@@ -99,7 +99,7 @@ const Stories = () => {
               <span className="italic">Real Anglers</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              See how FishX is helping anglers discover spots, find buddies, and create unforgettable fishing memories.
+              See how Fish-X is helping anglers discover spots, find buddies, and create unforgettable fishing memories.
             </p>
           </motion.div>
         </div>
@@ -146,7 +146,7 @@ const Stories = () => {
             Ready to write your story?
           </h2>
           <p className="text-xl text-background/70 mb-10 max-w-2xl mx-auto">
-            Join thousands of anglers sharing their passion on FishX.
+            Join thousands of anglers sharing their passion on Fish-X.
           </p>
           <Link to="/auth?mode=signup">
             <Button size="lg" className="bg-background text-foreground hover:bg-background/90 font-semibold rounded-full px-12 py-6 text-lg group">

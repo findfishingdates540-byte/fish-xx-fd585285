@@ -59,8 +59,8 @@ const Terms = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="Terms of Service — FishX"
-        description="Read the FishX Terms of Service covering account use, content, payments, prizes, and your rights as a member."
+        title="Terms of Service — Fish-X"
+        description="Read the Fish-X Terms of Service covering account use, content, payments, prizes, and your rights as a member."
         path="/terms"
       />
       <PublicHeader />
@@ -146,16 +146,16 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-4 text-muted-foreground">
                   <p>
-                    Welcome to FishX! These Terms and Conditions ("Terms") govern your use of the FishX website and mobile application (collectively, the "Service") operated by Fish-X LLC ("Company," "we," "us," or "our").
+                    Welcome to Fish-X! These Terms and Conditions ("Terms") govern your use of the Fish-X website and mobile application (collectively, the "Service") operated by Fish-X LLC ("Company," "we," "us," or "our").
                   </p>
                   <p>
-                    By accessing or using FishX, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use our Service.
+                    By accessing or using Fish-X, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you must not use our Service.
                   </p>
                   
                   <div className="bg-muted/30 rounded-xl p-5 border border-border">
                     <h4 className="font-semibold text-foreground mb-2">Definitions</h4>
                     <ul className="text-sm space-y-2">
-                      <li><strong>"Service"</strong> refers to the FishX website, mobile applications, and all related features.</li>
+                      <li><strong>"Service"</strong> refers to the Fish-X website, mobile applications, and all related features.</li>
                       <li><strong>"User"</strong> or <strong>"you"</strong> refers to any individual who accesses or uses the Service.</li>
                       <li><strong>"Content"</strong> refers to any photos, text, messages, or other materials you upload or share.</li>
                       <li><strong>"Match"</strong> refers to a mutual connection between users in the Dating add-on.</li>
@@ -188,7 +188,7 @@ const Terms = () => {
                   <ul className="space-y-2">
                     <li className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span>You must be at least <strong className="text-foreground">13 years old</strong> to create a FishX account and use fishing features.</span>
+                      <span>You must be at least <strong className="text-foreground">13 years old</strong> to create a Fish-X account and use fishing features.</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
@@ -249,7 +249,7 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-6 text-muted-foreground">
                   <p>
-                    FishX offers optional verification to build trust within our community. Verification is strongly encouraged but not required for basic use.
+                    Fish-X offers optional verification to build trust within our community. Verification is strongly encouraged but not required for basic use.
                   </p>
 
                   <div className="grid md:grid-cols-2 gap-4">
@@ -318,7 +318,7 @@ const Terms = () => {
                 </div>
                 <div className="border-t border-border pt-6 space-y-6 text-muted-foreground">
                   <p>
-                    FishX is primarily a fishing platform with an optional dating add-on. You must follow the rules specific to the features you use.
+                    Fish-X is primarily a fishing platform with an optional dating add-on. You must follow the rules specific to the features you use.
                   </p>
                   
                   {/* Dating Mode */}
@@ -569,7 +569,7 @@ const Terms = () => {
 
                   <h3 className="font-semibold text-foreground">License Grant</h3>
                   <div className="bg-muted/30 rounded-xl p-5 border border-border text-sm">
-                    <p className="mb-3">By uploading content, you grant FishX a:</p>
+                    <p className="mb-3">By uploading content, you grant Fish-X a:</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Non-exclusive, worldwide, royalty-free license</li>
                       <li>Right to use, copy, modify, display, and distribute your content</li>
@@ -687,7 +687,7 @@ const Terms = () => {
                     The Service and its original content (excluding user-generated content), features, and functionality are the exclusive property of Fish-X LLC. This includes:
                   </p>
                   <ul className="text-sm list-disc list-inside space-y-1 mt-2">
-                    <li>Trademarks: "FishX," logos, and brand assets</li>
+                    <li>Trademarks: "Fish-X," logos, and brand assets</li>
                     <li>App design, user interface, and code</li>
                     <li>Matching algorithms and recommendation systems</li>
                     <li>Documentation, guides, and marketing materials</li>
@@ -809,7 +809,7 @@ const Terms = () => {
 
                   <div>
                     <h4 className="font-medium text-foreground">Entire Agreement</h4>
-                    <p>These Terms, along with our Privacy Policy and Community Guidelines, constitute the entire agreement between you and FishX.</p>
+                    <p>These Terms, along with our Privacy Policy and Community Guidelines, constitute the entire agreement between you and Fish-X.</p>
                   </div>
 
                   <div>

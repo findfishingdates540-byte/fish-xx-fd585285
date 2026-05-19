@@ -71,7 +71,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="FishX — Catch More Fish. Compete. Win Money."
+        title="Fish-X — Catch More Fish. Compete. Win Money."
         description="Find spots, log catches, join tournaments, and connect with anglers. The #1 social app for fishing."
         path="/"
       />
@@ -419,7 +419,7 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left" className="order-2 lg:order-1">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img src={fishingPhoto2} alt="Happy anglers on FishX" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                <img src={fishingPhoto2} alt="Happy anglers on Fish-X" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
             </ScrollReveal>
             
@@ -437,14 +437,14 @@ const Index = () => {
               </ScrollReveal>
               <ScrollReveal delay={0.2}>
                 <blockquote className="text-3xl md:text-4xl font-medium text-foreground leading-snug -mt-12">
-                  FishX changed everything for us. We found the best fishing spots, planned amazing trips, 
+                  Fish-X changed everything for us. We found the best fishing spots, planned amazing trips, 
                   and built friendships that last a lifetime.
                 </blockquote>
               </ScrollReveal>
               <ScrollReveal delay={0.3}>
                 <div>
                   <p className="font-semibold text-foreground">Jake & Friends</p>
-                  <p className="text-muted-foreground">FishX members since 2023</p>
+                  <p className="text-muted-foreground">Fish-X members since 2023</p>
                 </div>
               </ScrollReveal>
               <ScrollReveal delay={0.4}>
@@ -480,7 +480,7 @@ const Index = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             Join thousands of anglers who are discovering spots, logging catches, 
-            and connecting with fishing buddies on FishX.
+            and connecting with fishing buddies on Fish-X.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -592,7 +592,7 @@ const Index = () => {
                     {/* App screenshot */}
                     <img
                       src={mobileAppScreen}
-                      alt="FishX mobile app preview"
+                      alt="Fish-X mobile app preview"
                       className="w-full h-full object-cover"
                     />
                   </div>

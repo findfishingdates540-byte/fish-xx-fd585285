@@ -90,13 +90,13 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="Contact FishX — Get in Touch"
-        description="Reach the FishX team for support, partnerships, press, or feedback. We typically reply within one business day."
+        title="Contact Fish-X — Get in Touch"
+        description="Reach the Fish-X team for support, partnerships, press, or feedback. We typically reply within one business day."
         path="/contact"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
-          name: "FishX",
+          name: "Fish-X",
           url: "https://fish-x.com",
           email: "support@fish-x.com",
           telephone: "1-800-FISHX-APP",

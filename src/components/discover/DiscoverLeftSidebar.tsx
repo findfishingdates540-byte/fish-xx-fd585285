@@ -234,7 +234,7 @@ export function DiscoverLeftSidebar({
     try {
       if (navigator.share) {
         await navigator.share({
-          title: 'Join me on FishX!',
+          title: 'Join me on Fish-X!',
           text: 'The ultimate fishing community — find buddies, log catches, and explore.',
           url: inviteUrl,
         });

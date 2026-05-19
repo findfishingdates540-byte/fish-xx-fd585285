@@ -15,7 +15,7 @@ const Fishing = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="Fishing on FishX — Find Spots, Log Catches, Compete"
+        title="Fishing on Fish-X — Find Spots, Log Catches, Compete"
         description="Discover top fishing spots, log every catch with weight and species, climb leaderboards, and join tournaments with anglers near you."
         path="/fishing"
       />
@@ -36,7 +36,7 @@ const Fishing = () => {
                 Your Fishing Companion
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                FishX is your complete fishing platform. Log catches, discover spots, 
+                Fish-X is your complete fishing platform. Log catches, discover spots, 
                 find fishing buddies, enter competitions for as little as $5, and win real prizes.
               </p>
               <Link to="/auth?mode=signup">

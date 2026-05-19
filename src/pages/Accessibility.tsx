@@ -150,10 +150,10 @@ export default function Accessibility() {
   return (
     <>
       <Helmet>
-        <title>Accessibility Statement | FishX</title>
+        <title>Accessibility Statement | Fish-X</title>
         <meta 
           name="description" 
-          content="FishX is committed to digital accessibility. Learn about our WCAG compliance efforts and accessibility features." 
+          content="Fish-X is committed to digital accessibility. Learn about our WCAG compliance efforts and accessibility features." 
         />
       </Helmet>
       
@@ -425,7 +425,7 @@ export default function Accessibility() {
                 <div>
                   <h2 className="text-xl font-semibold text-foreground mb-2">Accessibility Feedback</h2>
                   <p className="text-muted-foreground mb-4">
-                    We welcome your feedback on the accessibility of FishX. If you encounter 
+                    We welcome your feedback on the accessibility of Fish-X. If you encounter 
                     any accessibility barriers or have suggestions for improvement, please let us know:
                   </p>
                   <div className="space-y-2 text-muted-foreground">
