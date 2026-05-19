@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ChallengeDetail() {
@@ -59,6 +59,27 @@ export default function ChallengeDetail() {
   });
 
   const isJoined = !!user && participants.some((p) => p.user_id === user.id);
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/app/challenges/${id}`;
+    const ch: any = challenge;
+    const title = ch?.title ? `Fish-X Challenge: ${ch.title}` : "Fish-X Challenge";
+    const text = ch?.description || "Check out this fishing challenge on Fish-X!";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        return;
+      }
+    } catch (e: any) {
+      if (e?.name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    } catch {
+      toast.error("Could not copy link");
+    }
+  };
 
   const joinMutation = useMutation({
     mutationFn: async () => {
@@ -136,9 +157,17 @@ export default function ChallengeDetail() {
     <div className="scoreboard-hub min-h-screen pb-24">
       {/* Back */}
       <div className="px-4 md:px-6 pt-6 pb-2">
-        <button onClick={() => navigate("/app/challenges")} className="inline-flex items-center gap-1.5 text-xs sb-text-muted hover:text-white">
-          <ArrowLeft className="h-3.5 w-3.5" /> All Challenges
-        </button>
+        <div className="flex items-center justify-between gap-2">
+          <button onClick={() => navigate("/app/challenges")} className="inline-flex items-center gap-1.5 text-xs sb-text-muted hover:text-white">
+            <ArrowLeft className="h-3.5 w-3.5" /> All Challenges
+          </button>
+          <button
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border sb-border text-xs font-semibold sb-cyan hover:bg-[hsl(var(--sb-cyan)/0.1)] transition-colors"
+          >
+            <Share2 className="h-3.5 w-3.5" /> Share
+          </button>
+        </div>
       </div>
 
       {/* Banner */}
