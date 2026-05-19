@@ -96,7 +96,7 @@ const Challenges = () => {
                 <div className="w-16 h-16 rounded-full bg-foreground text-background flex items-center justify-center mx-auto text-2xl font-bold">3</div>
                 <h3 className="text-2xl font-bold text-foreground">Win Prizes</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  The community votes or scores decide. Winners take home 50% of the prize pool — cash, gift cards, or gear.
+                  The community votes or scores decide. Winners take home a share of the prize pool — cash, gift cards, or gear.
                 </p>
               </div>
             </ScrollReveal>
