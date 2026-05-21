@@ -1255,6 +1255,16 @@ const TournamentDetail = () => {
           </div>
         </TabsContent>
       </Tabs>
+      <LogCompetitionCatchModal
+        open={logCatchOpen}
+        onOpenChange={setLogCatchOpen}
+        competition={{
+          kind: "tournament",
+          id: tournament.id,
+          name: tournament.title,
+          speciesId: (tournament as any).species_id ?? null,
+        }}
+      />
     </div>
   );
 };
