@@ -406,6 +406,11 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
         {catchData.is_verified && (
           <Badge className="absolute top-2 left-24 bg-blue-600/90 text-white border-0">✓ Verified</Badge>
         )}
+        {(catchData.challenge_id || catchData.tournament_id) && catchData.approval_status && (
+          <div className="absolute bottom-2 left-2">
+            <ApprovalBadge status={catchData.approval_status} />
+          </div>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="absolute top-2 right-2 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background">
