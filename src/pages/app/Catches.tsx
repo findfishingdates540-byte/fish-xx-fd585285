@@ -47,6 +47,9 @@ interface Catch {
   measurement_photo_url: string | null;
   general_location: string | null;
   is_verified: boolean;
+  challenge_id?: string | null;
+  tournament_id?: string | null;
+  approval_status?: string | null;
 }
 
 
