@@ -620,6 +620,16 @@ const TournamentDetail = () => {
         </div>
       )}
 
+      {isJoined && (tournament.status === "active" || tournament.status === "in_progress") && (
+        <Button
+          onClick={() => setLogCatchOpen(true)}
+          className="w-full mb-4 gap-2"
+          size="lg"
+        >
+          <Plus className="h-4 w-4" /> Log Catch for Tournament
+        </Button>
+      )}
+
       {/* Teams-only notice */}
       <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground flex items-start gap-2">
         <Users2 className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
