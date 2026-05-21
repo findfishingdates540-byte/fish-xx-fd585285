@@ -49,6 +49,7 @@ interface Catch {
   is_verified: boolean;
 }
 
+
 interface FishSpecies {
   id: string;
   name: string;
