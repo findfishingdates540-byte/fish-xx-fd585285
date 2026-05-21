@@ -620,7 +620,7 @@ const TournamentDetail = () => {
         </div>
       )}
 
-      {isJoined && (tournament.status === "active" || tournament.status === "in_progress") && (
+      {isJoined && tournament.status === "in_progress" && (
         <Button
           onClick={() => setLogCatchOpen(true)}
           className="w-full mb-4 gap-2"
