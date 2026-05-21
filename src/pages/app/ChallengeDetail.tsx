@@ -79,6 +79,46 @@ function Podium({ top3, profiles, formatScore }: { top3: any[]; profiles: Record
 }
 
 export default function ChallengeDetail() {
+
+}
+
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: any;
+  title: string;
+  description?: string;
+  action?: { label: string; onClick: () => void; variant?: "primary" | "ghost" };
+}) {
+  return (
+    <div className="text-center py-10 px-4">
+      <div className="mx-auto mb-3 inline-flex items-center justify-center h-12 w-12 rounded-full bg-[hsl(var(--sb-surface-2))] ring-1 ring-[hsl(var(--sb-border))]">
+        <Icon className="h-5 w-5 sb-text-muted" />
+      </div>
+      <p className="text-sm font-semibold mb-1">{title}</p>
+      {description && (
+        <p className="text-xs sb-text-muted max-w-xs mx-auto leading-relaxed">{description}</p>
+      )}
+      {action && (
+        <button
+          onClick={action.onClick}
+          className={
+            action.variant === "ghost"
+              ? "mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider sb-text-muted hover:text-white border sb-border hover:bg-[hsl(var(--sb-surface-2))] transition-colors"
+              : "mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
+          }
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function _ChallengeDetailPlaceholder() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
