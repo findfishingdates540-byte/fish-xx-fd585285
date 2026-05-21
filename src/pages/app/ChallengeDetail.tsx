@@ -78,10 +78,6 @@ function Podium({ top3, profiles, formatScore }: { top3: any[]; profiles: Record
   );
 }
 
-export default function ChallengeDetail() {
-
-}
-
 function EmptyState({
   icon: Icon,
   title,
@@ -118,7 +114,7 @@ function EmptyState({
   );
 }
 
-function _ChallengeDetailPlaceholder() {
+export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
