@@ -41,8 +41,10 @@ import {
   CalendarClock,
   Zap,
   ChevronRight,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { format } from "date-fns";
 
 const TournamentDetail = () => {
@@ -55,6 +57,7 @@ const TournamentDetail = () => {
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [teamsView, setTeamsView] = useState<"overall" | "round">("overall");
+  const [logCatchOpen, setLogCatchOpen] = useState(false);
   const [teamsRoundId, setTeamsRoundId] = useState<string>("");
   const [expandedMvp, setExpandedMvp] = useState<string | null>(null);
 
@@ -615,6 +618,16 @@ const TournamentDetail = () => {
             </div>
           )}
         </div>
+      )}
+
+      {isJoined && tournament.status === "in_progress" && (
+        <Button
+          onClick={() => setLogCatchOpen(true)}
+          className="w-full mb-4 gap-2"
+          size="lg"
+        >
+          <Plus className="h-4 w-4" /> Log Catch for Tournament
+        </Button>
       )}
 
       {/* Teams-only notice */}
@@ -1242,6 +1255,16 @@ const TournamentDetail = () => {
           </div>
         </TabsContent>
       </Tabs>
+      <LogCompetitionCatchModal
+        open={logCatchOpen}
+        onOpenChange={setLogCatchOpen}
+        competition={{
+          kind: "tournament",
+          id: tournament.id,
+          name: tournament.title,
+          speciesId: (tournament as any).species_id ?? null,
+        }}
+      />
     </div>
   );
 };

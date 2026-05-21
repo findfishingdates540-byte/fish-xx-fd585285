@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { LogCatchForm, type LogCatchFormData } from "@/components/catches/LogCatchForm";
+import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import {
   Plus,
   Fish,
@@ -47,7 +48,11 @@ interface Catch {
   measurement_photo_url: string | null;
   general_location: string | null;
   is_verified: boolean;
+  challenge_id?: string | null;
+  tournament_id?: string | null;
+  approval_status?: string | null;
 }
+
 
 interface FishSpecies {
   id: string;
@@ -400,6 +405,11 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
         </Badge>
         {catchData.is_verified && (
           <Badge className="absolute top-2 left-24 bg-blue-600/90 text-white border-0">✓ Verified</Badge>
+        )}
+        {(catchData.challenge_id || catchData.tournament_id) && catchData.approval_status && (
+          <div className="absolute bottom-2 left-2">
+            <ApprovalBadge status={catchData.approval_status} />
+          </div>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
