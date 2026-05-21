@@ -1,0 +1,1 @@
+DELETE FROM public.leaderboard_entries WHERE user_id='bd98acb7-32e7-485e-808d-2851e137f6ea' AND species_id='b2a85584-283b-4dca-a970-de85e4a01621';
