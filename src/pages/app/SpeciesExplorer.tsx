@@ -223,7 +223,11 @@ export default function SpeciesExplorer() {
     } else if (sortBy === "name") {
       list = [...list].sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === "record") {
-      list = [...list].sort((a, b) => (b.worldRecord || 0) - (a.worldRecord || 0));
+      list = [...list].sort(
+        (a, b) =>
+          (b.appBeatsWorld ? b.appRecord! : b.worldRecordLbs || 0) -
+          (a.appBeatsWorld ? a.appRecord! : a.worldRecordLbs || 0),
+      );
     }
 
     return list;
@@ -397,8 +401,22 @@ export default function SpeciesExplorer() {
                           World Record
                         </p>
                         <p className="text-sm font-bold sb-cyan">
-                          {card.worldRecord ? `${card.worldRecord.toLocaleString()} lbs` : "—"}
+                          {card.appBeatsWorld
+                            ? `${card.appRecord!.toLocaleString()} lbs`
+                            : card.worldRecordLbs
+                            ? `${card.worldRecordLbs.toLocaleString()} lbs`
+                            : "—"}
                         </p>
+                        {card.appBeatsWorld ? (
+                          <p className="text-[9px] text-amber-300/90 mt-0.5 truncate">
+                            App record beats IGFA
+                          </p>
+                        ) : card.worldRecordAngler ? (
+                          <p className="text-[9px] sb-text-muted mt-0.5 truncate">
+                            {card.worldRecordAngler}
+                            {card.worldRecordYear ? ` · ${card.worldRecordYear}` : ""}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
 
@@ -406,15 +424,15 @@ export default function SpeciesExplorer() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <Avatar className="h-8 w-8 ring-2 ring-[hsl(var(--sb-border))]">
-                          <AvatarImage src={card.recordHolder?.avatar || ""} />
+                          <AvatarImage src={card.appRecordHolder?.avatar || ""} />
                           <AvatarFallback className="text-[10px] bg-[hsl(var(--sb-surface-2))]">
-                            {card.recordHolder ? card.recordHolder.name[0] : "?"}
+                            {card.appRecordHolder ? card.appRecordHolder.name[0] : "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="text-[10px] sb-text-muted uppercase tracking-wider">Record Holder</p>
+                          <p className="text-[10px] sb-text-muted uppercase tracking-wider">Top App Angler</p>
                           <p className="text-xs font-semibold truncate">
-                            {card.recordHolder?.name || "No record yet"}
+                            {card.appRecordHolder?.name || "No catches yet"}
                           </p>
                         </div>
                       </div>
