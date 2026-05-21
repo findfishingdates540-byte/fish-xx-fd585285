@@ -78,6 +78,42 @@ function Podium({ top3, profiles, formatScore }: { top3: any[]; profiles: Record
   );
 }
 
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: any;
+  title: string;
+  description?: string;
+  action?: { label: string; onClick: () => void; variant?: "primary" | "ghost" };
+}) {
+  return (
+    <div className="text-center py-10 px-4">
+      <div className="mx-auto mb-3 inline-flex items-center justify-center h-12 w-12 rounded-full bg-[hsl(var(--sb-surface-2))] ring-1 ring-[hsl(var(--sb-border))]">
+        <Icon className="h-5 w-5 sb-text-muted" />
+      </div>
+      <p className="text-sm font-semibold mb-1">{title}</p>
+      {description && (
+        <p className="text-xs sb-text-muted max-w-xs mx-auto leading-relaxed">{description}</p>
+      )}
+      {action && (
+        <button
+          onClick={action.onClick}
+          className={
+            action.variant === "ghost"
+              ? "mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider sb-text-muted hover:text-white border sb-border hover:bg-[hsl(var(--sb-surface-2))] transition-colors"
+              : "mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
+          }
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -562,10 +598,31 @@ export default function ChallengeDetail() {
                 </span>
               </div>
               {participants.length === 0 ? (
-                <div className="text-center py-8">
-                  <Fish className="h-8 w-8 mx-auto sb-text-muted opacity-30 mb-2" />
-                  <p className="text-sm sb-text-muted">No entries yet — be the first!</p>
-                </div>
+                status === "upcoming" ? (
+                  <EmptyState
+                    icon={Clock}
+                    title="Leaderboard opens at start"
+                    description="Scores will appear here once the challenge goes live. Register now so you don't miss a minute."
+                    action={!isJoined ? { label: "Register", onClick: () => joinMutation.mutate() } : undefined}
+                  />
+                ) : status === "completed" ? (
+                  <EmptyState
+                    icon={Trophy}
+                    title="No entries were recorded"
+                    description="This challenge ended without any verified catches on the board."
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Fish}
+                    title="No entries yet — be the first!"
+                    description={isJoined
+                      ? "Log a verified catch to claim the #1 spot on the board."
+                      : "Join the challenge and log a verified catch to take the lead."}
+                    action={isJoined
+                      ? { label: "Log Catch", onClick: () => setLogOpen(true) }
+                      : { label: "Join Challenge", onClick: () => joinMutation.mutate() }}
+                  />
+                )
               ) : (
                 <div className="space-y-2">
                   {participants.map((p, i) => {
@@ -601,10 +658,24 @@ export default function ChallengeDetail() {
           <TabsContent value="participants" className="mt-4">
             <div className="sb-card p-4">
               {participants.length === 0 ? (
-                <div className="text-center py-8">
-                  <Users className="h-8 w-8 mx-auto sb-text-muted opacity-30 mb-2" />
-                  <p className="text-sm sb-text-muted">No participants yet.</p>
-                </div>
+                status === "completed" ? (
+                  <EmptyState
+                    icon={Users}
+                    title="No one registered"
+                    description="This challenge ended without any participants."
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Users}
+                    title={status === "upcoming" ? "Be the first to register" : "No participants yet"}
+                    description={status === "upcoming"
+                      ? "Get a head start — registered anglers are notified the moment the challenge opens."
+                      : "Be the first to join and lock in your spot on the leaderboard."}
+                    action={!isJoined
+                      ? { label: status === "upcoming" ? "Register" : "Join Challenge", onClick: () => joinMutation.mutate() }
+                      : undefined}
+                  />
+                )
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {participants.map((p) => {
@@ -643,15 +714,31 @@ export default function ChallengeDetail() {
                 </span>
               </div>
               {status === "upcoming" ? (
-                <div className="text-center py-8">
-                  <Clock className="h-8 w-8 mx-auto sb-text-muted opacity-30 mb-2" />
-                  <p className="text-sm sb-text-muted">Challenge hasn't started yet.</p>
-                </div>
+                <EmptyState
+                  icon={Clock}
+                  title="Activity starts at kickoff"
+                  description="Once the challenge opens, every verified catch from participants will appear here in real time."
+                  action={!isJoined ? { label: "Register", onClick: () => joinMutation.mutate() } : undefined}
+                />
               ) : recentCatches.length === 0 ? (
-                <div className="text-center py-8">
-                  <Fish className="h-8 w-8 mx-auto sb-text-muted opacity-30 mb-2" />
-                  <p className="text-sm sb-text-muted">No verified catches logged yet.</p>
-                </div>
+                status === "completed" ? (
+                  <EmptyState
+                    icon={Fish}
+                    title="No catches were logged"
+                    description="No verified catches were submitted during this challenge."
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Fish}
+                    title="No verified catches yet"
+                    description={isJoined
+                      ? "Log your first catch — verified entries appear here for everyone to see."
+                      : "Join the challenge to log catches and kick off the activity feed."}
+                    action={isJoined
+                      ? { label: "Log Catch", onClick: () => setLogOpen(true) }
+                      : { label: "Join Challenge", onClick: () => joinMutation.mutate() }}
+                  />
+                )
               ) : (
                 <div className="space-y-2">
                   {recentCatches.map((rc: any) => {
@@ -714,8 +801,12 @@ export default function ChallengeDetail() {
               }
               if (!rulesText.trim()) {
                 return (
-                  <div className="sb-card p-4 text-center py-8">
-                    <p className="text-sm sb-text-muted">No additional rules listed.</p>
+                  <div className="sb-card p-4">
+                    <EmptyState
+                      icon={ShieldCheck}
+                      title="No additional rules"
+                      description="Standard scoring applies — see the Scoring summary above. All catches must be verified to count."
+                    />
                   </div>
                 );
               }
