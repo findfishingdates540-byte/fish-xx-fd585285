@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus } from "lucide-react";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
+import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import { getShareBaseUrl } from "@/lib/config";
 import { FormattedRules } from "@/lib/format-rules";
 import { toast } from "sonner";
