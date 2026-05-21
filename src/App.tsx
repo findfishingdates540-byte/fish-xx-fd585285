@@ -74,6 +74,7 @@ import AdminPhotoChallenges from "./pages/admin/AdminPhotoChallenges";
 import AdminTournaments from "./pages/admin/AdminTournaments";
 import AdminTeamPosts from "./pages/admin/AdminTeamPosts";
 import AdminScoringSettings from "./pages/admin/AdminScoringSettings";
+import AdminCompetitionCatches from "./pages/admin/AdminCompetitionCatches";
 import ScoreboardHubLayout from "@/components/layout/ScoreboardHubLayout";
 
 const queryClient = new QueryClient({
@@ -220,6 +221,7 @@ const App = () => (
               <Route path="support" element={<AdminSupportTickets />} />
               <Route path="photo-challenges" element={<AdminPhotoChallenges />} />
               <Route path="tournaments" element={<AdminTournaments />} />
+              <Route path="competition-catches" element={<AdminCompetitionCatches />} />
               <Route path="team-posts" element={<AdminTeamPosts />} />
               <Route path="scoring" element={<AdminScoringSettings />} />
               <Route path="settings" element={<AdminSettings />} />

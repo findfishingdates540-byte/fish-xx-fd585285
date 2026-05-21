@@ -90,6 +90,10 @@ const navItems: NavItem[] = [{
   icon: Swords,
   label: 'Tournaments'
 }, {
+  to: '/admin/competition-catches',
+  icon: Fish,
+  label: 'Competition Catches'
+}, {
   to: '/admin/team-posts',
   icon: Flag,
   label: 'Team Posts'

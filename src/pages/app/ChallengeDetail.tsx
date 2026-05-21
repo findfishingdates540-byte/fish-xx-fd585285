@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus } from "lucide-react";
+import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
+import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import { getShareBaseUrl } from "@/lib/config";
 import { FormattedRules } from "@/lib/format-rules";
 import { toast } from "sonner";
@@ -286,6 +288,23 @@ export default function ChallengeDetail() {
     leaveMutation.mutate();
   };
 
+  // Competition catch logging
+  const [logOpen, setLogOpen] = useState(false);
+  const { data: mySubmissions = [] } = useQuery({
+    queryKey: ["my-competition-catches", "challenge", id, user?.id],
+    queryFn: async () => {
+      if (!user || !id) return [];
+      const { data } = await supabase
+        .from("catches")
+        .select("id, species_name, weight_lbs, length_in, cover_photo_url, approval_status, approval_notes, caught_at")
+        .eq("user_id", user.id)
+        .eq("challenge_id", id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user && !!id,
+  });
+
   if (isLoading) {
     return (
       <div className="scoreboard-hub min-h-screen p-6 space-y-4">
@@ -405,6 +424,14 @@ export default function ChallengeDetail() {
                   <CheckCircle2 className="h-4 w-4" />
                   Registered
                 </div>
+                {status === "active" && (
+                  <button
+                    onClick={() => setLogOpen(true)}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
+                  >
+                    <Plus className="h-4 w-4" /> Log Catch for Challenge
+                  </button>
+                )}
                 <button
                   onClick={handleLeave}
                   disabled={leaveMutation.isPending}
@@ -457,6 +484,37 @@ export default function ChallengeDetail() {
                 </p>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* My competition submissions */}
+      {isJoined && mySubmissions.length > 0 && (
+        <div className="mx-4 md:mx-6 mt-4 sb-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-sm flex items-center gap-2">
+              <Fish className="h-4 w-4 sb-cyan" /> Your submissions ({mySubmissions.length})
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {mySubmissions.slice(0, 5).map((s: any) => (
+              <div key={s.id} className="flex items-center gap-3 p-2 rounded-md bg-[hsl(var(--sb-surface-2))]">
+                {s.cover_photo_url ? (
+                  <img src={s.cover_photo_url} alt="" className="h-10 w-10 rounded object-cover shrink-0" />
+                ) : (
+                  <div className="h-10 w-10 rounded bg-[hsl(var(--sb-surface))] flex items-center justify-center shrink-0">
+                    <Fish className="h-4 w-4 sb-text-muted" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{s.species_name || "Catch"}</p>
+                  <p className="text-[11px] sb-text-muted">
+                    {s.weight_lbs ? `${s.weight_lbs} lbs` : ""}{s.weight_lbs && s.length_in ? " · " : ""}{s.length_in ? `${s.length_in} in` : ""}
+                  </p>
+                </div>
+                <ApprovalBadge status={s.approval_status} notes={s.approval_notes} />
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -693,6 +751,11 @@ export default function ChallengeDetail() {
           </TabsContent>
         </Tabs>
       </div>
+      <LogCompetitionCatchModal
+        open={logOpen}
+        onOpenChange={setLogOpen}
+        competition={{ kind: "challenge", id: id!, name: c.title, speciesId: c.species_id }}
+      />
     </div>
   );
 }
