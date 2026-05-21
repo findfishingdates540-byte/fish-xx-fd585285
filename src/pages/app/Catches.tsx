@@ -51,6 +51,7 @@ interface Catch {
   challenge_id?: string | null;
   tournament_id?: string | null;
   approval_status?: string | null;
+  approval_notes?: string | null;
 }
 
 
