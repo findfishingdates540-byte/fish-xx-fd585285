@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import {
   ArrowLeft,
   Share2,
@@ -290,6 +291,11 @@ export default function CatchDetail() {
                   <Scale className="h-3 w-3" />
                   Verified
                 </span>
+              </div>
+            )}
+            {(catchData.challenge_id || catchData.tournament_id) && catchData.approval_status && (
+              <div className="absolute bottom-4 right-4">
+                <ApprovalBadge status={catchData.approval_status} notes={catchData.approval_notes} size="md" />
               </div>
             )}
           </div>
