@@ -450,11 +450,35 @@ export default function SpeciesLeaderboardPage() {
               </div>
             )}
 
+            {worldRecord && (
+              <div className="mb-4 pb-4 border-b sb-border">
+                <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                  <Globe className="h-3 w-3" /> IGFA World Record
+                </p>
+                <p className="text-base font-bold sb-cyan mt-0.5">
+                  {worldRecord.lbs.toLocaleString()} lbs
+                  {worldRecord.angler ? <span className="font-normal text-foreground/80"> — {worldRecord.angler}</span> : null}
+                </p>
+                {(worldRecord.location || worldRecord.country || worldRecord.year) && (
+                  <p className="text-[11px] sb-text-muted mt-0.5">
+                    {[worldRecord.location || worldRecord.country, worldRecord.year]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
+                {appBeatsWorld && (
+                  <p className="text-[11px] text-amber-300 mt-1 font-semibold">
+                    App record {seasonRecord!.toLocaleString()} lbs beats this!
+                  </p>
+                )}
+              </div>
+            )}
+
             {entries.length > 0 && (
               <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b sb-border">
                 {seasonRecord && (
                   <div>
-                    <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Max Weight</p>
+                    <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">App Max Weight</p>
                     <p className="text-base font-bold sb-cyan mt-0.5">{seasonRecord.toLocaleString()}+ lbs</p>
                   </div>
                 )}
@@ -462,7 +486,7 @@ export default function SpeciesLeaderboardPage() {
                   const maxLen = Math.max(...entries.map((e) => e.largest_length_in || 0));
                   return maxLen > 0 ? (
                     <div>
-                      <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Max Length</p>
+                      <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">App Max Length</p>
                       <p className="text-base font-bold sb-cyan mt-0.5">{maxLen} in</p>
                     </div>
                   ) : null;
