@@ -61,8 +61,17 @@ interface SpeciesCardData {
   image_url: string | null;
   categories: string[];
   totalLogs: number;
-  worldRecord: number | null;
-  recordHolder: { name: string; avatar: string | null } | null;
+  // App's top in-platform catch (lbs)
+  appRecord: number | null;
+  appRecordHolder: { name: string; avatar: string | null } | null;
+  // Official IGFA world record
+  worldRecordLbs: number | null;
+  worldRecordAngler: string | null;
+  worldRecordLocation: string | null;
+  worldRecordCountry: string | null;
+  worldRecordYear: number | null;
+  // True when our app's top catch beats the IGFA record
+  appBeatsWorld: boolean;
   isTrending: boolean;
 }
 
@@ -161,6 +170,10 @@ export default function SpeciesExplorer() {
       const stats = leaderboardStats[sp.id];
       const recentCount = recentCatchCounts[sp.id] || 0;
       const topUserId = stats?.topUserId;
+      const worldLbs = sp.world_record_weight_lbs ? Number(sp.world_record_weight_lbs) : null;
+      const appLbs = stats?.worldRecord ?? null;
+      const appBeatsWorld = !!(appLbs && worldLbs && appLbs > worldLbs);
+      const year = sp.world_record_date ? new Date(sp.world_record_date).getUTCFullYear() : null;
       return {
         id: sp.id,
         name: sp.name,
@@ -168,8 +181,14 @@ export default function SpeciesExplorer() {
         image_url: sp.image_url,
         categories: categorizeSpecies(sp.name),
         totalLogs: stats?.totalLogs || 0,
-        worldRecord: stats?.worldRecord || null,
-        recordHolder: topUserId && recordProfiles[topUserId] ? recordProfiles[topUserId] : null,
+        appRecord: appLbs,
+        appRecordHolder: topUserId && recordProfiles[topUserId] ? recordProfiles[topUserId] : null,
+        worldRecordLbs: worldLbs,
+        worldRecordAngler: sp.world_record_angler ?? null,
+        worldRecordLocation: sp.world_record_location ?? null,
+        worldRecordCountry: sp.world_record_country ?? null,
+        worldRecordYear: year,
+        appBeatsWorld,
         isTrending: recentCount >= trendingThreshold,
       };
     });
@@ -204,7 +223,11 @@ export default function SpeciesExplorer() {
     } else if (sortBy === "name") {
       list = [...list].sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === "record") {
-      list = [...list].sort((a, b) => (b.worldRecord || 0) - (a.worldRecord || 0));
+      list = [...list].sort(
+        (a, b) =>
+          (b.appBeatsWorld ? b.appRecord! : b.worldRecordLbs || 0) -
+          (a.appBeatsWorld ? a.appRecord! : a.worldRecordLbs || 0),
+      );
     }
 
     return list;
@@ -378,8 +401,22 @@ export default function SpeciesExplorer() {
                           World Record
                         </p>
                         <p className="text-sm font-bold sb-cyan">
-                          {card.worldRecord ? `${card.worldRecord.toLocaleString()} lbs` : "—"}
+                          {card.appBeatsWorld
+                            ? `${card.appRecord!.toLocaleString()} lbs`
+                            : card.worldRecordLbs
+                            ? `${card.worldRecordLbs.toLocaleString()} lbs`
+                            : "—"}
                         </p>
+                        {card.appBeatsWorld ? (
+                          <p className="text-[9px] text-amber-300/90 mt-0.5 truncate">
+                            App record beats IGFA
+                          </p>
+                        ) : card.worldRecordAngler ? (
+                          <p className="text-[9px] sb-text-muted mt-0.5 truncate">
+                            {card.worldRecordAngler}
+                            {card.worldRecordYear ? ` · ${card.worldRecordYear}` : ""}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
 
@@ -387,15 +424,15 @@ export default function SpeciesExplorer() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <Avatar className="h-8 w-8 ring-2 ring-[hsl(var(--sb-border))]">
-                          <AvatarImage src={card.recordHolder?.avatar || ""} />
+                          <AvatarImage src={card.appRecordHolder?.avatar || ""} />
                           <AvatarFallback className="text-[10px] bg-[hsl(var(--sb-surface-2))]">
-                            {card.recordHolder ? card.recordHolder.name[0] : "?"}
+                            {card.appRecordHolder ? card.appRecordHolder.name[0] : "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="text-[10px] sb-text-muted uppercase tracking-wider">Record Holder</p>
+                          <p className="text-[10px] sb-text-muted uppercase tracking-wider">Top App Angler</p>
                           <p className="text-xs font-semibold truncate">
-                            {card.recordHolder?.name || "No record yet"}
+                            {card.appRecordHolder?.name || "No catches yet"}
                           </p>
                         </div>
                       </div>

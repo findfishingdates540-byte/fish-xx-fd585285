@@ -138,6 +138,24 @@ export default function SpeciesLeaderboardPage() {
     return maxWeight > 0 ? maxWeight : null;
   }, [entries]);
 
+  // IGFA world record (from species table) + comparison vs app's best
+  const worldRecord = useMemo(() => {
+    if (!species?.world_record_weight_lbs) return null;
+    const year = species.world_record_date
+      ? new Date(species.world_record_date as unknown as string).getUTCFullYear()
+      : null;
+    return {
+      lbs: Number(species.world_record_weight_lbs),
+      angler: species.world_record_angler as string | null,
+      location: species.world_record_location as string | null,
+      country: species.world_record_country as string | null,
+      year,
+      source: species.world_record_source as string | null,
+    };
+  }, [species]);
+
+  const appBeatsWorld = !!(seasonRecord && worldRecord && seasonRecord > worldRecord.lbs);
+
   const filtered = useMemo(() => {
     if (!searchAngler) return entries;
     return entries.filter((e) => {
@@ -194,10 +212,29 @@ export default function SpeciesLeaderboardPage() {
             )}
           </div>
           <div className="flex gap-3 shrink-0">
-            {seasonRecord && (
-              <div className="sb-card-soft backdrop-blur-sm px-4 py-2.5 text-center min-w-[120px] bg-[hsl(var(--sb-surface)/0.85)]">
-                <p className="text-[10px] sb-text-muted uppercase tracking-widest">Season Record</p>
-                <p className="text-xl font-bold sb-cyan">{seasonRecord.toLocaleString()} lbs</p>
+            {(worldRecord || seasonRecord) && (
+              <div className="sb-card-soft backdrop-blur-sm px-4 py-2.5 text-center min-w-[160px] bg-[hsl(var(--sb-surface)/0.85)]">
+                <p className="text-[10px] sb-text-muted uppercase tracking-widest">
+                  {appBeatsWorld ? "New World Record" : "World Record"}
+                </p>
+                <p className="text-xl font-bold sb-cyan">
+                  {appBeatsWorld
+                    ? `${seasonRecord!.toLocaleString()} lbs`
+                    : worldRecord
+                    ? `${worldRecord.lbs.toLocaleString()} lbs`
+                    : `${seasonRecord!.toLocaleString()} lbs`}
+                </p>
+                {appBeatsWorld ? (
+                  <p className="text-[10px] text-amber-300 mt-0.5">
+                    Beats IGFA ({worldRecord!.lbs.toLocaleString()} lbs)
+                  </p>
+                ) : worldRecord?.angler ? (
+                  <p className="text-[10px] sb-text-muted mt-0.5 truncate max-w-[180px]">
+                    {worldRecord.angler}
+                    {worldRecord.location ? ` · ${worldRecord.location}` : worldRecord.country ? ` · ${worldRecord.country}` : ""}
+                    {worldRecord.year ? ` · ${worldRecord.year}` : ""}
+                  </p>
+                ) : null}
               </div>
             )}
             <div className="sb-card-soft backdrop-blur-sm px-4 py-2.5 text-center min-w-[120px] bg-[hsl(var(--sb-surface)/0.85)]">
@@ -413,11 +450,35 @@ export default function SpeciesLeaderboardPage() {
               </div>
             )}
 
+            {worldRecord && (
+              <div className="mb-4 pb-4 border-b sb-border">
+                <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                  <Globe className="h-3 w-3" /> IGFA World Record
+                </p>
+                <p className="text-base font-bold sb-cyan mt-0.5">
+                  {worldRecord.lbs.toLocaleString()} lbs
+                  {worldRecord.angler ? <span className="font-normal text-foreground/80"> — {worldRecord.angler}</span> : null}
+                </p>
+                {(worldRecord.location || worldRecord.country || worldRecord.year) && (
+                  <p className="text-[11px] sb-text-muted mt-0.5">
+                    {[worldRecord.location || worldRecord.country, worldRecord.year]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
+                {appBeatsWorld && (
+                  <p className="text-[11px] text-amber-300 mt-1 font-semibold">
+                    App record {seasonRecord!.toLocaleString()} lbs beats this!
+                  </p>
+                )}
+              </div>
+            )}
+
             {entries.length > 0 && (
               <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b sb-border">
                 {seasonRecord && (
                   <div>
-                    <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Max Weight</p>
+                    <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">App Max Weight</p>
                     <p className="text-base font-bold sb-cyan mt-0.5">{seasonRecord.toLocaleString()}+ lbs</p>
                   </div>
                 )}
@@ -425,7 +486,7 @@ export default function SpeciesLeaderboardPage() {
                   const maxLen = Math.max(...entries.map((e) => e.largest_length_in || 0));
                   return maxLen > 0 ? (
                     <div>
-                      <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">Max Length</p>
+                      <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">App Max Length</p>
                       <p className="text-base font-bold sb-cyan mt-0.5">{maxLen} in</p>
                     </div>
                   ) : null;
