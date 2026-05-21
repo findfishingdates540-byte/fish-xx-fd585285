@@ -1372,10 +1372,12 @@ export type Database = {
           created_at: string
           description: string | null
           followers_count: number
+          group_description: string | null
           id: string
           location: string | null
           logo_url: string | null
           name: string
+          page_description: string | null
           phone: string | null
           rules: string | null
           skill_level: Database["public"]["Enums"]["fishing_experience"]
@@ -1389,10 +1391,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           followers_count?: number
+          group_description?: string | null
           id?: string
           location?: string | null
           logo_url?: string | null
           name: string
+          page_description?: string | null
           phone?: string | null
           rules?: string | null
           skill_level?: Database["public"]["Enums"]["fishing_experience"]
@@ -1406,10 +1410,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           followers_count?: number
+          group_description?: string | null
           id?: string
           location?: string | null
           logo_url?: string | null
           name?: string
+          page_description?: string | null
           phone?: string | null
           rules?: string | null
           skill_level?: Database["public"]["Enums"]["fishing_experience"]
