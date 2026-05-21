@@ -751,6 +751,11 @@ export default function ChallengeDetail() {
           </TabsContent>
         </Tabs>
       </div>
+      <LogCompetitionCatchModal
+        open={logOpen}
+        onOpenChange={setLogOpen}
+        competition={{ kind: "challenge", id: id!, name: c.title, speciesId: c.species_id }}
+      />
     </div>
   );
 }
