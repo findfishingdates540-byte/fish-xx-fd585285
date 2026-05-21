@@ -487,6 +487,37 @@ export default function ChallengeDetail() {
         </div>
       )}
 
+      {/* My competition submissions */}
+      {isJoined && mySubmissions.length > 0 && (
+        <div className="mx-4 md:mx-6 mt-4 sb-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-sm flex items-center gap-2">
+              <Fish className="h-4 w-4 sb-cyan" /> Your submissions ({mySubmissions.length})
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {mySubmissions.slice(0, 5).map((s: any) => (
+              <div key={s.id} className="flex items-center gap-3 p-2 rounded-md bg-[hsl(var(--sb-surface-2))]">
+                {s.cover_photo_url ? (
+                  <img src={s.cover_photo_url} alt="" className="h-10 w-10 rounded object-cover shrink-0" />
+                ) : (
+                  <div className="h-10 w-10 rounded bg-[hsl(var(--sb-surface))] flex items-center justify-center shrink-0">
+                    <Fish className="h-4 w-4 sb-text-muted" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{s.species_name || "Catch"}</p>
+                  <p className="text-[11px] sb-text-muted">
+                    {s.weight_lbs ? `${s.weight_lbs} lbs` : ""}{s.weight_lbs && s.length_in ? " · " : ""}{s.length_in ? `${s.length_in} in` : ""}
+                  </p>
+                </div>
+                <ApprovalBadge status={s.approval_status} notes={s.approval_notes} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="mx-4 md:mx-6 mt-4 mb-6">
         <Tabs
