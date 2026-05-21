@@ -198,7 +198,7 @@ export default function SpeciesLeaderboardPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--sb-bg))] via-[hsl(var(--sb-bg)/0.7)] to-transparent" />
         </div>
-        <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4 mt-0">
+        <div className="p-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div className="min-w-0">
             <p className="text-[10px] font-bold sb-cyan uppercase tracking-widest flex items-center gap-1.5 mb-2">
               <Star className="h-3.5 w-3.5 fill-[hsl(var(--sb-cyan))]" />
