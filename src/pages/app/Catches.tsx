@@ -51,6 +51,7 @@ interface Catch {
   challenge_id?: string | null;
   tournament_id?: string | null;
   approval_status?: string | null;
+  approval_notes?: string | null;
 }
 
 
@@ -407,8 +408,8 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
           <Badge className="absolute top-2 left-24 bg-blue-600/90 text-white border-0">✓ Verified</Badge>
         )}
         {(catchData.challenge_id || catchData.tournament_id) && catchData.approval_status && (
-          <div className="absolute bottom-2 left-2">
-            <ApprovalBadge status={catchData.approval_status} />
+          <div className="absolute bottom-2 right-2">
+            <ApprovalBadge status={catchData.approval_status} notes={catchData.approval_notes} />
           </div>
         )}
         <DropdownMenu>
