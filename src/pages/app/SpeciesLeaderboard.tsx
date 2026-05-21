@@ -212,10 +212,29 @@ export default function SpeciesLeaderboardPage() {
             )}
           </div>
           <div className="flex gap-3 shrink-0">
-            {seasonRecord && (
-              <div className="sb-card-soft backdrop-blur-sm px-4 py-2.5 text-center min-w-[120px] bg-[hsl(var(--sb-surface)/0.85)]">
-                <p className="text-[10px] sb-text-muted uppercase tracking-widest">Season Record</p>
-                <p className="text-xl font-bold sb-cyan">{seasonRecord.toLocaleString()} lbs</p>
+            {(worldRecord || seasonRecord) && (
+              <div className="sb-card-soft backdrop-blur-sm px-4 py-2.5 text-center min-w-[160px] bg-[hsl(var(--sb-surface)/0.85)]">
+                <p className="text-[10px] sb-text-muted uppercase tracking-widest">
+                  {appBeatsWorld ? "New World Record" : "World Record"}
+                </p>
+                <p className="text-xl font-bold sb-cyan">
+                  {appBeatsWorld
+                    ? `${seasonRecord!.toLocaleString()} lbs`
+                    : worldRecord
+                    ? `${worldRecord.lbs.toLocaleString()} lbs`
+                    : `${seasonRecord!.toLocaleString()} lbs`}
+                </p>
+                {appBeatsWorld ? (
+                  <p className="text-[10px] text-amber-300 mt-0.5">
+                    Beats IGFA ({worldRecord!.lbs.toLocaleString()} lbs)
+                  </p>
+                ) : worldRecord?.angler ? (
+                  <p className="text-[10px] sb-text-muted mt-0.5 truncate max-w-[180px]">
+                    {worldRecord.angler}
+                    {worldRecord.location ? ` · ${worldRecord.location}` : worldRecord.country ? ` · ${worldRecord.country}` : ""}
+                    {worldRecord.year ? ` · ${worldRecord.year}` : ""}
+                  </p>
+                ) : null}
               </div>
             )}
             <div className="sb-card-soft backdrop-blur-sm px-4 py-2.5 text-center min-w-[120px] bg-[hsl(var(--sb-surface)/0.85)]">
