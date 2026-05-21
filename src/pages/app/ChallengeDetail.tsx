@@ -423,6 +423,14 @@ export default function ChallengeDetail() {
                   <CheckCircle2 className="h-4 w-4" />
                   Registered
                 </div>
+                {status === "active" && (
+                  <button
+                    onClick={() => setLogOpen(true)}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
+                  >
+                    <Plus className="h-4 w-4" /> Log Catch for Challenge
+                  </button>
+                )}
                 <button
                   onClick={handleLeave}
                   disabled={leaveMutation.isPending}
