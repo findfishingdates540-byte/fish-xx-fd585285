@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { LogCatchForm, type LogCatchFormData } from "@/components/catches/LogCatchForm";
+import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import {
   Plus,
   Fish,
