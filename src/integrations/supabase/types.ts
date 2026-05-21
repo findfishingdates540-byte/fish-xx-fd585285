@@ -1020,6 +1020,13 @@ export type Database = {
           trophy_trophy: number | null
           trophy_unit: string | null
           water_type: string | null
+          world_record_angler: string | null
+          world_record_country: string | null
+          world_record_date: string | null
+          world_record_location: string | null
+          world_record_source: string | null
+          world_record_weight_lbs: number | null
+          world_record_weight_text: string | null
         }
         Insert: {
           base_score?: number | null
@@ -1037,6 +1044,13 @@ export type Database = {
           trophy_trophy?: number | null
           trophy_unit?: string | null
           water_type?: string | null
+          world_record_angler?: string | null
+          world_record_country?: string | null
+          world_record_date?: string | null
+          world_record_location?: string | null
+          world_record_source?: string | null
+          world_record_weight_lbs?: number | null
+          world_record_weight_text?: string | null
         }
         Update: {
           base_score?: number | null
@@ -1054,6 +1068,13 @@ export type Database = {
           trophy_trophy?: number | null
           trophy_unit?: string | null
           water_type?: string | null
+          world_record_angler?: string | null
+          world_record_country?: string | null
+          world_record_date?: string | null
+          world_record_location?: string | null
+          world_record_source?: string | null
+          world_record_weight_lbs?: number | null
+          world_record_weight_text?: string | null
         }
         Relationships: []
       }
