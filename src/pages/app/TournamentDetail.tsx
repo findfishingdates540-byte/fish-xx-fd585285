@@ -41,8 +41,10 @@ import {
   CalendarClock,
   Zap,
   ChevronRight,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { format } from "date-fns";
 
 const TournamentDetail = () => {
