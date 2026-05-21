@@ -57,6 +57,7 @@ const TournamentDetail = () => {
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [teamsView, setTeamsView] = useState<"overall" | "round">("overall");
+  const [logCatchOpen, setLogCatchOpen] = useState(false);
   const [teamsRoundId, setTeamsRoundId] = useState<string>("");
   const [expandedMvp, setExpandedMvp] = useState<string | null>(null);
 
