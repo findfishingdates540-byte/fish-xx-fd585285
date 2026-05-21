@@ -550,10 +550,15 @@ export type Database = {
       }
       catches: {
         Row: {
+          approval_notes: string | null
+          approval_status: Database["public"]["Enums"]["catch_approval_status"]
+          approved_at: string | null
+          approved_by: string | null
           bait_used: string | null
           catch_method: string | null
           catch_status: string
           caught_at: string | null
+          challenge_id: string | null
           computed_score: number | null
           cover_photo_url: string | null
           created_at: string
@@ -574,16 +579,22 @@ export type Database = {
           share_location: boolean | null
           species_id: string | null
           species_name: string | null
+          tournament_id: string | null
           trophy_level: string | null
           user_id: string
           video_url: string | null
           weight_lbs: number | null
         }
         Insert: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["catch_approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           bait_used?: string | null
           catch_method?: string | null
           catch_status?: string
           caught_at?: string | null
+          challenge_id?: string | null
           computed_score?: number | null
           cover_photo_url?: string | null
           created_at?: string
@@ -604,16 +615,22 @@ export type Database = {
           share_location?: boolean | null
           species_id?: string | null
           species_name?: string | null
+          tournament_id?: string | null
           trophy_level?: string | null
           user_id: string
           video_url?: string | null
           weight_lbs?: number | null
         }
         Update: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["catch_approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           bait_used?: string | null
           catch_method?: string | null
           catch_status?: string
           caught_at?: string | null
+          challenge_id?: string | null
           computed_score?: number | null
           cover_photo_url?: string | null
           created_at?: string
@@ -634,12 +651,20 @@ export type Database = {
           share_location?: boolean | null
           species_id?: string | null
           species_name?: string | null
+          tournament_id?: string | null
           trophy_level?: string | null
           user_id?: string
           video_url?: string | null
           weight_lbs?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "catches_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "catches_fishing_spot_id_fkey"
             columns: ["fishing_spot_id"]
@@ -652,6 +677,13 @@ export type Database = {
             columns: ["species_id"]
             isOneToOne: false
             referencedRelation: "fish_species"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catches_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
             referencedColumns: ["id"]
           },
           {
@@ -4631,6 +4663,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_challenge_participant: {
+        Args: { _challenge: string; _user: string }
+        Returns: boolean
+      }
       is_team_captain: {
         Args: { _team: string; _user: string }
         Returns: boolean
@@ -4641,6 +4677,10 @@ export type Database = {
       }
       is_team_poster: {
         Args: { _team: string; _user: string }
+        Returns: boolean
+      }
+      is_tournament_participant: {
+        Args: { _tournament: string; _user: string }
         Returns: boolean
       }
       is_trip_owner: {
@@ -4682,6 +4722,7 @@ export type Database = {
     Enums: {
       account_mode: "dating" | "fishing" | "both"
       app_role: "admin" | "moderator" | "user" | "data_entry"
+      catch_approval_status: "pending" | "approved" | "rejected"
       catch_photo_type: "cover" | "measurement" | "general"
       challenge_type:
         | "largest_fish"
@@ -4850,6 +4891,7 @@ export const Constants = {
     Enums: {
       account_mode: ["dating", "fishing", "both"],
       app_role: ["admin", "moderator", "user", "data_entry"],
+      catch_approval_status: ["pending", "approved", "rejected"],
       catch_photo_type: ["cover", "measurement", "general"],
       challenge_type: [
         "largest_fish",
