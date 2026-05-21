@@ -284,7 +284,7 @@ export default function SpeciesLeaderboardPage() {
 
           {/* Table */}
           <div className="sb-card overflow-hidden">
-            <div className="grid grid-cols-[60px_1fr_120px_100px_140px] gap-2 px-4 py-2.5 bg-[hsl(var(--sb-surface-2))] text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
+            <div className="hidden sm:grid grid-cols-[48px_1fr_110px_90px_140px] md:grid-cols-[60px_1fr_120px_100px_140px] gap-2 px-3 sm:px-4 py-2.5 bg-[hsl(var(--sb-surface-2))] text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
               <span>Rank</span>
               <span>Angler</span>
               <span>Measurement</span>
@@ -320,7 +320,7 @@ export default function SpeciesLeaderboardPage() {
                         ? navigate(`/app/catches/${entry.largest_catch_id}`)
                         : navigate(`/app/u/${entry.user_id}`)
                     }
-                    className={`w-full grid grid-cols-[60px_1fr_120px_100px_140px] gap-2 px-4 py-3 border-t sb-border items-center text-left transition-colors hover:bg-[hsl(var(--sb-surface-2))] ${
+                    className={`w-full grid grid-cols-[40px_1fr_auto] sm:grid-cols-[48px_1fr_110px_90px_140px] md:grid-cols-[60px_1fr_120px_100px_140px] gap-2 px-3 sm:px-4 py-3 border-t sb-border items-center text-left transition-colors hover:bg-[hsl(var(--sb-surface-2))] ${
                       isTop3 ? "bg-[hsl(var(--sb-cyan)/0.04)]" : ""
                     }`}
                   >
@@ -347,10 +347,14 @@ export default function SpeciesLeaderboardPage() {
                             {rank === 1 ? "Pro Team" : "Amateur"}
                           </p>
                         )}
+                        <p className="text-[10px] sb-text-muted sm:hidden mt-0.5 truncate">
+                          {formatDate(catchInfo?.caught_at || catchInfo?.created_at)}
+                          {catchInfo?.general_location && catchInfo.share_location !== false && ` · ${catchInfo.general_location}`}
+                        </p>
                       </div>
                     </div>
 
-                    <div>
+                    <div className="text-right sm:text-left">
                       {sortBy === "weight" ? (
                         entry.largest_weight_lbs ? (
                           <span className="text-sm">
@@ -368,11 +372,11 @@ export default function SpeciesLeaderboardPage() {
                       )}
                     </div>
 
-                    <span className="text-xs sb-text-muted">
+                    <span className="text-xs sb-text-muted hidden sm:inline">
                       {formatDate(catchInfo?.caught_at || catchInfo?.created_at)}
                     </span>
 
-                    <div className="flex items-center gap-1 min-w-0">
+                    <div className="hidden sm:flex items-center gap-1 min-w-0">
                       {catchInfo?.general_location && (catchInfo.share_location !== false) ? (
                         <>
                           <MapPin className="h-3 w-3 sb-cyan shrink-0" />
