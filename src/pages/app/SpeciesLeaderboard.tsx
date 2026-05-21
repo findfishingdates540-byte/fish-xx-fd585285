@@ -249,8 +249,8 @@ export default function SpeciesLeaderboardPage() {
       <div className="flex flex-col lg:flex-row gap-6 px-4 md:px-6">
         {/* LEFT: Table */}
         <div className="flex-1 min-w-0">
-          <button onClick={() => navigate("/app/leaderboard")} className="text-sm sb-cyan hover:underline mb-4 flex items-center gap-1 font-medium">
-            ← Back to Scoreboards
+          <button onClick={() => navigate("/app/species")} className="text-sm sb-cyan hover:underline mb-4 flex items-center gap-1 font-medium">
+            ← Back to Species Explorer
           </button>
 
           {/* Tabs + Search */}
