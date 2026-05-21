@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus } from "lucide-react";
+import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { getShareBaseUrl } from "@/lib/config";
 import { FormattedRules } from "@/lib/format-rules";
 import { toast } from "sonner";
