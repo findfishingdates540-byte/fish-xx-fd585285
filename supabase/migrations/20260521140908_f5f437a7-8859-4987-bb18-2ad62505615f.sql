@@ -1,0 +1,22 @@
+
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/albacore.jpg' WHERE id='c344ae7c-29ab-4a67-b5f5-e22e57b9cc3c';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/amberjack-greater.jpg' WHERE id='0901072e-7fc6-458f-b922-3d0fda04d64c';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/tuna-bigeye-atlantic.jpg' WHERE id='9256c7b5-4f73-407f-b797-b177a39efa93';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/marlin-blue-atlantic.jpg' WHERE id='ba46202f-157f-47b8-9b83-22be42ac06c5';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/bream.jpg' WHERE id='92dcb68c-9af7-4c4d-a8ff-986517b24278';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/bullhead-black.jpg' WHERE id='4ae01057-a241-4a1c-9f23-1635ac2f77c8';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/catfish-channel.jpg' WHERE id='824ff7f6-01df-4a24-8698-258a6d38f315';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/snapper-pacific-cubera.jpg' WHERE id='cc9b0fd3-1728-4c83-b522-ddb079cb4e28';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/shark-great-hammerhead.jpg' WHERE id='877ad12d-13b0-42ed-8954-7fb489c89c77';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/shark-shortfin-mako.jpg' WHERE id='d40a957a-484c-42ca-9b8e-1b299b2227e6';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/snapper-grey.jpg' WHERE id='61fd5275-fea9-4888-8add-c437e0893788';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/tambaqui.jpg' WHERE id='5335fbe0-2004-48f2-8fe4-5940d2e67fe3';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/hind-peacock.jpg' WHERE id='595ae902-5680-4761-a822-4267bc63a19d';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/sailfish-atlantic.jpg' WHERE id='e0d87dcc-7e16-47cd-ad3b-f8c09b4809d6';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/scamp.jpg' WHERE id='8bfc78db-34fb-49de-a2df-6b1ec0590f68';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/spearfish-longbill.jpg' WHERE id='2b1e28dd-5e16-4de4-a776-cee8f8cca41e';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/stingray-southern.jpg' WHERE id='9baa4f8e-d164-4370-9f3a-88d25fb41f53';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/tilefish-blueline.jpg' WHERE id='7a4e952b-bae6-4799-ae0b-1e3e74122767';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/trevally-giant.jpg' WHERE id='49e33c1d-cc0a-45ca-8f52-102a1aceec28';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/triggerfish-queen.jpg' WHERE id='d4bb8933-29bd-4822-825a-dfd6dbc0719c';
+UPDATE public.fish_species SET image_url='https://alltacklerecords.com/fish-images/kingfish-southern.jpg' WHERE id='8f7768c0-f2db-4e99-ac45-2340d46832ff';
