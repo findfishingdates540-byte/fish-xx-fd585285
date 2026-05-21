@@ -138,6 +138,24 @@ export default function SpeciesLeaderboardPage() {
     return maxWeight > 0 ? maxWeight : null;
   }, [entries]);
 
+  // IGFA world record (from species table) + comparison vs app's best
+  const worldRecord = useMemo(() => {
+    if (!species?.world_record_weight_lbs) return null;
+    const year = species.world_record_date
+      ? new Date(species.world_record_date as unknown as string).getUTCFullYear()
+      : null;
+    return {
+      lbs: Number(species.world_record_weight_lbs),
+      angler: species.world_record_angler as string | null,
+      location: species.world_record_location as string | null,
+      country: species.world_record_country as string | null,
+      year,
+      source: species.world_record_source as string | null,
+    };
+  }, [species]);
+
+  const appBeatsWorld = !!(seasonRecord && worldRecord && seasonRecord > worldRecord.lbs);
+
   const filtered = useMemo(() => {
     if (!searchAngler) return entries;
     return entries.filter((e) => {
