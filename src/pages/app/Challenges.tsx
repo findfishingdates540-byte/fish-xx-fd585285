@@ -85,7 +85,23 @@ export default function Challenges() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<TabValue>("live");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab: TabValue = tabParam === "upcoming" || tabParam === "completed" ? tabParam : "live";
+  const [tab, setTabState] = useState<TabValue>(initialTab);
+  const setTab = (next: TabValue) => {
+    setTabState(next);
+    const params = new URLSearchParams(searchParams);
+    if (next === "live") params.delete("tab");
+    else params.set("tab", next);
+    setSearchParams(params, { replace: true });
+  };
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    const v: TabValue = t === "upcoming" || t === "completed" ? t : "live";
+    if (v !== tab) setTabState(v);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch challenges
