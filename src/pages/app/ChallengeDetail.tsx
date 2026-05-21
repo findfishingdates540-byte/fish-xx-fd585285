@@ -287,6 +287,23 @@ export default function ChallengeDetail() {
     leaveMutation.mutate();
   };
 
+  // Competition catch logging
+  const [logOpen, setLogOpen] = useState(false);
+  const { data: mySubmissions = [] } = useQuery({
+    queryKey: ["my-competition-catches", "challenge", id, user?.id],
+    queryFn: async () => {
+      if (!user || !id) return [];
+      const { data } = await supabase
+        .from("catches")
+        .select("id, species_name, weight_lbs, length_in, cover_photo_url, approval_status, approval_notes, caught_at")
+        .eq("user_id", user.id)
+        .eq("challenge_id", id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user && !!id,
+  });
+
   if (isLoading) {
     return (
       <div className="scoreboard-hub min-h-screen p-6 space-y-4">
