@@ -621,13 +621,12 @@ const TournamentDetail = () => {
       )}
 
       {isJoined && tournament.status === "in_progress" && (
-        <Button
+        <button
           onClick={() => setLogCatchOpen(true)}
-          className="w-full mb-4 gap-2"
-          size="lg"
+          className="w-full mb-4 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
         >
           <Plus className="h-4 w-4" /> Log Catch for Tournament
-        </Button>
+        </button>
       )}
 
       {/* Teams-only notice */}
