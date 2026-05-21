@@ -61,8 +61,17 @@ interface SpeciesCardData {
   image_url: string | null;
   categories: string[];
   totalLogs: number;
-  worldRecord: number | null;
-  recordHolder: { name: string; avatar: string | null } | null;
+  // App's top in-platform catch (lbs)
+  appRecord: number | null;
+  appRecordHolder: { name: string; avatar: string | null } | null;
+  // Official IGFA world record
+  worldRecordLbs: number | null;
+  worldRecordAngler: string | null;
+  worldRecordLocation: string | null;
+  worldRecordCountry: string | null;
+  worldRecordYear: number | null;
+  // True when our app's top catch beats the IGFA record
+  appBeatsWorld: boolean;
   isTrending: boolean;
 }
 
@@ -161,6 +170,10 @@ export default function SpeciesExplorer() {
       const stats = leaderboardStats[sp.id];
       const recentCount = recentCatchCounts[sp.id] || 0;
       const topUserId = stats?.topUserId;
+      const worldLbs = sp.world_record_weight_lbs ? Number(sp.world_record_weight_lbs) : null;
+      const appLbs = stats?.worldRecord ?? null;
+      const appBeatsWorld = !!(appLbs && worldLbs && appLbs > worldLbs);
+      const year = sp.world_record_date ? new Date(sp.world_record_date).getUTCFullYear() : null;
       return {
         id: sp.id,
         name: sp.name,
@@ -168,8 +181,14 @@ export default function SpeciesExplorer() {
         image_url: sp.image_url,
         categories: categorizeSpecies(sp.name),
         totalLogs: stats?.totalLogs || 0,
-        worldRecord: stats?.worldRecord || null,
-        recordHolder: topUserId && recordProfiles[topUserId] ? recordProfiles[topUserId] : null,
+        appRecord: appLbs,
+        appRecordHolder: topUserId && recordProfiles[topUserId] ? recordProfiles[topUserId] : null,
+        worldRecordLbs: worldLbs,
+        worldRecordAngler: sp.world_record_angler ?? null,
+        worldRecordLocation: sp.world_record_location ?? null,
+        worldRecordCountry: sp.world_record_country ?? null,
+        worldRecordYear: year,
+        appBeatsWorld,
         isTrending: recentCount >= trendingThreshold,
       };
     });
