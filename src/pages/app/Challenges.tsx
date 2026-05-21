@@ -25,7 +25,7 @@ import {
   BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getServerTimeStatus } from "@/hooks/use-server-time";
 import { useCountdown } from "@/hooks/use-countdown";
 import { localMidnightUtcMs, getUserTimeZone } from "@/lib/timezone";
