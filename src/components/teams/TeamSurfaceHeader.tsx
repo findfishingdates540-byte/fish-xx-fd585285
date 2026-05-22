@@ -49,7 +49,7 @@ export function TeamSurfaceHeader({
   const tabs: { key: TeamHeaderTab; label: string }[] = [
     { key: "posts", label: "Posts" },
     { key: "about", label: "About" },
-    { key: "members", label: "Members" },
+    { key: "members", label: !isGroup ? "Followers" : "Members" },
     { key: "media", label: "Photos" },
     { key: "mentions", label: "Mentions" },
     ...(showInsights ? [{ key: "insights" as TeamHeaderTab, label: "Insights" }] : []),
