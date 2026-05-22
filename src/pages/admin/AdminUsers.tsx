@@ -20,6 +20,7 @@ type UserType = NonNullable<ReturnType<typeof useAdminUsers>['data']>[number];
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const { data: users, isLoading } = useAdminUsers(search);
+  const { data: totalUsers, isLoading: countLoading } = useAdminUserCount();
   
   // Modal states
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
