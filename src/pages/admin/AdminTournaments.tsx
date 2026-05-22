@@ -142,7 +142,7 @@ export default function AdminTournaments() {
               <TableRow key={t.id} className="border-slate-700">
                 <TableCell className="font-medium text-white">{t.title}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="capitalize text-xs">
+                  <Badge variant="outline" className="capitalize text-xs text-white border-slate-500">
                     {String(t.status).replace("_", " ")}
                   </Badge>
                 </TableCell>
