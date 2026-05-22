@@ -439,7 +439,7 @@ export default function TeamProfile() {
         </TabsContent>
 
         <TabsContent value="members" className="mt-4">
-          <TeamMembersPanel team={team} members={members} profiles={profiles} isCaptain={isCaptain} />
+          <TeamMembersPanel team={team} members={members} pendingRequests={pendingRequests} profiles={profiles} isCaptain={isCaptain} />
         </TabsContent>
 
         {isCaptain && (
