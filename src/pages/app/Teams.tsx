@@ -55,7 +55,7 @@ export default function Teams() {
     queryKey: ["all-team-members", teamIds.join(",")],
     queryFn: async () => {
       if (teamIds.length === 0) return [];
-      const { data } = await supabase.from("team_members").select("team_id, user_id");
+      const { data } = await supabase.from("team_members").select("team_id, user_id, status").eq("status", "approved");
       return data || [];
     },
     enabled: teamIds.length > 0,

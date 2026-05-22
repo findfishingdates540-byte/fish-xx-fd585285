@@ -22,7 +22,7 @@ export default function TeamPage() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { team, teamLoading, members, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
+  const { team, teamLoading, members, pendingRequests, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
   const { data: role } = useTeamRole(teamId);
   const { data: followInfo } = useTeamFollow(teamId);
   const [editOpen, setEditOpen] = useState(false);
@@ -64,6 +64,7 @@ export default function TeamPage() {
         activeTab={tab}
         onTabChange={setTab}
         showInsights={isCaptain}
+        pendingCount={isCaptain ? pendingRequests.length : 0}
       />
       {isCaptain && <EditTeamDialog open={editOpen} onOpenChange={setEditOpen} team={team} />}
 
@@ -84,7 +85,7 @@ export default function TeamPage() {
             <TeamAboutPanel team={team} memberUserIds={memberUserIds} memberCount={memberCount} />
           )}
           {tab === "members" && (
-            <TeamMembersPanel team={team} members={members} profiles={profiles} isCaptain={isCaptain} />
+            <TeamMembersPanel team={team} members={members} pendingRequests={pendingRequests} profiles={profiles} isCaptain={isCaptain} />
           )}
           {tab === "media" && <TeamMediaTab teamId={teamId!} />}
           {tab === "mentions" && <TeamMentionsFeed teamName={team.name} />}

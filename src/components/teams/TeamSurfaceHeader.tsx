@@ -19,6 +19,7 @@ interface Props {
   activeTab?: TeamHeaderTab;
   onTabChange?: (t: TeamHeaderTab) => void;
   showInsights?: boolean;
+  pendingCount?: number;
 }
 
 export function TeamSurfaceHeader({
@@ -33,6 +34,7 @@ export function TeamSurfaceHeader({
   activeTab = "posts",
   onTabChange,
   showInsights = false,
+  pendingCount = 0,
 }: Props) {
   const navigate = useNavigate();
   const teamId = team.id as string;
@@ -173,6 +175,11 @@ export function TeamSurfaceHeader({
               }`}
             >
               {t.label}
+              {t.key === "members" && pendingCount > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center text-[10px] font-bold bg-primary text-primary-foreground rounded-full h-4 min-w-4 px-1">
+                  {pendingCount}
+                </span>
+              )}
             </button>
           ))}
         </nav>

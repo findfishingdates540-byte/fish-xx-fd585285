@@ -17,7 +17,7 @@ import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
 export default function TeamGroup() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
-  const { team, teamLoading, members, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
+  const { team, teamLoading, members, pendingRequests, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
   const { data: role } = useTeamRole(teamId);
   const [editOpen, setEditOpen] = useState(false);
   const [tab, setTab] = useState<TeamHeaderTab>("posts");
@@ -52,6 +52,7 @@ export default function TeamGroup() {
         onEdit={() => setEditOpen(true)}
         activeTab={tab}
         onTabChange={setTab}
+        pendingCount={isCaptain ? pendingRequests.length : 0}
       />
       {isCaptain && <EditTeamDialog open={editOpen} onOpenChange={setEditOpen} team={team} />}
 
@@ -82,7 +83,7 @@ export default function TeamGroup() {
               <TeamAboutPanel team={team} memberUserIds={memberUserIds} memberCount={memberCount} />
             )}
             {tab === "members" && (
-              <TeamMembersPanel team={team} members={members} profiles={profiles} isCaptain={isCaptain} />
+              <TeamMembersPanel team={team} members={members} pendingRequests={pendingRequests} profiles={profiles} isCaptain={isCaptain} />
             )}
             {tab === "media" && <TeamMediaTab teamId={teamId!} />}
             {tab === "mentions" && <TeamMentionsFeed teamName={team.name} />}

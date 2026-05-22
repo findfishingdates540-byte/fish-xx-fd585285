@@ -23,7 +23,7 @@ export function useTeamContext(teamId: string | undefined) {
     enabled: !!teamId,
   });
 
-  const { data: members = [] } = useQuery({
+  const { data: allRows = [] } = useQuery({
     queryKey: ["team-members", teamId],
     queryFn: async () => {
       const { data } = await supabase.from("team_members").select("*").eq("team_id", teamId!);
@@ -32,29 +32,38 @@ export function useTeamContext(teamId: string | undefined) {
     enabled: !!teamId,
   });
 
+  const members = useMemo(() => allRows.filter((m: any) => m.status === "approved" || !m.status), [allRows]);
+  const pendingRequests = useMemo(() => allRows.filter((m: any) => m.status === "pending"), [allRows]);
+
   const memberUserIds = useMemo(
     () => [...(team ? [team.captain_id] : []), ...members.map((m: any) => m.user_id)],
     [team, members],
   );
 
+  const profileIds = useMemo(
+    () => Array.from(new Set([...memberUserIds, ...pendingRequests.map((m: any) => m.user_id)])),
+    [memberUserIds, pendingRequests],
+  );
+
   const { data: profiles = {} } = useQuery({
-    queryKey: ["team-member-profiles", memberUserIds.join(",")],
+    queryKey: ["team-member-profiles", profileIds.join(",")],
     queryFn: async () => {
-      if (memberUserIds.length === 0) return {} as Record<string, MemberProfile>;
+      if (profileIds.length === 0) return {} as Record<string, MemberProfile>;
       const { data } = await supabase
         .from("profiles_safe")
         .select("id, display_name, photos, fishing_experience")
-        .in("id", memberUserIds);
+        .in("id", profileIds);
       const map: Record<string, MemberProfile> = {};
       (data || []).forEach((p: any) => { map[p.id] = p as MemberProfile; });
       return map;
     },
-    enabled: memberUserIds.length > 0,
+    enabled: profileIds.length > 0,
   });
 
   const isCaptain = !!user && team?.captain_id === user.id;
   const isMember = !!user && (isCaptain || members.some((m: any) => m.user_id === user.id));
+  const myPending = !!user && pendingRequests.some((m: any) => m.user_id === user.id);
   const memberCount = (team ? 1 : 0) + members.filter((m: any) => m.user_id !== team?.captain_id).length;
 
-  return { team, teamLoading, members, memberUserIds, profiles, isCaptain, isMember, memberCount };
+  return { team, teamLoading, members, pendingRequests, memberUserIds, profiles, isCaptain, isMember, myPending, memberCount };
 }

@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Shield, ShieldOff, Users } from "lucide-react";
+import { Check, Crown, Shield, ShieldOff, UserPlus, Users, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface MemberProfile {
@@ -18,15 +18,51 @@ interface MemberProfile {
 interface Props {
   team: any;
   members: any[];
+  pendingRequests?: any[];
   profiles: Record<string, MemberProfile>;
   isCaptain: boolean;
 }
 
-export function TeamMembersPanel({ team, members, profiles, isCaptain }: Props) {
+export function TeamMembersPanel({ team, members, pendingRequests = [], profiles, isCaptain }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const teamId = team.id as string;
+
+  const approveMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      if (!isCaptain) throw new Error("Captain only");
+      const { error } = await supabase
+        .from("team_members")
+        .update({ status: "approved" })
+        .eq("team_id", teamId)
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-members", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["all-teams"] });
+      toast.success("Request approved");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      if (!isCaptain) throw new Error("Captain only");
+      const { error } = await supabase
+        .from("team_members")
+        .delete()
+        .eq("team_id", teamId)
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-members", teamId] });
+      toast.success("Request rejected");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const promoteMutation = useMutation({
     mutationFn: async (p: { userId: string; toRole: "officer" | "member" }) => {
@@ -65,6 +101,46 @@ export function TeamMembersPanel({ team, members, profiles, isCaptain }: Props) 
   ];
 
   return (
+    <div className="space-y-4">
+      {isCaptain && pendingRequests.length > 0 && (
+        <section className="rounded-xl border bg-card overflow-hidden">
+          <div className="px-5 py-3 border-b flex items-center justify-between">
+            <h2 className="font-bold text-sm flex items-center gap-2">
+              <UserPlus className="h-4 w-4 text-primary" />
+              Pending requests
+            </h2>
+            <span className="text-xs text-muted-foreground">{pendingRequests.length}</span>
+          </div>
+          <div className="divide-y divide-border">
+            {pendingRequests.map((req: any) => {
+              const profile = profiles[req.user_id];
+              return (
+                <div key={req.user_id} className="flex items-center gap-3 px-5 py-3">
+                  <button onClick={() => navigate(`/app/u/${req.user_id}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={profile?.photos?.[0] || ""} />
+                      <AvatarFallback className="text-xs">{(profile?.display_name || "?")[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{profile?.display_name || "Angler"}</p>
+                      <p className="text-xs text-muted-foreground">Wants to join</p>
+                    </div>
+                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <Button size="sm" className="gap-1 h-8" onClick={() => approveMutation.mutate(req.user_id)} disabled={approveMutation.isPending}>
+                      <Check className="h-3.5 w-3.5" /> Approve
+                    </Button>
+                    <Button size="sm" variant="ghost" className="gap-1 h-8 text-destructive hover:text-destructive" onClick={() => rejectMutation.mutate(req.user_id)} disabled={rejectMutation.isPending}>
+                      <X className="h-3.5 w-3.5" /> Reject
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
     <section className="rounded-xl border bg-card overflow-hidden">
       <div className="px-5 py-3 border-b flex items-center justify-between">
         <h2 className="font-bold text-sm flex items-center gap-2">
@@ -121,5 +197,6 @@ export function TeamMembersPanel({ team, members, profiles, isCaptain }: Props) 
         })}
       </div>
     </section>
+    </div>
   );
 }
