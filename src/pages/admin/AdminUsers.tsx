@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { useAdminUsers } from '@/hooks/use-admin-users';
+import { useAdminUsers, useAdminUserCount } from '@/hooks/use-admin-users';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserDetailsModal } from '@/components/admin/UserDetailsModal';
@@ -20,6 +20,7 @@ type UserType = NonNullable<ReturnType<typeof useAdminUsers>['data']>[number];
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const { data: users, isLoading } = useAdminUsers(search);
+  const { data: totalUsers, isLoading: countLoading } = useAdminUserCount();
   
   // Modal states
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
@@ -61,6 +62,10 @@ export default function AdminUsers() {
         <div>
           <h1 className="text-2xl font-bold text-white">User Management</h1>
           <p className="text-slate-400 mt-1">Manage and monitor all platform users</p>
+        </div>
+        <div className="text-right">
+          <p className="text-3xl font-bold text-white">{countLoading ? '—' : totalUsers?.toLocaleString()}</p>
+          <p className="text-slate-400 text-sm">Total users</p>
         </div>
       </div>
 

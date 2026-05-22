@@ -52,6 +52,21 @@ export function useAdminUsers(search?: string) {
   });
 }
 
+export function useAdminUserCount() {
+  return useQuery({
+    queryKey: ['admin-user-count'],
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) throw error;
+      return count || 0;
+    },
+    staleTime: 60000,
+  });
+}
+
 export function useUserRole(userId: string) {
   return useQuery({
     queryKey: ['user-role', userId],
