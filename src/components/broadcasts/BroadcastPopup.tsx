@@ -9,6 +9,7 @@ interface Broadcast {
   id: string;
   title: string;
   body: string;
+  body_html: string | null;
   popup_variant: "info" | "success" | "warning";
   popup_cta_label: string | null;
   popup_cta_url: string | null;
@@ -35,7 +36,7 @@ export function BroadcastPopup() {
 
       let q = supabase
         .from("admin_broadcasts")
-        .select("id,title,body,popup_variant,popup_cta_label,popup_cta_url,sent_at,channels,status")
+        .select("id,title,body,body_html,popup_variant,popup_cta_label,popup_cta_url,sent_at,channels,status")
         .eq("status", "sent")
         .contains("channels", ["popup"])
         .order("sent_at", { ascending: false })
@@ -103,7 +104,14 @@ export function BroadcastPopup() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm leading-snug">{broadcast.title}</div>
-            <div className="text-xs text-white/70 mt-1 whitespace-pre-line line-clamp-4">{broadcast.body}</div>
+            {broadcast.body_html ? (
+              <div
+                className="prose prose-invert prose-xs max-w-none mt-1 text-white/80 [&_img]:max-h-40 [&_img]:rounded-md [&_p]:my-1 [&_a]:text-cyan-300"
+                dangerouslySetInnerHTML={{ __html: broadcast.body_html }}
+              />
+            ) : (
+              <div className="text-xs text-white/70 mt-1 whitespace-pre-line line-clamp-4">{broadcast.body}</div>
+            )}
             {broadcast.popup_cta_url && (
               <a
                 href={broadcast.popup_cta_url}
