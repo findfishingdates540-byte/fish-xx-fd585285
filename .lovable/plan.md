@@ -1,44 +1,62 @@
-## Competition Catch Verification
+# App-Wide Broadcast Messaging System
 
-### What gets built
+A new admin tool to compose a message (title + body) and deliver it through any combination of three channels: **Email**, **In-App Notification**, and **Bottom Popup Banner**.
 
-1. **Catches get a competition context**
-   - Add three columns to `catches`: `challenge_id`, `tournament_id`, `approval_status` (enum: `pending` / `approved` / `rejected`), plus `approval_notes`, `approved_by`, `approved_at`.
-   - Regular (non-competition) catches stay untouched — `approval_status` defaults to `approved` for them so existing data keeps working.
-   - Competition catches default to `pending` and are excluded from the species leaderboard until approved.
+## 1. Database (new migration)
 
-2. **Participant: Log a catch for a competition**
-   - New "Log catch" button on `ChallengeDetail` and `TournamentDetail`, only visible while the comp is active and the user is a paid/registered participant.
-   - Opens the existing catch logger pre-tagged with `challenge_id` / `tournament_id`. Photo + species + weight + length + spot are required.
-   - After submit, the catch shows a yellow "Pending review" badge until an admin approves it.
+**`admin_broadcasts`** — the composed message + send metadata
+- `id`, `title`, `body`, `channels text[]` (`email` | `in_app` | `popup`)
+- `audience text` (`all` for now; future: by mode/role)
+- `popup_variant text` (`info` | `success` | `warning`), `popup_cta_label`, `popup_cta_url` (optional)
+- `status text` (`draft` | `sending` | `sent` | `failed`), `recipient_count int`, `sent_count int`
+- `created_by uuid`, `created_at`, `sent_at`
+- RLS: admins full access; authenticated users `SELECT` only rows where `'popup' = ANY(channels)` AND `status = 'sent'` (needed for popup display)
 
-3. **Admin: Competition catch queue**
-   - New page `Admin → Competition Catches` with two tabs: **Challenge submissions** and **Tournament submissions**, each grouped by the parent comp with counts of pending entries.
-   - Each row shows: photo, angler, species, weight, length, location, watermark/verification signals, "Approve" and "Reject" buttons. Rejection asks for a short reason that gets surfaced to the angler.
-   - Approving sets `approval_status = approved` AND `is_verified = true` so the catch flows into the species leaderboard automatically (via the existing `refresh_leaderboard_entries` trigger on `is_verified`).
+**`admin_broadcast_dismissals`** — tracks which popups a user has dismissed
+- `id`, `broadcast_id`, `user_id`, `dismissed_at`
+- Unique `(broadcast_id, user_id)`
+- RLS: user can insert/select own rows
 
-4. **Display surfaces**
-   - Competition catches that are approved render an "Approved" badge (green) on the catch card; pending ones show a yellow "Pending" badge; rejected show a red "Rejected" badge with the reason on the owner's own view only.
-   - `ChallengeDetail` and `TournamentDetail` leaderboards only count approved competition entries.
-   - The regular species leaderboard receives approved entries automatically — no extra logic required.
+## 2. Edge Function: `send-admin-broadcast`
 
-5. **Notifications**
-   - Angler gets a notification when their competition catch is approved or rejected.
+Triggered when admin clicks Send. Admin-gated (verify `has_role('admin')`).
+- Inserts row into `admin_broadcasts` with `status='sending'`
+- If `in_app` selected → bulk insert into `notifications` (type `admin_broadcast`) for every active profile
+- If `email` selected → reuse pattern from `send-event-announcement-email` (paginate profiles, send via existing email infra, dedup by email)
+- If `popup` selected → no fan-out needed; the broadcast row itself drives the popup
+- Updates row to `status='sent'` with counts
 
-### Technical notes
+## 3. Admin UI: `src/pages/admin/AdminBroadcasts.tsx`
 
-- **Migration**: add columns + enum, default `approval_status` to `'approved'` for existing rows. Update `refresh_leaderboard_entries` to additionally require `approval_status = 'approved'` (no-op for legacy rows due to backfill).
-- **RLS**: participants can `INSERT` a catch with their own `user_id` AND a `challenge_id` they're paid into OR a `tournament_id` they're registered in. Admins can `UPDATE` `approval_status` (already covered by the existing "Admins can update any catch" policy).
-- **Helper functions**: `is_challenge_participant(_user, _challenge)` and `is_tournament_participant(_user, _tournament)` as `SECURITY DEFINER` for clean RLS.
-- **Edge function**: none needed — pure DB + frontend.
-- **Files touched**:
-  - Migration (new).
-  - `src/pages/app/ChallengeDetail.tsx`, `src/pages/app/TournamentDetail.tsx` — Log catch CTA + pending badge.
-  - New `src/components/competition/LogCompetitionCatchModal.tsx`.
-  - New `src/pages/admin/AdminCompetitionCatches.tsx` + route + sidebar entry.
-  - `src/pages/app/CatchDetail.tsx` and catch card — render approval badge.
+- Form: Title, Body (textarea), channel checkboxes (Email / In-App / Popup), popup variant + optional CTA fields (shown only when Popup is checked)
+- Preview pane
+- "Send Now" button → confirm dialog → calls edge function
+- History table below: past broadcasts with channels, recipient count, sent timestamp
+- Register route in admin router + nav link
+- Add export to `src/pages/admin/index.ts`
 
-### Out of scope (ask if you want it later)
+## 4. Frontend: Bottom Popup Banner
 
-- Auto-DQ rules (min weight, species mismatch, time window) — for now everything is manual review.
-- Allowing anglers to edit a rejected submission and resubmit — for now they'd log a new one.
+New component `src/components/broadcasts/BroadcastPopup.tsx`, mounted once in the authenticated app shell (e.g. `AppLayout`).
+- Query: most recent `admin_broadcasts` where `'popup' = ANY(channels)` AND `status='sent'` AND not in user's dismissals, ordered by `sent_at DESC`, limit 1
+- Fixed-position bottom card matching dark theme (Outfit font, primary `#1454AE`), slide-up animation, dismiss "×" button → inserts dismissal row
+- Optional CTA button if `popup_cta_url` set
+- Realtime subscription to `admin_broadcasts` so new popups appear without refresh
+
+## 5. In-App Notification Rendering
+
+The existing notifications system already surfaces inserted rows. Add a small icon/label mapping for `type='admin_broadcast'` in the existing notifications list component so they render with a megaphone icon and the admin title/body.
+
+## Technical Notes
+
+- Email reuses existing `send-event-announcement-email` pattern (Resend via gateway, all-users blast, no opt-in filter — consistent with prior decision).
+- All sends performed server-side in the edge function (admin role enforced).
+- Audience is `all` in v1; schema leaves room for future targeting (mode, role, country).
+- No changes to existing notification triggers — `admin_broadcast` is just a new `type` value.
+
+## Out of Scope (v1)
+
+- Scheduling (send later) — easy follow-up via `scheduled_for` column + cron
+- Per-segment audiences
+- Rich text / images in body
+- Push notifications (can be added as a 4th channel later)
