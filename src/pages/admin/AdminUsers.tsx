@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { useAdminUsers } from '@/hooks/use-admin-users';
+import { useAdminUsers, useAdminUserCount } from '@/hooks/use-admin-users';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserDetailsModal } from '@/components/admin/UserDetailsModal';
