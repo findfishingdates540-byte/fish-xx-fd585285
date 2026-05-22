@@ -47,14 +47,18 @@ export type Database = {
         Row: {
           audience: string
           body: string
+          body_html: string | null
           channels: string[]
           created_at: string
           created_by: string
+          dispatch_attempts: number
           id: string
+          last_dispatch_error: string | null
           popup_cta_label: string | null
           popup_cta_url: string | null
           popup_variant: string
           recipient_count: number
+          scheduled_for: string | null
           sent_at: string | null
           sent_count: number
           status: string
@@ -63,14 +67,18 @@ export type Database = {
         Insert: {
           audience?: string
           body: string
+          body_html?: string | null
           channels?: string[]
           created_at?: string
           created_by: string
+          dispatch_attempts?: number
           id?: string
+          last_dispatch_error?: string | null
           popup_cta_label?: string | null
           popup_cta_url?: string | null
           popup_variant?: string
           recipient_count?: number
+          scheduled_for?: string | null
           sent_at?: string | null
           sent_count?: number
           status?: string
@@ -79,14 +87,18 @@ export type Database = {
         Update: {
           audience?: string
           body?: string
+          body_html?: string | null
           channels?: string[]
           created_at?: string
           created_by?: string
+          dispatch_attempts?: number
           id?: string
+          last_dispatch_error?: string | null
           popup_cta_label?: string | null
           popup_cta_url?: string | null
           popup_variant?: string
           recipient_count?: number
+          scheduled_for?: string | null
           sent_at?: string | null
           sent_count?: number
           status?: string
