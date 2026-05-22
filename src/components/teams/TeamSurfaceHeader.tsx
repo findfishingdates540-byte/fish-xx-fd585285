@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, AtSign, Crown, Globe, Lock, MessageCircle, Pencil, Share2 } from "lucide-react";
 import { FollowPageButton } from "@/components/teams/FollowPageButton";
 
-export type TeamHeaderTab = "posts" | "mentions";
+export type TeamHeaderTab = "posts" | "about" | "members" | "media" | "mentions" | "insights";
 
 interface Props {
   team: any;
@@ -18,6 +18,7 @@ interface Props {
   rightSlot?: React.ReactNode;
   activeTab?: TeamHeaderTab;
   onTabChange?: (t: TeamHeaderTab) => void;
+  showInsights?: boolean;
 }
 
 export function TeamSurfaceHeader({
@@ -31,6 +32,7 @@ export function TeamSurfaceHeader({
   rightSlot,
   activeTab = "posts",
   onTabChange,
+  showInsights = false,
 }: Props) {
   const navigate = useNavigate();
   const teamId = team.id as string;
@@ -43,6 +45,15 @@ export function TeamSurfaceHeader({
   }, []);
 
   const isGroup = surface === "group";
+
+  const tabs: { key: TeamHeaderTab; label: string }[] = [
+    { key: "posts", label: "Posts" },
+    { key: "about", label: "About" },
+    { key: "members", label: "Members" },
+    { key: "media", label: "Photos" },
+    { key: "mentions", label: "Mentions" },
+    ...(showInsights ? [{ key: "insights" as TeamHeaderTab, label: "Insights" }] : []),
+  ];
 
   return (
     <>
@@ -97,9 +108,6 @@ export function TeamSurfaceHeader({
           {/* Name + meta */}
           <div className="flex-1 min-w-0 self-end pt-12 md:pt-20">
             <h1 className="text-2xl md:text-3xl font-bold leading-tight truncate">{team.name}</h1>
-            {team.description && (
-              <p className="text-sm text-foreground/80 mt-2 line-clamp-2">{team.description}</p>
-            )}
             <p className="text-sm text-muted-foreground mt-1">
               <span className="font-medium text-foreground">{!isGroup ? followerCount : memberCount}</span>{" "}
               {!isGroup ? (followerCount === 1 ? "follower" : "followers") : "members"}
@@ -154,18 +162,12 @@ export function TeamSurfaceHeader({
       {/* Tab/nav strip beneath identity (visual mirror of FB) */}
       <div className="border-b mb-6 -mx-4 md:-mx-6 px-4 md:px-6">
         <nav className="flex items-center gap-1 overflow-x-auto">
-          {[
-            { key: "posts", label: "Posts", active: activeTab === "posts", onClick: () => onTabChange?.("posts") },
-            { key: "about", label: "About", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=about`) },
-            { key: "members", label: "Members", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=members`) },
-            { key: "media", label: "Photos", active: false, onClick: () => navigate(`/app/teams/${teamId}?tab=media`) },
-            { key: "mentions", label: "Mentions", active: activeTab === "mentions", onClick: () => onTabChange?.("mentions") },
-          ].map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.key}
-              onClick={t.onClick}
+              onClick={() => onTabChange?.(t.key)}
               className={`px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition ${
-                t.active
+                activeTab === t.key
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-md"
               }`}
