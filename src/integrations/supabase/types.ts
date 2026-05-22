@@ -3201,6 +3201,7 @@ export type Database = {
           id: string
           joined_at: string
           role: string
+          status: string
           team_id: string
           user_id: string
         }
@@ -3208,6 +3209,7 @@ export type Database = {
           id?: string
           joined_at?: string
           role?: string
+          status?: string
           team_id: string
           user_id: string
         }
@@ -3215,6 +3217,7 @@ export type Database = {
           id?: string
           joined_at?: string
           role?: string
+          status?: string
           team_id?: string
           user_id?: string
         }
