@@ -113,6 +113,26 @@ export default function AdminPhotoChallenges() {
     },
   });
 
+  const announceMutation = useMutation({
+    mutationFn: async ({ id, force }: { id: string; force: boolean }) => {
+      const { data, error } = await supabase.functions.invoke("send-event-announcement-email", {
+        body: { event_type: "photo_challenge", event_id: id, force },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => {
+      if (data?.skipped === "already_sent") {
+        toast({ title: "Already announced", description: "An announcement email was already sent for this challenge." });
+      } else if (data?.skipped === "no_recipients") {
+        toast({ title: "No recipients", description: "No eligible members to email." });
+      } else {
+        toast({ title: "Announcement sent", description: `Emailed ${data?.sent ?? 0} members.` });
+      }
+    },
+    onError: (err: any) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("photo_challenges").update({ status }).eq("id", id);
