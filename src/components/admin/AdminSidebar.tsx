@@ -101,6 +101,10 @@ const navItems: NavItem[] = [{
   to: '/admin/support',
   icon: Ticket,
   label: 'Support Tickets'
+}, {
+  to: '/admin/broadcasts',
+  icon: Megaphone,
+  label: 'Broadcasts'
 }];
 
 const bottomItems = [{
