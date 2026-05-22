@@ -63,6 +63,10 @@ export default function AdminUsers() {
           <h1 className="text-2xl font-bold text-white">User Management</h1>
           <p className="text-slate-400 mt-1">Manage and monitor all platform users</p>
         </div>
+        <div className="text-right">
+          <p className="text-3xl font-bold text-white">{countLoading ? '—' : totalUsers?.toLocaleString()}</p>
+          <p className="text-slate-400 text-sm">Total users</p>
+        </div>
       </div>
 
       {/* Search and Filters */}
