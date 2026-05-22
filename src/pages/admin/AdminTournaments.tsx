@@ -197,6 +197,20 @@ export default function AdminTournaments() {
                     >
                       <Settings className="w-4 h-4" />
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-sky-300 hover:text-sky-200"
+                      title="Email announcement to all members"
+                      disabled={announceMutation.isPending}
+                      onClick={() => {
+                        if (confirm(`Email an announcement about "${t.title}" to all eligible members? This sends real emails via Resend.`)) {
+                          announceMutation.mutate({ id: t.id, force: false });
+                        }
+                      }}
+                    >
+                      <Megaphone className="w-4 h-4" />
+                    </Button>
                     {t.status !== "cancelled" && t.status !== "completed" && (
                       <Button
                         size="sm"
