@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_broadcast_dismissals: {
+        Row: {
+          broadcast_id: string
+          dismissed_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          broadcast_id: string
+          dismissed_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string
+          dismissed_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_broadcast_dismissals_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "admin_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_broadcasts: {
+        Row: {
+          audience: string
+          body: string
+          channels: string[]
+          created_at: string
+          created_by: string
+          id: string
+          popup_cta_label: string | null
+          popup_cta_url: string | null
+          popup_variant: string
+          recipient_count: number
+          sent_at: string | null
+          sent_count: number
+          status: string
+          title: string
+        }
+        Insert: {
+          audience?: string
+          body: string
+          channels?: string[]
+          created_at?: string
+          created_by: string
+          id?: string
+          popup_cta_label?: string | null
+          popup_cta_url?: string | null
+          popup_variant?: string
+          recipient_count?: number
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          title: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          channels?: string[]
+          created_at?: string
+          created_by?: string
+          id?: string
+          popup_cta_label?: string | null
+          popup_cta_url?: string | null
+          popup_variant?: string
+          recipient_count?: number
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       advertisements: {
         Row: {
           ad_type: string
