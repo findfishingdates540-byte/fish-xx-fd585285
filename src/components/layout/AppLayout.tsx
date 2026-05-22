@@ -8,6 +8,7 @@ import { BottomNav } from './BottomNav';
 import { FishingHeader } from './FishingHeader';
 
 import { PageTransition } from './PageTransition';
+import { BroadcastPopup } from '@/components/broadcasts/BroadcastPopup';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { useTripInvitationNotifications } from '@/hooks/use-trip-notifications';
@@ -176,6 +177,8 @@ function AppLayoutContent() {
           <BottomNav accountMode={resolvedMode} />
         </div>
       )}
+
+      <BroadcastPopup />
     </div>
   );
 }
