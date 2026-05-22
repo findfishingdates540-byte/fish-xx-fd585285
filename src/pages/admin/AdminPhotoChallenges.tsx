@@ -517,20 +517,22 @@ export default function AdminPhotoChallenges() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-sky-500 hover:text-sky-400"
-                          title="Email announcement to all members"
-                          disabled={announceMutation.isPending}
-                          onClick={() => {
-                            if (confirm(`Email an announcement about "${c.title}" to all eligible members? This sends real emails via Resend.`)) {
-                              announceMutation.mutate({ id: c.id, force: false });
-                            }
-                          }}
-                        >
-                          <Megaphone className="h-4 w-4" />
-                        </Button>
+                        {c.status !== "completed" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-sky-500 hover:text-sky-400"
+                            title="Email announcement to all members"
+                            disabled={announceMutation.isPending}
+                            onClick={() => {
+                              if (confirm(`Email an announcement about "${c.title}" to all eligible members? This sends real emails via Resend.`)) {
+                                announceMutation.mutate({ id: c.id, force: false });
+                              }
+                            }}
+                          >
+                            <Megaphone className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
