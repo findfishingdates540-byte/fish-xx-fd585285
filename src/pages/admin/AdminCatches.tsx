@@ -19,6 +19,8 @@ interface Catch {
   weight_lbs: number | null;
   length_in: number | null;
   photos: string[] | null;
+  cover_photo_url: string | null;
+  measurement_photo_url: string | null;
   notes: string | null;
   caught_at: string | null;
   created_at: string;
@@ -153,9 +155,9 @@ export default function AdminCatches() {
             >
               {/* Catch Image */}
               <div className="aspect-video bg-slate-700 relative">
-                {c.photos?.[0] ? (
+                {(c.cover_photo_url || c.photos?.[0] || c.measurement_photo_url) ? (
                   <img
-                    src={c.photos[0]}
+                    src={c.cover_photo_url || c.photos?.[0] || c.measurement_photo_url || ''}
                     alt={c.species_name || 'Catch'}
                     className="w-full h-full object-cover"
                   />
@@ -278,9 +280,9 @@ export default function AdminCatches() {
                   <><CheckCircle2 className="w-4 h-4 mr-2" />Verify Catch (add to scoring)</>
                 )}
               </Button>
-              {selectedCatch.photos?.[0] && (
+              {(selectedCatch.cover_photo_url || selectedCatch.photos?.[0] || selectedCatch.measurement_photo_url) && (
                 <img 
-                  src={selectedCatch.photos[0]} 
+                  src={selectedCatch.cover_photo_url || selectedCatch.photos?.[0] || selectedCatch.measurement_photo_url || ''} 
                   alt="Catch" 
                   className="w-full aspect-video object-cover rounded-lg"
                 />
