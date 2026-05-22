@@ -59,7 +59,7 @@ export default function TeamProfile() {
     enabled: !!teamId,
   });
 
-  const { data: members = [] } = useQuery({
+  const { data: allRows = [] } = useQuery({
     queryKey: ["team-members", teamId],
     queryFn: async () => {
       const { data } = await supabase.from("team_members").select("*").eq("team_id", teamId!);
@@ -67,6 +67,9 @@ export default function TeamProfile() {
     },
     enabled: !!teamId,
   });
+
+  const members = useMemo(() => allRows.filter((m: any) => m.status === "approved" || !m.status), [allRows]);
+  const pendingRequests = useMemo(() => allRows.filter((m: any) => m.status === "pending"), [allRows]);
 
   const memberUserIds = useMemo(() => [
     ...(team ? [team.captain_id] : []),
@@ -106,6 +109,7 @@ export default function TeamProfile() {
 
   const isCaptain = !!user && team?.captain_id === user.id;
   const isMember = !!user && (isCaptain || members.some((m) => m.user_id === user.id));
+  const myPending = !!user && pendingRequests.some((m) => m.user_id === user.id);
   const { data: followInfo } = useTeamFollow(teamId);
   const [tab, setTab] = useState<string>("about");
   const [editOpen, setEditOpen] = useState(false);
@@ -177,13 +181,14 @@ export default function TeamProfile() {
         team_id: teamId,
         user_id: user.id,
         role: "member",
+        status: "pending",
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members", teamId] });
       queryClient.invalidateQueries({ queryKey: ["all-teams"] });
-      toast.success("You joined the team! 🎉");
+      toast.success("Request sent — waiting for captain approval");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -197,7 +202,7 @@ export default function TeamProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members", teamId] });
       queryClient.invalidateQueries({ queryKey: ["all-teams"] });
-      toast.success("You left the team");
+      toast.success(myPending ? "Request cancelled" : "You left the team");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -342,10 +347,14 @@ export default function TeamProfile() {
               <Button size="sm" variant="outline" onClick={() => navigate(`/app/teams/${teamId}/group`)} className="gap-1.5 h-9">
                 <Lock className="h-4 w-4" /> Group
               </Button>
-              {!isMember ? (
+              {!isMember && !myPending ? (
                 <Button onClick={() => joinMutation.mutate()} disabled={joinMutation.isPending} className="gap-1.5">
                   <UserPlus className="h-4 w-4" />
-                  {joinMutation.isPending ? "Joining…" : "Join Team"}
+                  {joinMutation.isPending ? "Sending…" : "Join Team"}
+                </Button>
+              ) : myPending ? (
+                <Button variant="outline" size="sm" onClick={() => leaveMutation.mutate()} disabled={leaveMutation.isPending} className="gap-1.5 h-9">
+                  {leaveMutation.isPending ? "Cancelling…" : "Request Pending · Cancel"}
                 </Button>
               ) : isCaptain ? (
                 <>
