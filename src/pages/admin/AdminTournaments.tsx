@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Swords, Trash2, X, ExternalLink, Search, Settings } from "lucide-react";
+import { Swords, Trash2, X, ExternalLink, Search, Settings, Megaphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { TournamentEditDialog } from "@/components/admin/TournamentEditDialog";
@@ -74,6 +74,26 @@ export default function AdminTournaments() {
       qc.invalidateQueries({ queryKey: ["admin-tournaments"] });
     },
     onError: (e: any) => toast.error(e.message),
+  });
+
+  const announceMutation = useMutation({
+    mutationFn: async ({ id, force }: { id: string; force: boolean }) => {
+      const { data, error } = await supabase.functions.invoke("send-event-announcement-email", {
+        body: { event_type: "tournament", event_id: id, force },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => {
+      if (data?.skipped === "already_sent") {
+        toast.info("Announcement already sent for this tournament.");
+      } else if (data?.skipped === "no_recipients") {
+        toast.info("No eligible recipients.");
+      } else {
+        toast.success(`Announcement sent to ${data?.sent ?? 0} members.`);
+      }
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to send announcement"),
   });
 
   const filtered = tournaments.filter((t: any) => {
@@ -176,6 +196,20 @@ export default function AdminTournaments() {
                       title="Edit format & scoring"
                     >
                       <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-sky-300 hover:text-sky-200"
+                      title="Email announcement to all members"
+                      disabled={announceMutation.isPending}
+                      onClick={() => {
+                        if (confirm(`Email an announcement about "${t.title}" to all eligible members? This sends real emails via Resend.`)) {
+                          announceMutation.mutate({ id: t.id, force: false });
+                        }
+                      }}
+                    >
+                      <Megaphone className="w-4 h-4" />
                     </Button>
                     {t.status !== "cancelled" && t.status !== "completed" && (
                       <Button

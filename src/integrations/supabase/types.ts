@@ -879,6 +879,39 @@ export type Database = {
           },
         ]
       }
+      event_announcement_email_log: {
+        Row: {
+          error: string | null
+          event_id: string
+          event_type: string
+          id: string
+          recipients_count: number
+          sent_at: string
+          sent_by: string | null
+          status: string
+        }
+        Insert: {
+          error?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          recipients_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+        }
+        Update: {
+          error?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          recipients_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       feed_comment_reactions: {
         Row: {
           comment_id: string

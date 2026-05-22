@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown } from "lucide-react";
+import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown, Megaphone } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
@@ -111,6 +111,26 @@ export default function AdminPhotoChallenges() {
     onError: (err: any) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     },
+  });
+
+  const announceMutation = useMutation({
+    mutationFn: async ({ id, force }: { id: string; force: boolean }) => {
+      const { data, error } = await supabase.functions.invoke("send-event-announcement-email", {
+        body: { event_type: "photo_challenge", event_id: id, force },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => {
+      if (data?.skipped === "already_sent") {
+        toast({ title: "Already announced", description: "An announcement email was already sent for this challenge." });
+      } else if (data?.skipped === "no_recipients") {
+        toast({ title: "No recipients", description: "No eligible members to email." });
+      } else {
+        toast({ title: "Announcement sent", description: `Emailed ${data?.sent ?? 0} members.` });
+      }
+    },
+    onError: (err: any) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
 
   const updateStatusMutation = useMutation({
@@ -496,6 +516,20 @@ export default function AdminPhotoChallenges() {
                           title="View entries"
                         >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-sky-500 hover:text-sky-400"
+                          title="Email announcement to all members"
+                          disabled={announceMutation.isPending}
+                          onClick={() => {
+                            if (confirm(`Email an announcement about "${c.title}" to all eligible members? This sends real emails via Resend.`)) {
+                              announceMutation.mutate({ id: c.id, force: false });
+                            }
+                          }}
+                        >
+                          <Megaphone className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
