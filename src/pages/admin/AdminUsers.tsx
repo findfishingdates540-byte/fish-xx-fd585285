@@ -84,15 +84,16 @@ export default function AdminUsers() {
 
       {/* Users Table */}
       <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-slate-700 text-left text-xs text-slate-400 uppercase">
               <th className="px-6 py-4">User</th>
-              <th className="px-6 py-4">Email</th>
-              <th className="px-6 py-4">Verified</th>
+              <th className="px-6 py-4 hidden lg:table-cell">Email</th>
+              <th className="px-6 py-4 hidden md:table-cell">Verified</th>
               <th className="px-6 py-4">Account Mode</th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Joined</th>
+              <th className="px-6 py-4 hidden md:table-cell">Joined</th>
               <th className="px-6 py-4">Actions</th>
             </tr>
           </thead>
@@ -101,11 +102,11 @@ export default function AdminUsers() {
               Array.from({ length: 10 }).map((_, i) => (
                 <tr key={i}>
                   <td className="px-6 py-4"><Skeleton className="h-10 w-48 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-4 w-40 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-6 w-12 bg-slate-700" /></td>
+                  <td className="px-6 py-4 hidden lg:table-cell"><Skeleton className="h-4 w-40 bg-slate-700" /></td>
+                  <td className="px-6 py-4 hidden md:table-cell"><Skeleton className="h-6 w-12 bg-slate-700" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-6 w-20 bg-slate-700" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-6 w-16 bg-slate-700" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-4 w-24 bg-slate-700" /></td>
+                  <td className="px-6 py-4 hidden md:table-cell"><Skeleton className="h-4 w-24 bg-slate-700" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-8 w-8 bg-slate-700" /></td>
                 </tr>
               ))
@@ -137,10 +138,10 @@ export default function AdminUsers() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-300">
+                  <td className="px-6 py-4 text-slate-300 hidden lg:table-cell">
                     {user.email || 'N/A'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 hidden md:table-cell">
                     {user.id_verified || user.live_verified ? (
                       <VerificationBadge 
                         idVerified={user.id_verified ?? false} 
@@ -185,7 +186,7 @@ export default function AdminUsers() {
                       </Badge>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-400 text-sm">
+                  <td className="px-6 py-4 text-slate-400 text-sm hidden md:table-cell">
                     {format(new Date(user.created_at), 'MMM d, yyyy')}
                   </td>
                   <td className="px-6 py-4">
@@ -253,6 +254,7 @@ export default function AdminUsers() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Modals */}
