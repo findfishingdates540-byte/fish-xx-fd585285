@@ -167,7 +167,7 @@ export default function AdminUsers() {
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-col items-start gap-1">
+                    <div className="flex flex-col items-start gap-1.5">
                       {user.is_premium && (
                         <Badge variant="secondary" className="bg-amber-500/20 text-amber-400 border-0">
                           <Crown className="w-3 h-3 mr-1" />
