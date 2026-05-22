@@ -40,19 +40,24 @@ export function useTeamContext(teamId: string | undefined) {
     [team, members],
   );
 
+  const profileIds = useMemo(
+    () => Array.from(new Set([...memberUserIds, ...pendingRequests.map((m: any) => m.user_id)])),
+    [memberUserIds, pendingRequests],
+  );
+
   const { data: profiles = {} } = useQuery({
-    queryKey: ["team-member-profiles", memberUserIds.join(",")],
+    queryKey: ["team-member-profiles", profileIds.join(",")],
     queryFn: async () => {
-      if (memberUserIds.length === 0) return {} as Record<string, MemberProfile>;
+      if (profileIds.length === 0) return {} as Record<string, MemberProfile>;
       const { data } = await supabase
         .from("profiles_safe")
         .select("id, display_name, photos, fishing_experience")
-        .in("id", memberUserIds);
+        .in("id", profileIds);
       const map: Record<string, MemberProfile> = {};
       (data || []).forEach((p: any) => { map[p.id] = p as MemberProfile; });
       return map;
     },
-    enabled: memberUserIds.length > 0,
+    enabled: profileIds.length > 0,
   });
 
   const isCaptain = !!user && team?.captain_id === user.id;
