@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.seed-world-records]
 verify_jwt = false
+
+[functions.dispatch-scheduled-broadcasts]
+verify_jwt = false
