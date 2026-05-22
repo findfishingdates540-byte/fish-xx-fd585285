@@ -1,1 +1,0 @@
-ALTER VIEW public.profiles_safe SET (security_invoker = true);
