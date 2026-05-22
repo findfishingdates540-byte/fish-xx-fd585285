@@ -139,25 +139,20 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Event not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Recipients: members with email, master_enabled (or no prefs row), challenge_new pref on
+    // Recipients: ALL members with an email address (announcement blast — bypasses opt-in prefs)
     const { data: profiles, error: profErr } = await admin
       .from("profiles")
       .select("id, email, display_name");
     if (profErr) throw profErr;
 
-    const ids = (profiles || []).map((p: any) => p.id);
-    const { data: prefs } = await admin
-      .from("notification_email_prefs")
-      .select("user_id, master_enabled, challenge_new")
-      .in("user_id", ids.length ? ids : ["none"]);
-    const prefMap = new Map<string, { master_enabled: boolean; challenge_new: boolean }>();
-    (prefs || []).forEach((p: any) => prefMap.set(p.user_id, { master_enabled: p.master_enabled !== false, challenge_new: p.challenge_new !== false }));
-
+    // Dedupe by email (case-insensitive) to avoid sending twice to the same address
+    const seen = new Set<string>();
     const recipients = (profiles || []).filter((p: any) => {
       if (!p.email) return false;
-      const pref = prefMap.get(p.id);
-      if (!pref) return true; // default opt-in
-      return pref.master_enabled && pref.challenge_new;
+      const key = String(p.email).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
 
     if (recipients.length === 0) {
