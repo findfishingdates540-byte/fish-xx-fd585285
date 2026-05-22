@@ -818,13 +818,17 @@ export default function SpotDetail() {
             <div className="bg-background rounded-xl p-6 border">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Location</h2>
-                <button 
-                  onClick={handleGetDirections}
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
-                >
-                  {isMobile ? 'Get Directions' : 'View larger map'}
-                  <ExternalLink className="h-3 w-3" />
-                </button>
+                {spot && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${spot.location_lat},${spot.location_lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                  >
+                    {isMobile ? 'Get Directions' : 'View larger map'}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
               </div>
               {!isMobile && (
                 <div ref={mapContainer} className="w-full h-48 rounded-xl overflow-hidden mb-3 bg-muted" />
