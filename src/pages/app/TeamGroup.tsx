@@ -10,11 +10,14 @@ import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
 import { TeamRightRail } from "@/components/teams/TeamRightRail";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
 import { TeamMentionsFeed } from "@/components/teams/TeamMentionsFeed";
+import { TeamAboutPanel } from "@/components/teams/TeamAboutPanel";
+import { TeamMembersPanel } from "@/components/teams/TeamMembersPanel";
+import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
 
 export default function TeamGroup() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
-  const { team, teamLoading, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
+  const { team, teamLoading, members, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
   const { data: role } = useTeamRole(teamId);
   const [editOpen, setEditOpen] = useState(false);
   const [tab, setTab] = useState<TeamHeaderTab>("posts");
@@ -63,19 +66,27 @@ export default function TeamGroup() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-          {tab === "mentions" ? (
-            <TeamMentionsFeed teamName={team.name} />
-          ) : (
-            <TeamFeedTab
-              teamId={teamId!}
-              surface="group"
-              teamName={team.name}
-              teamLogo={team.logo_url}
-              canPost={!!role?.canPostGroup}
-              canView={true}
-              isCaptain={isCaptain}
-            />
-          )}
+          <div className="min-w-0">
+            {tab === "posts" && (
+              <TeamFeedTab
+                teamId={teamId!}
+                surface="group"
+                teamName={team.name}
+                teamLogo={team.logo_url}
+                canPost={!!role?.canPostGroup}
+                canView={true}
+                isCaptain={isCaptain}
+              />
+            )}
+            {tab === "about" && (
+              <TeamAboutPanel team={team} memberUserIds={memberUserIds} memberCount={memberCount} />
+            )}
+            {tab === "members" && (
+              <TeamMembersPanel team={team} members={members} profiles={profiles} isCaptain={isCaptain} />
+            )}
+            {tab === "media" && <TeamMediaTab teamId={teamId!} />}
+            {tab === "mentions" && <TeamMentionsFeed teamName={team.name} />}
+          </div>
           <div className="hidden lg:block sticky top-20">
             <TeamRightRail
               team={team}

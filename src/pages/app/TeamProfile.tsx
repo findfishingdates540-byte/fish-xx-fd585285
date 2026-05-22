@@ -33,6 +33,8 @@ import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
 import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
+import { TeamAboutPanel } from "@/components/teams/TeamAboutPanel";
+import { TeamMembersPanel } from "@/components/teams/TeamMembersPanel";
 
 interface MemberProfile {
   id: string;
@@ -423,93 +425,12 @@ export default function TeamProfile() {
           <TeamMediaTab teamId={teamId!} />
         </TabsContent>
 
-        <TabsContent value="about" className="mt-4 space-y-6">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl border bg-card p-4 text-center">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <Fish className="h-4 w-4 text-primary" />
-              </div>
-              <p className="text-lg font-bold">{teamStats.totalCatches}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Catches</p>
-            </div>
-            <div className="rounded-xl border bg-card p-4 text-center">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-              </div>
-              <p className="text-lg font-bold">{teamStats.totalWeight} lbs</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Weight</p>
-            </div>
-            <div className="rounded-xl border bg-card p-4 text-center">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <Target className="h-4 w-4 text-primary" />
-              </div>
-              <p className="text-lg font-bold truncate text-sm">{teamStats.topSpecies || "—"}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Top Species</p>
-            </div>
-          </div>
-          <div className="rounded-xl border bg-primary/5 p-5 text-center">
-            <Trophy className="h-6 w-6 text-primary mx-auto mb-2" />
-            <h3 className="font-bold text-sm mb-1">Team Rankings</h3>
-            <p className="text-xs text-muted-foreground mb-3">See how your team stacks up against the competition</p>
-            <Button variant="default" size="sm" onClick={() => navigate("/app/leaderboard")}>View Scoreboard</Button>
-          </div>
+        <TabsContent value="about" className="mt-4">
+          <TeamAboutPanel team={team} memberUserIds={memberUserIds} memberCount={allMembers.length} />
         </TabsContent>
 
         <TabsContent value="members" className="mt-4">
-          <section className="rounded-xl border bg-card overflow-hidden">
-            <div className="px-5 py-3 border-b flex items-center justify-between">
-              <h2 className="font-bold text-sm flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" />Team Members</h2>
-              <span className="text-xs text-muted-foreground">{allMembers.length} total</span>
-            </div>
-            <div className="divide-y divide-border">
-              {allMembers.map(({ userId, role: memberRole }) => {
-                const profile = profiles[userId];
-                const memberIsCaptain = memberRole === "captain";
-                const memberIsOfficer = memberRole === "officer";
-                return (
-                  <div key={userId} className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors">
-                    <button onClick={() => navigate(`/app/u/${userId}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={profile?.photos?.[0] || ""} />
-                        <AvatarFallback className="text-xs">{(profile?.display_name || "?")[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-sm truncate">{profile?.display_name || "Angler"}</p>
-                          {memberIsCaptain && <Badge variant="secondary" className="h-4 text-[10px] gap-0.5"><Crown className="h-2.5 w-2.5" />Captain</Badge>}
-                          {memberIsOfficer && <Badge variant="secondary" className="h-4 text-[10px] gap-0.5"><Shield className="h-2.5 w-2.5" />Officer</Badge>}
-                        </div>
-                        <p className="text-xs text-muted-foreground capitalize">{memberRole}</p>
-                      </div>
-                    </button>
-                    {isCaptain && !memberIsCaptain && userId !== user?.id && (
-                      <div className="flex items-center gap-1">
-                        {memberIsOfficer ? (
-                          <Button variant="ghost" size="sm" className="text-xs gap-1"
-                            onClick={() => promoteMutation.mutate({ userId, toRole: "member" })}>
-                            <ShieldOff className="h-3 w-3" />Demote
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="sm" className="text-xs gap-1"
-                            onClick={() => promoteMutation.mutate({ userId, toRole: "officer" })}>
-                            <Shield className="h-3 w-3" />Make officer
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive text-xs"
-                          onClick={() => removeMemberMutation.mutate(userId)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          <TeamMembersPanel team={team} members={members} profiles={profiles} isCaptain={isCaptain} />
         </TabsContent>
 
         {isCaptain && (

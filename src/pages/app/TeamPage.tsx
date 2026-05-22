@@ -11,6 +11,10 @@ import { TeamFeedTab } from "@/components/teams/TeamFeedTab";
 import { TeamRightRail } from "@/components/teams/TeamRightRail";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
 import { TeamMentionsFeed } from "@/components/teams/TeamMentionsFeed";
+import { TeamAboutPanel } from "@/components/teams/TeamAboutPanel";
+import { TeamMembersPanel } from "@/components/teams/TeamMembersPanel";
+import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
+import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -18,7 +22,7 @@ export default function TeamPage() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { team, teamLoading, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
+  const { team, teamLoading, members, memberUserIds, profiles, isCaptain, isMember, memberCount } = useTeamContext(teamId);
   const { data: role } = useTeamRole(teamId);
   const { data: followInfo } = useTeamFollow(teamId);
   const [editOpen, setEditOpen] = useState(false);
@@ -59,23 +63,33 @@ export default function TeamPage() {
         onEdit={() => setEditOpen(true)}
         activeTab={tab}
         onTabChange={setTab}
+        showInsights={isCaptain}
       />
       {isCaptain && <EditTeamDialog open={editOpen} onOpenChange={setEditOpen} team={team} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-        {tab === "mentions" ? (
-          <TeamMentionsFeed teamName={team.name} />
-        ) : (
-          <TeamFeedTab
-            teamId={teamId!}
-            surface="page"
-            teamName={team.name}
-            teamLogo={team.logo_url}
-            canPost={!!role?.canPostPage}
-            canView={true}
-            isCaptain={isCaptain}
-          />
-        )}
+        <div className="min-w-0">
+          {tab === "posts" && (
+            <TeamFeedTab
+              teamId={teamId!}
+              surface="page"
+              teamName={team.name}
+              teamLogo={team.logo_url}
+              canPost={!!role?.canPostPage}
+              canView={true}
+              isCaptain={isCaptain}
+            />
+          )}
+          {tab === "about" && (
+            <TeamAboutPanel team={team} memberUserIds={memberUserIds} memberCount={memberCount} />
+          )}
+          {tab === "members" && (
+            <TeamMembersPanel team={team} members={members} profiles={profiles} isCaptain={isCaptain} />
+          )}
+          {tab === "media" && <TeamMediaTab teamId={teamId!} />}
+          {tab === "mentions" && <TeamMentionsFeed teamName={team.name} />}
+          {tab === "insights" && isCaptain && <TeamInsightsTab teamId={teamId!} isCaptain={isCaptain} />}
+        </div>
         <div className="hidden lg:block sticky top-20">
           <TeamRightRail
             team={team}
