@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTournamentMatchAlerts } from "@/hooks/use-tournament-match-alerts";
+import { formatPrizeDescription } from "@/lib/utils";
 import { BracketConnectors } from "@/components/tournaments/BracketConnectors";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -653,7 +654,7 @@ const TournamentDetail = () => {
         {tournament.prize_description && (
           <div className="pt-2 border-t">
             <p className="text-xs text-muted-foreground">Prize</p>
-            <p className="text-sm font-medium">{tournament.prize_description}</p>
+            <p className="text-sm font-medium">{formatPrizeDescription(tournament.prize_description)}</p>
           </div>
         )}
       </div>
@@ -667,7 +668,7 @@ const TournamentDetail = () => {
           </div>
           {myPayout.prize_type === "gift_card" && myPayout.gift_card_code ? (
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">{myPayout.prize_description || "Your gift card prize:"}</p>
+              <p className="text-sm text-muted-foreground">{myPayout.prize_description ? formatPrizeDescription(myPayout.prize_description) : "Your gift card prize:"}</p>
               <div className="flex items-center gap-2 bg-muted rounded-lg p-3">
                 <code className="flex-1 font-mono text-sm font-bold tracking-wider">{myPayout.gift_card_code}</code>
                 <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(myPayout.gift_card_code); toast.success("Code copied!"); }}>
