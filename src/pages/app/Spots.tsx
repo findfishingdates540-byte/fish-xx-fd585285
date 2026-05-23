@@ -254,6 +254,9 @@ export default function Spots() {
   // Derive unique counties from data
   const countyOptions = Array.from(new Set(fishingSpots.map(s => s.county).filter(Boolean) as string[])).sort();
 
+  // Keep a stable ref so map click handlers always see the latest spots list.
+  useEffect(() => { fishingSpotsRef.current = fishingSpots; }, [fishingSpots]);
+
   // Filtered spots
   const filteredSpots = fishingSpots.filter(spot => {
     if (filterCounty !== 'all' && spot.county !== filterCounty) return false;
