@@ -183,14 +183,14 @@ export default function PhotoChallenges() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab} className="space-y-6">
-        <TabsList className="w-full h-12 p-1">
-          <TabsTrigger value="active" className="flex-1 text-base h-10">
+        <TabsList className="w-full h-12 p-1 overflow-x-auto">
+          <TabsTrigger value="active" className="flex-1 text-xs sm:text-sm h-10 px-2 sm:px-3">
             Active ({active.length})
           </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex-1 text-base h-10">
+          <TabsTrigger value="upcoming" className="flex-1 text-xs sm:text-sm h-10 px-2 sm:px-3">
             Upcoming ({upcoming.length})
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1 text-base h-10">
+          <TabsTrigger value="completed" className="flex-1 text-xs sm:text-sm h-10 px-2 sm:px-3">
             Completed ({completed.length})
           </TabsTrigger>
         </TabsList>
