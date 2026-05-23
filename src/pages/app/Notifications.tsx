@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Mail, Heart, MapPin, Settings, Check, MoreHorizontal, Calendar, Anchor, Users, MessageCircle, ArrowLeft, AtSign } from 'lucide-react';
+import { Bell, Mail, Heart, MapPin, Settings, Check, MoreHorizontal, Calendar, Anchor, Users, MessageCircle, ArrowLeft, AtSign, Repeat2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -60,7 +60,7 @@ export default function Notifications() {
       case 'mentions':
         return allNotifications.filter(n => n.type === 'comment_mention');
       case 'matches':
-        return allNotifications.filter(n => n.type === 'match' || n.type === 'feed_like' || n.type === 'message');
+        return allNotifications.filter(n => n.type === 'match' || n.type === 'feed_like' || n.type === 'feed_repost' || n.type === 'feed_share' || n.type === 'message');
       case 'spots':
         return allNotifications.filter(n => n.type === 'spot_update' || n.type === 'fishing_alert' || n.type === 'buddy_request' || n.type === 'buddy_message' || n.type === 'trip_invite');
       case 'system':
@@ -113,6 +113,10 @@ export default function Notifications() {
         return MessageCircle;
       case 'feed_comment':
         return MessageCircle;
+      case 'feed_repost':
+        return Repeat2;
+      case 'feed_share':
+        return Share2;
       case 'comment_mention':
         return AtSign;
       default:
@@ -137,6 +141,10 @@ export default function Notifications() {
         return 'text-purple-500';
       case 'feed_comment':
         return 'text-orange-500';
+      case 'feed_repost':
+        return 'text-green-500';
+      case 'feed_share':
+        return 'text-blue-400';
       case 'comment_mention':
         return 'text-cyan-500';
       default:
@@ -158,6 +166,8 @@ export default function Notifications() {
         return `/app/messages/${notification.data?.match_id}`;
       case 'feed_like':
       case 'feed_comment':
+      case 'feed_repost':
+      case 'feed_share':
         return '/app/feed';
       case 'comment_mention':
         return `/app/feed?post=${notification.data?.post_id}&comment=${notification.data?.comment_id}`;
