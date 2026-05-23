@@ -233,7 +233,7 @@ export default function AdminTeams() {
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="secondary"
                           className="h-7 text-xs"
                           disabled={!t.page_posts}
                           onClick={() => setConfirm({ kind: "surface", team: t, surface: "page" })}
@@ -242,7 +242,7 @@ export default function AdminTeams() {
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="secondary"
                           className="h-7 text-xs"
                           disabled={!t.group_posts}
                           onClick={() => setConfirm({ kind: "surface", team: t, surface: "group" })}
