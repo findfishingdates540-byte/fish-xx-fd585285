@@ -9,6 +9,7 @@ import { Camera, Clock, DollarSign, Gift, Trophy, Users, Plus } from "lucide-rea
 import { formatDistanceToNow, isPast, isFuture } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatPrizeDescription } from "@/lib/utils";
 
 interface PhotoChallenge {
   id: string;
@@ -146,7 +147,7 @@ export default function PhotoChallenges() {
             {challenge.prize_type === "gift_card" ? (
               <span className="flex items-center gap-1">
                 <Gift className="h-3.5 w-3.5" />
-                {challenge.prize_description || "Gift Card"}
+                {formatPrizeDescription(challenge.prize_description)}
               </span>
             ) : (
               <span className="flex items-center gap-1">

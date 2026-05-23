@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown, Megaphone } from "lucide-react";
+import { formatPrizeDescription } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
@@ -679,7 +680,7 @@ export default function AdminPhotoChallenges() {
                       <Badge variant="secondary" className="capitalize text-xs">{p.prize_type === "gift_card" ? "Gift Card" : "Cash"}</Badge>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {p.prize_type === "cash" ? `$${Number(p.prize_amount || 0).toFixed(0)}` : (p.prize_description || "Gift Card")}
+                      {p.prize_type === "cash" ? `$${Number(p.prize_amount || 0).toFixed(0)}` : formatPrizeDescription(p.prize_description)}
                       {p.prize_type === "gift_card" && p.gift_card_code && (
                         <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{p.gift_card_code}</p>
                       )}
