@@ -558,8 +558,8 @@ export default function AdminPhotoChallenges() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* View Entries Dialog */}
       <Dialog open={!!viewingChallenge} onOpenChange={(open) => !open && setViewingChallenge(null)}>
