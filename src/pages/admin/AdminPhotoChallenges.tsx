@@ -323,11 +323,11 @@ export default function AdminPhotoChallenges() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Photo Challenges</h1>
-          <p className="text-muted-foreground text-sm">Create and manage photo challenges</p>
+          <h1 className="text-2xl font-bold text-white">Photo Challenges</h1>
+          <p className="text-slate-400 mt-1">Create and manage photo challenges</p>
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
@@ -455,8 +455,8 @@ export default function AdminPhotoChallenges() {
       </div>
 
       {/* Challenges Table */}
-      <Card>
-        <CardContent className="p-0">
+      <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -558,8 +558,8 @@ export default function AdminPhotoChallenges() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* View Entries Dialog */}
       <Dialog open={!!viewingChallenge} onOpenChange={(open) => !open && setViewingChallenge(null)}>
