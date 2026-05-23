@@ -16,6 +16,7 @@ interface ShareSheetProps {
   shareTitle: string;
   shareText?: string;
   onAddToStory?: () => void;
+  postId?: string;
 }
 
 interface Follower {
@@ -31,12 +32,27 @@ export const ShareSheet: FC<ShareSheetProps> = ({
   shareTitle,
   shareText,
   onAddToStory,
+  postId,
 }) => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const recordShare = async (channel: string, recipientId?: string) => {
+    if (!postId || !user?.id) return;
+    try {
+      await supabase.from('post_shares').insert({
+        post_id: postId,
+        user_id: user.id,
+        recipient_id: recipientId ?? null,
+        channel,
+      });
+    } catch (e) {
+      console.error('Failed to record share', e);
+    }
+  };
 
   // Fetch followers/following when sheet opens
   useEffect(() => {
@@ -78,6 +94,7 @@ export const ShareSheet: FC<ShareSheetProps> = ({
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      await recordShare('copy_link');
       toast.success('Link copied to clipboard');
       onClose();
     } catch (error) {
@@ -93,6 +110,7 @@ export const ShareSheet: FC<ShareSheetProps> = ({
           text: shareText,
           url: shareUrl,
         });
+        await recordShare('native');
         onClose();
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
@@ -107,6 +125,7 @@ export const ShareSheet: FC<ShareSheetProps> = ({
   const handleWhatsAppShare = () => {
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText || shareTitle} ${shareUrl}`)}`;
     window.open(whatsappUrl, '_blank');
+    void recordShare('whatsapp');
     onClose();
   };
 
@@ -123,8 +142,7 @@ export const ShareSheet: FC<ShareSheetProps> = ({
       toast.error('Select at least one person to share with');
       return;
     }
-    // For now, just show a success message
-    // In a real implementation, this would send a message to selected users
+    await Promise.all(selectedUsers.map((rid) => recordShare('direct', rid)));
     toast.success(`Shared with ${selectedUsers.length} ${selectedUsers.length === 1 ? 'person' : 'people'}`);
     setSelectedUsers([]);
     onClose();

@@ -2265,6 +2265,33 @@ export type Database = {
           },
         ]
       }
+      post_shares: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          post_id: string
+          recipient_id: string | null
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          post_id: string
+          recipient_id?: string | null
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          recipient_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       prize_payouts: {
         Row: {
           admin_notes: string | null

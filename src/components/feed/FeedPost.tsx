@@ -607,6 +607,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
         shareTitle={`Post by ${displayName}`}
         shareText={getShareText()}
         onAddToStory={handleAddToStory}
+        postId={post.id}
       />
 
       <LikersModal
