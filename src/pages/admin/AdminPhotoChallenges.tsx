@@ -317,7 +317,7 @@ export default function AdminPhotoChallenges() {
     switch (status) {
       case "submissions_open": return "default";
       case "voting": return "secondary";
-      case "completed": return "outline";
+      case "completed": return "secondary";
       default: return "outline";
     }
   };
