@@ -4817,6 +4817,10 @@ export type Database = {
               team_name: string
             }[]
           }
+      get_tournament_gift_card: {
+        Args: { p_tournament_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
