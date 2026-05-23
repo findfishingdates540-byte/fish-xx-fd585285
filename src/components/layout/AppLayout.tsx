@@ -142,9 +142,7 @@ function AppLayoutContent() {
   
   // Chat pages hide the bottom nav for Instagram-like experience
   const isChatPage = location.pathname.includes('/buddy-chat/') || location.pathname.includes('/messages/');
-  // Spots map page hides bottom nav on mobile/tablet for full map experience
-  const isSpotsPage = location.pathname === '/app/spots' || location.pathname.startsWith('/app/spots/');
-  const hideMobileNav = isChatPage || isSpotsPage;
+  const hideMobileNav = isChatPage;
   const resolvedMode = effectiveMode === 'dating' ? 'dating' : 'fishing';
 
   // Dating routes use their own sidebar layout (no FishingHeader)
