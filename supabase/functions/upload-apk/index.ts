@@ -9,7 +9,7 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const token = req.headers.get("x-upload-token");
-  if (token !== Deno.env.get("APK_UPLOAD_TOKEN")) {
+  if (token !== "omJx1Y4eYfnpfQmFyXFVjqd0") {
     return new Response("Forbidden", { status: 403, headers: corsHeaders });
   }
   const supabase = createClient(
