@@ -676,7 +676,7 @@ export default function AdminPhotoChallenges() {
                     </TableCell>
                     <TableCell className="text-sm truncate max-w-[150px]">{p.challenge_title}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize text-xs">{p.prize_type === "gift_card" ? "Gift Card" : "Cash"}</Badge>
+                      <Badge variant="secondary" className="capitalize text-xs">{p.prize_type === "gift_card" ? "Gift Card" : "Cash"}</Badge>
                     </TableCell>
                     <TableCell className="text-sm">
                       {p.prize_type === "cash" ? `$${Number(p.prize_amount || 0).toFixed(0)}` : (p.prize_description || "Gift Card")}
@@ -686,7 +686,7 @@ export default function AdminPhotoChallenges() {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={p.status === "claimed" ? "default" : p.status === "sent" ? "secondary" : "outline"}
+                        variant={p.status === "claimed" ? "default" : "secondary"}
                         className="capitalize text-xs"
                       >
                         {p.status}
