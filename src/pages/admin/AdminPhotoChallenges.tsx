@@ -456,7 +456,7 @@ export default function AdminPhotoChallenges() {
 
       {/* Challenges Table */}
       <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto [&_th]:text-slate-400 [&_th]:uppercase [&_th]:text-xs [&_td]:text-slate-200 [&_tr]:border-slate-700 [&_tbody_tr:hover]:bg-slate-800/50">
           <Table>
             <TableHeader>
               <TableRow>
@@ -639,13 +639,13 @@ export default function AdminPhotoChallenges() {
       </Dialog>
 
       {/* Prize Payouts Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
+      <div className="mt-8 bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-700/50">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
             <Trophy className="h-5 w-5" /> Prize Payouts
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
+          </h2>
+        </div>
+        <div className="overflow-x-auto [&_th]:text-slate-400 [&_th]:uppercase [&_th]:text-xs [&_td]:text-slate-200 [&_tr]:border-slate-700 [&_tbody_tr:hover]:bg-slate-800/50">
           <Table>
             <TableHeader>
               <TableRow>
@@ -724,8 +724,8 @@ export default function AdminPhotoChallenges() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
