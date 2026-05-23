@@ -50,17 +50,21 @@ export default function AdminTeams() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("fishing_teams")
-        .select("id, name, logo_url, category, skill_level, captain_id, followers_count, created_at, captain:profiles!fishing_teams_captain_id_fkey(display_name, photos)")
+        .select("id, name, logo_url, category, skill_level, captain_id, followers_count, created_at")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
       const rows = (data || []) as any[];
       if (rows.length === 0) return [];
       const ids = rows.map((r) => r.id);
-      const [{ data: members }, { data: posts }] = await Promise.all([
+      const captainIds = Array.from(new Set(rows.map((r) => r.captain_id).filter(Boolean)));
+      const [{ data: members }, { data: posts }, { data: captains }] = await Promise.all([
         supabase.from("team_members").select("team_id").in("team_id", ids),
         supabase.from("team_posts").select("team_id, surface").in("team_id", ids),
+        supabase.from("profiles").select("id, display_name, photos").in("id", captainIds),
       ]);
+      const captainMap: Record<string, any> = {};
+      (captains || []).forEach((c: any) => { captainMap[c.id] = c; });
       const memberCounts: Record<string, number> = {};
       (members || []).forEach((m: any) => {
         memberCounts[m.team_id] = (memberCounts[m.team_id] || 0) + 1;
@@ -73,6 +77,7 @@ export default function AdminTeams() {
       });
       return rows.map((r) => ({
         ...r,
+        captain: captainMap[r.captain_id] || null,
         member_count: (memberCounts[r.id] || 0) + 1,
         page_posts: pageCounts[r.id] || 0,
         group_posts: groupCounts[r.id] || 0,
