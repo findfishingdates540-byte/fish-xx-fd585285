@@ -152,6 +152,7 @@ export default function Spots() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const fishingSpotsRef = useRef<FishingSpot[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [activeStyle, setActiveStyle] = useState<MapStyleKey>("outdoors");
