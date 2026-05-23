@@ -142,7 +142,7 @@ export default function PhotoChallenges() {
             </span>
             <span className="flex items-center gap-1">
               <DollarSign className="h-3.5 w-3.5" />
-              ${challenge.entry_fee} entry
+              {challenge.entry_fee} entry
             </span>
             {challenge.prize_type === "gift_card" ? (
               <span className="flex items-center gap-1">
