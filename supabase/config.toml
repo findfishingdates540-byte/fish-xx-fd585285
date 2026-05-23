@@ -1,8 +1,5 @@
 project_id = "zjmnlelqoiclkbrqefyv"
 
-[functions.upload-apk]
-verify_jwt = false
-
 [functions.send-push-notification]
 verify_jwt = true
 
