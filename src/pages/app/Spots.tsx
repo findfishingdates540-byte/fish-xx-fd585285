@@ -152,6 +152,7 @@ export default function Spots() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const fishingSpotsRef = useRef<FishingSpot[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [activeStyle, setActiveStyle] = useState<MapStyleKey>("outdoors");
@@ -252,6 +253,9 @@ export default function Spots() {
 
   // Derive unique counties from data
   const countyOptions = Array.from(new Set(fishingSpots.map(s => s.county).filter(Boolean) as string[])).sort();
+
+  // Keep a stable ref so map click handlers always see the latest spots list.
+  useEffect(() => { fishingSpotsRef.current = fishingSpots; }, [fishingSpots]);
 
   // Filtered spots
   const filteredSpots = fishingSpots.filter(spot => {
@@ -545,17 +549,28 @@ export default function Spots() {
 
       ensureBoatIcon(map);
       map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 9, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
 
-      const handleSpotClick = (e: mapboxgl.MapMouseEvent) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ['spot-unclustered', 'spot-boat'] });
+      // Expand the tap hit area so mobile users don't have to tap the exact pixel.
+      const TAP_PADDING = 14; // px around the touch/click point
+      const handleSpotTap = (e: mapboxgl.MapMouseEvent) => {
+        const { x, y } = e.point;
+        const bbox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
+          [x - TAP_PADDING, y - TAP_PADDING],
+          [x + TAP_PADDING, y + TAP_PADDING],
+        ];
+        const features = map.queryRenderedFeatures(bbox, { layers: ['spot-unclustered', 'spot-boat'] });
         if (!features.length) return;
-        const spot = fishingSpots.find(s => s.id === features[0].properties?.spotId);
-        if (spot) { setSelectedCatch(null); setSelectedSpot(spot); map.flyTo({ center: [spot.location_lng, spot.location_lat], zoom: 12, duration: 800 }); }
+        const spotId = features[0].properties?.spotId;
+        const spot = fishingSpotsRef.current.find(s => s.id === spotId);
+        if (spot) {
+          setSelectedCatch(null);
+          setSelectedSpot(spot);
+          map.flyTo({ center: [spot.location_lng, spot.location_lat], zoom: 12, duration: 800 });
+        }
       };
-      map.on('click', 'spot-unclustered', handleSpotClick);
-      map.on('click', 'spot-boat', handleSpotClick);
+      map.on('click', handleSpotTap);
 
       const setPointer = () => { map.getCanvas().style.cursor = 'pointer'; };
       const clearPointer = () => { map.getCanvas().style.cursor = ''; };
