@@ -614,7 +614,7 @@ export default function Spots() {
   }
 
   return (
-    <div className="relative w-full" style={{ height: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 64px)' }}>
+    <div className="relative w-full" style={{ height: isMobile ? 'calc(100dvh - 56px)' : 'calc(100vh - 64px)' }}>
       {/* Map Container */}
       <div ref={mapContainerRef} className="absolute inset-0" />
 
