@@ -485,22 +485,28 @@ export default function AdminPhotoChallenges() {
                     <TableRow key={c.id}>
                       <TableCell className="font-medium max-w-[200px] truncate">{c.title}</TableCell>
                       <TableCell>
-                        <Select
-                          value={c.status}
-                          onValueChange={(val) => updateStatusMutation.mutate({ id: c.id, status: val })}
-                        >
-                          <SelectTrigger className="w-[160px] h-8">
-                            <Badge variant={statusColor(c.status)} className="capitalize text-xs">
-                              {c.status.replace("_", " ")}
-                            </Badge>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="upcoming">Upcoming</SelectItem>
-                            <SelectItem value="submissions_open">Submissions Open</SelectItem>
-                            <SelectItem value="voting">Voting</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        {c.status === "completed" ? (
+                          <Badge variant={statusColor(c.status)} className="capitalize text-xs">
+                            {c.status.replace("_", " ")}
+                          </Badge>
+                        ) : (
+                          <Select
+                            value={c.status}
+                            onValueChange={(val) => updateStatusMutation.mutate({ id: c.id, status: val })}
+                          >
+                            <SelectTrigger className="w-[160px] h-8">
+                              <Badge variant={statusColor(c.status)} className="capitalize text-xs">
+                                {c.status.replace("_", " ")}
+                              </Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="upcoming">Upcoming</SelectItem>
+                              <SelectItem value="submissions_open">Submissions Open</SelectItem>
+                              <SelectItem value="voting">Voting</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
                       </TableCell>
                       <TableCell>${c.entry_fee}</TableCell>
                       <TableCell>{c.entry_count}</TableCell>
