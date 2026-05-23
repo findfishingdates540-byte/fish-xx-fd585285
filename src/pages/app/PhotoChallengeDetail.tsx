@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
+import { formatPrizeDescription } from "@/lib/utils";
 
 function Countdown({ targetMs }: { targetMs: number }) {
   const [now, setNow] = useState(() => Date.now());
@@ -391,7 +392,7 @@ export default function PhotoChallengeDetail() {
             <p className="text-xs text-muted-foreground">Prize</p>
             <p className="font-bold">
               {challenge.prize_type === "gift_card"
-                ? challenge.prize_description || "Gift Card"
+                ? formatPrizeDescription(challenge.prize_description)
                 : `$${prizePool.toFixed(0)}`}
             </p>
           </div>
@@ -442,7 +443,7 @@ export default function PhotoChallengeDetail() {
           </div>
           {myPayout.prize_type === "gift_card" && myPayout.gift_card_code ? (
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">{myPayout.prize_description || "Your gift card prize:"}</p>
+              <p className="text-sm text-muted-foreground">{myPayout.prize_description ? formatPrizeDescription(myPayout.prize_description) : "Your gift card prize:"}</p>
               <div className="flex items-center gap-2 bg-muted rounded-lg p-3">
                 <code className="flex-1 font-mono text-sm font-bold tracking-wider">{myPayout.gift_card_code}</code>
                 <Button
