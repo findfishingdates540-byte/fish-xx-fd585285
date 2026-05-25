@@ -133,7 +133,12 @@ export function TeamSurfaceHeader({
           {/* Actions on the right (Facebook-style row) */}
           <div className="hidden md:flex items-center gap-2 pb-3 shrink-0">
             {!isGroup && <FollowPageButton teamId={teamId} teamName={team.name} />}
-            <Button size="sm" variant="secondary" className="gap-1.5">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="gap-1.5"
+              onClick={() => navigate(`/app/teams/${teamId}/group`)}
+            >
               <MessageCircle className="h-4 w-4" /> Message
             </Button>
             <Button
@@ -154,7 +159,12 @@ export function TeamSurfaceHeader({
         {/* Mobile actions row */}
         <div className="md:hidden flex items-center gap-2 mt-3 flex-wrap">
           {!isGroup && <FollowPageButton teamId={teamId} teamName={team.name} />}
-          <Button size="sm" variant="secondary" className="gap-1.5">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="gap-1.5"
+            onClick={() => navigate(`/app/teams/${teamId}/group`)}
+          >
             <MessageCircle className="h-4 w-4" /> Message
           </Button>
           {rightSlot}
