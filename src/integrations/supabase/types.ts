@@ -2016,6 +2016,7 @@ export type Database = {
           body: string | null
           created_at: string | null
           data: Json | null
+          email_sent_at: string | null
           id: string
           is_read: boolean | null
           title: string
@@ -2026,6 +2027,7 @@ export type Database = {
           body?: string | null
           created_at?: string | null
           data?: Json | null
+          email_sent_at?: string | null
           id?: string
           is_read?: boolean | null
           title: string
@@ -2036,6 +2038,7 @@ export type Database = {
           body?: string | null
           created_at?: string | null
           data?: Json | null
+          email_sent_at?: string | null
           id?: string
           is_read?: boolean | null
           title?: string
