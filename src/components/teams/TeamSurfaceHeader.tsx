@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, AtSign, Crown, Globe, Lock, MessageCircle, Pencil, Share2 } from "lucide-react";
+import { ArrowLeft, AtSign, Crown, Globe, Inbox, Lock, MessageCircle, Pencil, Share2 } from "lucide-react";
 import { FollowPageButton } from "@/components/teams/FollowPageButton";
 
 export type TeamHeaderTab = "posts" | "about" | "members" | "media" | "mentions" | "insights";
@@ -47,6 +47,7 @@ export function TeamSurfaceHeader({
   }, []);
 
   const isGroup = surface === "group";
+  const messageHref = isGroup ? `/app/teams/${teamId}/group` : `/app/teams/${teamId}/messages`;
 
   const tabs: { key: TeamHeaderTab; label: string }[] = [
     { key: "posts", label: "Posts" },
@@ -133,11 +134,21 @@ export function TeamSurfaceHeader({
           {/* Actions on the right (Facebook-style row) */}
           <div className="hidden md:flex items-center gap-2 pb-3 shrink-0">
             {!isGroup && <FollowPageButton teamId={teamId} teamName={team.name} />}
+            {!isGroup && isCaptain && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => navigate(`/app/teams/${teamId}/inbox`)}
+              >
+                <Inbox className="h-4 w-4" /> Inbox
+              </Button>
+            )}
             <Button
               size="sm"
               variant="secondary"
               className="gap-1.5"
-              onClick={() => navigate(`/app/teams/${teamId}/group`)}
+              onClick={() => navigate(messageHref)}
             >
               <MessageCircle className="h-4 w-4" /> Message
             </Button>
@@ -159,11 +170,21 @@ export function TeamSurfaceHeader({
         {/* Mobile actions row */}
         <div className="md:hidden flex items-center gap-2 mt-3 flex-wrap">
           {!isGroup && <FollowPageButton teamId={teamId} teamName={team.name} />}
+          {!isGroup && isCaptain && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => navigate(`/app/teams/${teamId}/inbox`)}
+            >
+              <Inbox className="h-4 w-4" /> Inbox
+            </Button>
+          )}
           <Button
             size="sm"
             variant="secondary"
             className="gap-1.5"
-            onClick={() => navigate(`/app/teams/${teamId}/group`)}
+            onClick={() => navigate(messageHref)}
           >
             <MessageCircle className="h-4 w-4" /> Message
           </Button>
