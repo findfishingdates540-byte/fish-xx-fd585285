@@ -23,6 +23,7 @@ const PREF_KEY: Record<string, string> = {
   new_follower: "new_follower",
   prize_won: "prize_won",
   challenge_new: "challenge_new",
+  team_page_message: "message",
 };
 
 const CTA_PATH: Record<string, string> = {
@@ -39,6 +40,9 @@ const CTA_PATH: Record<string, string> = {
   prize_won: "/app/notifications",
   challenge_new: "/app/challenges",
 };
+
+// Allow team_page_message to deep-link into the right thread/inbox
+(CTA_PATH as any).team_page_message = "/app/notifications";
 
 function escape(s: string) {
   return String(s ?? "")

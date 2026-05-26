@@ -50,6 +50,8 @@ import CreateTeam from "./pages/app/CreateTeam";
 import TeamProfile from "./pages/app/TeamProfile";
 import TeamPage from "./pages/app/TeamPage";
 import TeamGroup from "./pages/app/TeamGroup";
+import TeamPageMessages from "./pages/app/TeamPageMessages";
+import TeamPageInbox from "./pages/app/TeamPageInbox";
 import Pages from "./pages/app/Pages";
 import Search from "./pages/app/Search";
 import Followers from "./pages/app/Followers";
@@ -163,6 +165,8 @@ const App = () => (
                 <Route path="teams/:teamId" element={<TeamProfile />} />
                 <Route path="teams/:teamId/page" element={<TeamPage />} />
                 <Route path="teams/:teamId/group" element={<TeamGroup />} />
+                <Route path="teams/:teamId/messages" element={<TeamPageMessages />} />
+                <Route path="teams/:teamId/inbox" element={<TeamPageInbox />} />
                 <Route path="pages" element={<Pages />} />
                 <Route path="tournaments" element={<Tournaments />} />
                 <Route path="tournaments/new" element={<CreateTournament />} />
