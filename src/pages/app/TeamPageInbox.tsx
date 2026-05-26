@@ -228,8 +228,7 @@ export default function TeamPageInbox() {
             <>
               <div className="flex-1 overflow-y-auto p-3 md:p-4 flex flex-col gap-2">
                 {messages.map((m) => {
-                  const fromVisitor = m.sender_id !== user?.id && m.sender_id !== team?.captain_id ? true : m.sender_id !== user?.id;
-                  const mine = !fromVisitor;
+                  const mine = m.sender_id === user?.id;
                   return (
                     <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div
