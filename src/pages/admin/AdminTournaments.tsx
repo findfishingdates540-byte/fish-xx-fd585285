@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Swords, Trash2, X, ExternalLink, Search, Settings, Megaphone, Plus } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { TournamentEditDialog } from "@/components/admin/TournamentEditDialog";
 
@@ -16,7 +16,6 @@ const STATUSES = ["all", "draft", "registration", "seeding", "in_progress", "com
 
 export default function AdminTournaments() {
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editing, setEditing] = useState<any>(null);
@@ -114,7 +113,7 @@ export default function AdminTournaments() {
           <p className="text-slate-400 mt-1">Moderate and review all user-created tournaments</p>
         </div>
         <Button asChild className="bg-cyan-600 hover:bg-cyan-500 text-white">
-          <Link to="/app/tournaments/new" target="_blank" rel="noopener noreferrer">
+          <Link to="/app/tournaments/new">
             <Plus className="w-4 h-4 mr-1" /> New Tournament
           </Link>
         </Button>
