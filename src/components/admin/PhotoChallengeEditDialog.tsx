@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -44,6 +45,11 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
   const [endDate, setEndDate] = useState("");
   const [votingEndDate, setVotingEndDate] = useState("");
   const [prizeDescription, setPrizeDescription] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [prizeType, setPrizeType] = useState<"cash" | "gift_card">("cash");
+  const [entryFeeEnabled, setEntryFeeEnabled] = useState(false);
+  const [entryFee, setEntryFee] = useState("");
+  const [isAdminFunded, setIsAdminFunded] = useState(false);
 
   useEffect(() => {
     if (challenge) {
@@ -54,6 +60,15 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
       setEndDate(toLocalInput(challenge.end_date));
       setVotingEndDate(toLocalInput(challenge.voting_end_date));
       setPrizeDescription(challenge.prize_description ?? "");
+      setBannerUrl(challenge.banner_url ?? "");
+      setPrizeType((challenge.prize_type as any) ?? "cash");
+      setEntryFeeEnabled(!!challenge.entry_fee_enabled);
+      setEntryFee(
+        challenge.entry_fee !== undefined && challenge.entry_fee !== null
+          ? String(challenge.entry_fee)
+          : "",
+      );
+      setIsAdminFunded(!!challenge.is_admin_funded);
     }
   }, [challenge]);
 
@@ -78,6 +93,11 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
           end_date: new Date(endDate).toISOString(),
           voting_end_date: new Date(votingEndDate).toISOString(),
           prize_description: prizeDescription.trim() || null,
+          banner_url: bannerUrl.trim() || null,
+          prize_type: prizeType,
+          entry_fee_enabled: entryFeeEnabled,
+          entry_fee: entryFeeEnabled ? Number(entryFee) || 0 : 0,
+          is_admin_funded: !entryFeeEnabled ? isAdminFunded : false,
         } as any)
         .eq("id", challenge.id);
       if (error) throw error;
@@ -139,6 +159,42 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
             <Label className="text-xs">Prize description</Label>
             <Input value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} className="mt-1" />
           </div>
+          <div>
+            <Label className="text-xs">Banner URL</Label>
+            <Input value={bannerUrl} onChange={(e) => setBannerUrl(e.target.value)} placeholder="https://…" className="mt-1" />
+          </div>
+          <div>
+            <Label className="text-xs">Prize type</Label>
+            <Select value={prizeType} onValueChange={(v) => setPrizeType(v as any)}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="gift_card">Gift card</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <Label className="text-xs">Entry fee enabled</Label>
+              <p className="text-[11px] text-muted-foreground">Participants pay to join</p>
+            </div>
+            <Switch checked={entryFeeEnabled} onCheckedChange={setEntryFeeEnabled} />
+          </div>
+          {entryFeeEnabled && (
+            <div>
+              <Label className="text-xs">Entry fee ($)</Label>
+              <Input type="number" min="0" step="0.01" value={entryFee} onChange={(e) => setEntryFee(e.target.value)} placeholder="5" className="mt-1" />
+            </div>
+          )}
+          {!entryFeeEnabled && (
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Label className="text-xs">Admin funded</Label>
+                <p className="text-[11px] text-muted-foreground">Prize pool funded by the platform</p>
+              </div>
+              <Switch checked={isAdminFunded} onCheckedChange={setIsAdminFunded} />
+            </div>
+          )}
         </div>
 
         <DialogFooter>
