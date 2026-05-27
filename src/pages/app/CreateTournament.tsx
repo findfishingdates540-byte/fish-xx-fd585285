@@ -306,12 +306,16 @@ const CreateTournament = () => {
           <section className="sb-card p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
               <Users className="h-5 w-5 sb-cyan" />
-              <h2 className="font-bold">Your Team</h2>
+              <h2 className="font-bold">{isAdmin ? "Host Team (optional)" : "Your Team"}</h2>
             </div>
             <p className="text-xs sb-text-muted -mt-2">
-              Pick the team you'll compete with. They'll be auto-registered as the first entrant when the tournament launches.
+              {isAdmin
+                ? "As an admin you can host without competing. Optionally pick a team to auto-register as the first entrant."
+                : "Pick the team you'll compete with. They'll be auto-registered as the first entrant when the tournament launches."}
             </p>
-            {captainTeams.length === 1 ? (
+            {captainTeams.length === 0 ? (
+              <p className="text-xs sb-text-muted italic">No teams available — tournament will be created without a host team.</p>
+            ) : captainTeams.length === 1 && !isAdmin ? (
               <div className="flex items-center gap-3 rounded-lg border border-[hsl(var(--sb-border))] p-3 bg-[hsl(var(--sb-surface-2))]">
                 {selectedTeam?.logo_url ? (
                   <img src={selectedTeam.logo_url} alt={selectedTeam.name} className="h-10 w-10 rounded-full object-cover" />
