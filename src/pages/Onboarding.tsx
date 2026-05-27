@@ -791,7 +791,7 @@ export default function Onboarding() {
                 )}
 
                 {/* Skip all & complete profile after photo step */}
-                {currentStep >= 1 && !isLastStep && (
+                {currentStep >= 1 && !isLastStep && photos.length > 0 && (
                   <div className="flex justify-center mt-2 pb-1">
                     <button
                       onClick={handleComplete}
