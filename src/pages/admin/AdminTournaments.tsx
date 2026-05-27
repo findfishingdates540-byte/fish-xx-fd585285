@@ -113,11 +113,10 @@ export default function AdminTournaments() {
           </h1>
           <p className="text-slate-400 mt-1">Moderate and review all user-created tournaments</p>
         </div>
-        <Button
-          onClick={() => navigate("/app/tournaments/new")}
-          className="bg-cyan-600 hover:bg-cyan-500 text-white"
-        >
-          <Plus className="w-4 h-4 mr-1" /> New Tournament
+        <Button asChild className="bg-cyan-600 hover:bg-cyan-500 text-white">
+          <Link to="/app/tournaments/new" target="_blank" rel="noopener noreferrer">
+            <Plus className="w-4 h-4 mr-1" /> New Tournament
+          </Link>
         </Button>
       </div>
 
