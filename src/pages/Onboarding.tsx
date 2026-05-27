@@ -316,7 +316,16 @@ export default function Onboarding() {
 
   const handleComplete = async () => {
     if (!user) return;
-    
+
+    // Photo is required — never allow completion without one
+    if (!photos || photos.length === 0) {
+      toast({ title: "Please upload at least one photo", description: "A profile photo is required to continue.", variant: "destructive" });
+      // Jump back to the photo step
+      const photoIdx = steps.indexOf('photo');
+      if (photoIdx >= 0) setCurrentStep(photoIdx);
+      return;
+    }
+
     setSaving(true);
 
     try {
