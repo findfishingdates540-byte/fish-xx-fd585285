@@ -15,6 +15,7 @@ interface StepBasicInfoNewProps {
   gender: Gender | null;
   setGender: (value: Gender) => void;
   showGender?: boolean;
+  minAge?: number;
 }
 
 const genderOptions: { value: Gender; label: string; icon: string }[] = [
@@ -30,6 +31,7 @@ export function StepBasicInfoNew({
   gender,
   setGender,
   showGender = true,
+  minAge = 13,
 }: StepBasicInfoNewProps) {
   const [firstNameError, setFirstNameError] = useState('');
   const [dobError, setDobError] = useState('');
@@ -37,7 +39,6 @@ export function StepBasicInfoNew({
   const [dobTouched, setDobTouched] = useState(false);
 
   const today = new Date();
-  const minAge = 18;
   const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate())
     .toISOString()
     .split('T')[0];
@@ -64,15 +65,15 @@ export function StepBasicInfoNew({
     } else {
       const dob = new Date(dateOfBirth);
       const age = Math.floor((today.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
-      if (age < 18) {
-        setDobError('You must be at least 18 years old');
+      if (age < minAge) {
+        setDobError(`You must be at least ${minAge} years old`);
       } else if (age > 120) {
         setDobError('Please enter a valid date');
       } else {
         setDobError('');
       }
     }
-  }, [dateOfBirth, dobTouched]);
+  }, [dateOfBirth, dobTouched, minAge]);
 
   return (
     <div className="space-y-6">
@@ -105,7 +106,9 @@ export function StepBasicInfoNew({
         />
         {!dobError && (
           <p className="text-xs text-primary mt-2">
-            You must be at least 13 years old to use Fish-X.
+            {minAge >= 18
+              ? 'You must be at least 18 years old to use dating features.'
+              : 'You must be at least 13 years old to use Fish-X.'}
           </p>
         )}
       </div>
