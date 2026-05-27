@@ -91,7 +91,7 @@ export default function AdminFishingChallenges() {
           <p className="text-slate-400 mt-1">Moderate and review all fishing challenges (separate from photo challenges)</p>
         </div>
         <Button asChild className="bg-cyan-600 hover:bg-cyan-500 text-white">
-          <Link to="/app/challenges/new" target="_blank" rel="noopener noreferrer">
+          <Link to="/app/challenges/new">
             <Plus className="w-4 h-4 mr-1" /> New Fishing Challenge
           </Link>
         </Button>

@@ -42,9 +42,9 @@ export function StepBasicInfo({
           value={dateOfBirth}
           onChange={(e) => setDateOfBirth(e.target.value)}
           className="bg-background border-border"
-          max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+          max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
         />
-        <p className="text-xs text-muted-foreground">You must be 18 or older to use this app</p>
+        <p className="text-xs text-muted-foreground">You must be 13 or older to use Fish-X (18+ for dating features)</p>
       </div>
 
       {showGender && (
