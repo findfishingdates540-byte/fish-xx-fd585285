@@ -483,6 +483,7 @@ export default function Onboarding() {
             gender={gender}
             setGender={setGender}
             showGender={accountMode === 'dating' || accountMode === 'both'}
+            minAge={accountMode === 'fishing' ? 13 : 18}
           />
         );
       case 'photo':
