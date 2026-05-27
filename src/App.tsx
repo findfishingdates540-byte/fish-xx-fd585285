@@ -74,6 +74,7 @@ import { AdminDashboard, AdminUsers, AdminReports, AdminSpots, AdminMatches, Adm
 import AdminFishSpecies from "./pages/admin/AdminFishSpecies";
 import AdminPhotoChallenges from "./pages/admin/AdminPhotoChallenges";
 import AdminTournaments from "./pages/admin/AdminTournaments";
+import AdminFishingChallenges from "./pages/admin/AdminFishingChallenges";
 import AdminBroadcasts from "./pages/admin/AdminBroadcasts";
 import AdminTeamPosts from "./pages/admin/AdminTeamPosts";
 import AdminTeams from "./pages/admin/AdminTeams";
@@ -227,6 +228,7 @@ const App = () => (
               <Route path="support" element={<AdminSupportTickets />} />
               <Route path="broadcasts" element={<AdminBroadcasts />} />
               <Route path="photo-challenges" element={<AdminPhotoChallenges />} />
+              <Route path="fishing-challenges" element={<AdminFishingChallenges />} />
               <Route path="tournaments" element={<AdminTournaments />} />
               <Route path="competition-catches" element={<AdminCompetitionCatches />} />
               <Route path="team-posts" element={<AdminTeamPosts />} />
