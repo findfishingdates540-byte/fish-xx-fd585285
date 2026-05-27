@@ -316,7 +316,16 @@ export default function Onboarding() {
 
   const handleComplete = async () => {
     if (!user) return;
-    
+
+    // Photo is required — never allow completion without one
+    if (!photos || photos.length === 0) {
+      toast({ title: "Please upload at least one photo", description: "A profile photo is required to continue.", variant: "destructive" });
+      // Jump back to the photo step
+      const photoIdx = steps.indexOf('photo');
+      if (photoIdx >= 0) setCurrentStep(photoIdx);
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -782,7 +791,7 @@ export default function Onboarding() {
                 )}
 
                 {/* Skip all & complete profile after photo step */}
-                {currentStep >= 1 && !isLastStep && (
+                {currentStep >= 1 && !isLastStep && photos.length > 0 && (
                   <div className="flex justify-center mt-2 pb-1">
                     <button
                       onClick={handleComplete}
