@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -42,6 +43,14 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
   const [endDate, setEndDate] = useState("");
   const [prizeDescription, setPrizeDescription] = useState("");
   const [prizePool, setPrizePool] = useState("");
+  const [prizeType, setPrizeType] = useState<"cash" | "gift_card">("cash");
+  const [maxParticipants, setMaxParticipants] = useState("");
+  const [location, setLocation] = useState("");
+  const [rules, setRules] = useState("");
+  const [isOfficial, setIsOfficial] = useState(false);
+  const [isAdminFunded, setIsAdminFunded] = useState(false);
+  const [entryFeeEnabled, setEntryFeeEnabled] = useState(false);
+  const [entryFee, setEntryFee] = useState("");
 
   useEffect(() => {
     if (challenge) {
@@ -56,6 +65,22 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
       setPrizePool(
         challenge.prizes?.total !== undefined && challenge.prizes?.total !== null
           ? String(challenge.prizes.total)
+          : "",
+      );
+      setPrizeType((challenge.prize_type as any) ?? "cash");
+      setMaxParticipants(
+        challenge.prizes?.max_participants !== undefined && challenge.prizes?.max_participants !== null
+          ? String(challenge.prizes.max_participants)
+          : "",
+      );
+      setLocation(challenge.prizes?.location ?? "");
+      setRules(challenge.rules?.description ?? "");
+      setIsOfficial(!!challenge.is_official);
+      setIsAdminFunded(!!challenge.is_admin_funded);
+      setEntryFeeEnabled(!!challenge.entry_fee_enabled);
+      setEntryFee(
+        challenge.entry_fee !== undefined && challenge.entry_fee !== null
+          ? String(challenge.entry_fee)
           : "",
       );
     }
@@ -74,6 +99,23 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
       } else {
         prizes.total = Number(prizePool);
       }
+      if (maxParticipants.trim() === "") {
+        delete prizes.max_participants;
+      } else {
+        prizes.max_participants = Number(maxParticipants);
+      }
+      if (location.trim() === "") {
+        delete prizes.location;
+      } else {
+        prizes.location = location.trim();
+      }
+
+      const rulesObj = { ...(challenge.rules || {}) };
+      if (rules.trim() === "") {
+        delete rulesObj.description;
+      } else {
+        rulesObj.description = rules.trim();
+      }
 
       const { error } = await supabase
         .from("fishing_challenges")
@@ -87,6 +129,12 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
           end_date: endDate,
           prize_description: prizeDescription.trim() || null,
           prizes,
+          rules: rulesObj,
+          prize_type: prizeType,
+          is_official: isOfficial,
+          entry_fee_enabled: entryFeeEnabled,
+          entry_fee: entryFeeEnabled ? Number(entryFee) || 0 : 0,
+          is_admin_funded: !entryFeeEnabled ? isAdminFunded : false,
         } as any)
         .eq("id", challenge.id);
       if (error) throw error;
@@ -160,6 +208,26 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
             <Input value={targetSpecies} onChange={(e) => setTargetSpecies(e.target.value)} placeholder="Any species" className="mt-1" />
           </div>
           <div>
+            <Label className="text-xs">Location</Label>
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lake Erie, Ohio" className="mt-1" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Prize type</Label>
+              <Select value={prizeType} onValueChange={(v) => setPrizeType(v as any)}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="gift_card">Gift card</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Max participants</Label>
+              <Input type="number" min="0" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} placeholder="Unlimited" className="mt-1" />
+            </div>
+          </div>
+          <div>
             <Label className="text-xs">Prize description</Label>
             <Input value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} className="mt-1" />
           </div>
@@ -174,6 +242,39 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
               placeholder="0"
               className="mt-1"
             />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <Label className="text-xs">Entry fee enabled</Label>
+              <p className="text-[11px] text-muted-foreground">Participants pay to join</p>
+            </div>
+            <Switch checked={entryFeeEnabled} onCheckedChange={setEntryFeeEnabled} />
+          </div>
+          {entryFeeEnabled && (
+            <div>
+              <Label className="text-xs">Entry fee ($)</Label>
+              <Input type="number" min="0" step="0.01" value={entryFee} onChange={(e) => setEntryFee(e.target.value)} placeholder="5" className="mt-1" />
+            </div>
+          )}
+          {!entryFeeEnabled && (
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Label className="text-xs">Admin funded</Label>
+                <p className="text-[11px] text-muted-foreground">Prize pool funded by the platform</p>
+              </div>
+              <Switch checked={isAdminFunded} onCheckedChange={setIsAdminFunded} />
+            </div>
+          )}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <Label className="text-xs">Official challenge</Label>
+              <p className="text-[11px] text-muted-foreground">Marked as platform-official</p>
+            </div>
+            <Switch checked={isOfficial} onCheckedChange={setIsOfficial} />
+          </div>
+          <div>
+            <Label className="text-xs">Rules</Label>
+            <Textarea value={rules} onChange={(e) => setRules(e.target.value)} rows={3} placeholder="Outline the rules…" className="mt-1" />
           </div>
         </div>
 
