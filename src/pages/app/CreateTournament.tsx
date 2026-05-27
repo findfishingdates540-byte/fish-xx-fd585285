@@ -88,10 +88,11 @@ const CreateTournament = () => {
 
   // Default the team selection to the first captained team once loaded
   useEffect(() => {
-    if (!creatorTeamId && captainTeams.length > 0) {
+    // Admins host without competing by default — don't auto-pick a team.
+    if (!isAdmin && !creatorTeamId && captainTeams.length > 0) {
       setCreatorTeamId(captainTeams[0].id);
     }
-  }, [captainTeams, creatorTeamId]);
+  }, [captainTeams, creatorTeamId, isAdmin]);
 
   const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
