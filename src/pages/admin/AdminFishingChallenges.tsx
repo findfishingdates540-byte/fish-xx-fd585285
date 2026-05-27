@@ -90,11 +90,10 @@ export default function AdminFishingChallenges() {
           </h1>
           <p className="text-slate-400 mt-1">Moderate and review all fishing challenges (separate from photo challenges)</p>
         </div>
-        <Button
-          onClick={() => navigate("/app/challenges/new")}
-          className="bg-cyan-600 hover:bg-cyan-500 text-white"
-        >
-          <Plus className="w-4 h-4 mr-1" /> New Fishing Challenge
+        <Button asChild className="bg-cyan-600 hover:bg-cyan-500 text-white">
+          <Link to="/app/challenges/new" target="_blank" rel="noopener noreferrer">
+            <Plus className="w-4 h-4 mr-1" /> New Fishing Challenge
+          </Link>
         </Button>
       </div>
 
