@@ -333,6 +333,29 @@ const CreateTournament = () => {
               </div>
             ) : (
               <div className="grid gap-2">
+                {isAdmin && (
+                  <button
+                    onClick={() => setCreatorTeamId("")}
+                    className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
+                      creatorTeamId === ""
+                        ? "border-[hsl(var(--sb-cyan))] bg-[hsl(var(--sb-cyan-soft))]"
+                        : "border-[hsl(var(--sb-border))] bg-[hsl(var(--sb-surface-2))] hover:border-[hsl(var(--sb-cyan))]/50"
+                    }`}
+                  >
+                    <div className="h-10 w-10 rounded-full bg-[hsl(var(--sb-cyan-soft))] flex items-center justify-center">
+                      <ShieldAlert className="h-5 w-5 sb-cyan" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">Host as admin (no team)</p>
+                      <p className="text-xs sb-text-muted">Create the bracket without competing</p>
+                    </div>
+                    {creatorTeamId === "" && (
+                      <div className="h-5 w-5 rounded-full sb-bg-cyan flex items-center justify-center">
+                        <Sparkles className="h-3 w-3" />
+                      </div>
+                    )}
+                  </button>
+                )}
                 {captainTeams.map((t) => (
                   <button
                     key={t.id}
