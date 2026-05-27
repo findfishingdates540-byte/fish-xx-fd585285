@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
 import { useCanCreateTournament } from "@/hooks/use-tournament-creator-requirement";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import defaultBanner from "@/assets/tournament-banner-default.jpg";
 
 const FORMAT_OPTIONS = [
@@ -44,18 +45,22 @@ const CreateTournament = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { canCreate, requirement, isLoading: gateLoading } = useCanCreateTournament();
+  const { isAdmin } = useIsAdmin();
   const { data: platformFeePercent = 10 } = usePlatformFeePercent();
 
   // Tournaments are team-only and only captains can register a team — load captained teams.
+  // Admins can host on behalf of any team, so they get the full team list.
   const { data: captainTeams = [], isLoading: teamCheckLoading } = useQuery({
-    queryKey: ["tournament-creator-captain-teams", user?.id],
+    queryKey: ["tournament-creator-captain-teams", user?.id, isAdmin],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from("fishing_teams")
         .select("id, name, logo_url")
-        .eq("captain_id", user!.id)
         .order("created_at", { ascending: false });
+      const { data, error } = isAdmin
+        ? await query
+        : await query.eq("captain_id", user!.id);
       if (error) throw error;
       return data ?? [];
     },
@@ -103,7 +108,7 @@ const CreateTournament = () => {
       if (!title.trim()) throw new Error("Title is required");
       if (!registrationEnd) throw new Error("Registration end date is required");
       if (!startDate) throw new Error("Start date is required");
-      if (!creatorTeamId) throw new Error("Please select the team you'll compete with");
+      if (!isAdmin && !creatorTeamId) throw new Error("Please select the team you'll compete with");
 
       // Optional banner upload
       let bannerUrl: string | null = null;
@@ -135,21 +140,24 @@ const CreateTournament = () => {
         status: "registration",
         created_by: user.id,
         banner_url: bannerUrl,
-        creator_team_id: creatorTeamId,
+        creator_team_id: creatorTeamId || null,
       } as any).select().single();
 
       if (error) throw error;
 
       // Auto-register the creator's team as the first participant (free entry for the host).
-      const { error: partErr } = await supabase
-        .from("tournament_participants")
-        .insert({
-          tournament_id: data.id,
-          user_id: user.id,
-          team_id: creatorTeamId,
-          has_paid: true,
-        } as any);
-      if (partErr) console.error("Failed to auto-register host team:", partErr);
+      // Admins hosting without a team are skipped.
+      if (creatorTeamId) {
+        const { error: partErr } = await supabase
+          .from("tournament_participants")
+          .insert({
+            tournament_id: data.id,
+            user_id: user.id,
+            team_id: creatorTeamId,
+            has_paid: true,
+          } as any);
+        if (partErr) console.error("Failed to auto-register host team:", partErr);
+      }
 
       return data;
     },
@@ -204,7 +212,7 @@ const CreateTournament = () => {
     return <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0"><div className="max-w-lg mx-auto px-4 py-12 text-center sb-text-muted">Checking team membership…</div></div>;
   }
 
-  if (captainTeams.length === 0) {
+  if (captainTeams.length === 0 && !isAdmin) {
     return (
       <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-32">
         <div className="max-w-lg mx-auto px-4 flex items-center gap-3 py-4">
