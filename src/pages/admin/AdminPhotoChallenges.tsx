@@ -12,11 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown, Megaphone } from "lucide-react";
+import { Camera, Plus, Upload, Trash2, Eye, Trophy, Users, DollarSign, Crown, Megaphone, Pencil } from "lucide-react";
 import { formatPrizeDescription } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
+import { PhotoChallengeEditDialog } from "@/components/admin/PhotoChallengeEditDialog";
 
 export default function AdminPhotoChallenges() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export default function AdminPhotoChallenges() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [viewingChallenge, setViewingChallenge] = useState<any>(null);
+  const [editingChallenge, setEditingChallenge] = useState<any>(null);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -523,6 +525,14 @@ export default function AdminPhotoChallenges() {
                           title="View entries"
                         >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingChallenge(c)}
+                          title="Edit challenge"
+                        >
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         {c.status !== "completed" && (
                           <Button
