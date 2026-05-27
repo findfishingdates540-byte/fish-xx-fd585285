@@ -41,6 +41,7 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [prizeDescription, setPrizeDescription] = useState("");
+  const [prizePool, setPrizePool] = useState("");
 
   useEffect(() => {
     if (challenge) {
@@ -52,6 +53,11 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
       setStartDate(toDateInput(challenge.start_date));
       setEndDate(toDateInput(challenge.end_date));
       setPrizeDescription(challenge.prize_description ?? "");
+      setPrizePool(
+        challenge.prizes?.total !== undefined && challenge.prizes?.total !== null
+          ? String(challenge.prizes.total)
+          : "",
+      );
     }
   }, [challenge]);
 
@@ -61,6 +67,13 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
       if (!title.trim()) throw new Error("Title is required");
       if (!startDate || !endDate) throw new Error("Start and end dates are required");
       if (new Date(endDate) <= new Date(startDate)) throw new Error("End must be after start");
+
+      const prizes = { ...(challenge.prizes || {}) };
+      if (prizePool.trim() === "") {
+        delete prizes.total;
+      } else {
+        prizes.total = Number(prizePool);
+      }
 
       const { error } = await supabase
         .from("fishing_challenges")
@@ -73,6 +86,7 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
           start_date: startDate,
           end_date: endDate,
           prize_description: prizeDescription.trim() || null,
+          prizes,
         } as any)
         .eq("id", challenge.id);
       if (error) throw error;
@@ -148,6 +162,18 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
           <div>
             <Label className="text-xs">Prize description</Label>
             <Input value={prizeDescription} onChange={(e) => setPrizeDescription(e.target.value)} className="mt-1" />
+          </div>
+          <div>
+            <Label className="text-xs">Prize pool ($)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              value={prizePool}
+              onChange={(e) => setPrizePool(e.target.value)}
+              placeholder="0"
+              className="mt-1"
+            />
           </div>
         </div>
 
