@@ -737,6 +737,11 @@ export default function AdminPhotoChallenges() {
           </Table>
         </div>
       </div>
+      <PhotoChallengeEditDialog
+        challenge={editingChallenge}
+        open={!!editingChallenge}
+        onOpenChange={(v) => !v && setEditingChallenge(null)}
+      />
     </div>
   );
 }
