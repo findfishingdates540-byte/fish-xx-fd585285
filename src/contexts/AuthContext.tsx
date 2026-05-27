@@ -73,24 +73,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut({ scope: 'global' });
-    } catch (e) {
-      console.warn('signOut global failed, falling back to local', e);
-      try {
-        await supabase.auth.signOut({ scope: 'local' });
-      } catch {}
-    }
-    // Force-clear local state in case the server rejected the logout
-    // (e.g. session already expired) so the UI doesn't keep thinking
-    // the user is logged in.
+    // Clear React state immediately so the UI flips to logged-out
     setSession(null);
     setUser(null);
+
+    // Wipe persisted tokens first so the auto-refresh timer can't
+    // resurrect the session if the server call fails.
     try {
       Object.keys(localStorage)
         .filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
         .forEach((k) => localStorage.removeItem(k));
     } catch {}
+
+    // Local-scope signOut avoids hitting /logout on the server, which
+    // 403s when the session has already expired and was causing the
+    // client to loop back into a signed-in state.
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      console.warn('signOut local failed (ignored)', e);
+    }
   };
 
   const resetPassword = async (email: string) => {
