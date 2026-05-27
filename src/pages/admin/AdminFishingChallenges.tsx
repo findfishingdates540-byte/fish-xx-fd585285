@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Trophy, Trash2, ExternalLink, Search, Plus, Megaphone } from "lucide-react";
+import { Trophy, Trash2, ExternalLink, Search, Plus, Megaphone, Pencil } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { FishingChallengeEditDialog } from "@/components/admin/FishingChallengeEditDialog";
 
 const STATUSES = ["all", "upcoming", "active", "completed", "cancelled"];
 
@@ -18,6 +19,7 @@ export default function AdminFishingChallenges() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [editing, setEditing] = useState<any>(null);
 
   const { data: challenges = [], isLoading } = useQuery({
     queryKey: ["admin-fishing-challenges"],
@@ -161,6 +163,15 @@ export default function AdminFishingChallenges() {
                         <ExternalLink className="w-4 h-4" />
                       </Link>
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-slate-300 hover:text-white"
+                      onClick={() => setEditing(c)}
+                      title="Edit challenge"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
                     {c.status !== "completed" && (
                       <Button
                         size="sm"
@@ -194,6 +205,11 @@ export default function AdminFishingChallenges() {
           </TableBody>
         </Table>
       </div>
+      <FishingChallengeEditDialog
+        challenge={editing}
+        open={!!editing}
+        onOpenChange={(v) => !v && setEditing(null)}
+      />
     </div>
   );
 }
