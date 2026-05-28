@@ -4867,6 +4867,10 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_photo_challenge_gift_card: {
+        Args: { p_challenge_id: string }
+        Returns: string
+      }
       get_photo_challenges_safe: {
         Args: never
         Returns: {
@@ -4884,6 +4888,13 @@ export type Database = {
           title: string
           voting_end_date: string
           winner_id: string
+        }[]
+      }
+      get_photo_entry_location: {
+        Args: { p_entry_id: string }
+        Returns: {
+          location_lat: number
+          location_lng: number
         }[]
       }
       get_species_leaderboard: {
@@ -4904,6 +4915,7 @@ export type Database = {
         }[]
       }
       get_team_page_insights: { Args: { p_team_id: string }; Returns: Json }
+      get_team_phone: { Args: { p_team_id: string }; Returns: string }
       get_team_scores:
         | {
             Args: { p_category?: string }
