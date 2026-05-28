@@ -39,12 +39,12 @@ export default function UserProfile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile', userId],
     queryFn: async () => {
-      // Use public_profiles view for privacy when viewing other users
+      // Use the safe public projection so buddy cards can open other users without exposing sensitive fields
       const { data, error } = await supabase
-        .from('public_profiles')
+        .from('profiles_safe')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
