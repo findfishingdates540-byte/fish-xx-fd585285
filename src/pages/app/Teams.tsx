@@ -194,7 +194,7 @@ export default function Teams() {
 
   return (
     <div className="scoreboard-hub min-h-[100dvh] -mx-4 md:-mx-0 pb-32">
-      <div className="lg:grid lg:grid-cols-[200px_1fr]">
+      <div className="lg:grid lg:grid-cols-[260px_1fr]">
         <TeamsSidebar />
         <div className="min-w-0 max-w-6xl mx-auto w-full px-4 md:px-6 pt-5 md:pt-8">
         {/* Page heading */}
