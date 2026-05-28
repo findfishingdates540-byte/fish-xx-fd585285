@@ -206,13 +206,23 @@ export default function AdminPhotoChallenges() {
           ? challenge.entry_fee * (challenge.entry_count || 0) * 0.5
           : 0;
 
+        // Gift card code lives in a restricted column; fetch via RPC
+        let giftCardCode: string | null = null;
+        if (challenge.prize_type === "gift_card") {
+          const { data: code } = await supabase.rpc(
+            "get_photo_challenge_gift_card",
+            { p_challenge_id: challengeId },
+          );
+          giftCardCode = (code as string | null) || null;
+        }
+
         await supabase.from("prize_payouts").insert({
           winner_id: winnerId,
           challenge_id: challengeId,
           prize_type: challenge.prize_type || "cash",
           prize_amount: prizeAmount,
           prize_description: challenge.prize_description || (prizeAmount > 0 ? `$${prizeAmount.toFixed(0)} cash prize` : null),
-          gift_card_code: (challenge as any).gift_card_code || null,
+          gift_card_code: giftCardCode,
           status: "pending",
           notified_at: new Date().toISOString(),
         } as any);
