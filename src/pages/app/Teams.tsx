@@ -43,7 +43,10 @@ export default function Teams() {
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ["all-teams"],
     queryFn: async () => {
-      const { data } = await supabase.from("fishing_teams").select("*").order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("fishing_teams")
+        .select("captain_id,category,cover_url,created_at,description,followers_count,group_description,id,location,logo_url,name,page_description,rules,skill_level,team_type,website")
+        .order("created_at", { ascending: false });
       return data || [];
     },
   });
