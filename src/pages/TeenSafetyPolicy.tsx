@@ -9,6 +9,7 @@ export default function TeenSafetyPolicy() {
       <PageMeta
         title="Teen Safety & Parental Consent Policy | Fish-X"
         description="How Fish-X protects anglers aged 13–17: parental consent, safer defaults, restricted features, moderation, data handling, and family rights."
+        path="/teen-safety-policy"
       />
 
       <div className="max-w-3xl mx-auto px-6 py-12">
