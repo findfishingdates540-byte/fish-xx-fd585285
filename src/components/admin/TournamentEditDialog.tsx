@@ -77,7 +77,12 @@ export function TournamentEditDialog({ tournament, open, onOpenChange }: Props) 
           : "",
       );
       setPrizeDescription(tournament.prize_description ?? "");
-      setGiftCardCode(tournament.gift_card_code ?? "");
+      setGiftCardCode("");
+      if (tournament.prize_type === "gift_card") {
+        supabase
+          .rpc("get_tournament_gift_card", { p_tournament_id: tournament.id })
+          .then(({ data }) => setGiftCardCode((data as string | null) ?? ""));
+      }
       setRegistrationEnd(toDateTimeInput(tournament.registration_end));
       setStartDate(toDateTimeInput(tournament.start_date));
       setEndDate(toDateTimeInput(tournament.end_date));
