@@ -252,7 +252,7 @@ export default function TeamGroup() {
                 {topMembers.length === 0 && <li className="text-xs sb-text-muted">No data yet.</li>}
                 {topMembers.map((p, i) => (
                   <li key={p.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[hsl(var(--sb-surface))]">
-                    <span className="text-sm font-bold text-[hsl(var(--sb-text))]-muted w-3">{i + 1}</span>
+                    <span className="text-sm font-bold sb-text-muted w-3">{i + 1}</span>
                     <Avatar className="h-7 w-7"><AvatarImage src={p.photos?.[0]} /><AvatarFallback className="text-[10px]">{p.display_name?.[0]}</AvatarFallback></Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate">{p.display_name}</p>
