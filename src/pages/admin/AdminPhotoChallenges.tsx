@@ -47,7 +47,7 @@ export default function AdminPhotoChallenges() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("photo_challenges")
-        .select("*")
+        .select("banner_url,created_at,created_by,description,end_date,entry_fee,entry_fee_enabled,id,is_admin_funded,is_junior_only,platform_fee_percent,prize_description,prize_type,start_date,status,title,voting_end_date,winner_id")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
@@ -156,7 +156,7 @@ export default function AdminPhotoChallenges() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("photo_challenge_entries")
-        .select("*")
+        .select("caption,captured_at,challenge_id,created_at,has_paid,id,photo_url,user_id")
         .eq("challenge_id", viewingChallenge!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
