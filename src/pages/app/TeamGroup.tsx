@@ -77,19 +77,19 @@ export default function TeamGroup() {
       {/* Clubhouse top bar */}
       <div className="sticky top-16 z-30 border-b sb-border bg-[hsl(var(--sb-bg)/0.85)] backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 flex items-center gap-6">
-          <div className="flex items-center gap-2 font-bold tracking-wider text-sm sb-text-cyan">
+          <div className="flex items-center gap-2 font-bold tracking-wider text-sm sb-cyan">
             <Trophy className="h-4 w-4" />
             {team.name.toUpperCase()} CLUBHOUSE
           </div>
           <nav className="flex items-center gap-1 text-sm">
             <button
               onClick={() => navigate(`/app/teams/${teamId}`)}
-              className="px-3 py-1.5 sb-text-muted hover:sb-text"
+              className="px-3 py-1.5 sb-text-muted hover:text-[hsl(var(--sb-text))]"
             >
               Public
             </button>
             <button
-              className="px-3 py-1.5 sb-text-cyan border-b-2 border-[hsl(var(--sb-cyan))] -mb-px"
+              className="px-3 py-1.5 sb-cyan border-b-2 border-[hsl(var(--sb-cyan))] -mb-px"
             >
               Members
             </button>
@@ -126,7 +126,7 @@ export default function TeamGroup() {
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 rounded-md">
                 <AvatarImage src={team.logo_url || undefined} />
-                <AvatarFallback className="rounded-md bg-[hsl(var(--sb-cyan)/0.2)] sb-text-cyan font-bold">
+                <AvatarFallback className="rounded-md bg-[hsl(var(--sb-cyan)/0.2)] sb-cyan font-bold">
                   {team.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -147,8 +147,8 @@ export default function TeamGroup() {
                         onClick={() => { setChannel(c.id); setSection("feed"); }}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
                           active
-                            ? "bg-[hsl(var(--sb-cyan)/0.12)] sb-text-cyan font-semibold"
-                            : "sb-text-muted hover:bg-[hsl(var(--sb-surface))] hover:sb-text"
+                            ? "bg-[hsl(var(--sb-cyan)/0.12)] sb-cyan font-semibold"
+                            : "sb-text-muted hover:bg-[hsl(var(--sb-surface))] hover:text-[hsl(var(--sb-text))]"
                         }`}
                       >
                         <c.icon className="h-4 w-4" />
@@ -168,7 +168,7 @@ export default function TeamGroup() {
                     <li key={p.id}>
                       <button
                         onClick={() => navigate(`/app/messages/${p.id}`)}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm sb-text-muted hover:bg-[hsl(var(--sb-surface))] hover:sb-text"
+                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm sb-text-muted hover:bg-[hsl(var(--sb-surface))] hover:text-[hsl(var(--sb-text))]"
                       >
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={p.photos?.[0]} />
@@ -185,10 +185,10 @@ export default function TeamGroup() {
             <div className="mt-auto pt-3 border-t sb-border">
               <button
                 onClick={() => setSection("members")}
-                className="w-full flex items-center justify-between px-2 py-2 rounded-md text-sm sb-text-muted hover:bg-[hsl(var(--sb-surface))] hover:sb-text"
+                className="w-full flex items-center justify-between px-2 py-2 rounded-md text-sm sb-text-muted hover:bg-[hsl(var(--sb-surface))] hover:text-[hsl(var(--sb-text))]"
               >
                 <span className="flex items-center gap-2"><Users className="h-4 w-4" /> MEMBERS</span>
-                <span className="font-bold sb-text">{memberCount}</span>
+                <span className="font-bold text-[hsl(var(--sb-text))]">{memberCount}</span>
               </button>
             </div>
           </aside>
@@ -214,7 +214,7 @@ export default function TeamGroup() {
               <>
                 {/* Pinned channel header card */}
                 <div className="rounded-xl border sb-border bg-[hsl(var(--sb-surface))] p-4 mb-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-[hsl(var(--sb-cyan)/0.15)] sb-text-cyan flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-[hsl(var(--sb-cyan)/0.15)] sb-cyan flex items-center justify-center">
                     <Pin className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -252,7 +252,7 @@ export default function TeamGroup() {
                 {topMembers.length === 0 && <li className="text-xs sb-text-muted">No data yet.</li>}
                 {topMembers.map((p, i) => (
                   <li key={p.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[hsl(var(--sb-surface))]">
-                    <span className="text-sm font-bold sb-text-muted w-3">{i + 1}</span>
+                    <span className="text-sm font-bold text-[hsl(var(--sb-text))]-muted w-3">{i + 1}</span>
                     <Avatar className="h-7 w-7"><AvatarImage src={p.photos?.[0]} /><AvatarFallback className="text-[10px]">{p.display_name?.[0]}</AvatarFallback></Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate">{p.display_name}</p>
