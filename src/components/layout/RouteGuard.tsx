@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { ReactNode } from 'react';
 import { useActiveMode } from '@/contexts/ActiveModeContext';
+import { useIsMinor } from '@/hooks/use-is-minor';
 
 type AccountMode = 'dating' | 'fishing' | 'both';
 
@@ -36,6 +37,10 @@ export function RouteGuard({ children, allowedModes, redirectBothToHome = false 
 
 // Helper component for dating-only routes
 export function DatingRoute({ children }: { children: ReactNode }) {
+  const { isMinor, isLoading } = useIsMinor();
+  if (isLoading) return null;
+  // Minors are hard-blocked from any dating surface
+  if (isMinor) return <Navigate to="/app/feed" replace />;
   return <RouteGuard allowedModes={['dating', 'both']} redirectBothToHome>{children}</RouteGuard>;
 }
 

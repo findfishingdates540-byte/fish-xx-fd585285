@@ -1308,6 +1308,7 @@ export type Database = {
           entry_fee_enabled: boolean
           id: string
           is_admin_funded: boolean
+          is_junior_only: boolean
           is_official: boolean
           platform_fee_percent: number
           prize_description: string | null
@@ -1331,6 +1332,7 @@ export type Database = {
           entry_fee_enabled?: boolean
           id?: string
           is_admin_funded?: boolean
+          is_junior_only?: boolean
           is_official?: boolean
           platform_fee_percent?: number
           prize_description?: string | null
@@ -1354,6 +1356,7 @@ export type Database = {
           entry_fee_enabled?: boolean
           id?: string
           is_admin_funded?: boolean
+          is_junior_only?: boolean
           is_official?: boolean
           platform_fee_percent?: number
           prize_description?: string | null
@@ -2159,6 +2162,7 @@ export type Database = {
           gift_card_code: string | null
           id: string
           is_admin_funded: boolean
+          is_junior_only: boolean
           platform_fee_percent: number
           prize_description: string | null
           prize_type: string
@@ -2179,6 +2183,7 @@ export type Database = {
           gift_card_code?: string | null
           id?: string
           is_admin_funded?: boolean
+          is_junior_only?: boolean
           platform_fee_percent?: number
           prize_description?: string | null
           prize_type?: string
@@ -2199,6 +2204,7 @@ export type Database = {
           gift_card_code?: string | null
           id?: string
           is_admin_funded?: boolean
+          is_junior_only?: boolean
           platform_fee_percent?: number
           prize_description?: string | null
           prize_type?: string
@@ -2407,6 +2413,7 @@ export type Database = {
           account_mode: Database["public"]["Enums"]["account_mode"] | null
           bio: string | null
           city: string | null
+          consent_given_at: string | null
           cover_photo: string | null
           created_at: string
           date_of_birth: string | null
@@ -2432,6 +2439,8 @@ export type Database = {
           interests: string[] | null
           is_active: boolean | null
           is_banned: boolean | null
+          is_junior_account: boolean
+          is_minor: boolean
           is_premium: boolean | null
           is_verified: boolean | null
           last_active_at: string | null
@@ -2449,6 +2458,9 @@ export type Database = {
           min_age_preference: number | null
           occupation: string | null
           onboarding_completed: boolean | null
+          parent_guardian_consent: boolean
+          parent_guardian_email: string | null
+          parent_user_id: string | null
           personality_type:
             | Database["public"]["Enums"]["personality_type"]
             | null
@@ -2472,6 +2484,7 @@ export type Database = {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
           bio?: string | null
           city?: string | null
+          consent_given_at?: string | null
           cover_photo?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -2497,6 +2510,8 @@ export type Database = {
           interests?: string[] | null
           is_active?: boolean | null
           is_banned?: boolean | null
+          is_junior_account?: boolean
+          is_minor?: boolean
           is_premium?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
@@ -2514,6 +2529,9 @@ export type Database = {
           min_age_preference?: number | null
           occupation?: string | null
           onboarding_completed?: boolean | null
+          parent_guardian_consent?: boolean
+          parent_guardian_email?: string | null
+          parent_user_id?: string | null
           personality_type?:
             | Database["public"]["Enums"]["personality_type"]
             | null
@@ -2537,6 +2555,7 @@ export type Database = {
           account_mode?: Database["public"]["Enums"]["account_mode"] | null
           bio?: string | null
           city?: string | null
+          consent_given_at?: string | null
           cover_photo?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -2562,6 +2581,8 @@ export type Database = {
           interests?: string[] | null
           is_active?: boolean | null
           is_banned?: boolean | null
+          is_junior_account?: boolean
+          is_minor?: boolean
           is_premium?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
@@ -2579,6 +2600,9 @@ export type Database = {
           min_age_preference?: number | null
           occupation?: string | null
           onboarding_completed?: boolean | null
+          parent_guardian_consent?: boolean
+          parent_guardian_email?: string | null
+          parent_user_id?: string | null
           personality_type?:
             | Database["public"]["Enums"]["personality_type"]
             | null
@@ -3906,6 +3930,7 @@ export type Database = {
           gift_card_code: string | null
           id: string
           is_admin_funded: boolean
+          is_junior_only: boolean
           max_participants: number
           prize_description: string | null
           prize_type: string
@@ -3935,6 +3960,7 @@ export type Database = {
           gift_card_code?: string | null
           id?: string
           is_admin_funded?: boolean
+          is_junior_only?: boolean
           max_participants?: number
           prize_description?: string | null
           prize_type?: string
@@ -3964,6 +3990,7 @@ export type Database = {
           gift_card_code?: string | null
           id?: string
           is_admin_funded?: boolean
+          is_junior_only?: boolean
           max_participants?: number
           prize_description?: string | null
           prize_type?: string
@@ -4945,6 +4972,7 @@ export type Database = {
         Args: { _trip_id: string; _user_id: string }
         Returns: boolean
       }
+      is_user_minor: { Args: { _user_id: string }; Returns: boolean }
       refresh_leaderboard_entries: {
         Args: { p_species_id?: string }
         Returns: undefined

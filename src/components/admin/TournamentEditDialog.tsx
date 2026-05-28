@@ -55,6 +55,7 @@ export function TournamentEditDialog({ tournament, open, onOpenChange }: Props) 
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("registration");
   const [recalc, setRecalc] = useState(false);
+  const [isJuniorOnly, setIsJuniorOnly] = useState(false);
 
   useEffect(() => {
     if (tournament) {
@@ -82,6 +83,7 @@ export function TournamentEditDialog({ tournament, open, onOpenChange }: Props) 
       setEndDate(toDateTimeInput(tournament.end_date));
       setStatus(tournament.status ?? "registration");
       setRecalc(false);
+      setIsJuniorOnly(!!tournament.is_junior_only);
     }
   }, [tournament]);
 
@@ -108,6 +110,7 @@ export function TournamentEditDialog({ tournament, open, onOpenChange }: Props) 
           start_date: startDate ? new Date(startDate).toISOString() : null,
           end_date: endDate ? new Date(endDate).toISOString() : null,
           status,
+          is_junior_only: isJuniorOnly,
         } as any)
         .eq("id", tournament.id);
       if (updErr) throw updErr;
@@ -294,6 +297,22 @@ export function TournamentEditDialog({ tournament, open, onOpenChange }: Props) 
               <p className="text-muted-foreground">
                 Wipes current rounds & matchups and rebuilds them from registered teams using
                 the selected format and seeding. Only allowed if no matchup is already completed.
+              </p>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-2 rounded-lg border p-3 text-xs cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isJuniorOnly}
+              disabled={locked}
+              onChange={(e) => setIsJuniorOnly(e.target.checked)}
+              className="mt-0.5"
+            />
+            <div>
+              <p className="font-medium">Junior Anglers only (ages 13–17)</p>
+              <p className="text-muted-foreground">
+                Restricts this tournament to Junior Angler accounts. Adult users will not see it.
               </p>
             </div>
           </label>

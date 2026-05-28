@@ -1,0 +1,11 @@
+---
+name: Teen Safety & Junior Angler System
+description: 13-17 signup with parent consent, fishing-only, junior-only contest flag, dating hard-blocked
+type: feature
+---
+- DB: `profiles.is_minor`, `is_junior_account`, `parent_guardian_consent`, `parent_guardian_email`, `consent_given_at`, `parent_user_id`. Trigger `sync_minor_status` blocks under-13 inserts and auto-flags 13-17 as minor + junior + forces account_mode=fishing.
+- DB: `tournaments`, `fishing_challenges`, `photo_challenges` have `is_junior_only boolean` for contest filtering.
+- Hook: `useIsMinor()` reads `is_minor`/`is_junior_account` from profiles.
+- Onboarding: extra `parent_consent` step inserted after `basic_info` when DOB indicates 13-17; account_mode forced to fishing for minors.
+- Routes: `DatingRoute` redirects minors to `/app/feed`.
+- Helper SQL: `public.is_user_minor(uuid)` security-definer for RLS use.

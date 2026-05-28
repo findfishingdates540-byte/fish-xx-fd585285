@@ -18,6 +18,7 @@ import { StepFishingGear } from "@/components/onboarding/StepFishingGear";
 import { StepDatingPreference } from "@/components/onboarding/StepDatingPreference";
 import { StepPreferenceSync } from "@/components/onboarding/StepPreferenceSync";
 import { StepLifestyle } from "@/components/onboarding/StepLifestyle";
+import { StepParentConsent } from "@/components/onboarding/StepParentConsent";
 import { OnboardingDebugOverlay } from "@/components/onboarding/OnboardingDebugOverlay";
 
 import fishingRodImage from "@/assets/fishing-photo-2.jpg";
@@ -64,6 +65,9 @@ const stepConfigs: Record<AccountMode, string[]> = {
   both: ['basic_info', 'photo', 'location', 'lifestyle', 'experience', 'target_species', 'gear', 'interests', 'success'],
 };
 
+// Extra step inserted right after basic_info when user is detected as a minor (13-17)
+const PARENT_CONSENT_STEP = 'parent_consent';
+
 // Mode-specific step titles and subtitles
 const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subtitle: string }>> = {
   dating: {
@@ -99,6 +103,12 @@ const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subt
 };
 
 const getStepTitles = (mode: AccountMode, stepKey: string) => {
+  if (stepKey === 'parent_consent') {
+    return {
+      title: 'A quick safety check',
+      subtitle: "Since you're under 18, we need parent or guardian permission before continuing.",
+    };
+  }
   return stepTitlesConfig[mode][stepKey] || { title: '', subtitle: '' };
 };
 
@@ -113,6 +123,7 @@ const stepLabels: Record<string, string> = {
   interests: 'Interest Selection',
   dating_preference: 'Dating Preference',
   preference_sync: 'Preference Sync',
+  parent_consent: 'Parent Consent',
 };
 
 export default function Onboarding() {
@@ -130,6 +141,10 @@ export default function Onboarding() {
   const [firstName, setFirstName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState<Gender | null>(null);
+
+  // Teen safety
+  const [parentConsent, setParentConsent] = useState(false);
+  const [parentEmail, setParentEmail] = useState('');
   
   // Photos
   const [photos, setPhotos] = useState<string[]>([]);
@@ -170,7 +185,30 @@ export default function Onboarding() {
   const [drinking, setDrinking] = useState('');
   const [zodiacSign, setZodiacSign] = useState('');
 
-  const steps = stepConfigs[accountMode].filter(s => s !== 'success');
+  // Compute age from DOB to decide minor flow
+  const computedAge = (() => {
+    if (!dateOfBirth) return null;
+    const dob = new Date(dateOfBirth);
+    if (Number.isNaN(dob.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age;
+  })();
+  const isMinor = computedAge !== null && computedAge >= 13 && computedAge < 18;
+
+  // Force fishing-only mode for minors
+  useEffect(() => {
+    if (isMinor && accountMode !== 'fishing') {
+      setAccountMode('fishing');
+    }
+  }, [isMinor, accountMode]);
+
+  const baseSteps = stepConfigs[accountMode].filter(s => s !== 'success');
+  const steps = isMinor
+    ? [...baseSteps.slice(0, 1), PARENT_CONSENT_STEP, ...baseSteps.slice(1)]
+    : baseSteps;
   const totalSteps = steps.length;
   const currentStepKey = steps[currentStep];
   const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -254,8 +292,18 @@ export default function Onboarding() {
           toast({ title: "Please enter your date of birth", variant: "destructive" });
           return false;
         }
+        if (computedAge !== null && computedAge < 13) {
+          toast({ title: "You must be at least 13", description: "Fish-X is not available for users under 13.", variant: "destructive" });
+          return false;
+        }
         if ((accountMode === 'dating' || accountMode === 'both') && !gender) {
           toast({ title: "Please select your gender", variant: "destructive" });
+          return false;
+        }
+        return true;
+      case 'parent_consent':
+        if (!parentConsent) {
+          toast({ title: "Parent/guardian consent required", description: "Please confirm you have permission to use Fish-X.", variant: "destructive" });
           return false;
         }
         return true;
@@ -377,6 +425,15 @@ export default function Onboarding() {
         drinking: drinking || null,
         zodiac_sign: zodiacSign || null,
       };
+
+      // Teen-safety fields: minors get junior account flag + recorded consent
+      if (isMinor) {
+        updateData.account_mode = 'fishing';
+        updateData.is_junior_account = true;
+        updateData.parent_guardian_consent = true;
+        updateData.parent_guardian_email = parentEmail.trim() || null;
+        updateData.consent_given_at = new Date().toISOString();
+      }
 
       if (accountMode === 'dating' || accountMode === 'both') {
         updateData.gender = gender;
@@ -595,6 +652,15 @@ export default function Onboarding() {
             setTheirPace={setTheirPace}
             comboActivities={comboActivities}
             setComboActivities={setComboActivities}
+          />
+        );
+      case 'parent_consent':
+        return (
+          <StepParentConsent
+            consent={parentConsent}
+            setConsent={setParentConsent}
+            parentEmail={parentEmail}
+            setParentEmail={setParentEmail}
           />
         );
       default:

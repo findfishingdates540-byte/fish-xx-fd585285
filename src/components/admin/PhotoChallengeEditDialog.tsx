@@ -50,6 +50,7 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
   const [entryFeeEnabled, setEntryFeeEnabled] = useState(false);
   const [entryFee, setEntryFee] = useState("");
   const [isAdminFunded, setIsAdminFunded] = useState(false);
+  const [isJuniorOnly, setIsJuniorOnly] = useState(false);
 
   useEffect(() => {
     if (challenge) {
@@ -69,6 +70,7 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
           : "",
       );
       setIsAdminFunded(!!challenge.is_admin_funded);
+      setIsJuniorOnly(!!challenge.is_junior_only);
     }
   }, [challenge]);
 
@@ -98,6 +100,7 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
           entry_fee_enabled: entryFeeEnabled,
           entry_fee: entryFeeEnabled ? Number(entryFee) || 0 : 0,
           is_admin_funded: !entryFeeEnabled ? isAdminFunded : false,
+          is_junior_only: isJuniorOnly,
         } as any)
         .eq("id", challenge.id);
       if (error) throw error;
@@ -195,6 +198,13 @@ export function PhotoChallengeEditDialog({ challenge, open, onOpenChange }: Prop
               <Switch checked={isAdminFunded} onCheckedChange={setIsAdminFunded} />
             </div>
           )}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <Label className="text-xs">Junior Anglers only</Label>
+              <p className="text-[11px] text-muted-foreground">Restricts to ages 13–17 (Junior accounts)</p>
+            </div>
+            <Switch checked={isJuniorOnly} onCheckedChange={setIsJuniorOnly} />
+          </div>
         </div>
 
         <DialogFooter>
