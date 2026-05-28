@@ -194,9 +194,9 @@ export default function Teams() {
 
   return (
     <div className="scoreboard-hub min-h-[100dvh] -mx-4 md:-mx-0 pb-32">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-5 md:pt-8 grid lg:grid-cols-[230px_1fr] gap-6 lg:gap-8">
+      <div className="lg:grid lg:grid-cols-[200px_1fr]">
         <TeamsSidebar />
-        <div className="min-w-0">
+        <div className="min-w-0 max-w-6xl mx-auto w-full px-4 md:px-6 pt-5 md:pt-8">
         {/* Page heading */}
         <div className="flex items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3 min-w-0">
@@ -498,7 +498,7 @@ function TeamsSidebar() {
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col gap-1 sticky top-20 self-start h-[calc(100dvh-6rem)] pr-2 border-r sb-border">
+    <aside className="hidden lg:flex flex-col gap-1 sticky top-16 self-start h-[calc(100dvh-4rem)] px-3 py-5 border-r sb-border bg-[hsl(var(--sb-surface)/0.4)]">
       {/* Profile card */}
       <button
         onClick={() => navigate("/app/profile")}
