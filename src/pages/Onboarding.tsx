@@ -103,6 +103,12 @@ const stepTitlesConfig: Record<AccountMode, Record<string, { title: string; subt
 };
 
 const getStepTitles = (mode: AccountMode, stepKey: string) => {
+  if (stepKey === 'parent_consent') {
+    return {
+      title: 'A quick safety check',
+      subtitle: "Since you're under 18, we need parent or guardian permission before continuing.",
+    };
+  }
   return stepTitlesConfig[mode][stepKey] || { title: '', subtitle: '' };
 };
 
