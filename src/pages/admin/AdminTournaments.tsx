@@ -189,7 +189,7 @@ export default function AdminTournaments() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button asChild size="sm" variant="ghost" className="text-slate-300 hover:text-white">
-                      <Link to={`/app/tournaments/${t.id}`} target="_blank">
+                      <Link to={`/app/tournaments/${t.id}`}>
                         <ExternalLink className="w-4 h-4" />
                       </Link>
                     </Button>
