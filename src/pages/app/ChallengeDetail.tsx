@@ -565,16 +565,18 @@ export default function ChallengeDetail() {
             setSearchParams(next, { replace: true });
           }}
         >
-          <TabsList className="w-full grid grid-cols-5 bg-[hsl(var(--sb-surface-2))]">
-            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-            <TabsTrigger value="participants">
-              Participants
-              <span className="ml-1.5 text-[10px] sb-text-muted">({participants.length}{maxParticipants ? `/${maxParticipants}` : ""})</span>
-            </TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="rules">Rules</TabsTrigger>
-            <TabsTrigger value="about">About</TabsTrigger>
-          </TabsList>
+          <div className="-mx-2 px-2 overflow-x-auto sm:mx-0 sm:px-0 sm:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 bg-[hsl(var(--sb-surface-2))] gap-1">
+              <TabsTrigger value="leaderboard" className="text-xs sm:text-sm whitespace-nowrap">Leaderboard</TabsTrigger>
+              <TabsTrigger value="participants" className="text-xs sm:text-sm whitespace-nowrap">
+                Participants
+                <span className="ml-1 text-[10px] sb-text-muted">({participants.length}{maxParticipants ? `/${maxParticipants}` : ""})</span>
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="text-xs sm:text-sm whitespace-nowrap">Activity</TabsTrigger>
+              <TabsTrigger value="rules" className="text-xs sm:text-sm whitespace-nowrap">Rules</TabsTrigger>
+              <TabsTrigger value="about" className="text-xs sm:text-sm whitespace-nowrap">About</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Leaderboard */}
           <TabsContent value="leaderboard" className="mt-4 space-y-4">
