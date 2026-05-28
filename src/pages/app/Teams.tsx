@@ -498,7 +498,7 @@ function TeamsSidebar() {
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col gap-1 sticky top-16 self-start h-[calc(100dvh-4rem)] px-3 py-5 border-r sb-border bg-[hsl(var(--sb-surface)/0.4)]">
+    <aside className="hidden lg:flex flex-col gap-1 sticky top-16 self-start h-[calc(100dvh-4rem)] overflow-hidden px-3 py-5 border-r sb-border bg-[hsl(var(--sb-surface)/0.4)]">
       {/* Profile card */}
       <button
         onClick={() => navigate("/app/profile")}
