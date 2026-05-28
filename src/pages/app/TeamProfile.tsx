@@ -52,7 +52,11 @@ export default function TeamProfile() {
   const { data: team, isLoading: teamLoading } = useQuery({
     queryKey: ["team-detail", teamId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("fishing_teams").select("*").eq("id", teamId!).single();
+      const { data, error } = await supabase
+        .from("fishing_teams")
+        .select("captain_id,category,cover_url,created_at,description,followers_count,group_description,id,location,logo_url,name,page_description,rules,skill_level,team_type,website")
+        .eq("id", teamId!)
+        .single();
       if (error) throw error;
       return data;
     },

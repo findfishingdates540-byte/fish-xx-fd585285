@@ -47,7 +47,7 @@ export default function AdminPhotoChallenges() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("photo_challenges")
-        .select("*")
+        .select("banner_url,created_at,created_by,description,end_date,entry_fee,entry_fee_enabled,id,is_admin_funded,is_junior_only,platform_fee_percent,prize_description,prize_type,start_date,status,title,voting_end_date,winner_id")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
@@ -156,7 +156,7 @@ export default function AdminPhotoChallenges() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("photo_challenge_entries")
-        .select("*")
+        .select("caption,captured_at,challenge_id,created_at,has_paid,id,photo_url,user_id")
         .eq("challenge_id", viewingChallenge!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -206,13 +206,23 @@ export default function AdminPhotoChallenges() {
           ? challenge.entry_fee * (challenge.entry_count || 0) * 0.5
           : 0;
 
+        // Gift card code lives in a restricted column; fetch via RPC
+        let giftCardCode: string | null = null;
+        if (challenge.prize_type === "gift_card") {
+          const { data: code } = await supabase.rpc(
+            "get_photo_challenge_gift_card",
+            { p_challenge_id: challengeId },
+          );
+          giftCardCode = (code as string | null) || null;
+        }
+
         await supabase.from("prize_payouts").insert({
           winner_id: winnerId,
           challenge_id: challengeId,
           prize_type: challenge.prize_type || "cash",
           prize_amount: prizeAmount,
           prize_description: challenge.prize_description || (prizeAmount > 0 ? `$${prizeAmount.toFixed(0)} cash prize` : null),
-          gift_card_code: (challenge as any).gift_card_code || null,
+          gift_card_code: giftCardCode,
           status: "pending",
           notified_at: new Date().toISOString(),
         } as any);
