@@ -24,6 +24,12 @@ import {
   ChevronDown,
   ArrowLeft,
   Scale,
+  Home,
+  Database,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Radio,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -188,7 +194,9 @@ export default function Teams() {
 
   return (
     <div className="scoreboard-hub min-h-[100dvh] -mx-4 md:-mx-0 pb-32">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-5 md:pt-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-5 md:pt-8 grid lg:grid-cols-[230px_1fr] gap-6 lg:gap-8">
+        <TeamsSidebar />
+        <div className="min-w-0">
         {/* Page heading */}
         <div className="flex items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3 min-w-0">
@@ -455,7 +463,106 @@ export default function Teams() {
               </div>
             )}
         </section>
+        </div>
       </div>
     </div>
+  );
+}
+
+function TeamsSidebar() {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth() as any;
+
+  const { data: profile } = useQuery({
+    queryKey: ["sidebar-profile", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, photos, is_premium")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const photo = (profile?.photos as any)?.[0];
+  const tier = profile?.is_premium ? "PRO ANGLER" : "ANGLER";
+
+  const navItems = [
+    { label: "Home", icon: Home, to: "/app/feed" },
+    { label: "Competitions", icon: Trophy, to: "/app/leaderboard", active: false },
+    { label: "Teams", icon: Users, to: "/app/teams", active: true },
+    { label: "Trips", icon: Compass, to: "/app/trips" },
+    { label: "Settings", icon: Settings, to: "/app/settings" },
+  ];
+
+  return (
+    <aside className="hidden lg:flex flex-col gap-1 sticky top-20 self-start h-[calc(100dvh-6rem)] pr-2 border-r sb-border">
+      {/* Profile card */}
+      <button
+        onClick={() => navigate("/app/profile")}
+        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left mb-3"
+      >
+        <Avatar className="h-10 w-10 ring-1 ring-[hsl(var(--sb-border))]">
+          <AvatarImage src={photo || undefined} />
+          <AvatarFallback className="bg-[hsl(var(--sb-surface-2))] text-xs">
+            {(profile?.display_name || "A").charAt(0)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold sb-cyan tracking-[0.14em]">{tier}</p>
+          <p className="text-xs sb-text-muted truncate">
+            {profile?.display_name || "Elite Division"}
+          </p>
+        </div>
+      </button>
+
+      {/* Nav */}
+      <nav className="space-y-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.label}
+              onClick={() => navigate(item.to)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                item.active
+                  ? "bg-[hsl(var(--sb-cyan)/0.12)] sb-cyan"
+                  : "sb-text-muted hover:bg-[hsl(var(--sb-surface-2))] hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="flex-1" />
+
+      {/* Go Live */}
+      <Button
+        onClick={() => navigate("/app/feed")}
+        className="sb-bg-cyan border-0 hover:opacity-90 gap-2 rounded-xl h-11 font-semibold mb-2"
+      >
+        <Radio className="h-4 w-4" /> GO LIVE
+      </Button>
+
+      <div className="space-y-1 pt-2 border-t sb-border">
+        <button
+          onClick={() => navigate("/app/settings")}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm sb-text-muted hover:bg-[hsl(var(--sb-surface-2))] hover:text-foreground transition-colors"
+        >
+          <HelpCircle className="h-4 w-4" /> Help
+        </button>
+        <button
+          onClick={() => signOut?.()}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm sb-text-muted hover:bg-[hsl(var(--sb-surface-2))] hover:text-foreground transition-colors"
+        >
+          <LogOut className="h-4 w-4" /> Logout
+        </button>
+      </div>
+    </aside>
   );
 }
