@@ -51,6 +51,7 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
   const [isAdminFunded, setIsAdminFunded] = useState(false);
   const [entryFeeEnabled, setEntryFeeEnabled] = useState(false);
   const [entryFee, setEntryFee] = useState("");
+  const [isJuniorOnly, setIsJuniorOnly] = useState(false);
 
   useEffect(() => {
     if (challenge) {
@@ -83,6 +84,7 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
           ? String(challenge.entry_fee)
           : "",
       );
+      setIsJuniorOnly(!!challenge.is_junior_only);
     }
   }, [challenge]);
 
@@ -135,6 +137,7 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
           entry_fee_enabled: entryFeeEnabled,
           entry_fee: entryFeeEnabled ? Number(entryFee) || 0 : 0,
           is_admin_funded: !entryFeeEnabled ? isAdminFunded : false,
+          is_junior_only: isJuniorOnly,
         } as any)
         .eq("id", challenge.id);
       if (error) throw error;
@@ -271,6 +274,13 @@ export function FishingChallengeEditDialog({ challenge, open, onOpenChange }: Pr
               <p className="text-[11px] text-muted-foreground">Marked as platform-official</p>
             </div>
             <Switch checked={isOfficial} onCheckedChange={setIsOfficial} />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <Label className="text-xs">Junior Anglers only</Label>
+              <p className="text-[11px] text-muted-foreground">Restricts to ages 13–17 (Junior accounts)</p>
+            </div>
+            <Switch checked={isJuniorOnly} onCheckedChange={setIsJuniorOnly} />
           </div>
           <div>
             <Label className="text-xs">Rules</Label>
