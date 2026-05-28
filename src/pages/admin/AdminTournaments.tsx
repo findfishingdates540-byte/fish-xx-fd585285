@@ -25,7 +25,7 @@ export default function AdminTournaments() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tournaments")
-        .select("*")
+        .select("banner_url,created_at,created_by,creator_team_id,current_round,description,end_date,entry_fee,entry_fee_enabled,format,id,is_admin_funded,is_junior_only,max_participants,prize_description,prize_type,registration_end,registration_start,scoring_method,seeding_method,start_date,status,title,total_rounds,updated_at,winner_id,winner_team_id")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
