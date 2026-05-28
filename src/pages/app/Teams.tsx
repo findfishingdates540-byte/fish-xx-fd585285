@@ -22,6 +22,8 @@ import {
   Trophy,
   Fish,
   ChevronDown,
+  ArrowLeft,
+  Scale,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -37,6 +39,7 @@ interface TeamWithCount {
   skill_level: string;
   captain_id: string;
   logo_url: string | null;
+  cover_url?: string | null;
   created_at: string;
   category: string;
   memberCount: number;
@@ -187,19 +190,27 @@ export default function Teams() {
     <div className="scoreboard-hub min-h-[100dvh] -mx-4 md:-mx-0 pb-32">
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-5 md:pt-8">
         {/* Page heading */}
-        <div className="flex items-start justify-between gap-3 mb-5">
-          <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
-              <Shield className="h-6 w-6 sb-cyan" />
-              Teams
-            </h1>
-            <p className="text-xs sb-text-muted mt-1">
-              {enrichedTeams.length} teams competing
-            </p>
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => navigate(-1)}
+              className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-[hsl(var(--sb-surface-2))] transition-colors shrink-0"
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
+                Teams
+              </h1>
+              <p className="text-xs sb-text-muted mt-0.5">
+                {enrichedTeams.length} teams competing
+              </p>
+            </div>
           </div>
           <Button
             onClick={() => navigate("/app/teams/new")}
-            className="sb-bg-cyan border-0 hover:opacity-90 gap-1.5 shrink-0"
+            className="sb-bg-cyan border-0 hover:opacity-90 gap-1.5 shrink-0 rounded-xl h-11 px-5 font-semibold"
           >
             <Plus className="h-4 w-4" /> Create team
           </Button>
@@ -208,12 +219,12 @@ export default function Teams() {
         {/* Toolbar */}
         <div className="space-y-3 mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted" />
             <Input
-              placeholder="Search teams..."
+              placeholder="Search teams, captains, or locations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 sb-card border-0 bg-[hsl(var(--sb-surface))] focus-visible:ring-[hsl(var(--sb-cyan))] h-11"
+              className="pl-11 rounded-2xl border-0 bg-[hsl(var(--sb-surface-2))] focus-visible:ring-[hsl(var(--sb-cyan))] h-12 text-sm"
             />
           </div>
 
@@ -280,93 +291,59 @@ export default function Teams() {
           </div>
         </div>
 
-        {/* Body */}
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
-          {/* Left rail */}
-          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-            <div>
-              <h2 className="text-[11px] font-bold sb-text-muted uppercase tracking-[0.14em] mb-3 flex items-center gap-1.5">
-                <Trophy className="h-3.5 w-3.5 sb-gold" /> My Teams
-              </h2>
-              <div className="space-y-2">
-                {myTeams.length === 0 ? (
-                  <p className="text-xs sb-text-muted/80 leading-relaxed">
-                    You haven't joined a team yet. Explore below and find your crew.
-                  </p>
-                ) : (
-                  myTeams.map((team) => (
-                    <button
-                      key={team.id}
-                      onClick={() => navigate(`/app/teams/${team.id}`)}
-                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left group"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-[11px] font-bold sb-cyan overflow-hidden shrink-0 ring-1 ring-[hsl(var(--sb-border))]">
-                        {team.logo_url ? (
-                          <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                        ) : (
-                          team.name.slice(0, 2).toUpperCase()
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-sm truncate group-hover:sb-cyan transition-colors">
-                          {team.name}
-                        </p>
-                        <p className="text-[10px] sb-text-muted">{team.memberCount} members</p>
-                      </div>
-                      {team.captain_id === user?.id && (
-                        <Crown className="h-3.5 w-3.5 sb-gold shrink-0" aria-label="Captain" />
-                      )}
-                    </button>
-                  ))
-                )}
-                <button
-                  onClick={() => navigate("/app/teams/new")}
-                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left group"
-                >
-                  <div className="w-9 h-9 rounded-full border border-dashed sb-border flex items-center justify-center shrink-0 group-hover:border-[hsl(var(--sb-cyan))]">
-                    <Plus className="h-4 w-4 sb-text-muted group-hover:sb-cyan" />
+        {/* My Teams horizontal row */}
+        <div className="mb-8">
+          <h2 className="text-[11px] font-bold sb-text-muted uppercase tracking-[0.18em] mb-3 flex items-center gap-1.5">
+            <Trophy className="h-3.5 w-3.5 sb-gold" /> My Teams
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {myTeams.map((team) => (
+              <button
+                key={team.id}
+                onClick={() => navigate(`/app/teams/${team.id}`)}
+                className="sb-card rounded-2xl p-4 flex flex-col items-center text-center hover:border-[hsl(var(--sb-cyan))] transition-colors group"
+              >
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-sm font-bold sb-cyan overflow-hidden ring-1 ring-[hsl(var(--sb-border))]">
+                    {team.logo_url ? (
+                      <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+                    ) : (
+                      team.name.slice(0, 2).toUpperCase()
+                    )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-sm">Join New</p>
-                    <p className="text-[10px] sb-text-muted">Create or join a crew</p>
-                  </div>
-                </button>
+                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-[hsl(var(--sb-surface))]" />
+                  {team.captain_id === user?.id && (
+                    <Crown className="absolute -top-1 -right-1 h-3.5 w-3.5 sb-gold" aria-label="Captain" />
+                  )}
+                </div>
+                <p className="mt-3 font-semibold text-sm truncate w-full group-hover:sb-cyan transition-colors">
+                  {team.name}
+                </p>
+                <p className="text-[10px] sb-text-muted mt-0.5">{team.memberCount} members</p>
+              </button>
+            ))}
+            <button
+              onClick={() => navigate("/app/teams/new")}
+              className="rounded-2xl p-4 flex flex-col items-center text-center border border-dashed sb-border hover:border-[hsl(var(--sb-cyan))] hover:bg-[hsl(var(--sb-surface-2))] transition-colors group"
+            >
+              <div className="w-14 h-14 rounded-full border border-dashed sb-border flex items-center justify-center group-hover:border-[hsl(var(--sb-cyan))]">
+                <Plus className="h-5 w-5 sb-text-muted group-hover:sb-cyan" />
               </div>
-            </div>
+              <p className="mt-3 font-semibold text-sm">Join New</p>
+              <p className="text-[10px] sb-text-muted mt-0.5">Explore</p>
+            </button>
+          </div>
+        </div>
 
-            <div>
-              <h2 className="text-[11px] font-bold sb-text-muted uppercase tracking-[0.14em] mb-3 flex items-center gap-1.5">
-                <Compass className="h-3.5 w-3.5 sb-cyan" /> Discover Teams
-              </h2>
-              <div className="space-y-1">
-                <button
-                  onClick={() => setRecruitingOnly(true)}
-                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left text-sm"
-                >
-                  <UserPlus className="h-4 w-4 sb-text-muted" /> Recruiting now
-                </button>
-                <button
-                  onClick={() => setNearMeOnly(true)}
-                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left text-sm"
-                >
-                  <MapPin className="h-4 w-4 sb-text-muted" /> Near me
-                </button>
-                <button
-                  onClick={() => navigate("/app/leaderboard")}
-                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left text-sm"
-                >
-                  <Trophy className="h-4 w-4 sb-gold" /> Top ranked
-                </button>
-              </div>
-            </div>
-          </aside>
-
-          {/* Grid */}
-          <section>
+        {/* Discover */}
+        <section>
+          <h2 className="text-[11px] font-bold sb-text-muted uppercase tracking-[0.18em] mb-3 flex items-center gap-1.5">
+            <Compass className="h-3.5 w-3.5 sb-cyan" /> Discover Teams
+          </h2>
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-56 rounded-2xl bg-[hsl(var(--sb-surface-2))]" />
+                  <Skeleton key={i} className="h-72 rounded-2xl bg-[hsl(var(--sb-surface-2))]" />
                 ))}
               </div>
             ) : sorted.length === 0 ? (
@@ -381,101 +358,103 @@ export default function Teams() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {sorted.map((team) => {
                   const config = getCategoryConfig(team.category);
-                  const CategoryIcon = config.icon;
                   const isRecruiting = team.memberCount < 10;
                   const overflow = Math.max(0, team.memberCount - 1);
+                  const lbs = Math.round((team.totalScore || 0));
                   return (
                     <button
                       key={team.id}
                       onClick={() => navigate(`/app/teams/${team.id}`)}
-                      className="sb-card p-5 text-left rounded-2xl hover:border-[hsl(var(--sb-cyan))] transition-colors group relative flex flex-col"
+                      className="sb-card text-left rounded-2xl hover:border-[hsl(var(--sb-cyan))] transition-colors group relative flex flex-col overflow-hidden"
                     >
-                      <span
-                        className={`absolute top-4 right-4 text-[9px] font-bold tracking-[0.14em] px-2 py-1 rounded-full ${
-                          isRecruiting
-                            ? "bg-[hsl(var(--sb-cyan)/0.15)] sb-cyan"
-                            : "bg-[hsl(var(--sb-surface-2))] sb-text-muted"
-                        }`}
-                      >
-                        {isRecruiting ? "RECRUITING" : "STABLE"}
-                      </span>
-
-                      <div className="flex items-start gap-3 pr-20">
-                        <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-sm font-bold sb-cyan overflow-hidden shrink-0 ring-1 ring-[hsl(var(--sb-border))]">
-                          {team.logo_url ? (
-                            <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                          ) : (
-                            team.name.slice(0, 2).toUpperCase()
-                          )}
+                      {/* Cover banner */}
+                      <div className="relative h-32 w-full bg-gradient-to-br from-[hsl(var(--sb-cyan)/0.25)] via-[hsl(var(--sb-surface-2))] to-[hsl(var(--sb-surface))]">
+                        {team.cover_url && (
+                          <img src={team.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--sb-surface))] via-transparent to-transparent" />
+                        <span
+                          className={`absolute bottom-2 right-3 text-[9px] font-bold tracking-[0.14em] px-2 py-1 rounded-md ${
+                            isRecruiting
+                              ? "bg-[hsl(var(--sb-cyan)/0.2)] sb-cyan ring-1 ring-[hsl(var(--sb-cyan)/0.4)]"
+                              : "bg-[hsl(var(--sb-surface-2))] sb-text-muted ring-1 ring-[hsl(var(--sb-border))]"
+                          }`}
+                        >
+                          {isRecruiting ? "RECRUITING" : "STABLE"}
+                        </span>
+                        <div className="absolute -bottom-6 left-4">
+                          <div className="w-14 h-14 rounded-full bg-[hsl(var(--sb-surface))] p-1 ring-1 ring-[hsl(var(--sb-border))]">
+                            <div className="w-full h-full rounded-full bg-[hsl(var(--sb-surface-2))] flex items-center justify-center text-sm font-bold sb-cyan overflow-hidden">
+                              {team.logo_url ? (
+                                <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover rounded-full" />
+                              ) : (
+                                team.name.slice(0, 2).toUpperCase()
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-extrabold text-base leading-tight truncate group-hover:sb-cyan transition-colors">
+                      </div>
+
+                      <div className="px-5 pt-8 pb-5 flex flex-col flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-extrabold text-base leading-tight group-hover:sb-cyan transition-colors">
                             {team.name}
                           </h3>
-                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-1.5 py-0.5 rounded sb-text-muted bg-[hsl(var(--sb-surface-2))]">
-                            <CategoryIcon className="h-2.5 w-2.5" /> {config.label}
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md sb-text-muted bg-[hsl(var(--sb-surface-2))]">
+                            {config.label}
                           </span>
                         </div>
-                      </div>
 
-                      {team.description && (
-                        <p className="text-xs sb-text-muted line-clamp-2 mt-3 leading-relaxed">
-                          {team.description}
-                        </p>
-                      )}
-
-                      <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t sb-border">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <Fish className="h-3.5 w-3.5 sb-cyan shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-bold leading-none">{team.catchCount}</p>
-                            <p className="text-[9px] sb-text-muted mt-0.5">Catches</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <Users className="h-3.5 w-3.5 sb-text-muted shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-bold leading-none">{team.memberCount}</p>
-                            <p className="text-[9px] sb-text-muted mt-0.5">Members</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <Trophy className="h-3.5 w-3.5 sb-gold shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-bold leading-none">
-                              {team.rank ? `#${team.rank}` : "—"}
-                            </p>
-                            <p className="text-[9px] sb-text-muted mt-0.5">Rank</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Avatar className="h-6 w-6 ring-1 ring-[hsl(var(--sb-border))]">
-                            <AvatarImage src={team.captainPhoto || undefined} />
-                            <AvatarFallback className="text-[9px] bg-[hsl(var(--sb-surface-2))]">
-                              {team.captainName?.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-[11px] truncate">
-                            <span className="font-semibold text-foreground">{team.captainName}</span>
-                            <span className="sb-text-muted"> · Captain</span>
-                          </span>
-                        </div>
-                        {overflow > 0 && (
-                          <span className="text-[10px] font-semibold sb-text-muted bg-[hsl(var(--sb-surface-2))] px-2 py-1 rounded-full">
-                            +{overflow}
-                          </span>
+                        {team.description && (
+                          <p className="text-xs sb-text-muted line-clamp-2 mt-2 leading-relaxed">
+                            {team.description}
+                          </p>
                         )}
+
+                        <div className="flex items-center gap-4 mt-4 text-[11px]">
+                          <span className="flex items-center gap-1.5">
+                            <Fish className="h-3.5 w-3.5 sb-cyan" />
+                            <span className="font-semibold">{team.catchCount}</span>
+                            <span className="sb-text-muted">Catches</span>
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Scale className="h-3.5 w-3.5 sb-text-muted" />
+                            <span className="font-semibold">{lbs} lbs</span>
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Trophy className="h-3.5 w-3.5 sb-gold" />
+                            <span className="font-semibold">
+                              {team.rank ? `Rank #${team.rank}` : "Unranked"}
+                            </span>
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t sb-border">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Avatar className="h-6 w-6 ring-1 ring-[hsl(var(--sb-border))]">
+                              <AvatarImage src={team.captainPhoto || undefined} />
+                              <AvatarFallback className="text-[9px] bg-[hsl(var(--sb-surface-2))]">
+                                {team.captainName?.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-[11px] truncate">
+                              <span className="font-semibold text-foreground">{team.captainName}</span>
+                              <span className="sb-text-muted"> · Captain</span>
+                            </span>
+                          </div>
+                          {overflow > 0 && (
+                            <span className="text-[10px] font-semibold sb-text-muted bg-[hsl(var(--sb-surface-2))] px-2 py-1 rounded-full">
+                              +{overflow}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </button>
                   );
                 })}
               </div>
             )}
-          </section>
-        </div>
+        </section>
       </div>
     </div>
   );
