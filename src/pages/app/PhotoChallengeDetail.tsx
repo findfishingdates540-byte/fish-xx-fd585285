@@ -105,7 +105,7 @@ export default function PhotoChallengeDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("photo_challenge_entries")
-        .select("*")
+        .select("caption,captured_at,challenge_id,created_at,has_paid,id,photo_url,user_id")
         .eq("challenge_id", id!)
         .order("created_at", { ascending: false });
       if (error) throw error;
