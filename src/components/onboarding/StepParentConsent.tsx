@@ -39,7 +39,16 @@ export function StepParentConsent({ consent, setConsent, parentEmail, setParentE
         />
         <span className="text-sm text-foreground">
           <span className="font-medium">My parent or guardian has given me permission</span> to create
-          a Fish-X account and understands the safety features above.
+          a Fish-X account, and we have both read the{' '}
+          <a
+            href="/teen-safety-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline font-medium"
+          >
+            Teen Safety & Parental Consent Policy
+          </a>
+          .
         </span>
       </label>
 

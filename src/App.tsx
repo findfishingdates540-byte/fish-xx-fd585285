@@ -21,6 +21,7 @@ import About from "./pages/About";
 import Dating from "./pages/Dating";
 import Fishing from "./pages/Fishing";
 import Safety from "./pages/Safety";
+import TeenSafetyPolicy from "./pages/TeenSafetyPolicy";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
@@ -116,6 +117,7 @@ const App = () => (
             <Route path="/dating" element={<ForceLightTheme><Dating /></ForceLightTheme>} />
             <Route path="/fishing" element={<ForceLightTheme><Fishing /></ForceLightTheme>} />
             <Route path="/safety" element={<ForceLightTheme><Safety /></ForceLightTheme>} />
+            <Route path="/teen-safety-policy" element={<ForceLightTheme><TeenSafetyPolicy /></ForceLightTheme>} />
             <Route path="/privacy" element={<ForceLightTheme><Privacy /></ForceLightTheme>} />
             <Route path="/terms" element={<ForceLightTheme><Terms /></ForceLightTheme>} />
             <Route path="/contact" element={<ForceLightTheme><Contact /></ForceLightTheme>} />
