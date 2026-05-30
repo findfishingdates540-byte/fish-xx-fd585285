@@ -599,7 +599,7 @@ function LiveChallengeCard({
                       <AvatarFallback className="text-[9px] bg-[hsl(var(--sb-surface-2))]">{entry.displayName[0]}</AvatarFallback>
                     </Avatar>
                     <span className="text-xs font-medium truncate flex-1">{entry.displayName}</span>
-                    <span className="text-xs font-bold sb-cyan">{entry.score} lbs</span>
+                    <span className="text-xs font-bold sb-cyan">{entry.score} in</span>
                   </div>
                 ))
               )}
@@ -785,7 +785,7 @@ function CompletedChallengeCard({
               <AvatarFallback className="text-[8px] bg-[hsl(var(--sb-surface-2))]">{entry.displayName[0]}</AvatarFallback>
             </Avatar>
             <span className="text-xs truncate flex-1">{entry.displayName}</span>
-            <span className="text-xs font-bold sb-cyan">{entry.score} lbs</span>
+            <span className="text-xs font-bold sb-cyan">{entry.score} in</span>
           </div>
         ))}
       </div>

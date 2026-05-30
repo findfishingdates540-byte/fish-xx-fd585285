@@ -30,9 +30,9 @@ function scoringSummary(type: string): string {
   switch (type) {
     case "most_caught": return "Most verified catches during the challenge window wins.";
     case "most_species": return "Most distinct verified species during the challenge window wins.";
-    case "total_weight": return "Highest cumulative verified weight during the challenge window wins.";
+    case "total_weight": return "Highest cumulative verified length (inches) during the challenge window wins.";
     case "largest_fish":
-    default: return "Heaviest single verified catch during the challenge window wins.";
+    default: return "Longest single verified catch (inches) during the challenge window wins.";
   }
 }
 
@@ -40,9 +40,9 @@ function formatChallengeType(type: string): string {
   switch (type) {
     case "most_caught": return "Most Caught";
     case "most_species": return "Most Species";
-    case "total_weight": return "Total Weight";
+    case "total_weight": return "Total Length";
     case "largest_fish":
-    default: return "Largest Fish";
+    default: return "Longest Fish";
   }
 }
 
@@ -188,10 +188,10 @@ export default function ChallengeDetail() {
   // Metric label + formatter driven by challenge type
   const challengeType: string = (challenge as any)?.challenge_type || "largest_fish";
   const isCountType = challengeType === "most_caught" || challengeType === "most_species";
-  const metricSuffix = isCountType ? "" : " lbs";
-  const metricLabel = isCountType ? "Catches" : "Weight";
+  const metricSuffix = isCountType ? "" : " in";
+  const metricLabel = isCountType ? "Catches" : "Length";
   const formatScore = (n: number) =>
-    isCountType ? `${Math.round(n).toLocaleString()}` : `${Number(n).toLocaleString()} lbs`;
+    isCountType ? `${Math.round(n).toLocaleString()}` : `${Number(n).toLocaleString()} in`;
 
   // My rank
   const myIndex = user ? participants.findIndex((p) => p.user_id === user.id) : -1;
@@ -516,7 +516,7 @@ export default function ChallengeDetail() {
               <p className="text-lg font-bold sb-cyan font-mono">{formatScore(myScore)}</p>
               {gapToLeader > 0 && (
                 <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
-                  −{formatScore(gapToLeader).replace(" lbs", "")}{metricSuffix} to #1
+                  −{formatScore(gapToLeader).replace(" in", "")}{metricSuffix} to #1
                 </p>
               )}
             </div>
@@ -545,7 +545,7 @@ export default function ChallengeDetail() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{s.species_name || "Catch"}</p>
                   <p className="text-[11px] sb-text-muted">
-                    {s.weight_lbs ? `${s.weight_lbs} lbs` : ""}{s.weight_lbs && s.length_in ? " · " : ""}{s.length_in ? `${s.length_in} in` : ""}
+                    {s.length_in ? `${s.length_in} in` : ""}{s.length_in && s.weight_lbs ? " · " : ""}{s.weight_lbs ? `${s.weight_lbs} lbs` : ""}
                   </p>
                 </div>
                 <ApprovalBadge status={s.approval_status} notes={s.approval_notes} />
@@ -765,9 +765,9 @@ export default function ChallengeDetail() {
                             {name} <span className="sb-text-muted font-normal">landed</span> {rc.species_name || "a fish"}
                           </p>
                           <p className="text-[11px] sb-text-muted">
-                            {rc.weight_lbs ? `${Number(rc.weight_lbs).toFixed(1)} lbs` : null}
-                            {rc.weight_lbs && rc.length_in ? " · " : ""}
                             {rc.length_in ? `${Number(rc.length_in).toFixed(1)} in` : null}
+                            {rc.length_in && rc.weight_lbs ? " · " : ""}
+                            {rc.weight_lbs ? `${Number(rc.weight_lbs).toFixed(1)} lbs` : null}
                             {(rc.weight_lbs || rc.length_in) ? " · " : ""}
                             {ago}
                           </p>
@@ -823,12 +823,16 @@ export default function ChallengeDetail() {
 
           {/* About */}
           <TabsContent value="about" className="mt-4 space-y-4">
-            {c.description && (
-              <div className="sb-card p-4">
-                <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold mb-2">Description</h2>
+            <div className="sb-card p-4">
+              <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold mb-2">Description</h2>
+              {c.description ? (
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{c.description}</p>
-              </div>
-            )}
+              ) : (
+                <p className="text-sm sb-text-muted italic">
+                  No description provided. {scoringSummary(challengeType)}
+                </p>
+              )}
+            </div>
             <div className="sb-card p-4 grid grid-cols-2 gap-3">
               {c.target_species_name && <Stat icon={Fish} label="Species" value={c.target_species_name} />}
               {location && <Stat icon={MapPin} label="Location" value={location} />}
