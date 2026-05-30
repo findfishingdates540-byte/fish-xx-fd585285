@@ -30,9 +30,9 @@ function scoringSummary(type: string): string {
   switch (type) {
     case "most_caught": return "Most verified catches during the challenge window wins.";
     case "most_species": return "Most distinct verified species during the challenge window wins.";
-    case "total_weight": return "Highest cumulative verified weight during the challenge window wins.";
+    case "total_weight": return "Highest cumulative verified length (inches) during the challenge window wins.";
     case "largest_fish":
-    default: return "Heaviest single verified catch during the challenge window wins.";
+    default: return "Longest single verified catch (inches) during the challenge window wins.";
   }
 }
 
@@ -40,9 +40,9 @@ function formatChallengeType(type: string): string {
   switch (type) {
     case "most_caught": return "Most Caught";
     case "most_species": return "Most Species";
-    case "total_weight": return "Total Weight";
+    case "total_weight": return "Total Length";
     case "largest_fish":
-    default: return "Largest Fish";
+    default: return "Longest Fish";
   }
 }
 
@@ -188,10 +188,10 @@ export default function ChallengeDetail() {
   // Metric label + formatter driven by challenge type
   const challengeType: string = (challenge as any)?.challenge_type || "largest_fish";
   const isCountType = challengeType === "most_caught" || challengeType === "most_species";
-  const metricSuffix = isCountType ? "" : " lbs";
-  const metricLabel = isCountType ? "Catches" : "Weight";
+  const metricSuffix = isCountType ? "" : " in";
+  const metricLabel = isCountType ? "Catches" : "Length";
   const formatScore = (n: number) =>
-    isCountType ? `${Math.round(n).toLocaleString()}` : `${Number(n).toLocaleString()} lbs`;
+    isCountType ? `${Math.round(n).toLocaleString()}` : `${Number(n).toLocaleString()} in`;
 
   // My rank
   const myIndex = user ? participants.findIndex((p) => p.user_id === user.id) : -1;
@@ -516,7 +516,7 @@ export default function ChallengeDetail() {
               <p className="text-lg font-bold sb-cyan font-mono">{formatScore(myScore)}</p>
               {gapToLeader > 0 && (
                 <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
-                  −{formatScore(gapToLeader).replace(" lbs", "")}{metricSuffix} to #1
+                  −{formatScore(gapToLeader).replace(" in", "")}{metricSuffix} to #1
                 </p>
               )}
             </div>
