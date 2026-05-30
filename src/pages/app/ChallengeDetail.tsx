@@ -823,12 +823,16 @@ export default function ChallengeDetail() {
 
           {/* About */}
           <TabsContent value="about" className="mt-4 space-y-4">
-            {c.description && (
-              <div className="sb-card p-4">
-                <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold mb-2">Description</h2>
+            <div className="sb-card p-4">
+              <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold mb-2">Description</h2>
+              {c.description ? (
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{c.description}</p>
-              </div>
-            )}
+              ) : (
+                <p className="text-sm sb-text-muted italic">
+                  No description provided. {scoringSummary(challengeType)}
+                </p>
+              )}
+            </div>
             <div className="sb-card p-4 grid grid-cols-2 gap-3">
               {c.target_species_name && <Stat icon={Fish} label="Species" value={c.target_species_name} />}
               {location && <Stat icon={MapPin} label="Location" value={location} />}
