@@ -545,7 +545,7 @@ export default function ChallengeDetail() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{s.species_name || "Catch"}</p>
                   <p className="text-[11px] sb-text-muted">
-                    {s.weight_lbs ? `${s.weight_lbs} lbs` : ""}{s.weight_lbs && s.length_in ? " · " : ""}{s.length_in ? `${s.length_in} in` : ""}
+                    {s.length_in ? `${s.length_in} in` : ""}{s.length_in && s.weight_lbs ? " · " : ""}{s.weight_lbs ? `${s.weight_lbs} lbs` : ""}
                   </p>
                 </div>
                 <ApprovalBadge status={s.approval_status} notes={s.approval_notes} />
@@ -765,9 +765,9 @@ export default function ChallengeDetail() {
                             {name} <span className="sb-text-muted font-normal">landed</span> {rc.species_name || "a fish"}
                           </p>
                           <p className="text-[11px] sb-text-muted">
-                            {rc.weight_lbs ? `${Number(rc.weight_lbs).toFixed(1)} lbs` : null}
-                            {rc.weight_lbs && rc.length_in ? " · " : ""}
                             {rc.length_in ? `${Number(rc.length_in).toFixed(1)} in` : null}
+                            {rc.length_in && rc.weight_lbs ? " · " : ""}
+                            {rc.weight_lbs ? `${Number(rc.weight_lbs).toFixed(1)} lbs` : null}
                             {(rc.weight_lbs || rc.length_in) ? " · " : ""}
                             {ago}
                           </p>
