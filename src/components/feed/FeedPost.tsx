@@ -155,7 +155,10 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
   // Combine photos from post and catch
   const allPhotos = [
     ...(post.photos || []),
-    ...(post.catch_data?.photos || [])
+    ...(post.catch_data?.photos || []),
+    ...((post.catch_data as any)?.cover_photo_url && !(post.catch_data?.photos || []).length
+      ? [(post.catch_data as any).cover_photo_url]
+      : []),
   ].filter(Boolean);
 
   const handleLike = (e?: React.MouseEvent) => {

@@ -370,9 +370,16 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
     try {
       const spot = spots.find((s) => s.id === catchData.fishing_spot_id);
       const locationName = spot?.name || spot?.location_name || undefined;
+      const photos = (catchData.photos && catchData.photos.length > 0)
+        ? catchData.photos
+        : (catchData.cover_photo_url ? [catchData.cover_photo_url] : undefined);
+      const fallback = catchData.species_name
+        ? `Caught a ${catchData.species_name}${catchData.length_in ? ` · ${Number(catchData.length_in).toFixed(1)} in` : ""}${catchData.weight_lbs ? ` · ${Number(catchData.weight_lbs).toFixed(1)} lbs` : ""}`
+        : undefined;
       await createPost.mutateAsync({
         catchId: catchData.id,
-        content: catchData.notes || undefined,
+        content: catchData.notes || fallback,
+        photos,
         locationName,
       });
       toast.success("Shared to feed!");
