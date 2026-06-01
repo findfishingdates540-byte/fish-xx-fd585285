@@ -969,7 +969,7 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
       </div>
       <div className="min-w-0">
         <p className="text-[9px] sb-text-muted uppercase tracking-widest font-semibold">{label}</p>
-        <p className="text-xs font-bold truncate">{value}</p>
+        <p className="text-xs font-bold break-words">{value}</p>
       </div>
     </div>
   );
