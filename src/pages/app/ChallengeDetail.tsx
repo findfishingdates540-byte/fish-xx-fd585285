@@ -975,6 +975,18 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
   );
 }
 
+function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2 p-2 rounded-md bg-[hsl(var(--sb-surface-2)/0.5)] border sb-border">
+      <Icon className="h-4 w-4 sb-cyan shrink-0" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] uppercase tracking-widest sb-text-muted font-semibold leading-tight">{label}</p>
+        <p className="text-xs font-semibold truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
 function CountdownBanner({ label, targetDate }: { label: string; targetDate: string }) {
   const { days, hours, minutes, seconds, totalMs } = useCountdown(targetDate);
   const urgent = totalMs > 0 && totalMs <= 60 * 60 * 1000;
