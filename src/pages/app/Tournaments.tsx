@@ -72,7 +72,7 @@ const formatLabel = (f: string) =>
 const scoringLabel = (s: string) => {
   switch (s) {
     case "biggest_catch": return "Biggest Catch";
-    case "total_weight": return "Total Weight";
+    case "total_weight": return "Total Length";
     case "most_catches": return "Most Catches";
     default: return s;
   }

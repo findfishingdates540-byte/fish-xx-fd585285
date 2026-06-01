@@ -452,7 +452,7 @@ const TournamentDetail = () => {
   const scoringLabel = (s: string) => {
     switch (s) {
       case "biggest_catch": return "Biggest Catch";
-      case "total_weight": return "Total Weight";
+      case "total_weight": return "Total Length";
       case "most_catches": return "Most Catches";
       default: return s;
     }
@@ -526,7 +526,7 @@ const TournamentDetail = () => {
   }, [rounds]);
 
   const scoringUnit = (s: string) =>
-    s === "most_catches" ? "catches" : "lbs";
+    s === "most_catches" ? "catches" : "in";
   // For tournaments, "players" are teams. Resolve via the participant's team_id.
   const participantByUser = useMemo(() => {
     const map: Record<string, any> = {};
@@ -1216,9 +1216,11 @@ const TournamentDetail = () => {
                                   {c.caught_at ? format(new Date(c.caught_at), "MMM d, p") : ""}
                                 </p>
                               </div>
-                              {c.weight_lbs && (
+                              {c.length_in ? (
+                                <span className="tabular-nums text-muted-foreground">{Number(c.length_in).toFixed(1)} in</span>
+                              ) : c.weight_lbs ? (
                                 <span className="tabular-nums text-muted-foreground">{Number(c.weight_lbs).toFixed(1)} lbs</span>
-                              )}
+                              ) : null}
                             </div>
                           ))
                         )}
@@ -1245,7 +1247,7 @@ const TournamentDetail = () => {
                     <Avatar className="h-8 w-8"><AvatarImage src={row.photos?.[0]} /><AvatarFallback className="text-[10px]">{row.display_name?.charAt(0)}</AvatarFallback></Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{row.display_name}</p>
-                      <p className="text-[10px] text-muted-foreground">{row.catches} catches · {Number(row.total_weight).toFixed(1)} lbs</p>
+                      <p className="text-[10px] text-muted-foreground">{row.catches} catches · {Number(row.total_weight).toFixed(1)} in</p>
                     </div>
                     <p className="text-sm font-bold tabular-nums">{Number(row.score_contribution).toFixed(1)}</p>
                   </div>
