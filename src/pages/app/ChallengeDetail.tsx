@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus, Info, Ruler, Gift, Ticket, ScrollText } from "lucide-react";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import { getShareBaseUrl } from "@/lib/config";
@@ -369,6 +369,51 @@ export default function ChallengeDetail() {
   const bannerUrl = typeof prizes === "object" && prizes?.banner_url ? String(prizes.banner_url) : null;
   const location = typeof prizes === "object" && prizes?.location ? String(prizes.location) : null;
 
+  // Prize summary — prefers cash pool, then prize_description, then prize_type label
+  const prizeTypeLabel = (() => {
+    switch (c.prize_type) {
+      case "cash": return "Cash Prize";
+      case "gift_card": return "Gift Cards";
+      case "merchandise": return "Merchandise";
+      case "trophy": return "Trophy";
+      case "bragging_rights": return "Bragging Rights";
+      default: return null;
+    }
+  })();
+  const prizeSummary: string = prizePool > 0
+    ? `$${prizePool.toLocaleString()}`
+    : (c.prize_description?.toString().trim() || prizeTypeLabel || "No prizes listed");
+  const entryLabel: string = !c.entry_fee_enabled || !Number(c.entry_fee)
+    ? "Free entry"
+    : `$${Number(c.entry_fee).toLocaleString()} entry`;
+
+  // Rules text resolution (also used to show a hint on the info bar)
+  const rulesText: string = (() => {
+    const r: any = c.rules;
+    if (typeof r === "string") return r;
+    if (r && typeof r === "object") {
+      return [r.description, r.rules, r.text, r.body]
+        .filter((v) => typeof v === "string" && v.trim().length > 0)
+        .join("\n\n");
+    }
+    return "";
+  })();
+
+  // Unit + format pill copy
+  const unitLabel = isCountType ? (challengeType === "most_species" ? "distinct species" : "catches") : "inches";
+  const formatPill = `${formatChallengeType(challengeType)} · scored in ${unitLabel}`;
+
+  const goToTab = (tab: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (tab === "leaderboard") next.delete("tab"); else next.set("tab", tab);
+    setSearchParams(next, { replace: true });
+    // Smooth scroll to tabs area
+    setTimeout(() => {
+      const el = document.querySelector('[role="tablist"]');
+      if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
   const now = new Date();
   const start = new Date(c.start_date);
   const end = new Date(c.end_date);
@@ -447,7 +492,7 @@ export default function ChallengeDetail() {
           <Stat icon={Calendar} label="Starts" value={start.toLocaleDateString()} />
           <Stat icon={Clock} label="Ends" value={end.toLocaleDateString()} />
           <Stat icon={Users} label="Participants" value={`${participants.length}${maxParticipants ? `/${maxParticipants}` : ""}`} />
-          <Stat icon={DollarSign} label="Prize Pool" value={prizePool > 0 ? `$${prizePool.toLocaleString()}` : "—"} />
+          <Stat icon={DollarSign} label="Prize" value={prizeSummary} />
         </div>
 
         {/* Join button */}
@@ -486,6 +531,49 @@ export default function ChallengeDetail() {
             )}
           </div>
         )}
+      </div>
+
+      {/* Info bar — at-a-glance challenge details (description, format, prize, entry, rules) */}
+      <div className="mx-4 md:mx-6 mt-4 sb-card p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Info className="h-4 w-4 sb-cyan" />
+          <h2 className="font-bold text-sm">Challenge Info</h2>
+        </div>
+
+        {/* Description */}
+        {c.description ? (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap sb-text-muted">
+            {c.description}
+          </p>
+        ) : (
+          <p className="text-xs sb-text-muted italic">No description provided.</p>
+        )}
+
+        {/* Quick facts grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <InfoRow icon={Ruler} label="Format" value={formatPill} />
+          <InfoRow icon={Gift} label="Prize" value={prizeSummary} />
+          <InfoRow icon={Ticket} label="Entry" value={entryLabel} />
+          <InfoRow icon={ShieldCheck} label="Verification" value="Verified catches only" />
+        </div>
+
+        {/* Rules teaser */}
+        <button
+          type="button"
+          onClick={() => goToTab("rules")}
+          className="w-full text-left flex items-start gap-2 p-3 rounded-md bg-[hsl(var(--sb-surface-2)/0.6)] border sb-border hover:bg-[hsl(var(--sb-surface-2))] transition-colors"
+        >
+          <ScrollText className="h-4 w-4 sb-cyan shrink-0 mt-0.5" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold">Rules</p>
+            <p className="text-xs sb-text-muted line-clamp-2">
+              {rulesText.trim()
+                ? rulesText.trim()
+                : `${scoringSummary(challengeType)} All catches must be verified to count.`}
+            </p>
+            <p className="text-[10px] sb-cyan font-semibold mt-1">View full rules →</p>
+          </div>
+        </button>
       </div>
 
       {/* My rank card */}
@@ -838,17 +926,28 @@ export default function ChallengeDetail() {
                 </p>
               )}
             </div>
+            {(c.prize_description || prizeTypeLabel || prizePool > 0) && (
+              <div className="sb-card p-4">
+                <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold mb-2">Prizes</h2>
+                {c.prize_description ? (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{c.prize_description}</p>
+                ) : (
+                  <p className="text-sm">{prizeSummary}</p>
+                )}
+              </div>
+            )}
             <div className="sb-card p-4 grid grid-cols-2 gap-3">
               {c.target_species_name && <Stat icon={Fish} label="Species" value={c.target_species_name} />}
               {location && <Stat icon={MapPin} label="Location" value={location} />}
               <Stat icon={Calendar} label="Start" value={start.toLocaleDateString()} />
               <Stat icon={Clock} label="End" value={end.toLocaleDateString()} />
               <Stat icon={Users} label="Participants" value={`${participants.length}${maxParticipants ? `/${maxParticipants}` : ""}`} />
-              <Stat icon={DollarSign} label="Prize Pool" value={prizePool > 0 ? `$${prizePool.toLocaleString()}` : "—"} />
+              <Stat icon={DollarSign} label="Prize" value={prizeSummary} />
               {c.entry_fee_enabled && Number(c.entry_fee) > 0 && (
                 <Stat icon={DollarSign} label="Entry Fee" value={`$${Number(c.entry_fee).toLocaleString()}`} />
               )}
               <Stat icon={Trophy} label="Format" value={formatChallengeType(challengeType)} />
+              <Stat icon={Ruler} label="Scored in" value={unitLabel} />
             </div>
           </TabsContent>
         </Tabs>
