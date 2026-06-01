@@ -63,7 +63,10 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   // Combine photos from post and catch
   const allPhotos = [
     ...(post.photos || []),
-    ...(post.catch_data?.photos || [])
+    ...(post.catch_data?.photos || []),
+    ...((post.catch_data as any)?.cover_photo_url && !(post.catch_data?.photos || []).length
+      ? [(post.catch_data as any).cover_photo_url]
+      : []),
   ].filter(Boolean);
 
   // Extract mentions from comment
