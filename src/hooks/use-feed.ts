@@ -152,7 +152,7 @@ export function useFeedPosts() {
       if (catchIds.length > 0) {
         const { data: catchData } = await supabase
           .from('catches')
-          .select('id, species_name, weight_lbs, length_in, photos')
+          .select('id, species_name, weight_lbs, length_in, photos, cover_photo_url')
           .in('id', catchIds);
         catches = catchData || [];
       }
@@ -298,7 +298,7 @@ export function useFollowingFeedPosts() {
       if (catchIds.length > 0) {
         const { data: catchData } = await supabase
           .from('catches')
-          .select('id, species_name, weight_lbs, length_in, photos')
+          .select('id, species_name, weight_lbs, length_in, photos, cover_photo_url')
           .in('id', catchIds);
         catches = catchData || [];
       }
