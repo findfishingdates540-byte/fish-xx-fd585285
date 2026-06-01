@@ -214,7 +214,6 @@ export default function ChallengeDetail() {
         .from("catches")
         .select("id,user_id,species_name,weight_lbs,length_in,caught_at,cover_photo_url,is_verified")
         .in("user_id", userIds)
-        .eq("is_verified", true)
         .eq("is_private", false)
         .gte("caught_at", startISO)
         .lte("caught_at", endISO)
@@ -712,7 +711,7 @@ export default function ChallengeDetail() {
                 <Activity className="h-4 w-4 sb-cyan" />
                 <h2 className="font-bold text-sm">Recent activity</h2>
                 <span className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold ml-1">
-                  Verified catches
+                  All catches
                 </span>
               </div>
               {status === "upcoming" ? (
@@ -732,9 +731,9 @@ export default function ChallengeDetail() {
                 ) : (
                   <EmptyState
                     icon={Fish}
-                    title="No verified catches yet"
+                    title="No catches yet"
                     description={isJoined
-                      ? "Log your first catch — verified entries appear here for everyone to see."
+                      ? "Log your first catch — it'll appear here for everyone to see."
                       : "Join the challenge to log catches and kick off the activity feed."}
                     action={isJoined
                       ? { label: "Log Catch", onClick: () => setLogOpen(true) }
@@ -772,7 +771,13 @@ export default function ChallengeDetail() {
                             {ago}
                           </p>
                         </div>
-                        <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                        {rc.is_verified ? (
+                          <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                        ) : (
+                          <span className="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
+                            Pending
+                          </span>
+                        )}
                       </button>
                     );
                   })}
