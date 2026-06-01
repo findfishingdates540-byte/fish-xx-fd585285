@@ -37,7 +37,7 @@ import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
 const CHALLENGE_TYPES = [
   { value: "largest_fish", label: "Largest Fish", description: "Biggest single catch by weight wins", icon: "🐟" },
   { value: "most_caught", label: "Most Caught", description: "Total number of catches wins", icon: "🎯" },
-  { value: "total_weight", label: "Total Weight", description: "Combined weight of all catches wins", icon: "⚖️" },
+  { value: "total_weight", label: "Total Length", description: "Combined length of all catches wins", icon: "📏" },
   { value: "species_variety", label: "Species Variety", description: "Most unique species caught wins", icon: "🌈" },
 ];
 

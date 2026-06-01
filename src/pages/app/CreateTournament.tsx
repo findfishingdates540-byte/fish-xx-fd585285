@@ -37,7 +37,7 @@ const FORMAT_OPTIONS = [
 
 const SCORING_OPTIONS = [
   { value: "biggest_catch", label: "Biggest Catch", description: "Heaviest single fish wins the matchup", icon: "🐟" },
-  { value: "total_weight", label: "Total Weight", description: "Combined weight across the round", icon: "⚖️" },
+  { value: "total_weight", label: "Total Length", description: "Combined length across the round", icon: "📏" },
   { value: "most_catches", label: "Most Catches", description: "Most fish landed wins", icon: "🎯" },
 ];
 

@@ -186,7 +186,7 @@ export default function MatchupDetail() {
   const score2 = Number(matchup.team2_score || 0);
   const team1Wins = isComplete && matchup.winner_team_id === matchup.team1_id;
   const team2Wins = isComplete && matchup.winner_team_id === matchup.team2_id;
-  const unit = tournament?.scoring_method === "most_catches" ? "catches" : "lbs";
+  const unit = tournament?.scoring_method === "most_catches" ? "catches" : "in";
 
   const mvpsByTeam = (teamId: string | undefined | null) =>
     teamId ? mvps.filter((m: any) => m.winner_team_id === teamId || m.team_name === teams.find((t: any) => t.id === teamId)?.name).slice(0, 3) : [];
@@ -277,8 +277,8 @@ export default function MatchupDetail() {
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       {rc.species_name || "Fish"}
-                      {rc.weight_lbs ? ` · ${Number(rc.weight_lbs).toFixed(1)} lbs` : ""}
                       {rc.length_in ? ` · ${Number(rc.length_in).toFixed(1)} in` : ""}
+                      {rc.weight_lbs ? ` · ${Number(rc.weight_lbs).toFixed(1)} lbs` : ""}
                       {" · "}{timeAgo(new Date(rc.caught_at))}
                     </p>
                   </div>
@@ -301,7 +301,7 @@ function TeamBlock({ team, score, unit, isWinner, reverse }: { team: any; score:
         <AvatarFallback className="text-lg font-bold">{team?.name?.charAt(0) || "?"}</AvatarFallback>
       </Avatar>
       <p className={`mt-2 text-sm font-bold truncate w-full ${isWinner ? "text-emerald-600" : ""}`}>{team?.name || "TBD"}</p>
-      <p className="text-3xl font-bold tabular-nums mt-1">{score.toFixed(unit === "lbs" ? 1 : 0)}</p>
+      <p className="text-3xl font-bold tabular-nums mt-1">{score.toFixed(unit === "catches" ? 0 : 1)}</p>
       <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{unit}</p>
       {isWinner && (
         <span className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 text-[9px] uppercase tracking-widest font-bold">
@@ -331,7 +331,7 @@ function TopContributors({ team, mvps, unit }: { team: any; mvps: any[]; unit: s
               <Avatar className="h-6 w-6"><AvatarImage src={m.photos?.[0]} /><AvatarFallback className="text-[9px]">{m.display_name?.charAt(0)}</AvatarFallback></Avatar>
               <span className="flex-1 truncate">{m.display_name || "Angler"}</span>
               <span className="font-bold tabular-nums">
-                {Number(m.score || 0).toFixed(unit === "lbs" ? 1 : 0)} <span className="text-[9px] uppercase text-muted-foreground">{unit}</span>
+                {Number(m.score || 0).toFixed(unit === "catches" ? 0 : 1)} <span className="text-[9px] uppercase text-muted-foreground">{unit}</span>
               </span>
             </div>
           ))}
