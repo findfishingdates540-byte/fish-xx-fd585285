@@ -981,7 +981,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
       <Icon className="h-4 w-4 sb-cyan shrink-0" />
       <div className="min-w-0 flex-1">
         <p className="text-[9px] uppercase tracking-widest sb-text-muted font-semibold leading-tight">{label}</p>
-        <p className="text-xs font-semibold truncate">{value}</p>
+        <p className="text-xs font-semibold break-words">{value}</p>
       </div>
     </div>
   );
