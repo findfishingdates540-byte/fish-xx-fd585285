@@ -4985,6 +4985,20 @@ export type Database = {
         Returns: boolean
       }
       is_user_minor: { Args: { _user_id: string }; Returns: boolean }
+      recalc_fishing_challenge_scores: {
+        Args: { p_challenge_id: string }
+        Returns: undefined
+      }
+      recalc_fishing_challenges_for_catch: {
+        Args: {
+          p_caught_at: string
+          p_species_id: string
+          p_species_name: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      refresh_fishing_challenge_statuses: { Args: never; Returns: undefined }
       refresh_leaderboard_entries: {
         Args: { p_species_id?: string }
         Returns: undefined
