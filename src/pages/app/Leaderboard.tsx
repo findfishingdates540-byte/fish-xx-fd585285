@@ -1,10 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, ChevronRight, Fish, Flame, Star, Trophy, Users } from "lucide-react";
+import { CalendarDays, Fish, Flame, Star, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Species {
@@ -375,12 +375,12 @@ function DataTable({
   children,
 }: {
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   loading: boolean;
   empty: string;
   actionLabel: string;
   onAction: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const hasRows = Array.isArray(children) ? children.length > 0 : !!children;
   return (
