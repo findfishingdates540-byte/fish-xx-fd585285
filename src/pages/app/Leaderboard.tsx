@@ -241,41 +241,6 @@ export default function Leaderboard() {
       </div>
 
       <div className="space-y-8">
-          {/* Featured Species */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Star className="h-5 w-5 sb-cyan fill-[hsl(var(--sb-cyan))]" />
-                Featured Species
-              </h2>
-              <button onClick={() => navigate("/app/species")} className="text-xs sb-cyan hover:underline font-medium">View All Species →</button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {speciesLoading ? (
-                <><Skeleton className="h-48 rounded-xl bg-[hsl(var(--sb-surface-2))]" /><Skeleton className="h-48 rounded-xl bg-[hsl(var(--sb-surface-2))]" /></>
-              ) : featuredSpecies.length > 0 ? (
-                featuredSpecies.map(({ entry, species, profile }) => (
-                  <button key={entry.id} onClick={() => entry.largest_catch_id ? navigate(`/app/catches/${entry.largest_catch_id}`) : navigate(`/app/leaderboard/species/${entry.species_id}`)} className="sb-card overflow-hidden hover:border-[hsl(var(--sb-cyan))] transition-colors text-left group">
-                    <div className="h-36 bg-muted relative overflow-hidden">
-                      {species?.image_url ? <img src={species.image_url} alt={species.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <div className="w-full h-full flex items-center justify-center"><Fish className="h-12 w-12 sb-text-muted" /></div>}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--sb-surface))] via-transparent to-transparent" />
-                      <Badge className="absolute top-3 left-3 sb-bg-cyan border-0 text-[10px] uppercase tracking-wider font-bold">{entry.species_name}</Badge>
-                    </div>
-                    <div className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Avatar className="h-7 w-7"><AvatarImage src={profile?.photos?.[0] || ""} /><AvatarFallback className="text-xs">{(profile?.display_name || "?")[0]}</AvatarFallback></Avatar>
-                        <div className="min-w-0"><p className="text-[10px] sb-text-muted uppercase tracking-wider">Current #1</p><p className="text-sm font-semibold truncate">{profile?.display_name || "Angler"}</p></div>
-                      </div>
-                      <div className="text-right shrink-0"><p className="text-[10px] sb-text-muted uppercase tracking-wider">Record</p><p className="text-lg font-bold sb-cyan">{entry.largest_weight_lbs ? `${entry.largest_weight_lbs} lbs` : `${entry.total_caught}`}</p></div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="col-span-2 sb-card p-8 text-center"><Fish className="h-10 w-10 mx-auto sb-text-muted mb-2" /><p className="sb-text-muted">No catches logged yet. Be the first!</p></div>
-              )}
-            </div>
-          </section>
-
           {/* Tables */}
           <section>
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
