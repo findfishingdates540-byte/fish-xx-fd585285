@@ -207,13 +207,13 @@ export default function ChallengeDetail() {
     ? new Date(new Date(c2.end_date).getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
     : null;
   const { data: recentCatches = [] } = useQuery({
-    queryKey: ["fishing-challenge-recent-catches", id, userIds.join(","), c2?.species_id, startISO, endISO],
+    queryKey: ["fishing-challenge-recent-catches", id, c2?.species_id, startISO, endISO],
     queryFn: async () => {
-      if (userIds.length === 0 || !startISO || !endISO) return [];
+      if (!id || !startISO || !endISO) return [];
       let q = supabase
         .from("catches")
-        .select("id,user_id,species_name,weight_lbs,length_in,caught_at,cover_photo_url,is_verified")
-        .in("user_id", userIds)
+        .select("id,user_id,species_name,weight_lbs,length_in,caught_at,cover_photo_url,is_verified,approval_status")
+        .eq("challenge_id", id)
         .eq("is_private", false)
         .gte("caught_at", startISO)
         .lte("caught_at", endISO)
@@ -224,7 +224,7 @@ export default function ChallengeDetail() {
       if (error) throw error;
       return data || [];
     },
-    enabled: userIds.length > 0 && !!startISO && !!endISO,
+    enabled: !!id && !!startISO && !!endISO,
   });
 
   const handleShare = async () => {
