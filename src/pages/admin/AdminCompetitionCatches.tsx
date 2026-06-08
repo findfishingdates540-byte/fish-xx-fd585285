@@ -113,6 +113,7 @@ export default function AdminCompetitionCatches() {
           approval_notes: notes || null,
           approved_by: user?.id || null,
           approved_at: new Date().toISOString(),
+          is_verified: status === 'approved',
         } as any)
         .eq('id', id);
       if (error) throw error;
