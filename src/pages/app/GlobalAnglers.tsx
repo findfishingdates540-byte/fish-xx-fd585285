@@ -15,6 +15,7 @@ interface AnglerRow {
   total_released: number;
   species_count: number;
   largest_weight_lbs: number | null;
+  points: number;
 }
 
 interface ProfileInfo {
@@ -50,6 +51,7 @@ const GlobalAnglers = () => {
           total_released: 0,
           species_count: 0,
           largest_weight_lbs: null,
+          points: 0,
         };
         cur.total_caught += e.total_caught || 0;
         cur.total_released += e.total_released || 0;
@@ -59,7 +61,24 @@ const GlobalAnglers = () => {
         }
         map.set(e.user_id, cur);
       });
-      return Array.from(map.values());
+      const rows = Array.from(map.values());
+      // Layer in real points from verified catches
+      const userIds = rows.map((r) => r.user_id);
+      if (userIds.length > 0) {
+        const { data: scored } = await supabase
+          .from("catches")
+          .select("user_id, computed_score")
+          .in("user_id", userIds)
+          .eq("is_verified", true)
+          .not("computed_score", "is", null)
+          .limit(5000);
+        const pts = new Map<string, number>();
+        (scored || []).forEach((c: any) => {
+          pts.set(c.user_id, (pts.get(c.user_id) || 0) + (Number(c.computed_score) || 0));
+        });
+        rows.forEach((r) => { r.points = pts.get(r.user_id) || 0; });
+      }
+      return rows;
     },
   });
 
@@ -87,7 +106,7 @@ const GlobalAnglers = () => {
   const ranked = useMemo(() => {
     const enriched = anglers.map((a) => ({
       ...a,
-      points: a.total_caught * 10,
+      points: Number(a.points || 0),
       profile: profiles[a.user_id],
     }));
     const filtered = search
