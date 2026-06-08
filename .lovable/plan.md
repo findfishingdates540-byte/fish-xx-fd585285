@@ -1,51 +1,45 @@
-## Teen Safety & Junior Angler System (Ages 13–17)
+I’ll fix the scoring and catch-log issues end-to-end instead of only patching the display.
 
-Implement age-tiered access so 13–17 year olds can sign up with parental consent and safer defaults, while 18+ retains full features. Under-13 is blocked.
+## What I found
 
-### 1. Database (new migration)
+- Julie has 3 verified catches, but all have `computed_score = 0`.
+- The “Global Top Anglers” widget is using a separate shortcut formula: `verified catches × 10`, so Julie shows 30 there.
+- The full “Points Leaderboard” uses `catches.computed_score`, so Julie shows 0 there.
+- Existing species names like `Bass, Largemouth`, `Catfish, Channel`, and `Tuna, Blackfin` do not match the seeded scoring names like `Largemouth Bass`, `Channel Catfish`, and `Blackfin Tuna`, so their `base_score` is missing.
+- Harlie Daniels’ catch is currently not verified, so it should not count as a verified catch until approved/verified.
+- Team rankings show `NaN pts` because `get_team_scores()` returns `total_score`, but the leaderboard UI expects `season_points`.
+- Challenge scoring recalculation currently counts public catches by date/species, but does not consistently require approved/verified catches.
+- Buddy profiles already load recent catches, but the UI only shows 6 recent catches and the cards are not clearly a catch-log view.
 
-Add to `profiles`:
-- `is_minor boolean` (computed/stored from DOB at signup; true if 13–17)
-- `parent_guardian_consent boolean default false`
-- `parent_guardian_email text` (optional, for consent record)
-- `consent_given_at timestamptz`
-- `is_junior_account boolean default false` (Junior Angler flag)
-- `parent_user_id uuid references auth.users` (parent-linked profile, optional)
+## Implementation plan
 
-Add helper SQL function `public.is_user_minor(_user_id uuid) returns boolean` (security definer) reading from profiles.
+1. **Repair scoring data and future score calculation**
+   - Add a database migration to normalize alternate species names used by the imported data.
+   - Backfill `fish_species.base_score`, `category`, `water_type`, and measurement fields for common alternate formats like `Bass, Largemouth`, `Catfish, Channel`, `Tuna, Blackfin`.
+   - Update existing catches so missing `catch_method` defaults to a valid method and missing `trophy_level` defaults to `keeper`.
+   - Recompute `computed_score` for all existing catches with a species.
 
-### 2. Onboarding flow (`src/pages/Onboarding.tsx`, `StepBasicInfoNew.tsx`)
-- Keep min age 13 for fishing; block <13 with clear error ("You must be 13+ to use Fish-X").
-- After DOB entry, if age is 13–17:
-  - Force `accountMode = 'fishing'` (hide dating option, show notice "Dating features available at 18+").
-  - Show new **Parent/Guardian Consent** step: checkbox "My parent/guardian has given me permission to use Fish-X" + optional parent email field. Required to continue.
-  - Mark profile `is_minor=true`, `is_junior_account=true`, `parent_guardian_consent=true`.
-  - Default privacy settings to safer values (private profile, no DMs from strangers).
+2. **Make leaderboard scoring consistent**
+   - Change the “Global Top Anglers” widget and full global rankings to use the same score source as the Points Leaderboard.
+   - Keep verified catch counts visible, but do not calculate points as `catch count × 10` in one place and `computed_score` in another.
+   - Keep non-verified catches out of points totals.
 
-### 3. Feature gating (new hook `useIsMinor`)
-- `src/hooks/use-is-minor.ts` reads `is_minor` from profile.
-- Gate dating routes (`DatingRoute`) — minors hard-blocked, redirected to `/app/feed` with toast.
-- Gate `Messages` / `Chat`: minors can only message confirmed buddies (already-accepted buddy requests), not arbitrary users. Add check in message-send paths.
-- Gate tournaments/challenges: show only ones flagged `junior_friendly` or auto-enroll into Junior brackets.
+3. **Fix team rankings `NaN`**
+   - Update the leaderboard UI to read the actual returned fields (`total_score`, `catch_count`) or update the database function aliases so the app receives `season_points` and `last_7_days_catches` consistently.
+   - Add safe numeric fallbacks so missing values display as `0 pts`, never `NaN pts`.
 
-### 4. Tournaments & Challenges
-- Add `is_junior_only boolean default false` to `tournaments`, `fishing_challenges`, `photo_challenges`.
-- Admin edit dialogs: add toggle "Junior Anglers only (13–17)".
-- Listing pages filter: minors see junior-only + non-age-restricted; adults see all non-junior-only by default with toggle.
+4. **Fix fish challenge scoring**
+   - Update the challenge score recalculation function to count only catches that are `is_verified = true` and `approval_status = approved`.
+   - Recalculate all current challenge participants after the function update.
+   - Ensure approved competition catches trigger leaderboard/challenge recalculation after approval.
 
-### 5. UI surfaces
-- Profile badge "Junior Angler" for minors.
-- Settings → Safety section: shows parent email on file, reporting/blocking shortcuts, "Account maturity: X days until 18" countdown.
-- Hide upgrade-to-dating CTAs for minors entirely.
+5. **Improve buddy profile catch log access**
+   - Make buddy/user profile catch cards clickable to open catch details.
+   - Add a clear “Catch Log” section that can show more than the latest 6 public catches.
+   - Keep privacy intact by only showing catches allowed by existing RLS/public visibility rules.
 
-### Technical notes
-- Use existing `RouteGuard` pattern; add `MinorBlockedRoute` wrapper for adult-only features.
-- All minor checks must be server-side too: add RLS predicate on `dating_profiles` / `matches` insert: `NOT public.is_user_minor(auth.uid())`.
-- Onboarding writes `is_minor` based on computed age; do not trust client flag — recompute in a DB trigger from `date_of_birth`.
-
-### Out of scope (follow-up)
-- Real parent verification email flow (just record email now).
-- Parent-linked profile dashboard (schema only; UI later).
-- "Account maturity" graduated DM unlock (defer; for now: buddies-only DM for minors).
-
-Confirm to proceed and I'll ship migration + code in one pass.
+6. **Validate with current problem users**
+   - Re-check Julie and Harlie/Charlie rows after migration.
+   - Confirm Julie’s score is consistent across Global Top Anglers, full Points Leaderboard, and profile catch log.
+   - Confirm Team Rankings no longer show `NaN`.
+   - Confirm unverified catches do not count until approved.
