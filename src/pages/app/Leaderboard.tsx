@@ -365,7 +365,7 @@ export default function Leaderboard() {
                         <Avatar className="h-9 w-9 ring-2 ring-[hsl(var(--sb-border))]"><AvatarImage src={profile?.photos?.[0] || ""} /><AvatarFallback className="text-xs bg-[hsl(var(--sb-surface-2))]">{(profile?.display_name || "?")[0]}</AvatarFallback></Avatar>
                       </div>
                       <div className="flex-1 min-w-0"><p className="text-sm font-semibold truncate">{profile?.display_name || "Angler"}</p><p className="text-xs sb-text-muted">{angler.total} Verified Catches</p></div>
-                      <div className="text-right shrink-0"><p className="text-sm font-bold sb-cyan">{(angler.total * 10).toLocaleString()}</p><p className="text-[10px] sb-text-muted uppercase tracking-wider">Points</p></div>
+                      <div className="text-right shrink-0"><p className="text-sm font-bold sb-cyan">{Number(angler.points || 0).toFixed(1)}</p><p className="text-[10px] sb-text-muted uppercase tracking-wider">Points</p></div>
                     </button>
                   );
                 })}
