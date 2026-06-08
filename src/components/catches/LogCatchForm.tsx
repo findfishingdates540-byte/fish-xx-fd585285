@@ -45,6 +45,7 @@ interface LogCatchFormProps {
   isSubmitting: boolean;
   onSubmit: (data: LogCatchFormData) => void;
   onDiscard: () => void;
+  mode?: "regular" | "competition";
 }
 
 export interface LogCatchFormData {
@@ -72,7 +73,8 @@ export interface LogCatchFormData {
   is_estimated_size: boolean;
 }
 
-export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
+export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard, mode = "regular" }: LogCatchFormProps) {
+  const isCompetition = mode === "competition";
 
   const [formData, setFormData] = useState({
     species_name: "",
@@ -106,6 +108,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
   } | null>(null);
 
   useEffect(() => {
+    if (!isCompetition) return;
     (async () => {
       const [m, b] = await Promise.all([
         supabase.from("scoring_catch_methods").select("key,label,multiplier").order("sort_order"),
@@ -114,9 +117,10 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
       if (m.data) setMethods(m.data as any);
       if (b.data) setBonuses(b.data as any);
     })();
-  }, []);
+  }, [isCompetition]);
 
   useEffect(() => {
+    if (!isCompetition) { setSpeciesMeta(null); return; }
     if (!formData.species_id) { setSpeciesMeta(null); return; }
     (async () => {
       const { data } = await supabase
@@ -126,7 +130,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
         .maybeSingle();
       if (data) setSpeciesMeta(data as any);
     })();
-  }, [formData.species_id]);
+  }, [formData.species_id, isCompetition]);
 
   const previewScore = useMemo(() => {
     const base = speciesMeta?.base_score ?? 0;
@@ -563,7 +567,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
                 <p className="font-semibold text-sm text-primary">Keep this catch private?</p>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   Private catches are only visible to you. They won't appear on the feed,
-                  spot pages, or other anglers' profiles. Your scoreboard rank still counts.
+                  spot pages, or other anglers' profiles.
                 </p>
               </div>
             </div>
@@ -611,7 +615,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Log Catch to Board
+              {isCompetition ? "Submit Competition Catch" : "Log Catch"}
             </>
           )}
         </Button>
