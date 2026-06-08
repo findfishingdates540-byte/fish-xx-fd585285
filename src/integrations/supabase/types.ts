@@ -4987,6 +4987,7 @@ export type Database = {
         Returns: boolean
       }
       is_user_minor: { Args: { _user_id: string }; Returns: boolean }
+      normalize_species_label: { Args: { p_name: string }; Returns: string }
       recalc_fishing_challenge_scores: {
         Args: { p_challenge_id: string }
         Returns: undefined
@@ -5016,6 +5017,14 @@ export type Database = {
           location_name: string
           photos: string[]
         }[]
+      }
+      species_labels_match: {
+        Args: {
+          p_catch_species_id: string
+          p_catch_species_name: string
+          p_target_name: string
+        }
+        Returns: boolean
       }
       tally_photo_challenge_votes: {
         Args: { p_challenge_id: string }
