@@ -4923,8 +4923,10 @@ export type Database = {
               captain_id: string
               catch_count: number
               category: string
+              last_7_days_catches: number
               logo_url: string
               member_count: number
+              season_points: number
               skill_level: Database["public"]["Enums"]["fishing_experience"]
               team_id: string
               team_name: string

@@ -90,11 +90,25 @@ export default function Leaderboard() {
   const { data: globalTopAnglers = [] } = useQuery({
     queryKey: ["global-top-anglers"],
     queryFn: async () => {
-      const { data } = await supabase.from("leaderboard_entries").select("user_id, total_caught").order("total_caught", { ascending: false }).limit(50);
+      // Aggregate REAL points from verified catches with a computed score
+      const { data } = await supabase
+        .from("catches")
+        .select("user_id, computed_score, is_verified")
+        .eq("is_verified", true)
+        .not("computed_score", "is", null)
+        .limit(2000);
       if (!data) return [];
-      const userMap: Record<string, number> = {};
-      data.forEach((e) => { userMap[e.user_id] = (userMap[e.user_id] || 0) + e.total_caught; });
-      return Object.entries(userMap).map(([user_id, total]) => ({ user_id, total })).sort((a, b) => b.total - a.total).slice(0, 3);
+      const map = new Map<string, { user_id: string; points: number; total: number }>();
+      data.forEach((c: any) => {
+        if (!c.user_id) return;
+        const cur = map.get(c.user_id) || { user_id: c.user_id, points: 0, total: 0 };
+        cur.points += Number(c.computed_score) || 0;
+        cur.total += 1;
+        map.set(c.user_id, cur);
+      });
+      return Array.from(map.values())
+        .sort((a, b) => b.points - a.points || b.total - a.total)
+        .slice(0, 3);
     },
   });
 
@@ -292,8 +306,10 @@ export default function Leaderboard() {
                 <div className="p-8 text-center sb-text-muted text-sm">No teams in this category yet.</div>
               ) : (
                 teamScores.map((team, i) => {
-                  const trendUp = team.last_7_days_catches > 5;
-                  const trendFlat = team.last_7_days_catches === 0;
+                  const last7 = Number(team.last_7_days_catches ?? 0);
+                  const seasonPts = Number(team.season_points ?? 0);
+                  const trendUp = last7 > 5;
+                  const trendFlat = last7 === 0;
                   const rankColor = i === 0 ? "sb-gold" : i === 1 ? "text-slate-300" : i === 2 ? "text-amber-700" : "sb-text-muted";
                   return (
                     <div key={team.team_id} className="border-t sb-border hover:bg-[hsl(var(--sb-surface-2))] transition-colors">
@@ -305,10 +321,10 @@ export default function Leaderboard() {
                           <span className="font-semibold text-sm truncate">{team.team_name}</span>
                         </div>
                         <span className="text-sm sb-text-muted">{team.member_count} Members</span>
-                        <span className="text-sm font-semibold sb-cyan">{Number(team.season_points).toLocaleString()} pts</span>
+                        <span className="text-sm font-semibold sb-cyan">{seasonPts.toLocaleString()} pts</span>
                         <span className="text-right inline-flex items-center justify-end gap-1 text-xs font-medium">
                           {trendFlat ? <Minus className="h-3.5 w-3.5 sb-text-muted" /> : trendUp ? <TrendingUp className="h-3.5 w-3.5 text-emerald-400" /> : <TrendingDown className="h-3.5 w-3.5 text-rose-400" />}
-                          <span className={trendFlat ? "sb-text-muted" : trendUp ? "text-emerald-400" : "text-rose-400"}>{team.last_7_days_catches} catches</span>
+                          <span className={trendFlat ? "sb-text-muted" : trendUp ? "text-emerald-400" : "text-rose-400"}>{last7} catches</span>
                         </span>
                       </div>
                       {/* Mobile row */}
@@ -317,10 +333,10 @@ export default function Leaderboard() {
                         <div className="w-9 h-9 rounded-full bg-[hsl(var(--sb-cyan)/0.15)] border sb-border flex items-center justify-center shrink-0 text-xs font-bold sb-cyan">{team.team_name.slice(0, 2).toUpperCase()}</div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm truncate">{team.team_name}</p>
-                          <p className="text-xs sb-text-muted">{team.member_count} Members · {team.last_7_days_catches} catches</p>
+                          <p className="text-xs sb-text-muted">{team.member_count} Members · {last7} catches</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-sm font-bold sb-cyan">{Number(team.season_points).toLocaleString()}</p>
+                          <p className="text-sm font-bold sb-cyan">{seasonPts.toLocaleString()}</p>
                           <p className="text-[10px] sb-text-muted uppercase tracking-wider">pts</p>
                         </div>
                       </div>
@@ -351,7 +367,7 @@ export default function Leaderboard() {
                         <Avatar className="h-9 w-9 ring-2 ring-[hsl(var(--sb-border))]"><AvatarImage src={profile?.photos?.[0] || ""} /><AvatarFallback className="text-xs bg-[hsl(var(--sb-surface-2))]">{(profile?.display_name || "?")[0]}</AvatarFallback></Avatar>
                       </div>
                       <div className="flex-1 min-w-0"><p className="text-sm font-semibold truncate">{profile?.display_name || "Angler"}</p><p className="text-xs sb-text-muted">{angler.total} Verified Catches</p></div>
-                      <div className="text-right shrink-0"><p className="text-sm font-bold sb-cyan">{(angler.total * 10).toLocaleString()}</p><p className="text-[10px] sb-text-muted uppercase tracking-wider">Points</p></div>
+                      <div className="text-right shrink-0"><p className="text-sm font-bold sb-cyan">{Number(angler.points || 0).toFixed(1)}</p><p className="text-[10px] sb-text-muted uppercase tracking-wider">Points</p></div>
                     </button>
                   );
                 })}

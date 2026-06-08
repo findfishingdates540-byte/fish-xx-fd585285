@@ -59,8 +59,9 @@ export default function UserProfile() {
         .from('catches')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_private', false)
         .order('caught_at', { ascending: false })
-        .limit(6);
+        .limit(24);
       return data || [];
     },
     enabled: !!userId,
@@ -394,14 +395,21 @@ export default function UserProfile() {
             {/* Recent Catches */}
             {catches.length > 0 && (
               <div>
-                <h2 className="text-lg font-semibold mb-3">Recent Catches</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold">Catch Log</h2>
+                  <span className="text-xs text-muted-foreground">{catches.length} recent</span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {catches.slice(0, 6).map((catchItem: any) => (
-                    <Card key={catchItem.id} className="overflow-hidden">
+                  {catches.map((catchItem: any) => (
+                    <Card
+                      key={catchItem.id}
+                      className="overflow-hidden cursor-pointer hover:border-primary/60 transition-colors"
+                      onClick={() => navigate(`/app/catches/${catchItem.id}`)}
+                    >
                       <div className="aspect-square bg-muted">
-                        {catchItem.photos?.[0] ? (
+                        {catchItem.cover_photo_url || catchItem.photos?.[0] ? (
                           <img 
-                            src={catchItem.photos[0]} 
+                            src={catchItem.cover_photo_url || catchItem.photos?.[0]} 
                             alt={catchItem.species_name || 'Catch'} 
                             className="w-full h-full object-cover"
                           />
@@ -413,9 +421,9 @@ export default function UserProfile() {
                       </div>
                       <CardContent className="p-2">
                         <p className="font-medium text-sm truncate">{catchItem.species_name || 'Unknown'}</p>
-                        {catchItem.weight_kg && (
-                          <p className="text-xs text-muted-foreground">{catchItem.weight_kg} lbs</p>
-                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {catchItem.weight_lbs ? `${catchItem.weight_lbs} lb` : catchItem.length_in ? `${catchItem.length_in}"` : ''}
+                        </p>
                       </CardContent>
                     </Card>
                   ))}
