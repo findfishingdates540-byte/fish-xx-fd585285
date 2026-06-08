@@ -1,9 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CalendarDays, Fish, Flame, Star, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -187,12 +185,6 @@ export default function Leaderboard() {
       return map;
     },
     enabled: latestUserIds.length > 0,
-  });
-
-  const featuredSpecies = topEntries.slice(0, 2).map((entry) => {
-    const sp = speciesList.find((s) => s.id === entry.species_id);
-    const profile = topProfilesMap[entry.user_id];
-    return { entry, species: sp, profile };
   });
 
   const featuredRows = topEntries.slice(0, 8).map((entry) => {
