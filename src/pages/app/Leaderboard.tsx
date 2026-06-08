@@ -1,29 +1,11 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Search,
-  Fish,
-  ChevronRight,
-  Users,
-  Sparkles,
-  Shield,
-  Globe,
-  MapPin,
-  Trophy,
-  Medal,
-  Star,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-} from "lucide-react";
+import { CalendarDays, ChevronRight, Fish, Flame, Star, Trophy, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import PointsLeaderboard from "@/components/leaderboard/PointsLeaderboard";
 
 interface Species {
   id: string;
@@ -52,11 +34,34 @@ interface ProfileInfo {
   photos: string[] | null;
 }
 
+interface TournamentRow {
+  id: string;
+  title: string;
+  status: string;
+  start_date: string;
+  end_date: string | null;
+  scoring_method: string;
+}
+
+interface ChallengeRow {
+  id: string;
+  title: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+  target_species_name: string | null;
+}
+
+interface LatestCatch {
+  id: string;
+  species_name: string | null;
+  user_id: string;
+  caught_at: string | null;
+  created_at: string;
+}
 
 export default function Leaderboard() {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [teamCategoryFilter, setTeamCategoryFilter] = useState("all");
 
   const { data: speciesList = [], isLoading: speciesLoading } = useQuery({
     queryKey: ["leaderboard-species"],
@@ -69,7 +74,12 @@ export default function Leaderboard() {
   const { data: topEntries = [] } = useQuery({
     queryKey: ["leaderboard-top-overview"],
     queryFn: async () => {
-      const { data } = await supabase.from("leaderboard_entries").select("*").eq("rank_by_weight", 1).order("largest_weight_lbs", { ascending: false }).limit(20);
+      const { data } = await supabase
+        .from("leaderboard_entries")
+        .select("*")
+        .eq("rank_by_weight", 1)
+        .order("largest_weight_lbs", { ascending: false, nullsFirst: false })
+        .limit(20);
       return (data || []) as LeaderboardEntry[];
     },
   });
@@ -87,83 +97,121 @@ export default function Leaderboard() {
     enabled: topUserIds.length > 0,
   });
 
-  const { data: globalTopAnglers = [] } = useQuery({
-    queryKey: ["global-top-anglers"],
+  const { data: ongoingTournaments = [], isLoading: tournamentsLoading } = useQuery({
+    queryKey: ["scoreboard-ongoing-tournaments"],
     queryFn: async () => {
-      // Aggregate REAL points from verified catches with a computed score
       const { data } = await supabase
-        .from("catches")
-        .select("user_id, computed_score, is_verified")
-        .eq("is_verified", true)
-        .not("computed_score", "is", null)
-        .limit(2000);
-      if (!data) return [];
-      const map = new Map<string, { user_id: string; points: number; total: number }>();
-      data.forEach((c: any) => {
-        if (!c.user_id) return;
-        const cur = map.get(c.user_id) || { user_id: c.user_id, points: 0, total: 0 };
-        cur.points += Number(c.computed_score) || 0;
-        cur.total += 1;
-        map.set(c.user_id, cur);
-      });
-      return Array.from(map.values())
-        .sort((a, b) => b.points - a.points || b.total - a.total)
-        .slice(0, 3);
+        .from("tournaments")
+        .select("id,title,status,start_date,end_date,scoring_method")
+        .eq("status", "in_progress")
+        .order("start_date", { ascending: true })
+        .limit(8);
+      return (data || []) as TournamentRow[];
     },
   });
 
-  const globalAnglerIds = globalTopAnglers.map((a) => a.user_id);
-  const { data: globalAnglerProfiles = {} } = useQuery({
-    queryKey: ["global-angler-profiles", globalAnglerIds.join(",")],
+  const tournamentIds = ongoingTournaments.map((t) => t.id);
+  const { data: tournamentCounts = {} } = useQuery({
+    queryKey: ["scoreboard-tournament-counts", tournamentIds.join(",")],
     queryFn: async () => {
-      if (globalAnglerIds.length === 0) return {};
-      const { data } = await supabase.from("profiles_safe").select("id, display_name, photos").in("id", globalAnglerIds);
+      if (tournamentIds.length === 0) return {};
+      const { data } = await supabase
+        .from("tournament_participants")
+        .select("tournament_id")
+        .in("tournament_id", tournamentIds);
+      const map: Record<string, number> = {};
+      (data || []).forEach((p: any) => {
+        map[p.tournament_id] = (map[p.tournament_id] || 0) + 1;
+      });
+      return map;
+    },
+    enabled: tournamentIds.length > 0,
+  });
+
+  const { data: ongoingChallenges = [], isLoading: challengesLoading } = useQuery({
+    queryKey: ["scoreboard-ongoing-challenges"],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from("fishing_challenges")
+        .select("id,title,status,start_date,end_date,target_species_name")
+        .lte("start_date", today)
+        .gte("end_date", today)
+        .neq("status", "completed")
+        .order("end_date", { ascending: true })
+        .limit(8);
+      return (data || []) as ChallengeRow[];
+    },
+  });
+
+  const challengeIds = ongoingChallenges.map((c) => c.id);
+  const { data: challengeCounts = {} } = useQuery({
+    queryKey: ["scoreboard-challenge-counts", challengeIds.join(",")],
+    queryFn: async () => {
+      if (challengeIds.length === 0) return {};
+      const { data } = await supabase
+        .from("challenge_participants")
+        .select("challenge_id")
+        .in("challenge_id", challengeIds);
+      const map: Record<string, number> = {};
+      (data || []).forEach((p: any) => {
+        map[p.challenge_id] = (map[p.challenge_id] || 0) + 1;
+      });
+      return map;
+    },
+    enabled: challengeIds.length > 0,
+  });
+
+  const { data: latestCatches = [] } = useQuery({
+    queryKey: ["scoreboard-latest-catches-feed"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("catches")
+        .select("id,species_name,user_id,caught_at,created_at")
+        .eq("approval_status", "approved")
+        .eq("is_private", false)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      return (data || []) as LatestCatch[];
+    },
+  });
+
+  const latestUserIds = useMemo(() => [...new Set(latestCatches.map((c) => c.user_id).filter(Boolean))], [latestCatches]);
+  const { data: latestProfiles = {} } = useQuery({
+    queryKey: ["scoreboard-latest-profiles", latestUserIds.join(",")],
+    queryFn: async () => {
+      if (latestUserIds.length === 0) return {};
+      const { data } = await supabase.from("profiles_safe").select("id, display_name, photos").in("id", latestUserIds);
       const map: Record<string, ProfileInfo> = {};
       (data || []).forEach((p) => { map[p.id] = p as ProfileInfo; });
       return map;
     },
-    enabled: globalAnglerIds.length > 0,
+    enabled: latestUserIds.length > 0,
   });
 
-  const { data: totalCatchesToday = 0 } = useQuery({
-    queryKey: ["catches-today-count"],
-    queryFn: async () => {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const { count } = await supabase.from("catches").select("*", { count: "exact", head: true }).gte("created_at", today.toISOString());
-      return count || 0;
-    },
-  });
-
-  const { data: activeChallenges = 0 } = useQuery({
-    queryKey: ["active-challenges-count"],
-    queryFn: async () => {
-      const { count } = await supabase.from("fishing_challenges").select("*", { count: "exact", head: true }).eq("status", "active");
-      return count || 0;
-    },
-  });
-
-  const { data: teamScores = [] } = useQuery({
-    queryKey: ["teams-rankings", teamCategoryFilter],
-    queryFn: async () => {
-      const { data } = await supabase.rpc("get_team_scores", { p_category: teamCategoryFilter === "all" ? undefined : teamCategoryFilter } as any);
-      return (data || []) as { team_id: string; team_name: string; logo_url: string | null; captain_id: string; member_count: number; season_points: number; last_7_days_catches: number }[];
-    },
-  });
-
-  const { data: latestVerified } = useQuery({
-    queryKey: ["latest-verified-catch"],
-    queryFn: async () => {
-      const { data } = await supabase.from("catches").select("*, user:profiles!catches_user_id_fkey(id, display_name, photos)").eq("is_verified", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
-      return data;
-    },
-  });
-
-  const filteredSpecies = speciesList.filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const featuredSpecies = topEntries.slice(0, 2).map((entry) => {
     const sp = speciesList.find((s) => s.id === entry.species_id);
     const profile = topProfilesMap[entry.user_id];
     return { entry, species: sp, profile };
   });
+
+  const featuredRows = topEntries.slice(0, 8).map((entry) => {
+    const species = speciesList.find((s) => s.id === entry.species_id);
+    const profile = topProfilesMap[entry.user_id];
+    return { entry, species, profile };
+  });
+
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const scoringLabel = (value: string) => {
+    if (value === "biggest_catch") return "Biggest catch";
+    if (value === "total_weight") return "Total length";
+    if (value === "most_catches") return "Most catches";
+    return value.replace(/_/g, " ");
+  };
 
   return (
     <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0">
@@ -178,10 +226,12 @@ export default function Leaderboard() {
             <div className="sb-marquee-track">
               {[0, 1].map((dup) => (
                 <span key={dup} className="inline-flex items-center gap-8 pr-8 sb-text-muted">
-                  <span><span className="sb-cyan font-medium">Catch Verified:</span> JakeR landed a 42.5" Striped Bass in Maine</span>
-                  <span><span className="sb-cyan font-medium">Catch Verified:</span> RiverMaster landed a 12.2lb Largemouth in Florida</span>
-                  <span><span className="sb-cyan font-medium">Catch Verified:</span> SandyHook landed a 31" Bluefish in NJ</span>
-                  <span><span className="sb-cyan font-medium">Catch Verified:</span> DeepSeaDiva landed a 110lb Yellowfin in Cabo</span>
+                  {latestCatches.length > 0 ? latestCatches.map((catchItem) => (
+                    <span key={`${dup}-${catchItem.id}`}>
+                      <span className="sb-cyan font-medium">Catch Logged:</span>{" "}
+                      {latestProfiles[catchItem.user_id]?.display_name || "Angler"} landed {catchItem.species_name || "a catch"}
+                    </span>
+                  )) : <span>Recent catches will appear here as anglers log them.</span>}
                 </span>
               ))}
             </div>
@@ -193,23 +243,12 @@ export default function Leaderboard() {
       {/* Header + Stats */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Scoreboards Hub</h1>
-          <p className="sb-text-muted mt-1 text-sm">Track current leaders, top teams, and record catches across all species.</p>
-        </div>
-        <div className="flex gap-3">
-          <div className="sb-card px-5 py-3 text-center min-w-[140px]">
-            <p className="text-[10px] sb-text-muted uppercase tracking-widest">Catches Today</p>
-            <p className="text-2xl font-bold sb-cyan">{totalCatchesToday.toLocaleString()}</p>
-          </div>
-          <button onClick={() => navigate("/app/challenges")} className="sb-card px-5 py-3 text-center min-w-[140px] hover:bg-[hsl(var(--sb-surface-2))] transition-colors">
-            <p className="text-[10px] sb-text-muted uppercase tracking-widest">Active Contests</p>
-            <p className="text-2xl font-bold sb-cyan">{activeChallenges}</p>
-          </button>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Featured Species</h1>
+          <p className="sb-text-muted mt-1 text-sm">Ongoing tournaments, active fishing challenges, and species records.</p>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 min-w-0 space-y-8">
+      <div className="space-y-8">
           {/* Featured Species */}
           <section>
             <div className="flex items-center justify-between mb-4">
@@ -245,187 +284,130 @@ export default function Leaderboard() {
             </div>
           </section>
 
-          {/* Species Search */}
+          {/* Tables */}
           <section>
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted z-10" />
-              <Input placeholder="Search species or anglers..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 sb-input" />
-            </div>
-            {searchQuery && (
-              <div className="space-y-2">
-                {filteredSpecies.length === 0 ? (
-                  <p className="text-sm sb-text-muted text-center py-6">No species match your search.</p>
-                ) : (
-                  filteredSpecies.slice(0, 8).map((sp) => {
-                    const topEntry = topEntries.find((e) => e.species_id === sp.id);
-                    const topProfile = topEntry ? topProfilesMap[topEntry.user_id] : null;
-                    return (
-                      <button key={sp.id} onClick={() => navigate(`/app/leaderboard/species/${sp.id}`)} className="w-full flex items-center gap-3 p-3 sb-card-soft hover:border-[hsl(var(--sb-cyan))] transition-colors text-left">
-                        <div className="w-10 h-10 rounded-full bg-[hsl(var(--sb-surface))] flex items-center justify-center shrink-0 overflow-hidden">
-                          {sp.image_url ? <img src={sp.image_url} alt={sp.name} className="w-full h-full object-cover" /> : <Fish className="h-5 w-5 sb-text-muted" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{sp.name}</p>
-                          {topEntry && topProfile ? <p className="text-xs sb-text-muted">#1 {topProfile.display_name} — {topEntry.largest_weight_lbs ? `${topEntry.largest_weight_lbs} lbs` : `${topEntry.total_caught} caught`}</p> : <p className="text-xs sb-text-muted">No entries yet</p>}
-                        </div>
-                        <ChevronRight className="h-4 w-4 sb-text-muted" />
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            )}
-          </section>
-
-          {/* Points Leaderboard */}
-          <PointsLeaderboard />
-
-          {/* Team Rankings */}
-          <section>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              <h2 className="text-lg font-bold flex items-center gap-2"><Users className="h-5 w-5 sb-cyan" />Team Rankings</h2>
-              <div className="grid grid-cols-4 rounded-lg overflow-hidden sb-card-soft p-0.5 gap-0.5">
-                {[
-                  { key: "all", label: "All" },
-                  { key: "teams", label: "Teams" },
-                  { key: "lady_angler", label: "Women" },
-                  { key: "junior_angler", label: "Jr. Anglers" },
-                ].map(({ key, label }) => (
-                  <button key={key} onClick={() => setTeamCategoryFilter(key)} className={`py-1.5 px-3 text-xs font-medium text-center rounded-md transition-colors ${teamCategoryFilter === key ? "sb-bg-cyan font-semibold" : "sb-text-muted hover:text-white"}`}>
-                    {label}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+              <DataTable
+                title="Ongoing Tournaments"
+                icon={<Trophy className="h-5 w-5 sb-gold" />}
+                loading={tournamentsLoading}
+                empty="No tournaments are live right now."
+                actionLabel="View tournaments"
+                onAction={() => navigate("/app/tournaments")}
+              >
+                {ongoingTournaments.map((t) => (
+                  <button key={t.id} onClick={() => navigate(`/app/tournaments/${t.id}`)} className="w-full grid grid-cols-[1fr_auto] gap-3 px-4 py-3 border-t sb-border text-left hover:bg-[hsl(var(--sb-surface-2))] transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">{t.title}</p>
+                      <p className="text-xs sb-text-muted truncate">{scoringLabel(t.scoring_method)} · {tournamentCounts[t.id] || 0} teams</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] sb-text-muted uppercase tracking-wider">Ends</p>
+                      <p className="text-xs font-bold sb-cyan">{formatDate(t.end_date)}</p>
+                    </div>
                   </button>
                 ))}
-              </div>
-            </div>
-            <div className="sb-card overflow-hidden">
-              {/* Desktop header */}
-              <div className="hidden sm:grid grid-cols-[60px_1fr_100px_120px_120px] gap-2 px-4 py-2.5 bg-[hsl(var(--sb-surface-2))] text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
-                <span>Rank</span><span>Team Name</span><span>Anglers</span><span>Season Points</span><span className="text-right">Last 7 Days</span>
-              </div>
-              {teamScores.length === 0 ? (
-                <div className="p-8 text-center sb-text-muted text-sm">No teams in this category yet.</div>
-              ) : (
-                teamScores.map((team, i) => {
-                  const last7 = Number(team.last_7_days_catches ?? 0);
-                  const seasonPts = Number(team.season_points ?? 0);
-                  const trendUp = last7 > 5;
-                  const trendFlat = last7 === 0;
-                  const rankColor = i === 0 ? "sb-gold" : i === 1 ? "text-slate-300" : i === 2 ? "text-amber-700" : "sb-text-muted";
-                  return (
-                    <div key={team.team_id} className="border-t sb-border hover:bg-[hsl(var(--sb-surface-2))] transition-colors">
-                      {/* Desktop row */}
-                      <div className="hidden sm:grid grid-cols-[60px_1fr_100px_120px_120px] gap-2 px-4 py-3 items-center">
-                        <span className={`font-bold text-base ${rankColor}`}>#{i + 1}</span>
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-full bg-[hsl(var(--sb-cyan)/0.15)] border sb-border flex items-center justify-center shrink-0 text-xs font-bold sb-cyan">{team.team_name.slice(0, 2).toUpperCase()}</div>
-                          <span className="font-semibold text-sm truncate">{team.team_name}</span>
-                        </div>
-                        <span className="text-sm sb-text-muted">{team.member_count} Members</span>
-                        <span className="text-sm font-semibold sb-cyan">{seasonPts.toLocaleString()} pts</span>
-                        <span className="text-right inline-flex items-center justify-end gap-1 text-xs font-medium">
-                          {trendFlat ? <Minus className="h-3.5 w-3.5 sb-text-muted" /> : trendUp ? <TrendingUp className="h-3.5 w-3.5 text-emerald-400" /> : <TrendingDown className="h-3.5 w-3.5 text-rose-400" />}
-                          <span className={trendFlat ? "sb-text-muted" : trendUp ? "text-emerald-400" : "text-rose-400"}>{last7} catches</span>
-                        </span>
+              </DataTable>
+
+              <DataTable
+                title="Ongoing Fishing Challenges"
+                icon={<Flame className="h-5 w-5 sb-cyan" />}
+                loading={challengesLoading}
+                empty="No fishing challenges are live right now."
+                actionLabel="View challenges"
+                onAction={() => navigate("/app/challenges")}
+              >
+                {ongoingChallenges.map((c) => (
+                  <button key={c.id} onClick={() => navigate(`/app/challenges/${c.id}`)} className="w-full grid grid-cols-[1fr_auto] gap-3 px-4 py-3 border-t sb-border text-left hover:bg-[hsl(var(--sb-surface-2))] transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">{c.title}</p>
+                      <p className="text-xs sb-text-muted truncate">{c.target_species_name || "Any species"} · {challengeCounts[c.id] || 0} anglers</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] sb-text-muted uppercase tracking-wider">Ends</p>
+                      <p className="text-xs font-bold sb-cyan">{formatDate(c.end_date)}</p>
+                    </div>
+                  </button>
+                ))}
+              </DataTable>
+
+              <DataTable
+                title="Featured Species"
+                icon={<Star className="h-5 w-5 sb-cyan fill-[hsl(var(--sb-cyan))]" />}
+                loading={speciesLoading}
+                empty="No species records yet."
+                actionLabel="View species"
+                onAction={() => navigate("/app/species")}
+              >
+                {featuredRows.map(({ entry, species, profile }) => (
+                  <button key={entry.id} onClick={() => navigate(`/app/leaderboard/species/${entry.species_id}`)} className="w-full grid grid-cols-[1fr_auto] gap-3 px-4 py-3 border-t sb-border text-left hover:bg-[hsl(var(--sb-surface-2))] transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-lg bg-[hsl(var(--sb-surface-2))] overflow-hidden flex items-center justify-center shrink-0">
+                        {species?.image_url ? <img src={species.image_url} alt={species.name} className="h-full w-full object-cover" /> : <Fish className="h-5 w-5 sb-text-muted" />}
                       </div>
-                      {/* Mobile row */}
-                      <div className="flex sm:hidden items-center gap-3 px-4 py-3">
-                        <span className={`font-bold text-sm w-7 shrink-0 ${rankColor}`}>#{i + 1}</span>
-                        <div className="w-9 h-9 rounded-full bg-[hsl(var(--sb-cyan)/0.15)] border sb-border flex items-center justify-center shrink-0 text-xs font-bold sb-cyan">{team.team_name.slice(0, 2).toUpperCase()}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate">{team.team_name}</p>
-                          <p className="text-xs sb-text-muted">{team.member_count} Members · {last7} catches</p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-sm font-bold sb-cyan">{seasonPts.toLocaleString()}</p>
-                          <p className="text-[10px] sb-text-muted uppercase tracking-wider">pts</p>
-                        </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">{species?.name || entry.species_name}</p>
+                        <p className="text-xs sb-text-muted truncate">Top angler: {profile?.display_name || "Angler"}</p>
                       </div>
                     </div>
-                  );
-                })
-              )}
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] sb-text-muted uppercase tracking-wider">Record</p>
+                      <p className="text-xs font-bold sb-cyan">{entry.largest_weight_lbs ? `${entry.largest_weight_lbs} lbs` : `${entry.total_caught} caught`}</p>
+                    </div>
+                  </button>
+                ))}
+              </DataTable>
             </div>
-            <button onClick={() => navigate("/app/teams")} className="mt-3 text-xs sb-cyan hover:underline font-medium">View Full Team Standings →</button>
           </section>
-        </div>
-
-        {/* RIGHT SIDEBAR */}
-        <div className="w-full lg:w-80 shrink-0 space-y-6">
-          <div className="sb-card p-5">
-            <h3 className="font-bold text-sm flex items-center gap-2 mb-4"><Trophy className="h-4 w-4 sb-gold" />Global Top Anglers</h3>
-            {globalTopAnglers.length === 0 ? (
-              <p className="text-sm sb-text-muted text-center py-4">No data yet</p>
-            ) : (
-              <div className="space-y-3">
-                {globalTopAnglers.map((angler, i) => {
-                  const profile = globalAnglerProfiles[angler.user_id];
-                  const medalColor = i === 0 ? "sb-gold" : i === 1 ? "text-slate-300" : "text-amber-700";
-                  return (
-                    <button key={angler.user_id} onClick={() => navigate(`/app/u/${angler.user_id}`)} className="w-full flex items-center gap-3 hover:bg-[hsl(var(--sb-surface-2))] rounded-lg p-1.5 -mx-1.5 transition-colors text-left">
-                      <div className="relative shrink-0">
-                        <Medal className={`absolute -top-1.5 -left-1.5 h-4 w-4 ${medalColor} drop-shadow`} />
-                        <Avatar className="h-9 w-9 ring-2 ring-[hsl(var(--sb-border))]"><AvatarImage src={profile?.photos?.[0] || ""} /><AvatarFallback className="text-xs bg-[hsl(var(--sb-surface-2))]">{(profile?.display_name || "?")[0]}</AvatarFallback></Avatar>
-                      </div>
-                      <div className="flex-1 min-w-0"><p className="text-sm font-semibold truncate">{profile?.display_name || "Angler"}</p><p className="text-xs sb-text-muted">{angler.total} Verified Catches</p></div>
-                      <div className="text-right shrink-0"><p className="text-sm font-bold sb-cyan">{Number(angler.points || 0).toFixed(1)}</p><p className="text-[10px] sb-text-muted uppercase tracking-wider">Points</p></div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <button onClick={() => navigate("/app/leaderboard/anglers")} className="w-full mt-4 py-2 rounded-lg border sb-border text-xs font-semibold sb-cyan hover:bg-[hsl(var(--sb-surface-2))] transition-colors">View Full Rankings</button>
-          </div>
-
-          {latestVerified && (
-            <button onClick={() => navigate(`/app/catches/${latestVerified.id}`)} className="w-full sb-card overflow-hidden text-left hover:border-[hsl(var(--sb-cyan))] transition-colors">
-              <div className="p-4">
-                <p className="text-[10px] sb-text-muted uppercase tracking-widest font-semibold mb-3">Latest Verification</p>
-                <div className="flex items-start gap-3">
-                  {latestVerified.cover_photo_url && <img src={latestVerified.cover_photo_url} alt="Verified catch" className="w-16 h-16 rounded-lg object-cover shrink-0" />}
-                  <div className="min-w-0">
-                    <p className="font-bold text-sm">{latestVerified.species_name || "Unknown"}</p>
-                    {latestVerified.weight_lbs && <p className="text-lg font-bold sb-cyan">{latestVerified.weight_lbs} lbs</p>}
-                    <Badge className="mt-1 bg-emerald-500/15 text-emerald-400 border-0 text-[10px] uppercase tracking-wider"><Shield className="h-3 w-3 mr-1" />Verified</Badge>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-3 text-xs sb-text-muted">
-                  <span>By <span className="sb-cyan font-medium">{(latestVerified.user as any)?.display_name || "Angler"}</span></span>
-                  <span>{new Date(latestVerified.created_at).toLocaleDateString()}</span>
-                </div>
-                <p className="text-[10px] sb-cyan mt-2 font-medium">View catch details →</p>
-              </div>
-            </button>
-          )}
-
-          <div className="sb-card p-5 text-center bg-gradient-to-br from-[hsl(var(--sb-surface))] to-[hsl(var(--sb-cyan)/0.1)]">
-            <MapPin className="h-6 w-6 sb-cyan mx-auto mb-2" />
-            <h3 className="font-bold text-sm mb-1">Hotspots</h3>
-            <p className="text-xs sb-text-muted mb-3">See where the top catches are happening</p>
-            <button onClick={() => navigate("/app/spots")} className="sb-bg-cyan text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">View Live Map</button>
-          </div>
-
-          {/* Quick Links */}
-          <div className="sb-card p-5 space-y-2">
-            <h3 className="font-bold text-sm mb-3">Quick Links</h3>
-            <button onClick={() => navigate("/app/challenges")} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left">
-              <div className="h-8 w-8 rounded-md bg-rose-500/15 flex items-center justify-center shrink-0"><Sparkles className="h-4 w-4 text-rose-400" /></div>
-              <div><p className="text-sm font-medium">Fishing Challenges</p><p className="text-[10px] sb-text-muted">Compete in live events</p></div>
-              <ChevronRight className="h-4 w-4 sb-text-muted ml-auto" />
-            </button>
-            <button onClick={() => navigate("/app/species")} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left">
-              <div className="h-8 w-8 rounded-md bg-[hsl(var(--sb-cyan)/0.15)] flex items-center justify-center shrink-0"><Fish className="h-4 w-4 sb-cyan" /></div>
-              <div><p className="text-sm font-medium">Species Explorer</p><p className="text-[10px] sb-text-muted">Browse species & records</p></div>
-              <ChevronRight className="h-4 w-4 sb-text-muted ml-auto" />
-            </button>
-            <button onClick={() => navigate("/app/catches")} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-[hsl(var(--sb-surface-2))] transition-colors text-left">
-              <div className="h-8 w-8 rounded-md bg-emerald-500/15 flex items-center justify-center shrink-0"><Fish className="h-4 w-4 text-emerald-400" /></div>
-              <div><p className="text-sm font-medium">Log a Catch</p><p className="text-[10px] sb-text-muted">Submit & climb ranks</p></div>
-              <ChevronRight className="h-4 w-4 sb-text-muted ml-auto" />
-            </button>
-          </div>
-        </div>
       </div>
       </div>
+    </div>
+  );
+}
+
+function DataTable({
+  title,
+  icon,
+  loading,
+  empty,
+  actionLabel,
+  onAction,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  loading: boolean;
+  empty: string;
+  actionLabel: string;
+  onAction: () => void;
+  children: React.ReactNode;
+}) {
+  const hasRows = Array.isArray(children) ? children.length > 0 : !!children;
+  return (
+    <div className="sb-card overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[hsl(var(--sb-surface-2))]">
+        <h3 className="font-bold text-sm flex items-center gap-2 min-w-0">
+          {icon}
+          <span className="truncate">{title}</span>
+        </h3>
+        <button onClick={onAction} className="text-[10px] font-semibold uppercase tracking-wider sb-cyan hover:underline shrink-0">
+          {actionLabel}
+        </button>
+      </div>
+      {loading ? (
+        <div className="p-4 space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 rounded-lg bg-[hsl(var(--sb-surface-2))]" />
+          ))}
+        </div>
+      ) : hasRows ? (
+        <div>{children}</div>
+      ) : (
+        <div className="p-8 text-center">
+          <CalendarDays className="h-8 w-8 mx-auto sb-text-muted opacity-50 mb-2" />
+          <p className="text-sm sb-text-muted">{empty}</p>
+        </div>
+      )}
     </div>
   );
 }
