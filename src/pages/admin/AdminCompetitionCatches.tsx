@@ -29,7 +29,7 @@ type Row = {
   species_id: string | null;
   user: { id: string; display_name: string | null; photos: string[] | null } | null;
   challenge: { id: string; title: string } | null;
-  tournament: { id: string; name: string } | null;
+  tournament: { id: string; title: string } | null;
 };
 
 type PhotoEntryRow = {
@@ -66,7 +66,7 @@ export default function AdminCompetitionCatches() {
           challenge_id, tournament_id, species_id,
           user:profiles!catches_user_id_fkey(id, display_name, photos),
           challenge:fishing_challenges!catches_challenge_id_fkey(id, title),
-          tournament:tournaments!catches_tournament_id_fkey(id, name)
+          tournament:tournaments!catches_tournament_id_fkey(id, title)
         `)
         .not(col, 'is', null)
         .eq('approval_status', tab)
@@ -165,7 +165,7 @@ export default function AdminCompetitionCatches() {
           ) : (
             <div className="space-y-3">
               {rows.map((r) => {
-                const comp = r.challenge?.title || r.tournament?.name || '—';
+                const comp = r.challenge?.title || r.tournament?.title || '—';
                 return (
                   <div key={r.id} className="flex flex-col md:flex-row gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
                     <div className="md:w-48 shrink-0">
