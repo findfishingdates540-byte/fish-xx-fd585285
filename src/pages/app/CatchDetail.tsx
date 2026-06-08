@@ -89,10 +89,10 @@ export default function CatchDetail() {
         .from("leaderboard_entries")
         .select("total_caught, rank_by_weight")
         .eq("user_id", catchData!.user_id);
-      if (!data || data.length === 0) return { totalCatches: 0, bestRank: null, seasonPoints: 0 };
+      if (!data || data.length === 0) return { totalCatches: 0, bestRank: null };
       const totalCatches = data.reduce((sum, e) => sum + e.total_caught, 0);
       const bestRank = Math.min(...data.map((e) => e.rank_by_weight || 999).filter(Boolean));
-      return { totalCatches, bestRank: bestRank < 999 ? bestRank : null, seasonPoints: totalCatches * 20 };
+      return { totalCatches, bestRank: bestRank < 999 ? bestRank : null };
     },
     enabled: !!catchData?.user_id,
   });
@@ -449,11 +449,7 @@ export default function CatchDetail() {
               {anglerStats?.bestRank && ` • Rank #${anglerStats.bestRank}`}
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="rounded-lg border px-3 py-2.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Season Points</p>
-                <p className="text-lg font-bold">{(anglerStats?.seasonPoints || 0).toLocaleString()}</p>
-              </div>
+            <div className="grid grid-cols-1 gap-3 mt-4">
               <div className="rounded-lg border px-3 py-2.5">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total Catches</p>
                 <p className="text-lg font-bold">{(anglerStats?.totalCatches || 0).toLocaleString()}</p>
