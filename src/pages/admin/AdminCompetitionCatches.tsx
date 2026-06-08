@@ -32,22 +32,9 @@ type Row = {
   tournament: { id: string; title: string } | null;
 };
 
-type PhotoEntryRow = {
-  id: string;
-  challenge_id: string;
-  user_id: string;
-  photo_url: string;
-  caption: string | null;
-  created_at: string;
-  captured_at: string | null;
-  has_paid: boolean | null;
-  challenge: { id: string; title: string; status: string | null } | null;
-  user: { id: string; display_name: string | null; photos: string[] | null } | null;
-};
-
 export default function AdminCompetitionCatches() {
   const [tab, setTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
-  const [kind, setKind] = useState<'challenge' | 'tournament' | 'photo'>('challenge');
+  const [kind, setKind] = useState<'challenge' | 'tournament'>('challenge');
   const [rejecting, setRejecting] = useState<Row | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const qc = useQueryClient();
@@ -55,7 +42,6 @@ export default function AdminCompetitionCatches() {
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['admin-competition-catches', kind, tab],
-    enabled: kind !== 'photo',
     queryFn: async (): Promise<Row[]> => {
       const col = kind === 'challenge' ? 'challenge_id' : 'tournament_id';
       const { data, error } = await supabase
@@ -74,33 +60,6 @@ export default function AdminCompetitionCatches() {
         .limit(200);
       if (error) throw error;
       return (data as any) || [];
-    },
-  });
-
-  const { data: photoRows = [], isLoading: photoLoading } = useQuery({
-    queryKey: ['admin-photo-challenge-entries'],
-    enabled: kind === 'photo',
-    queryFn: async (): Promise<PhotoEntryRow[]> => {
-      const { data, error } = await supabase
-        .from('photo_challenge_entries')
-        .select(`
-          id, challenge_id, user_id, photo_url, caption, created_at, captured_at, has_paid,
-          challenge:photo_challenges!photo_challenge_entries_challenge_id_fkey(id, title, status)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      const entries = (data as any[]) || [];
-      const userIds = Array.from(new Set(entries.map((e) => e.user_id))).filter(Boolean);
-      let profileMap = new Map<string, any>();
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, photos')
-          .in('id', userIds);
-        (profiles || []).forEach((p: any) => profileMap.set(p.id, p));
-      }
-      return entries.map((e) => ({ ...e, user: profileMap.get(e.user_id) || null })) as PhotoEntryRow[];
     },
   });
 
@@ -141,11 +100,9 @@ export default function AdminCompetitionCatches() {
         <TabsList className="bg-slate-800">
           <TabsTrigger value="challenge">Challenges</TabsTrigger>
           <TabsTrigger value="tournament">Tournaments</TabsTrigger>
-          <TabsTrigger value="photo">Photo Challenges</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {kind !== 'photo' ? (
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="mb-4">
         <TabsList className="bg-slate-800">
           <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -225,54 +182,6 @@ export default function AdminCompetitionCatches() {
           )}
         </TabsContent>
       </Tabs>
-      ) : (
-        <div className="mt-4">
-          {photoLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-28 w-full bg-slate-800" />)}
-            </div>
-          ) : photoRows.length === 0 ? (
-            <div className="text-center py-16 border border-slate-800 rounded-xl bg-slate-900/50">
-              <Fish className="h-12 w-12 mx-auto text-slate-600 mb-3" />
-              <p className="text-slate-400">No photo challenge entries yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {photoRows.map((r) => (
-                <div key={r.id} className="flex flex-col md:flex-row gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
-                  <div className="md:w-48 shrink-0">
-                    {r.photo_url ? (
-                      <img src={r.photo_url} alt="" className="w-full h-32 object-cover rounded-lg" />
-                    ) : (
-                      <div className="w-full h-32 bg-slate-800 rounded-lg flex items-center justify-center">
-                        <Fish className="h-8 w-8 text-slate-600" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-white truncate">{r.challenge?.title || 'Photo Challenge'}</h3>
-                        <p className="text-xs text-slate-400 truncate">by {r.user?.display_name || 'Angler'}</p>
-                        {r.caption && <p className="text-xs text-slate-300 mt-1 line-clamp-2">{r.caption}</p>}
-                      </div>
-                      <Badge variant="secondary" className="bg-slate-800 text-slate-200">
-                        {r.has_paid ? 'Paid' : 'Free'}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs text-slate-300">
-                      <Badge variant="secondary" className="bg-slate-800 text-slate-200">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(r.captured_at || r.created_at).toLocaleDateString()}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       <Dialog open={!!rejecting} onOpenChange={(v) => { if (!v) setRejecting(null); }}>
         <DialogContent className="bg-slate-900 border-slate-800">
