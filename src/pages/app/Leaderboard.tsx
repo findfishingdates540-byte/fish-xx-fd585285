@@ -90,11 +90,25 @@ export default function Leaderboard() {
   const { data: globalTopAnglers = [] } = useQuery({
     queryKey: ["global-top-anglers"],
     queryFn: async () => {
-      const { data } = await supabase.from("leaderboard_entries").select("user_id, total_caught").order("total_caught", { ascending: false }).limit(50);
+      // Aggregate REAL points from verified catches with a computed score
+      const { data } = await supabase
+        .from("catches")
+        .select("user_id, computed_score, is_verified")
+        .eq("is_verified", true)
+        .not("computed_score", "is", null)
+        .limit(2000);
       if (!data) return [];
-      const userMap: Record<string, number> = {};
-      data.forEach((e) => { userMap[e.user_id] = (userMap[e.user_id] || 0) + e.total_caught; });
-      return Object.entries(userMap).map(([user_id, total]) => ({ user_id, total })).sort((a, b) => b.total - a.total).slice(0, 3);
+      const map = new Map<string, { user_id: string; points: number; total: number }>();
+      data.forEach((c: any) => {
+        if (!c.user_id) return;
+        const cur = map.get(c.user_id) || { user_id: c.user_id, points: 0, total: 0 };
+        cur.points += Number(c.computed_score) || 0;
+        cur.total += 1;
+        map.set(c.user_id, cur);
+      });
+      return Array.from(map.values())
+        .sort((a, b) => b.points - a.points || b.total - a.total)
+        .slice(0, 3);
     },
   });
 
