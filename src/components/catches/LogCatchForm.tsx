@@ -45,7 +45,6 @@ interface LogCatchFormProps {
   isSubmitting: boolean;
   onSubmit: (data: LogCatchFormData) => void;
   onDiscard: () => void;
-  mode?: "regular" | "competition";
 }
 
 export interface LogCatchFormData {
@@ -73,8 +72,7 @@ export interface LogCatchFormData {
   is_estimated_size: boolean;
 }
 
-export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard, mode = "regular" }: LogCatchFormProps) {
-  const isCompetition = mode === "competition";
+export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
 
   const [formData, setFormData] = useState({
     species_name: "",
@@ -108,7 +106,6 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
   } | null>(null);
 
   useEffect(() => {
-    if (!isCompetition) return;
     (async () => {
       const [m, b] = await Promise.all([
         supabase.from("scoring_catch_methods").select("key,label,multiplier").order("sort_order"),
@@ -117,10 +114,9 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
       if (m.data) setMethods(m.data as any);
       if (b.data) setBonuses(b.data as any);
     })();
-  }, [isCompetition]);
+  }, []);
 
   useEffect(() => {
-    if (!isCompetition) { setSpeciesMeta(null); return; }
     if (!formData.species_id) { setSpeciesMeta(null); return; }
     (async () => {
       const { data } = await supabase
@@ -130,7 +126,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
         .maybeSingle();
       if (data) setSpeciesMeta(data as any);
     })();
-  }, [formData.species_id, isCompetition]);
+  }, [formData.species_id]);
 
   const previewScore = useMemo(() => {
     const base = speciesMeta?.base_score ?? 0;
@@ -359,92 +355,88 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             />
           </div>
 
-          {isCompetition && (
-            <>
-              <div>
-                <Label className="text-sm font-semibold mb-2 block">Catch Method</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {methods.map((m) => (
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, catch_method: m.key })}
-                      className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                        formData.catch_method === m.key
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <span className="truncate">{m.label}</span>
-                      <span className="ml-2 shrink-0 tabular-nums">×{Number(m.multiplier).toFixed(2)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <div>
+            <Label className="text-sm font-semibold mb-2 block">Catch Method</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {methods.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, catch_method: m.key })}
+                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                    formData.catch_method === m.key
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span className="truncate">{m.label}</span>
+                  <span className="ml-2 shrink-0 tabular-nums">×{Number(m.multiplier).toFixed(2)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-              <div>
-                <Label className="text-sm font-semibold mb-2 block flex items-center gap-1.5">
-                  <Trophy className="h-3.5 w-3.5" /> Trophy Class
-                  {speciesMeta?.safe_release && (
-                    <span className="ml-2 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600">
-                      Safe-release · estimate ok
-                    </span>
-                  )}
-                </Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {bonuses.map((b) => (
-                    <button
-                      key={b.level}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, trophy_level: b.level })}
-                      className={`rounded-lg border px-2 py-2 text-xs font-medium text-center transition-colors ${
-                        formData.trophy_level === b.level
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <div className="truncate">{b.label}</div>
-                      <div className="text-[10px] opacity-70">+{Number(b.bonus)}</div>
-                    </button>
-                  ))}
-                </div>
-                {speciesMeta?.safe_release && (
-                  <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_estimated_size}
-                      onChange={(e) => setFormData({ ...formData, is_estimated_size: e.target.checked })}
-                      className="h-3.5 w-3.5 rounded border-border text-primary"
-                    />
-                    Size is an estimate (no exact measurement taken)
-                  </label>
-                )}
-              </div>
+          <div>
+            <Label className="text-sm font-semibold mb-2 block flex items-center gap-1.5">
+              <Trophy className="h-3.5 w-3.5" /> Trophy Class
+              {speciesMeta?.safe_release && (
+                <span className="ml-2 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600">
+                  Safe-release · estimate ok
+                </span>
+              )}
+            </Label>
+            <div className="grid grid-cols-4 gap-2">
+              {bonuses.map((b) => (
+                <button
+                  key={b.level}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, trophy_level: b.level })}
+                  className={`rounded-lg border px-2 py-2 text-xs font-medium text-center transition-colors ${
+                    formData.trophy_level === b.level
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <div className="truncate">{b.label}</div>
+                  <div className="text-[10px] opacity-70">+{Number(b.bonus)}</div>
+                </button>
+              ))}
+            </div>
+            {speciesMeta?.safe_release && (
+              <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.is_estimated_size}
+                  onChange={(e) => setFormData({ ...formData, is_estimated_size: e.target.checked })}
+                  className="h-3.5 w-3.5 rounded border-border text-primary"
+                />
+                Size is an estimate (no exact measurement taken)
+              </label>
+            )}
+          </div>
 
-              <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 flex items-center justify-between">
-                <div>
-                  <div className="text-xs uppercase tracking-wider text-primary/80 font-semibold flex items-center gap-1.5">
-                    <Sparkles className="h-3 w-3" /> Score preview
-                  </div>
-                  <div className="text-2xl font-bold text-primary mt-0.5 tabular-nums">
-                    {previewScore.toFixed(2)} pts
-                  </div>
-                </div>
-                <div className="text-right text-[11px] text-muted-foreground leading-tight">
-                  {speciesMeta?.base_score != null ? (
-                    <>
-                      Base {speciesMeta.base_score}
-                      {speciesMeta.measurement_type && (
-                        <> · {speciesMeta.measurement_type}{speciesMeta.trophy_unit ? ` / ${speciesMeta.trophy_unit}` : ""}</>
-                      )}
-                    </>
-                  ) : (
-                    <>Pick a species to score</>
-                  )}
-                </div>
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-primary/80 font-semibold flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3" /> Score preview
               </div>
-            </>
-          )}
+              <div className="text-2xl font-bold text-primary mt-0.5 tabular-nums">
+                {previewScore.toFixed(2)} pts
+              </div>
+            </div>
+            <div className="text-right text-[11px] text-muted-foreground leading-tight">
+              {speciesMeta?.base_score != null ? (
+                <>
+                  Base {speciesMeta.base_score}
+                  {speciesMeta.measurement_type && (
+                    <> · {speciesMeta.measurement_type}{speciesMeta.trophy_unit ? ` / ${speciesMeta.trophy_unit}` : ""}</>
+                  )}
+                </>
+              ) : (
+                <>Pick a species to score</>
+              )}
+            </div>
+          </div>
 
           <div>
             <Label className="text-sm font-semibold mb-2 block">Body of Water</Label>
@@ -571,7 +563,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
                 <p className="font-semibold text-sm text-primary">Keep this catch private?</p>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   Private catches are only visible to you. They won't appear on the feed,
-                  spot pages, or other anglers' profiles.
+                  spot pages, or other anglers' profiles. Your scoreboard rank still counts.
                 </p>
               </div>
             </div>
@@ -619,7 +611,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              {isCompetition ? "Submit Competition Catch" : "Log Catch"}
+              Log Catch to Board
             </>
           )}
         </Button>
