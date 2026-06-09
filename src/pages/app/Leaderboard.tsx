@@ -22,6 +22,7 @@ import {
   TrendingDown,
   Minus,
 } from "lucide-react";
+import { Calendar, Swords } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PointsLeaderboard from "@/components/leaderboard/PointsLeaderboard";
 
@@ -139,6 +140,32 @@ export default function Leaderboard() {
     queryFn: async () => {
       const { count } = await supabase.from("fishing_challenges").select("*", { count: "exact", head: true }).eq("status", "active");
       return count || 0;
+    },
+  });
+
+  const { data: ongoingChallenges = [] } = useQuery({
+    queryKey: ["scoreboard-ongoing-challenges"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("fishing_challenges")
+        .select("id, title, target_species_name, end_date, status, prize_description")
+        .in("status", ["active", "upcoming"])
+        .order("end_date", { ascending: true })
+        .limit(10);
+      return data || [];
+    },
+  });
+
+  const { data: ongoingTournaments = [] } = useQuery({
+    queryKey: ["scoreboard-ongoing-tournaments"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tournaments")
+        .select("id, title, banner_url, end_date, status, prize_description")
+        .in("status", ["active", "open", "registration", "live", "upcoming", "in_progress"])
+        .order("end_date", { ascending: true })
+        .limit(10);
+      return data || [];
     },
   });
 
