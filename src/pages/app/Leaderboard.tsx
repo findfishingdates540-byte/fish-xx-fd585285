@@ -162,7 +162,7 @@ export default function Leaderboard() {
       const { data } = await supabase
         .from("tournaments")
         .select("id, title, banner_url, end_date, status, prize_description")
-        .in("status", ["active", "open", "registration", "live", "upcoming", "in_progress"])
+        .in("status", ["registration", "seeding", "in_progress"])
         .order("end_date", { ascending: true })
         .limit(10);
       return data || [];
