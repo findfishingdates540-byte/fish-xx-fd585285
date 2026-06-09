@@ -449,11 +449,13 @@ export default function CatchDetail() {
               {anglerStats?.bestRank && ` • Rank #${anglerStats.bestRank}`}
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="rounded-lg border px-3 py-2.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Season Points</p>
-                <p className="text-lg font-bold">{(anglerStats?.seasonPoints || 0).toLocaleString()}</p>
-              </div>
+            <div className={`grid ${(catchData.challenge_id || catchData.tournament_id) ? "grid-cols-2" : "grid-cols-1"} gap-3 mt-4`}>
+              {(catchData.challenge_id || catchData.tournament_id) && (
+                <div className="rounded-lg border px-3 py-2.5">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Catch Points</p>
+                  <p className="text-lg font-bold">{Number(catchData.computed_score || 0).toLocaleString()}</p>
+                </div>
+              )}
               <div className="rounded-lg border px-3 py-2.5">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total Catches</p>
                 <p className="text-lg font-bold">{(anglerStats?.totalCatches || 0).toLocaleString()}</p>
