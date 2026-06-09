@@ -103,16 +103,22 @@ export default function SpeciesExplorer() {
         .from("leaderboard_entries")
         .select("species_id, user_id, total_caught, largest_weight_lbs");
       if (!data) return {};
-      const map: Record<string, { totalLogs: number; worldRecord: number | null; topUserId: string | null }> = {};
+      const map: Record<string, { totalLogs: number; worldRecord: number | null; topUserId: string | null; topCount: number }> = {};
       for (const e of data) {
         if (!e.species_id) continue;
         if (!map[e.species_id]) {
-          map[e.species_id] = { totalLogs: 0, worldRecord: null, topUserId: null };
+          map[e.species_id] = { totalLogs: 0, worldRecord: null, topUserId: null, topCount: 0 };
         }
-        map[e.species_id].totalLogs += e.total_caught;
-        if (e.largest_weight_lbs && (!map[e.species_id].worldRecord || e.largest_weight_lbs > map[e.species_id].worldRecord!)) {
-          map[e.species_id].worldRecord = e.largest_weight_lbs;
-          map[e.species_id].topUserId = e.user_id;
+        const m = map[e.species_id];
+        m.totalLogs += e.total_caught;
+        // Prefer holder with greatest weight; fall back to most catches when no weight data exists
+        if (e.largest_weight_lbs && (!m.worldRecord || e.largest_weight_lbs > m.worldRecord)) {
+          m.worldRecord = e.largest_weight_lbs;
+          m.topUserId = e.user_id;
+          m.topCount = e.total_caught;
+        } else if (!m.worldRecord && e.total_caught > m.topCount) {
+          m.topUserId = e.user_id;
+          m.topCount = e.total_caught;
         }
       }
       return map;
