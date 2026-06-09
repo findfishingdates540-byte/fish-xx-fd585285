@@ -287,7 +287,7 @@ export default function Leaderboard() {
                 </div>
               </div>
               <div className="relative overflow-hidden group">
-                <div className="sb-marquee-track flex gap-4 group-hover:[animation-play-state:paused]" style={{ animation: "sb-marquee 40s linear infinite" }}>
+                <div className="sb-marquee-track flex gap-4">
                   {[0, 1].map((dup) => (
                     <div key={dup} className="flex gap-4 shrink-0">
                       {ongoingChallenges.map((c: any) => (
