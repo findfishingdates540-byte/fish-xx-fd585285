@@ -273,6 +273,68 @@ export default function Leaderboard() {
           </section>
 
           {/* Species Search */}
+          {/* Ongoing Challenges & Tournaments (auto-scrolling) */}
+          {(ongoingChallenges.length > 0 || ongoingTournaments.length > 0) && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Swords className="h-5 w-5 sb-cyan" />
+                  Ongoing Challenges & Tournaments
+                </h2>
+                <div className="flex gap-3">
+                  <button onClick={() => navigate("/app/challenges")} className="text-xs sb-cyan hover:underline font-medium">Challenges →</button>
+                  <button onClick={() => navigate("/app/tournaments")} className="text-xs sb-cyan hover:underline font-medium">Tournaments →</button>
+                </div>
+              </div>
+              <div className="relative overflow-hidden group">
+                <div className="sb-marquee-track flex gap-4 group-hover:[animation-play-state:paused]" style={{ animation: "sb-marquee 40s linear infinite" }}>
+                  {[0, 1].map((dup) => (
+                    <div key={dup} className="flex gap-4 shrink-0">
+                      {ongoingChallenges.map((c: any) => (
+                        <button
+                          key={`c-${dup}-${c.id}`}
+                          onClick={() => navigate(`/app/challenges/${c.id}`)}
+                          className="sb-card w-64 shrink-0 p-4 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge className="bg-rose-500/15 text-rose-300 border-0 text-[10px] uppercase tracking-wider">Challenge</Badge>
+                            <span className="text-[10px] sb-text-muted uppercase tracking-wider">{c.status}</span>
+                          </div>
+                          <p className="font-bold text-sm truncate">{c.title}</p>
+                          {c.target_species_name && <p className="text-xs sb-text-muted truncate">Target: {c.target_species_name}</p>}
+                          <div className="flex items-center gap-1.5 mt-2 text-[11px] sb-text-muted">
+                            <Calendar className="h-3 w-3" />
+                            <span>Ends {new Date(c.end_date).toLocaleDateString()}</span>
+                          </div>
+                          {c.prize_description && <p className="text-[11px] sb-cyan mt-1 truncate">🏆 {c.prize_description}</p>}
+                        </button>
+                      ))}
+                      {ongoingTournaments.map((t: any) => (
+                        <button
+                          key={`t-${dup}-${t.id}`}
+                          onClick={() => navigate(`/app/tournaments/${t.id}`)}
+                          className="sb-card w-64 shrink-0 p-4 text-left hover:border-[hsl(var(--sb-cyan))] transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge className="bg-amber-500/15 text-amber-300 border-0 text-[10px] uppercase tracking-wider">Tournament</Badge>
+                            <span className="text-[10px] sb-text-muted uppercase tracking-wider">{t.status}</span>
+                          </div>
+                          <p className="font-bold text-sm truncate">{t.title}</p>
+                          <div className="flex items-center gap-1.5 mt-2 text-[11px] sb-text-muted">
+                            <Calendar className="h-3 w-3" />
+                            <span>Ends {new Date(t.end_date).toLocaleDateString()}</span>
+                          </div>
+                          {t.prize_description && <p className="text-[11px] sb-cyan mt-1 truncate">🏆 {t.prize_description}</p>}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Species Search */}
           <section>
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted z-10" />
