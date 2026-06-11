@@ -168,10 +168,9 @@ export function EditCatchDialog({
             <Label>Species</Label>
             <SpeciesCombobox
               species={species}
-              value={speciesId}
-              customValue={speciesName}
-              onChange={(id, name) => {
-                setSpeciesId(id);
+              value={speciesName || ""}
+              onSelect={(id, name) => {
+                setSpeciesId(id || "");
                 setSpeciesName(name);
               }}
             />
