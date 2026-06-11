@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { LogCatchForm, type LogCatchFormData } from "@/components/catches/LogCatchForm";
+import { EditCatchDialog } from "@/components/catches/EditCatchDialog";
 import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import {
   Plus,
@@ -19,6 +20,7 @@ import {
   MoreVertical,
   Share2,
   ArrowLeft,
+  Pencil,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -343,6 +345,14 @@ export default function Catches() {
               key={catchItem.id}
               catchData={catchItem}
               onDelete={() => handleDelete(catchItem.id)}
+              onUpdated={(updates) =>
+                setCatches((prev) =>
+                  prev.map((c) =>
+                    c.id === catchItem.id ? { ...c, ...(updates as Partial<Catch>) } : c,
+                  ),
+                )
+              }
+              species={species}
               formatDate={formatDate}
               spots={spots}
             />
@@ -357,13 +367,16 @@ export default function Catches() {
 interface CatchCardProps {
   catchData: Catch;
   onDelete: () => void;
+  onUpdated: (updates: Partial<Catch>) => void;
+  species: FishSpecies[];
   formatDate: (date: string | null) => string;
   spots: FishingSpot[];
 }
 
-function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
+function CatchCard({ catchData, onDelete, onUpdated, species, formatDate, spots }: CatchCardProps) {
   const createPost = useCreatePost();
   const [isSharing, setIsSharing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleShareToFeed = async () => {
     setIsSharing(true);
@@ -426,6 +439,10 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleShareToFeed} disabled={isSharing}>
               <Share2 className="h-4 w-4 mr-2" />
               {isSharing ? "Sharing..." : "Share to Feed"}
@@ -469,7 +486,23 @@ function CatchCard({ catchData, onDelete, formatDate, spots }: CatchCardProps) {
         {catchData.notes && (
           <p className="text-sm text-muted-foreground line-clamp-2">{catchData.notes}</p>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full mt-3"
+          onClick={() => setIsEditing(true)}
+        >
+          <Pencil className="h-4 w-4 mr-2" />
+          Edit catch
+        </Button>
       </div>
+      <EditCatchDialog
+        open={isEditing}
+        onOpenChange={setIsEditing}
+        catchData={catchData}
+        species={species}
+        onSaved={(updates) => onUpdated(updates as Partial<Catch>)}
+      />
     </div>
   );
 }
