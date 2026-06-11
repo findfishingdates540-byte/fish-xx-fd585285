@@ -1,45 +1,67 @@
-I’ll fix the scoring and catch-log issues end-to-end instead of only patching the display.
+## Goal
 
-## What I found
+Stop loading multi-MB originals in the feed, profile gallery, and catch photos. Use **Supabase Storage Image Transformations** to request a CDN-cached, resized variant of the image already in storage — no re-uploads, no extra tables.
 
-- Julie has 3 verified catches, but all have `computed_score = 0`.
-- The “Global Top Anglers” widget is using a separate shortcut formula: `verified catches × 10`, so Julie shows 30 there.
-- The full “Points Leaderboard” uses `catches.computed_score`, so Julie shows 0 there.
-- Existing species names like `Bass, Largemouth`, `Catfish, Channel`, and `Tuna, Blackfin` do not match the seeded scoring names like `Largemouth Bass`, `Channel Catfish`, and `Blackfin Tuna`, so their `base_score` is missing.
-- Harlie Daniels’ catch is currently not verified, so it should not count as a verified catch until approved/verified.
-- Team rankings show `NaN pts` because `get_team_scores()` returns `total_score`, but the leaderboard UI expects `season_points`.
-- Challenge scoring recalculation currently counts public catches by date/species, but does not consistently require approved/verified catches.
-- Buddy profiles already load recent catches, but the UI only shows 6 recent catches and the cards are not clearly a catch-log view.
+Requires the project to be on **Supabase Pro** (transformations are a paid-tier feature). If we're not on Pro, the URLs will 400 and we'll need the alternate approach.
 
-## Implementation plan
+## How it works
 
-1. **Repair scoring data and future score calculation**
-   - Add a database migration to normalize alternate species names used by the imported data.
-   - Backfill `fish_species.base_score`, `category`, `water_type`, and measurement fields for common alternate formats like `Bass, Largemouth`, `Catfish, Channel`, `Tuna, Blackfin`.
-   - Update existing catches so missing `catch_method` defaults to a valid method and missing `trophy_level` defaults to `keeper`.
-   - Recompute `computed_score` for all existing catches with a species.
+Supabase exposes a render endpoint:
 
-2. **Make leaderboard scoring consistent**
-   - Change the “Global Top Anglers” widget and full global rankings to use the same score source as the Points Leaderboard.
-   - Keep verified catch counts visible, but do not calculate points as `catch count × 10` in one place and `computed_score` in another.
-   - Keep non-verified catches out of points totals.
+```
+/storage/v1/render/image/public/<bucket>/<path>?width=400&height=400&resize=cover&quality=75
+```
 
-3. **Fix team rankings `NaN`**
-   - Update the leaderboard UI to read the actual returned fields (`total_score`, `catch_count`) or update the database function aliases so the app receives `season_points` and `last_7_days_catches` consistently.
-   - Add safe numeric fallbacks so missing values display as `0 pts`, never `NaN pts`.
+The first request generates and caches the variant on the CDN; subsequent requests are instant. We never need to store variant URLs — the URL is the variant.
 
-4. **Fix fish challenge scoring**
-   - Update the challenge score recalculation function to count only catches that are `is_verified = true` and `approval_status = approved`.
-   - Recalculate all current challenge participants after the function update.
-   - Ensure approved competition catches trigger leaderboard/challenge recalculation after approval.
+## Step 1 — Build a helper
 
-5. **Improve buddy profile catch log access**
-   - Make buddy/user profile catch cards clickable to open catch details.
-   - Add a clear “Catch Log” section that can show more than the latest 6 public catches.
-   - Keep privacy intact by only showing catches allowed by existing RLS/public visibility rules.
+Add `src/lib/image-url.ts`:
 
-6. **Validate with current problem users**
-   - Re-check Julie and Harlie/Charlie rows after migration.
-   - Confirm Julie’s score is consistent across Global Top Anglers, full Points Leaderboard, and profile catch log.
-   - Confirm Team Rankings no longer show `NaN`.
-   - Confirm unverified catches do not count until approved.
+- `getTransformedUrl(originalUrl, { width, height, quality, resize })` — rewrites any `…/storage/v1/object/public/<bucket>/<path>` URL into the matching `…/storage/v1/render/image/public/<bucket>/<path>?…` URL. Falls through unchanged for non-Supabase URLs (external CDN images, blob:, data:).
+- `thumb(url)` → 400px wide, q=70 (feed cards, grids, avatars)
+- `medium(url)` → 1080px wide, q=80 (single-post viewer, lightbox preview)
+- Original URL stays untouched for full-screen views and downloads.
+
+## Step 2 — Wire it into the three target surfaces
+
+Replace `<img src={url}>` with `<img src={thumb(url)}>` (or `medium`) at these render sites only — no upload or DB changes:
+
+**Catch photos (feed + profile)**
+- `src/pages/app/Catches.tsx` (grid) → thumb
+- `src/pages/app/CatchDetail.tsx` (hero) → medium
+- Any `CatchCard` / catch thumbnail components rendered from these pages
+
+**Feed post media**
+- `src/components/feed/` post card image renders → thumb
+- Post viewer overlay (`PostViewer*`) → medium
+
+**Profile + gallery photos**
+- Avatar renders across the app (small `<Avatar>` usages) → thumb
+- Profile gallery grid → thumb
+- Profile gallery lightbox → medium or original
+
+Also add `loading="lazy"` and `decoding="async"` on the same `<img>` tags while we're there — costs nothing and helps feed scroll.
+
+## Step 3 — Verify
+
+1. Open the feed, DevTools → Network → Img. Confirm:
+   - URLs contain `/render/image/public/` with `width=` param
+   - Response sizes drop from MBs to ~20–80 KB per thumbnail
+   - Status 200 (not 400 — 400 means the project isn't on Pro)
+2. Click into a post — confirm the larger `medium` variant loads in the viewer.
+3. Check a profile gallery — thumbnails small, lightbox sharp.
+
+## Out of scope (intentionally)
+
+- No edge function, no Sharp, no upload-time processing.
+- No DB schema changes — no `thumbnail_url` columns.
+- Stories, messaging attachments, team posts, and admin surfaces are not changed in this pass. Easy to extend later by reusing the same helper.
+
+## Risk / fallback
+
+If the Supabase project isn't on Pro, `/render/image/` returns 400. In that case we have two options:
+- Upgrade to Pro, or
+- Switch to client-side resize on upload (browser canvas → 400px + 1080px JPEGs stored alongside the original, URLs saved in the row). Larger change — separate plan.
+
+Want me to go ahead and implement Step 1 + Step 2?
