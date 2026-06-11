@@ -363,7 +363,7 @@ export default function Challenges() {
 
       {/* Tabs */}
       <div className="px-4 md:px-6 mb-6">
-        <div className="inline-flex sb-card-soft p-0.5 gap-0.5">
+        <div className="inline-flex sb-card-soft p-0.5 gap-0.5 max-w-full">
           {[
             { key: "live", label: "Live Now", icon: <Flame className="h-3.5 w-3.5" />, count: tabCounts.live },
             { key: "upcoming", label: "Upcoming", count: tabCounts.upcoming },
@@ -372,13 +372,13 @@ export default function Challenges() {
             <button
               key={key}
               onClick={() => setTab(key as TabValue)}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 text-[11px] sm:text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
                 tab === key ? "sb-bg-cyan font-semibold" : "sb-text-muted hover:text-white"
               }`}
             >
               {icon}
               {label}
-              <span className={`ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold ${
+              <span className={`ml-0.5 sm:ml-1 inline-flex items-center justify-center min-w-[16px] h-[16px] sm:min-w-[18px] sm:h-[18px] px-1 rounded-full text-[9px] sm:text-[10px] font-bold ${
                 tab === key ? "bg-[hsl(var(--sb-bg)/0.25)] text-white" : "bg-[hsl(var(--sb-surface-2))] sb-text-muted"
               }`}>
                 {count}
