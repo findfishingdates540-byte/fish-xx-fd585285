@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus, Info, Ruler, Gift, Ticket, ScrollText } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus, Info, Ruler, Gift, Ticket, ScrollText, AlertTriangle } from "lucide-react";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import { getShareBaseUrl } from "@/lib/config";
@@ -535,12 +535,20 @@ export default function ChallengeDetail() {
                   Registered
                 </div>
                 {status === "active" && (
-                  <button
-                    onClick={() => setLogOpen(true)}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
-                  >
-                    <Plus className="h-4 w-4" /> Log Catch for Challenge
-                  </button>
+                  <>
+                    <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-rose-200 leading-relaxed">
+                        Log your catches here inside this challenge to count toward the leaderboard. Catches logged through the regular Log a Catch feature will not be included.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setLogOpen(true)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
+                    >
+                      <Plus className="h-4 w-4" /> Log Catch for Challenge
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={handleLeave}

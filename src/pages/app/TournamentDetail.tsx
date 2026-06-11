@@ -43,6 +43,7 @@ import {
   Zap,
   ChevronRight,
   Plus,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
@@ -622,12 +623,20 @@ const TournamentDetail = () => {
       )}
 
       {isJoined && tournament.status === "in_progress" && (
-        <button
-          onClick={() => setLogCatchOpen(true)}
-          className="w-full mb-4 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
-        >
-          <Plus className="h-4 w-4" /> Log Catch for Tournament
-        </button>
+        <>
+          <div className="mb-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-rose-200 leading-relaxed">
+              Log your catches here inside this tournament to count toward scoring. Catches logged through the regular Log a Catch feature will not be included.
+            </p>
+          </div>
+          <button
+            onClick={() => setLogCatchOpen(true)}
+            className="w-full mb-4 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-bold uppercase tracking-wider sb-bg-cyan hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" /> Log Catch for Tournament
+          </button>
+        </>
       )}
 
       {/* Teams-only notice */}
