@@ -206,25 +206,55 @@ export default function ChallengeDetail() {
   const endISO = c2?.end_date
     ? new Date(new Date(c2.end_date).getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
     : null;
+  const participantUserIds = participants.map((p) => p.user_id);
+  const targetSpeciesId: string | null = c2?.species_id ?? null;
+  const targetSpeciesName: string | null = c2?.target_species_name ?? null;
+  const normalizeSpecies = (s?: string | null) =>
+    (s || "")
+      .toLowerCase()
+      .replace(/[,()]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   const { data: recentCatches = [] } = useQuery({
-    queryKey: ["fishing-challenge-recent-catches", id, c2?.species_id, startISO, endISO],
+    queryKey: [
+      "fishing-challenge-recent-catches",
+      id,
+      targetSpeciesId,
+      targetSpeciesName,
+      startISO,
+      endISO,
+      participantUserIds.join(","),
+    ],
     queryFn: async () => {
-      if (!id || !startISO || !endISO) return [];
+      if (!id || !startISO || !endISO || participantUserIds.length === 0) return [];
       let q = supabase
         .from("catches")
-        .select("id,user_id,species_name,weight_lbs,length_in,caught_at,cover_photo_url,is_verified,approval_status")
-        .eq("challenge_id", id)
+        .select("id,user_id,species_id,species_name,weight_lbs,length_in,caught_at,cover_photo_url,is_verified,approval_status")
+        .in("user_id", participantUserIds)
         .eq("is_private", false)
         .gte("caught_at", startISO)
         .lte("caught_at", endISO)
         .order("caught_at", { ascending: false })
-        .limit(25);
-      if (c2?.species_id) q = q.eq("species_id", c2.species_id);
+        .limit(100);
+      if (targetSpeciesId) q = q.eq("species_id", targetSpeciesId);
       const { data, error } = await q;
       if (error) throw error;
-      return data || [];
+      let rows = data || [];
+      // Filter to challenge species when only a target name is set (mirror scoring logic)
+      if (!targetSpeciesId && targetSpeciesName) {
+        const target = normalizeSpecies(targetSpeciesName);
+        const targetTokens = target.split(" ").filter(Boolean);
+        rows = rows.filter((r: any) => {
+          const n = normalizeSpecies(r.species_name);
+          if (!n) return false;
+          if (n === target) return true;
+          // token-based match so "Bass, Largemouth" matches "Largemouth Bass"
+          return targetTokens.every((t) => n.includes(t));
+        });
+      }
+      return rows.slice(0, 25);
     },
-    enabled: !!id && !!startISO && !!endISO,
+    enabled: !!id && !!startISO && !!endISO && participantUserIds.length > 0,
   });
 
   const handleShare = async () => {
