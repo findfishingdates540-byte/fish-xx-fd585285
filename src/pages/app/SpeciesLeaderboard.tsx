@@ -361,6 +361,11 @@ export default function SpeciesLeaderboardPage() {
                             <span className="font-bold sb-cyan">{entry.largest_weight_lbs.toLocaleString()}</span>
                             <span className="sb-text-muted ml-1">lbs</span>
                           </span>
+                        ) : entry.largest_length_in ? (
+                          <span className="text-sm">
+                            <span className="font-bold sb-cyan">{entry.largest_length_in.toLocaleString()}</span>
+                            <span className="sb-text-muted ml-1">in</span>
+                          </span>
                         ) : (
                           <span className="text-sm sb-text-muted">—</span>
                         )
