@@ -21,6 +21,7 @@ import { useFollowStatus, useFollowUser, useUnfollowUser } from '@/hooks/use-fol
 import { useBookmarkStatus, useToggleBookmark } from '@/hooks/use-bookmarks';
 import { useRepostStatus, useToggleRepost } from '@/hooks/use-reposts';
 import { useCreateStory } from '@/hooks/use-stories';
+import { medium } from '@/lib/image-url';
 import {
   DropdownMenu,
   DropdownMenuContent,
