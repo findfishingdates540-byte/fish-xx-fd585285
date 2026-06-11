@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { SelectableCard } from "@/components/ui/selectable-card";
 import { ImageCropModal } from "@/components/ui/image-crop-modal";
+import { thumb, medium } from "@/lib/image-url";
 import {
   Select,
   SelectContent,
@@ -675,8 +676,10 @@ export default function ProfileEdit() {
           <div className="h-48 md:h-56 rounded-2xl overflow-hidden bg-muted relative group">
             {coverPhoto ? (
               <img
-                src={coverPhoto}
+                src={medium(coverPhoto)}
                 alt="Cover"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -717,8 +720,10 @@ export default function ProfileEdit() {
               <div className="h-32 w-32 rounded-full border-4 border-background overflow-hidden bg-muted">
                 {profilePhoto !== "/placeholder.svg" ? (
                   <img
-                    src={profilePhoto}
+                    src={thumb(profilePhoto)}
                     alt="Profile"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -795,8 +800,10 @@ export default function ProfileEdit() {
                   }`}
                 >
                   <img
-                    src={photo}
+                    src={thumb(photo)}
                     alt={`Photo ${index + 1}`}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover pointer-events-none"
                   />
                   <button

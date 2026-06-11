@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
+import { medium, thumb } from "@/lib/image-url";
 import {
   ArrowLeft,
   Share2,
@@ -265,7 +266,7 @@ export default function CatchDetail() {
           {/* Hero Photo */}
           <div className="relative rounded-xl overflow-hidden bg-muted">
             {heroPhoto ? (
-              <img src={heroPhoto} alt={speciesName} className="w-full h-[300px] md:h-[420px] object-cover" />
+              <img src={medium(heroPhoto)} alt={speciesName} loading="eager" decoding="async" fetchPriority="high" className="w-full h-[300px] md:h-[420px] object-cover" />
             ) : (
               <div className="w-full h-[300px] md:h-[420px] flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
                 <Fish className="h-24 w-24 text-muted-foreground/20" />
@@ -411,8 +412,10 @@ export default function CatchDetail() {
                     className="relative group rounded-lg overflow-hidden bg-muted"
                   >
                     <img
-                      src={item.url}
+                      src={thumb(item.url)}
                       alt={item.label}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-32 object-cover transition-transform group-hover:scale-[1.02]"
                     />
                     <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-white text-[10px] font-semibold uppercase tracking-wider">

@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { thumb, medium } from '@/lib/image-url';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
 import { AccountSwitcherSheet } from '@/components/profile/AccountSwitcherSheet';
@@ -221,7 +222,7 @@ export default function Profile() {
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4">
         <div className="relative h-56 md:h-72 overflow-hidden rounded-3xl">
-          <img src={coverPhoto} alt="Cover" className="w-full h-full object-cover" />
+          <img src={medium(coverPhoto)} alt="Cover" loading="eager" decoding="async" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           
           <div className="absolute inset-x-0 bottom-4 flex flex-col items-center md:flex-row md:items-end md:justify-between px-4 md:px-6 gap-3">
@@ -675,7 +676,7 @@ export default function Profile() {
                       {profile?.photos && profile.photos.length > 0 ? (
                         profile.photos.slice(0, 6).map((photo, index) => (
                           <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                            <img src={photo} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                            <img src={thumb(photo)} alt={`Photo ${index + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           </div>
                         ))
                       ) : (

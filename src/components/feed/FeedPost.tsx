@@ -21,6 +21,7 @@ import { useFollowStatus, useFollowUser, useUnfollowUser } from '@/hooks/use-fol
 import { useBookmarkStatus, useToggleBookmark } from '@/hooks/use-bookmarks';
 import { useRepostStatus, useToggleRepost } from '@/hooks/use-reposts';
 import { useCreateStory } from '@/hooks/use-stories';
+import { medium } from '@/lib/image-url';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -396,7 +397,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
           <div className="relative bg-black min-h-[200px]">
             {allPhotos.length === 1 ? (
               <FeedImage
-                src={allPhotos[0]}
+                src={medium(allPhotos[0])}
                 alt="Post"
                 priority={true}
                 onDoubleClick={() => handleLike()}
@@ -408,7 +409,7 @@ export function FeedPost({ post, isHighlighted = false, autoOpenComments = false
                   {allPhotos.map((photo, index) => (
                     <CarouselItem key={index} className="relative min-h-[200px]">
                       <FeedImage
-                        src={photo}
+                        src={medium(photo)}
                         alt={`Post ${index + 1}`}
                         priority={index === 0}
                         onDoubleClick={() => handleLike()}

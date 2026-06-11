@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/ui/verification-badge';
+import { medium } from '@/lib/image-url';
 import {
   Carousel,
   CarouselContent,
@@ -191,8 +192,10 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
               </div>
             ) : allPhotos.length === 1 ? (
               <img
-                src={allPhotos[0]}
+                src={medium(allPhotos[0])}
                 alt="Post"
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-contain"
                 onDoubleClick={handleLike}
               />
@@ -202,8 +205,10 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   {allPhotos.map((photo, index) => (
                     <CarouselItem key={index} className="h-full pl-0 flex items-center justify-center">
                       <img
-                        src={photo}
+                        src={medium(photo)}
                         alt={`Post ${index + 1}`}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-contain"
                         onDoubleClick={handleLike}
                       />

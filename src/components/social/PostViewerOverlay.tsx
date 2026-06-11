@@ -16,6 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getShareBaseUrl } from '@/lib/config';
+import { thumb } from '@/lib/image-url';
 
 interface PostViewerOverlayProps {
   postId: string;
@@ -378,8 +379,10 @@ export function PostViewerOverlay({ postId, userId, onClose }: PostViewerOverlay
                         ) : (
                           <>
                             <img
-                              src={photos[currentIndex]}
+                              src={thumb(photos[currentIndex])}
                               alt=""
+                              loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover"
                             />
                             {photos.length > 1 && (
