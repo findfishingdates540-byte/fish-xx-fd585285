@@ -175,6 +175,7 @@ export function LogCompetitionCatchModal({ open, onOpenChange, competition }: Pr
           isSubmitting={isSubmitting}
           onSubmit={handleSubmit}
           onDiscard={() => onOpenChange(false)}
+          showScorePreview
         />
       </DialogContent>
     </Dialog>
