@@ -45,6 +45,7 @@ interface LogCatchFormProps {
   isSubmitting: boolean;
   onSubmit: (data: LogCatchFormData) => void;
   onDiscard: () => void;
+  showScorePreview?: boolean;
 }
 
 export interface LogCatchFormData {
@@ -72,7 +73,7 @@ export interface LogCatchFormData {
   is_estimated_size: boolean;
 }
 
-export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
+export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard, showScorePreview = false }: LogCatchFormProps) {
 
   const [formData, setFormData] = useState({
     species_name: "",
