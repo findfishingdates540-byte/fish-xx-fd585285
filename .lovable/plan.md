@@ -1,67 +1,36 @@
-## Goal
+## Why Orca shows catches with no team challenges
 
-Stop loading multi-MB originals in the feed, profile gallery, and catch photos. Use **Supabase Storage Image Transformations** to request a CDN-cached, resized variant of the image already in storage — no re-uploads, no extra tables.
+On the team profile, the "team catches / weight / top species" stats are built by querying every catch logged by any team member — personal or otherwise:
 
-Requires the project to be on **Supabase Pro** (transformations are a paid-tier feature). If we're not on Pro, the URLs will 400 and we'll need the alternate approach.
-
-## How it works
-
-Supabase exposes a render endpoint:
-
-```
-/storage/v1/render/image/public/<bucket>/<path>?width=400&height=400&resize=cover&quality=75
+```ts
+// src/pages/app/TeamProfile.tsx
+supabase.from("catches").select("...").in("user_id", memberUserIds)
 ```
 
-The first request generates and caches the variant on the CDN; subsequent requests are instant. We never need to store variant URLs — the URL is the variant.
+So any personal catch logged through the regular Log a Catch flow by a member counts toward the team. That's why Orca shows totals even though the team hasn't entered any team challenge or tournament yet.
 
-## Step 1 — Build a helper
+## How catches are actually attributed today
 
-Add `src/lib/image-url.ts`:
+The `catches` table has `challenge_id` and `tournament_id` but no `team_id`. A catch becomes "team-related" only when:
+- it was logged inside a tournament whose `tournament_participants` row links the user's team, or
+- it was logged inside a challenge where `challenge_participants.team_id` matches the team.
 
-- `getTransformedUrl(originalUrl, { width, height, quality, resize })` — rewrites any `…/storage/v1/object/public/<bucket>/<path>` URL into the matching `…/storage/v1/render/image/public/<bucket>/<path>?…` URL. Falls through unchanged for non-Supabase URLs (external CDN images, blob:, data:).
-- `thumb(url)` → 400px wide, q=70 (feed cards, grids, avatars)
-- `medium(url)` → 1080px wide, q=80 (single-post viewer, lightbox preview)
-- Original URL stays untouched for full-screen views and downloads.
+There is no team-specific "Log a Catch" entry point — team contribution is always derived from team-affiliated challenge/tournament participation.
 
-## Step 2 — Wire it into the three target surfaces
+## Proposed fix
 
-Replace `<img src={url}>` with `<img src={thumb(url)}>` (or `medium`) at these render sites only — no upload or DB changes:
+Change team stats to only count catches that are actually tied to that team's competition activity.
 
-**Catch photos (feed + profile)**
-- `src/pages/app/Catches.tsx` (grid) → thumb
-- `src/pages/app/CatchDetail.tsx` (hero) → medium
-- Any `CatchCard` / catch thumbnail components rendered from these pages
+1. **Update the `team-stats` query in `src/pages/app/TeamProfile.tsx`** to:
+   - Pull tournament ids where this team is a participant (`tournament_participants.team_id = teamId`).
+   - Pull challenge ids where this team is registered (`challenge_participants.team_id = teamId`).
+   - Query `catches` for member `user_id`s AND (`tournament_id IN (...)` OR `challenge_id IN (...)`).
+   - If both lists are empty, return zeros immediately.
+2. **Add a small helper label** under the stats block: "Counts catches logged inside team tournaments and challenges." So users understand the rule.
+3. **Add a red info notice on TeamProfile** (matching the red banner pattern just added to ChallengeDetail / TournamentDetail) explaining: personal Log-a-Catch entries do not count toward the team; to contribute, log catches inside a tournament or challenge the team is registered for.
 
-**Feed post media**
-- `src/components/feed/` post card image renders → thumb
-- Post viewer overlay (`PostViewer*`) → medium
+No schema changes, no migrations. Frontend-only.
 
-**Profile + gallery photos**
-- Avatar renders across the app (small `<Avatar>` usages) → thumb
-- Profile gallery grid → thumb
-- Profile gallery lightbox → medium or original
+## Out of scope (call out, don't build)
 
-Also add `loading="lazy"` and `decoding="async"` on the same `<img>` tags while we're there — costs nothing and helps feed scroll.
-
-## Step 3 — Verify
-
-1. Open the feed, DevTools → Network → Img. Confirm:
-   - URLs contain `/render/image/public/` with `width=` param
-   - Response sizes drop from MBs to ~20–80 KB per thumbnail
-   - Status 200 (not 400 — 400 means the project isn't on Pro)
-2. Click into a post — confirm the larger `medium` variant loads in the viewer.
-3. Check a profile gallery — thumbnails small, lightbox sharp.
-
-## Out of scope (intentionally)
-
-- No edge function, no Sharp, no upload-time processing.
-- No DB schema changes — no `thumbnail_url` columns.
-- Stories, messaging attachments, team posts, and admin surfaces are not changed in this pass. Easy to extend later by reusing the same helper.
-
-## Risk / fallback
-
-If the Supabase project isn't on Pro, `/render/image/` returns 400. In that case we have two options:
-- Upgrade to Pro, or
-- Switch to client-side resize on upload (browser canvas → 400px + 1080px JPEGs stored alongside the original, URLs saved in the row). Larger change — separate plan.
-
-Want me to go ahead and implement Step 1 + Step 2?
+- Adding a dedicated "Log catch for team" flow outside of challenges/tournaments — current product model attributes team contribution via team-entered competitions only. Happy to design that as a follow-up if you want a standalone team logbook.

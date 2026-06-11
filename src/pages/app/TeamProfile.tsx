@@ -97,10 +97,23 @@ export default function TeamProfile() {
     queryKey: ["team-stats", teamId, memberUserIds.join(",")],
     queryFn: async () => {
       if (memberUserIds.length === 0) return { totalCatches: 0, totalWeight: 0, topSpecies: null };
+      const [tournamentsRes, challengesRes] = await Promise.all([
+        supabase.from("tournament_participants").select("tournament_id").eq("team_id", teamId),
+        supabase.from("challenge_participants").select("challenge_id").eq("team_id", teamId),
+      ]);
+      const tournamentIds = (tournamentsRes.data || []).map((r: any) => r.tournament_id).filter(Boolean);
+      const challengeIds = (challengesRes.data || []).map((r: any) => r.challenge_id).filter(Boolean);
+      if (tournamentIds.length === 0 && challengeIds.length === 0) {
+        return { totalCatches: 0, totalWeight: 0, topSpecies: null };
+      }
+      const orParts: string[] = [];
+      if (tournamentIds.length) orParts.push(`tournament_id.in.(${tournamentIds.join(",")})`);
+      if (challengeIds.length) orParts.push(`challenge_id.in.(${challengeIds.join(",")})`);
       const { data } = await supabase
         .from("catches")
         .select("id, weight_lbs, species_name")
-        .in("user_id", memberUserIds);
+        .in("user_id", memberUserIds)
+        .or(orParts.join(","));
       const catches = data || [];
       const totalWeight = catches.reduce((sum, c) => sum + (Number(c.weight_lbs) || 0), 0);
       const speciesCounts: Record<string, number> = {};

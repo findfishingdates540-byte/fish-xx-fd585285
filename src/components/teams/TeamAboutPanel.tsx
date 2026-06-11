@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Fish, Info, Target, Trophy, Calendar, MapPin, Lock } from "lucide-react";
+import { AlertTriangle, BarChart3, Fish, Info, Target, Trophy, Calendar, MapPin, Lock } from "lucide-react";
 
 interface Props {
   team: any;
@@ -17,10 +17,24 @@ export function TeamAboutPanel({ team, memberUserIds, memberCount }: Props) {
     queryKey: ["team-stats", team.id, memberUserIds.join(",")],
     enabled: memberUserIds.length > 0,
     queryFn: async () => {
+      // Only count catches tied to competitions the team is actually entered in.
+      const [tournamentsRes, challengesRes] = await Promise.all([
+        supabase.from("tournament_participants").select("tournament_id").eq("team_id", team.id),
+        supabase.from("challenge_participants").select("challenge_id").eq("team_id", team.id),
+      ]);
+      const tournamentIds = (tournamentsRes.data || []).map((r: any) => r.tournament_id).filter(Boolean);
+      const challengeIds = (challengesRes.data || []).map((r: any) => r.challenge_id).filter(Boolean);
+      if (tournamentIds.length === 0 && challengeIds.length === 0) {
+        return { totalCatches: 0, totalWeight: 0, topSpecies: null as string | null };
+      }
+      const orParts: string[] = [];
+      if (tournamentIds.length) orParts.push(`tournament_id.in.(${tournamentIds.join(",")})`);
+      if (challengeIds.length) orParts.push(`challenge_id.in.(${challengeIds.join(",")})`);
       const { data } = await supabase
         .from("catches")
         .select("id, weight_lbs, species_name")
-        .in("user_id", memberUserIds);
+        .in("user_id", memberUserIds)
+        .or(orParts.join(","));
       const catches = data || [];
       const totalWeight = catches.reduce((sum, c: any) => sum + (Number(c.weight_lbs) || 0), 0);
       const speciesCounts: Record<string, number> = {};
@@ -83,6 +97,17 @@ export function TeamAboutPanel({ team, memberUserIds, memberCount }: Props) {
           <p className="text-lg font-bold truncate text-sm">{teamStats.topSpecies || "—"}</p>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Top Species</p>
         </div>
+      </div>
+      <p className="text-[11px] text-muted-foreground -mt-3 text-center">
+        Counts catches logged inside tournaments and challenges this team has entered.
+      </p>
+
+      {/* Notice: how to contribute team catches */}
+      <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 flex items-start gap-2">
+        <AlertTriangle className="h-4 w-4 text-rose-500 mt-0.5 shrink-0" />
+        <p className="text-xs text-foreground/90">
+          Catches logged through the regular Log a Catch feature do <span className="font-semibold">not</span> count toward this team. To contribute, log catches inside a tournament or challenge the team is registered for.
+        </p>
       </div>
 
       <div className="rounded-xl border bg-primary/5 p-5 text-center">
