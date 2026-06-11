@@ -486,6 +486,15 @@ function CatchCard({ catchData, onDelete, onUpdated, species, formatDate, spots 
         {catchData.notes && (
           <p className="text-sm text-muted-foreground line-clamp-2">{catchData.notes}</p>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full mt-3"
+          onClick={() => setIsEditing(true)}
+        >
+          <Pencil className="h-4 w-4 mr-2" />
+          Edit catch
+        </Button>
       </div>
       <EditCatchDialog
         open={isEditing}
