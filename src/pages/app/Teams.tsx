@@ -193,7 +193,7 @@ export default function Teams() {
     sortBy === "newest" ? "Newest" : sortBy === "members" ? "Most members" : "Most active";
 
   return (
-    <div className="scoreboard-hub min-h-[100dvh] -mx-4 md:-mx-0 pb-32">
+    <div className="scoreboard-hub min-h-[100dvh] pb-32 overflow-x-hidden">
       <div className="lg:grid lg:grid-cols-[260px_1fr]">
         <TeamsSidebar />
         <div className="min-w-0 max-w-6xl mx-auto w-full px-4 md:px-6 pt-5 md:pt-8">
@@ -218,9 +218,11 @@ export default function Teams() {
           </div>
           <Button
             onClick={() => navigate("/app/teams/new")}
-            className="sb-bg-cyan border-0 hover:opacity-90 gap-1.5 shrink-0 rounded-xl h-11 px-5 font-semibold"
+            className="sb-bg-cyan border-0 hover:opacity-90 gap-1.5 shrink-0 rounded-xl h-11 px-3 sm:px-5 font-semibold"
           >
-            <Plus className="h-4 w-4" /> Create team
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Create team</span>
+            <span className="sm:hidden">Create</span>
           </Button>
         </div>
 
@@ -419,7 +421,7 @@ export default function Teams() {
                           </p>
                         )}
 
-                        <div className="flex items-center gap-4 mt-4 text-[11px]">
+                        <div className="flex items-center gap-3 sm:gap-4 mt-4 text-[11px] flex-wrap">
                           <span className="flex items-center gap-1.5">
                             <Fish className="h-3.5 w-3.5 sb-cyan" />
                             <span className="font-semibold">{team.catchCount}</span>
