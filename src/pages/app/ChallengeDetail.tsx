@@ -859,13 +859,7 @@ export default function ChallengeDetail() {
                             {ago}
                           </p>
                         </div>
-                        {rc.is_verified ? (
-                          <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-                        ) : (
-                          <span className="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
-                            Pending
-                          </span>
-                        )}
+                        <ApprovalBadge status={rc.approval_status} />
                       </button>
                     );
                   })}
