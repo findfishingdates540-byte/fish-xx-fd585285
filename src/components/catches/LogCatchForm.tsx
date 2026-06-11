@@ -45,6 +45,7 @@ interface LogCatchFormProps {
   isSubmitting: boolean;
   onSubmit: (data: LogCatchFormData) => void;
   onDiscard: () => void;
+  showScorePreview?: boolean;
 }
 
 export interface LogCatchFormData {
@@ -72,7 +73,7 @@ export interface LogCatchFormData {
   is_estimated_size: boolean;
 }
 
-export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard }: LogCatchFormProps) {
+export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard, showScorePreview = false }: LogCatchFormProps) {
 
   const [formData, setFormData] = useState({
     species_name: "",
@@ -415,6 +416,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
             )}
           </div>
 
+          {showScorePreview && (
           <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 flex items-center justify-between">
             <div>
               <div className="text-xs uppercase tracking-wider text-primary/80 font-semibold flex items-center gap-1.5">
@@ -437,6 +439,7 @@ export function LogCatchForm({ species, spots, isSubmitting, onSubmit, onDiscard
               )}
             </div>
           </div>
+          )}
 
           <div>
             <Label className="text-sm font-semibold mb-2 block">Body of Water</Label>
