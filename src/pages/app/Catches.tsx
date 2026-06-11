@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { LogCatchForm, type LogCatchFormData } from "@/components/catches/LogCatchForm";
 import { EditCatchDialog } from "@/components/catches/EditCatchDialog";
 import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
+import { thumb } from "@/lib/image-url";
 import {
   Plus,
   Fish,
@@ -409,7 +410,7 @@ function CatchCard({ catchData, onDelete, onUpdated, species, formatDate, spots 
     <div className="rounded-xl border overflow-hidden bg-background">
       <div className="relative h-48 bg-muted">
         {displayPhoto ? (
-          <img src={displayPhoto} alt={catchData.species_name || "Catch"} className="w-full h-full object-cover" />
+          <img src={thumb(displayPhoto)} alt={catchData.species_name || "Catch"} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Fish className="h-12 w-12 text-muted-foreground" />
