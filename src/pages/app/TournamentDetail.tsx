@@ -43,6 +43,7 @@ import {
   Zap,
   ChevronRight,
   Plus,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus, Info, Ruler, Gift, Ticket, ScrollText } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, Trophy, Users, Fish, Share2, CheckCircle2, ShieldCheck, Activity, Crown, Plus, Info, Ruler, Gift, Ticket, ScrollText, AlertTriangle } from "lucide-react";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import { getShareBaseUrl } from "@/lib/config";
