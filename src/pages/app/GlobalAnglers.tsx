@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Trophy, Medal, Fish, Scale, Crown } from "lucide-react";
+import { ArrowLeft, Search, Trophy, Medal, Fish, Scale, Crown, X } from "lucide-react";
 
 interface AnglerRow {
   user_id: string;
@@ -33,15 +33,36 @@ const GlobalAnglers = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"points" | "catches" | "biggest" | "species">("points");
+  const [speciesId, setSpeciesId] = useState<string | "all">("all");
+  const [speciesQuery, setSpeciesQuery] = useState("");
+
+  // Load species list for the filter
+  const { data: speciesList = [] } = useQuery({
+    queryKey: ["global-anglers-species-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("fish_species")
+        .select("id, name, image_url")
+        .order("name", { ascending: true })
+        .limit(1000);
+      return (data || []) as { id: string; name: string; image_url: string | null }[];
+    },
+  });
+  const selectedSpecies = useMemo(
+    () => speciesList.find((s) => s.id === speciesId) || null,
+    [speciesList, speciesId],
+  );
 
   // Aggregate every angler from leaderboard_entries (one row per user/species).
   const { data: anglers = [], isLoading } = useQuery({
-    queryKey: ["global-anglers-full"],
+    queryKey: ["global-anglers-full", speciesId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("leaderboard_entries")
         .select("user_id, species_id, total_caught, total_released, largest_weight_lbs")
         .limit(5000);
+      if (speciesId !== "all") q = q.eq("species_id", speciesId);
+      const { data, error } = await q;
       if (error) throw error;
       const map = new Map<string, AnglerRow>();
       (data || []).forEach((e: any) => {
@@ -65,12 +86,14 @@ const GlobalAnglers = () => {
       // Layer in real points from verified catches
       const userIds = rows.map((r) => r.user_id);
       if (userIds.length > 0) {
-        const { data: scored } = await supabase
+        let sq = supabase
           .from("catches")
-          .select("user_id, computed_score")
+          .select("user_id, computed_score, species_id")
           .in("user_id", userIds)
           .not("computed_score", "is", null)
           .limit(5000);
+        if (speciesId !== "all") sq = sq.eq("species_id", speciesId);
+        const { data: scored } = await sq;
         const pts = new Map<string, number>();
         (scored || []).forEach((c: any) => {
           pts.set(c.user_id, (pts.get(c.user_id) || 0) + (Number(c.computed_score) || 0));
@@ -146,6 +169,72 @@ const GlobalAnglers = () => {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
+        {/* Species filter */}
+        <div className="sb-card p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider sb-text-muted flex items-center gap-1.5">
+              <Fish className="h-3.5 w-3.5 sb-cyan" />
+              Filter by species
+            </p>
+            {selectedSpecies && (
+              <button
+                onClick={() => { setSpeciesId("all"); setSpeciesQuery(""); }}
+                className="inline-flex items-center gap-1 text-[11px] sb-text-muted hover:text-foreground"
+              >
+                <X className="h-3 w-3" /> Clear
+              </button>
+            )}
+          </div>
+          {selectedSpecies ? (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-[hsl(var(--sb-surface-2))]">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-[hsl(var(--sb-surface))] flex items-center justify-center shrink-0">
+                {selectedSpecies.image_url ? (
+                  <img src={selectedSpecies.image_url} alt={selectedSpecies.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Fish className="h-4 w-4 sb-text-muted" />
+                )}
+              </div>
+              <p className="text-sm font-semibold flex-1 truncate">{selectedSpecies.name}</p>
+              <Badge className="sb-bg-cyan border-0 text-[hsl(var(--sb-surface))] text-[10px]">Active</Badge>
+            </div>
+          ) : (
+            <>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sb-text-muted" />
+                <Input
+                  value={speciesQuery}
+                  onChange={(e) => setSpeciesQuery(e.target.value)}
+                  placeholder="Search species…"
+                  className="pl-9 h-9 text-sm sb-card border-0 bg-[hsl(var(--sb-surface-2))] focus-visible:ring-[hsl(var(--sb-cyan))]"
+                />
+              </div>
+              {speciesQuery && (
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {speciesList
+                    .filter((s) => s.name.toLowerCase().includes(speciesQuery.toLowerCase()))
+                    .slice(0, 12)
+                    .map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => { setSpeciesId(s.id); setSpeciesQuery(""); }}
+                        className="w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-[hsl(var(--sb-surface-2))] text-left"
+                      >
+                        <div className="w-6 h-6 rounded-full overflow-hidden bg-[hsl(var(--sb-surface-2))] flex items-center justify-center shrink-0">
+                          {s.image_url ? (
+                            <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Fish className="h-3 w-3 sb-text-muted" />
+                          )}
+                        </div>
+                        <span className="text-xs">{s.name}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted" />
