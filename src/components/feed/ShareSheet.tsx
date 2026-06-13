@@ -129,6 +129,38 @@ export const ShareSheet: FC<ShareSheetProps> = ({
     onClose();
   };
 
+  const openShare = (channel: string, url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+    void recordShare(channel);
+    onClose();
+  };
+
+  const encodedUrl = encodeURIComponent(shareUrl);
+  const encodedTitle = encodeURIComponent(shareTitle);
+  const encodedText = encodeURIComponent(shareText || shareTitle);
+  const encodedCombined = encodeURIComponent(`${shareText || shareTitle} ${shareUrl}`);
+
+  const handleFacebookShare = () =>
+    openShare('facebook', `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`);
+  const handleMessengerShare = () =>
+    openShare('messenger', `https://www.facebook.com/dialog/send?link=${encodedUrl}&app_id=291494419107518&redirect_uri=${encodedUrl}`);
+  const handleTwitterShare = () =>
+    openShare('twitter', `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`);
+  const handleTelegramShare = () =>
+    openShare('telegram', `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`);
+  const handleLinkedInShare = () =>
+    openShare('linkedin', `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`);
+  const handleRedditShare = () =>
+    openShare('reddit', `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`);
+  const handlePinterestShare = () =>
+    openShare('pinterest', `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedText}`);
+  const handleEmailShare = () =>
+    openShare('email', `mailto:?subject=${encodedTitle}&body=${encodedCombined}`);
+  const handleSmsShare = () =>
+    openShare('sms', `sms:?&body=${encodedCombined}`);
+  const handleSnapchatShare = () =>
+    openShare('snapchat', `https://www.snapchat.com/scan?attachmentUrl=${encodedUrl}`);
+
   const toggleUserSelection = (userId: string) => {
     setSelectedUsers(prev => 
       prev.includes(userId) 
