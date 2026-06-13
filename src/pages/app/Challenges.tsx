@@ -111,6 +111,7 @@ export default function Challenges() {
       const { data, error } = await supabase
         .from("fishing_challenges")
         .select("*")
+        .eq("is_championship", false)
         .order("start_date", { ascending: false });
       if (error) throw error;
       return data || [];
