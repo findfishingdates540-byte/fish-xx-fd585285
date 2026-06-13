@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Award, Medal } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Timeframe = "all" | "year" | "month";
 type MethodFilter = "all" | "shore" | "surf" | "kayak" | "pier" | "flats" | "private_offshore" | "charter";
@@ -100,11 +101,11 @@ export default function PointsLeaderboard() {
       </div>
 
       {/* Filters */}
-      <div className="space-y-2 mb-4">
-        <TabRow options={TIMEFRAMES} value={timeframe} onChange={(v) => setTimeframe(v as Timeframe)} />
-        <TabRow options={METHODS} value={method} onChange={(v) => setMethod(v as MethodFilter)} />
-        <TabRow options={WATERS} value={water} onChange={(v) => setWater(v as WaterFilter)} />
-      </div>
+      <FilterBar
+        timeframe={timeframe} setTimeframe={setTimeframe}
+        method={method} setMethod={setMethod}
+        water={water} setWater={setWater}
+      />
 
       <div className="sb-card overflow-hidden">
         <div className="hidden sm:grid grid-cols-[60px_1fr_100px_120px] gap-2 px-4 py-2.5 bg-[hsl(var(--sb-surface-2))] text-[10px] sb-text-muted uppercase tracking-widest font-semibold">
@@ -145,22 +146,47 @@ export default function PointsLeaderboard() {
   );
 }
 
-function TabRow({ options, value, onChange }: { options: { key: string; label: string }[]; value: string; onChange: (v: string) => void }) {
+function FilterBar({
+  timeframe, setTimeframe, method, setMethod, water, setWater,
+}: {
+  timeframe: Timeframe; setTimeframe: (v: Timeframe) => void;
+  method: MethodFilter; setMethod: (v: MethodFilter) => void;
+  water: WaterFilter; setWater: (v: WaterFilter) => void;
+}) {
+  const dirty = timeframe !== "all" || method !== "all" || water !== "all";
+  const triggerCls = "h-9 text-xs font-semibold bg-[hsl(var(--sb-surface))] border-[hsl(var(--sb-border))] hover:bg-[hsl(var(--sb-surface-2))]";
   return (
-    <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1">
-      {options.map((o) => (
+    <div className="flex flex-wrap items-center gap-2 mb-4">
+      <Select value={timeframe} onValueChange={(v) => setTimeframe(v as Timeframe)}>
+        <SelectTrigger className={`${triggerCls} w-[130px]`}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {TIMEFRAMES.map((o) => <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Select value={method} onValueChange={(v) => setMethod(v as MethodFilter)}>
+        <SelectTrigger className={`${triggerCls} w-[160px]`}>
+          <span className="truncate">Method: {METHODS.find((m) => m.key === method)?.label.replace(/^All Methods$/, "All")}</span>
+        </SelectTrigger>
+        <SelectContent>
+          {METHODS.map((o) => <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Select value={water} onValueChange={(v) => setWater(v as WaterFilter)}>
+        <SelectTrigger className={`${triggerCls} w-[150px]`}>
+          <span className="truncate">Water: {WATERS.find((w) => w.key === water)?.label.replace(/^All Water$/, "All")}</span>
+        </SelectTrigger>
+        <SelectContent>
+          {WATERS.map((o) => <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      {dirty && (
         <button
-          key={o.key}
-          onClick={() => onChange(o.key)}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold border sb-border whitespace-nowrap transition-colors ${
-            value === o.key
-              ? "sb-bg-cyan text-[hsl(var(--sb-surface))] border-transparent"
-              : "bg-[hsl(var(--sb-surface))] sb-text-muted hover:bg-[hsl(var(--sb-surface-2))] hover:text-foreground"
-          }`}
+          onClick={() => { setTimeframe("all"); setMethod("all"); setWater("all"); }}
+          className="text-xs sb-text-muted hover:text-foreground underline ml-auto"
         >
-          {o.label}
+          Reset
         </button>
-      ))}
+      )}
     </div>
   );
 }
