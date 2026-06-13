@@ -169,6 +169,72 @@ const GlobalAnglers = () => {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
+        {/* Species filter */}
+        <div className="sb-card p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider sb-text-muted flex items-center gap-1.5">
+              <Fish className="h-3.5 w-3.5 sb-cyan" />
+              Filter by species
+            </p>
+            {selectedSpecies && (
+              <button
+                onClick={() => { setSpeciesId("all"); setSpeciesQuery(""); }}
+                className="inline-flex items-center gap-1 text-[11px] sb-text-muted hover:text-foreground"
+              >
+                <X className="h-3 w-3" /> Clear
+              </button>
+            )}
+          </div>
+          {selectedSpecies ? (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-[hsl(var(--sb-surface-2))]">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-[hsl(var(--sb-surface))] flex items-center justify-center shrink-0">
+                {selectedSpecies.image_url ? (
+                  <img src={selectedSpecies.image_url} alt={selectedSpecies.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Fish className="h-4 w-4 sb-text-muted" />
+                )}
+              </div>
+              <p className="text-sm font-semibold flex-1 truncate">{selectedSpecies.name}</p>
+              <Badge className="sb-bg-cyan border-0 text-[hsl(var(--sb-surface))] text-[10px]">Active</Badge>
+            </div>
+          ) : (
+            <>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sb-text-muted" />
+                <Input
+                  value={speciesQuery}
+                  onChange={(e) => setSpeciesQuery(e.target.value)}
+                  placeholder="Search species…"
+                  className="pl-9 h-9 text-sm sb-card border-0 bg-[hsl(var(--sb-surface-2))] focus-visible:ring-[hsl(var(--sb-cyan))]"
+                />
+              </div>
+              {speciesQuery && (
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {speciesList
+                    .filter((s) => s.name.toLowerCase().includes(speciesQuery.toLowerCase()))
+                    .slice(0, 12)
+                    .map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => { setSpeciesId(s.id); setSpeciesQuery(""); }}
+                        className="w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-[hsl(var(--sb-surface-2))] text-left"
+                      >
+                        <div className="w-6 h-6 rounded-full overflow-hidden bg-[hsl(var(--sb-surface-2))] flex items-center justify-center shrink-0">
+                          {s.image_url ? (
+                            <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Fish className="h-3 w-3 sb-text-muted" />
+                          )}
+                        </div>
+                        <span className="text-xs">{s.name}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sb-text-muted" />
