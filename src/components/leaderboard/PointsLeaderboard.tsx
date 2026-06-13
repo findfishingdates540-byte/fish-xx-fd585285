@@ -49,7 +49,6 @@ export default function PointsLeaderboard() {
         .from("catches")
         .select("user_id, computed_score, catch_method, caught_at, is_verified, species:fish_species(water_type)")
         .not("computed_score", "is", null)
-        .eq("is_verified", true)
         .limit(2000);
 
       if (timeframe !== "all") {
