@@ -898,6 +898,121 @@ export type Database = {
           },
         ]
       }
+      championship_species_tiers: {
+        Row: {
+          championship_id: string
+          created_at: string
+          id: string
+          points: number
+          species_id: string | null
+          species_name: string
+          tier: string
+        }
+        Insert: {
+          championship_id: string
+          created_at?: string
+          id?: string
+          points?: number
+          species_id?: string | null
+          species_name: string
+          tier: string
+        }
+        Update: {
+          championship_id?: string
+          created_at?: string
+          id?: string
+          points?: number
+          species_id?: string | null
+          species_name?: string
+          tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "championship_species_tiers_championship_id_fkey"
+            columns: ["championship_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "championship_species_tiers_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "fish_species"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      championship_teams: {
+        Row: {
+          calcutta_paid: boolean
+          calcutta_paid_at: string | null
+          championship_id: string
+          created_at: string
+          distinct_species: number
+          final_placement: number | null
+          id: string
+          qualifying_catches: number
+          registered_by: string
+          stripe_session_id: string | null
+          team_id: string
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          calcutta_paid?: boolean
+          calcutta_paid_at?: string | null
+          championship_id: string
+          created_at?: string
+          distinct_species?: number
+          final_placement?: number | null
+          id?: string
+          qualifying_catches?: number
+          registered_by: string
+          stripe_session_id?: string | null
+          team_id: string
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          calcutta_paid?: boolean
+          calcutta_paid_at?: string | null
+          championship_id?: string
+          created_at?: string
+          distinct_species?: number
+          final_placement?: number | null
+          id?: string
+          qualifying_catches?: number
+          registered_by?: string
+          stripe_session_id?: string | null
+          team_id?: string
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "championship_teams_championship_id_fkey"
+            columns: ["championship_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "championship_teams_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "fishing_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "championship_teams_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_team_round_scores"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
       escrow_transactions: {
         Row: {
           amount: number
@@ -1299,15 +1414,21 @@ export type Database = {
       }
       fishing_challenges: {
         Row: {
+          banner_url: string | null
+          best_n_catches: number
+          calcutta_entry_fee: number
+          calcutta_payout_split: Json
           challenge_type: Database["public"]["Enums"]["challenge_type"]
           created_at: string
           created_by: string
           description: string | null
+          diversity_bonuses: Json
           end_date: string
           entry_fee: number
           entry_fee_enabled: boolean
           id: string
           is_admin_funded: boolean
+          is_championship: boolean
           is_junior_only: boolean
           is_official: boolean
           platform_fee_percent: number
@@ -1323,15 +1444,21 @@ export type Database = {
           winner_id: string | null
         }
         Insert: {
+          banner_url?: string | null
+          best_n_catches?: number
+          calcutta_entry_fee?: number
+          calcutta_payout_split?: Json
           challenge_type?: Database["public"]["Enums"]["challenge_type"]
           created_at?: string
           created_by: string
           description?: string | null
+          diversity_bonuses?: Json
           end_date: string
           entry_fee?: number
           entry_fee_enabled?: boolean
           id?: string
           is_admin_funded?: boolean
+          is_championship?: boolean
           is_junior_only?: boolean
           is_official?: boolean
           platform_fee_percent?: number
@@ -1347,15 +1474,21 @@ export type Database = {
           winner_id?: string | null
         }
         Update: {
+          banner_url?: string | null
+          best_n_catches?: number
+          calcutta_entry_fee?: number
+          calcutta_payout_split?: Json
           challenge_type?: Database["public"]["Enums"]["challenge_type"]
           created_at?: string
           created_by?: string
           description?: string | null
+          diversity_bonuses?: Json
           end_date?: string
           entry_fee?: number
           entry_fee_enabled?: boolean
           id?: string
           is_admin_funded?: boolean
+          is_championship?: boolean
           is_junior_only?: boolean
           is_official?: boolean
           platform_fee_percent?: number
@@ -4816,6 +4949,10 @@ export type Database = {
         Args: { _body: string; _data: Json; _title: string }
         Returns: undefined
       }
+      finalize_championship_calcutta: {
+        Args: { p_championship_id: string }
+        Returns: Json
+      }
       get_birthday_buddies: {
         Args: { p_user_id: string }
         Returns: {
@@ -4988,6 +5125,10 @@ export type Database = {
       }
       is_user_minor: { Args: { _user_id: string }; Returns: boolean }
       normalize_species_label: { Args: { p_name: string }; Returns: string }
+      recalc_championship_scores: {
+        Args: { p_championship_id: string }
+        Returns: undefined
+      }
       recalc_fishing_challenge_scores: {
         Args: { p_challenge_id: string }
         Returns: undefined
@@ -5005,6 +5146,15 @@ export type Database = {
       refresh_leaderboard_entries: {
         Args: { p_species_id?: string }
         Returns: undefined
+      }
+      score_championship_catch: {
+        Args: {
+          p_championship_id: string
+          p_species_id: string
+          p_species_name: string
+          p_trophy_level: string
+        }
+        Returns: number
       }
       search_users: {
         Args: { p_limit?: number; p_query: string }

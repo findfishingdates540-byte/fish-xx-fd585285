@@ -27,6 +27,7 @@ type Row = {
   challenge_id: string | null;
   tournament_id: string | null;
   species_id: string | null;
+  trophy_level?: string | null;
   user: { id: string; display_name: string | null; photos: string[] | null } | null;
   challenge: { id: string; title: string } | null;
   tournament: { id: string; title: string } | null;
@@ -38,6 +39,7 @@ export default function AdminCompetitionCatches() {
   const [rejecting, setRejecting] = useState<Row | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [preview, setPreview] = useState<{ row: Row; index: number } | null>(null);
+  const [trophyTier, setTrophyTier] = useState<Record<string, 'standard' | 'large' | 'trophy'>>({});
   const qc = useQueryClient();
   const { user } = useAuth();
 
@@ -48,7 +50,7 @@ export default function AdminCompetitionCatches() {
       const { data, error } = await supabase
         .from('catches')
         .select(`
-          id, species_name, weight_lbs, length_in, cover_photo_url, measurement_photo_url,
+          id, species_name, weight_lbs, length_in, cover_photo_url, measurement_photo_url, trophy_level,
           general_location, caught_at, created_at, approval_status, approval_notes,
           challenge_id, tournament_id, species_id,
           user:profiles!catches_user_id_fkey(id, display_name, photos),
@@ -64,8 +66,44 @@ export default function AdminCompetitionCatches() {
     },
   });
 
+  // Map of championship challenge_id -> set of premium species (id or lowercased name)
+  const challengeIds = Array.from(new Set(rows.map((r) => r.challenge_id).filter(Boolean))) as string[];
+  const { data: championshipPremium = {} } = useQuery({
+    queryKey: ['admin-championship-premium-map', challengeIds.join(',')],
+    enabled: challengeIds.length > 0,
+    queryFn: async () => {
+      const { data: champs } = await supabase
+        .from('fishing_challenges')
+        .select('id, is_championship')
+        .in('id', challengeIds);
+      const champIds = (champs || []).filter((c: any) => c.is_championship).map((c: any) => c.id);
+      if (champIds.length === 0) return {};
+      const { data: tiers } = await supabase
+        .from('championship_species_tiers')
+        .select('championship_id, species_id, species_name, tier')
+        .in('championship_id', champIds);
+      const map: Record<string, Set<string>> = {};
+      (tiers || []).forEach((t: any) => {
+        if (t.tier !== 'premium') return;
+        map[t.championship_id] = map[t.championship_id] || new Set();
+        if (t.species_id) map[t.championship_id].add(t.species_id);
+        if (t.species_name) map[t.championship_id].add((t.species_name as string).toLowerCase());
+      });
+      return map as Record<string, Set<string>>;
+    },
+  });
+
+  const isPremiumShark = (r: Row) => {
+    if (!r.challenge_id) return false;
+    const set = (championshipPremium as Record<string, Set<string>>)[r.challenge_id];
+    if (!set) return false;
+    if (r.species_id && set.has(r.species_id)) return true;
+    if (r.species_name && set.has(r.species_name.toLowerCase())) return true;
+    return false;
+  };
+
   const decide = useMutation({
-    mutationFn: async ({ id, status, notes, speciesId }: { id: string; status: 'approved' | 'rejected'; notes?: string; speciesId?: string | null }) => {
+    mutationFn: async ({ id, status, notes, speciesId, trophy }: { id: string; status: 'approved' | 'rejected'; notes?: string; speciesId?: string | null; trophy?: 'standard' | 'large' | 'trophy' | null }) => {
       const { error } = await supabase
         .from('catches')
         .update({
@@ -74,6 +112,7 @@ export default function AdminCompetitionCatches() {
           approved_by: user?.id || null,
           approved_at: new Date().toISOString(),
           is_verified: status === 'approved',
+          ...(trophy ? { trophy_level: trophy } : {}),
         } as any)
         .eq('id', id);
       if (error) throw error;
@@ -176,10 +215,33 @@ export default function AdminCompetitionCatches() {
                       )}
                       {tab === 'pending' && (
                         <div className="flex gap-2">
+                          {isPremiumShark(r) && (
+                            <div className="flex items-center gap-1 mr-2">
+                              <span className="text-[10px] text-cyan-300 uppercase font-semibold">Tier:</span>
+                              {(['standard','large','trophy'] as const).map((t) => {
+                                const current = trophyTier[r.id] ?? (r.trophy_level as any) ?? 'standard';
+                                return (
+                                  <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => setTrophyTier((m) => ({ ...m, [r.id]: t }))}
+                                    className={`text-[10px] px-2 py-1 rounded-full border ${current === t ? 'bg-cyan-600 border-cyan-500 text-white' : 'border-slate-600 text-slate-300 hover:bg-slate-800'}`}
+                                  >
+                                    {t === 'standard' ? 'Std 50' : t === 'large' ? 'Lg 75' : 'Trophy 100'}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                           <Button
                             size="sm"
                             className="bg-emerald-600 hover:bg-emerald-700"
-                            onClick={() => decide.mutate({ id: r.id, status: 'approved', speciesId: r.species_id })}
+                            onClick={() => decide.mutate({
+                              id: r.id,
+                              status: 'approved',
+                              speciesId: r.species_id,
+                              trophy: isPremiumShark(r) ? (trophyTier[r.id] ?? (r.trophy_level as any) ?? 'standard') : null,
+                            })}
                             disabled={decide.isPending}
                           >
                             <CheckCircle2 className="h-4 w-4 mr-1" /> Approve

@@ -94,6 +94,10 @@ const navItems: NavItem[] = [{
   icon: Swords,
   label: 'Tournaments'
 }, {
+  to: '/admin/championships',
+  icon: Trophy,
+  label: 'Championships'
+}, {
   to: '/admin/competition-catches',
   icon: Fish,
   label: 'Competition Catches'
