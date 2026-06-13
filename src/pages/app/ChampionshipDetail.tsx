@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trophy, Calendar, Users, Sparkles, CheckCircle2, DollarSign, Crown } from "lucide-react";
+import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
+import { Fish } from "lucide-react";
 
 export default function ChampionshipDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +19,7 @@ export default function ChampionshipDetail() {
   const qc = useQueryClient();
   const [params, setParams] = useSearchParams();
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [logOpen, setLogOpen] = useState(false);
 
   const { data: champ } = useQuery({
     queryKey: ["championship-detail", id],
@@ -321,6 +324,18 @@ export default function ChampionshipDetail() {
             )}
           </Card>
 
+          {user && (
+            <Card className="p-4">
+              <h2 className="font-semibold mb-2 flex items-center gap-2"><Fish className="w-4 h-4 text-cyan-400" /> Submit a catch</h2>
+              <p className="text-xs text-muted-foreground mb-3">
+                Log a shark with your verification photo. Submissions go to admin review before counting toward your team's score.
+              </p>
+              <Button className="w-full" onClick={() => setLogOpen(true)}>
+                Log catch for this championship
+              </Button>
+            </Card>
+          )}
+
           {champ.prize_description && (
             <Card className="p-4">
               <h2 className="font-semibold mb-2 flex items-center gap-2"><Trophy className="w-4 h-4 text-cyan-400" /> Prizes</h2>
@@ -329,6 +344,12 @@ export default function ChampionshipDetail() {
           )}
         </div>
       </div>
+
+      <LogCompetitionCatchModal
+        open={logOpen}
+        onOpenChange={setLogOpen}
+        competition={{ kind: "challenge", id: champ.id, name: champ.title, speciesId: null }}
+      />
     </div>
   );
 }
