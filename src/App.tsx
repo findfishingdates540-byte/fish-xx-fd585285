@@ -81,6 +81,7 @@ import AdminTeamPosts from "./pages/admin/AdminTeamPosts";
 import AdminTeams from "./pages/admin/AdminTeams";
 import AdminScoringSettings from "./pages/admin/AdminScoringSettings";
 import AdminCompetitionCatches from "./pages/admin/AdminCompetitionCatches";
+import AdminChampionships from "./pages/admin/AdminChampionships";
 import ScoreboardHubLayout from "@/components/layout/ScoreboardHubLayout";
 
 const queryClient = new QueryClient({
@@ -163,6 +164,8 @@ const App = () => (
                 <Route path="photo-challenges/:id" element={<PhotoChallengeDetail />} />
                 <Route path="challenges/new" element={<CreateChallenge />} />
                 <Route path="challenges/:id" element={<ChallengeDetail />} />
+                <Route path="championships" element={<Championships />} />
+                <Route path="championships/:id" element={<ChampionshipDetail />} />
                 <Route path="teams" element={<Teams />} />
                 <Route path="teams/new" element={<CreateTeam />} />
                 <Route path="teams/:teamId" element={<TeamProfile />} />
@@ -233,6 +236,7 @@ const App = () => (
               <Route path="fishing-challenges" element={<AdminFishingChallenges />} />
               <Route path="tournaments" element={<AdminTournaments />} />
               <Route path="competition-catches" element={<AdminCompetitionCatches />} />
+              <Route path="championships" element={<AdminChampionships />} />
               <Route path="team-posts" element={<AdminTeamPosts />} />
               <Route path="teams" element={<AdminTeams />} />
               <Route path="scoring" element={<AdminScoringSettings />} />
