@@ -172,7 +172,13 @@ export default function Leaderboard() {
   const { data: teamScores = [] } = useQuery({
     queryKey: ["teams-rankings", teamCategoryFilter],
     queryFn: async () => {
-      const { data } = await supabase.rpc("get_team_scores", { p_category: teamCategoryFilter === "all" ? undefined : teamCategoryFilter } as any);
+      const categoryMap: Record<string, string> = {
+        teams: "teams",
+        lady_angler: "lady_angler",
+        junior_angler: "jr_anglers",
+      };
+      const p_category = teamCategoryFilter === "all" ? undefined : categoryMap[teamCategoryFilter];
+      const { data } = await supabase.rpc("get_team_scores", { p_category } as any);
       return (data || []) as { team_id: string; team_name: string; logo_url: string | null; captain_id: string; member_count: number; season_points: number; last_7_days_catches: number }[];
     },
   });
