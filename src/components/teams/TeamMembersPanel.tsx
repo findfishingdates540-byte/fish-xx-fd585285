@@ -5,8 +5,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Shield, ShieldOff, UserPlus, Users, X } from "lucide-react";
+import { ArrowUpCircle, Check, Crown, Shield, ShieldOff, Star, UserPlus, Users, X } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface MemberProfile {
   id: string;
@@ -28,6 +39,7 @@ export function TeamMembersPanel({ team, members, pendingRequests = [], profiles
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const teamId = team.id as string;
+  const [transferTarget, setTransferTarget] = useState<{ userId: string; name: string } | null>(null);
 
   const approveMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -65,7 +77,7 @@ export function TeamMembersPanel({ team, members, pendingRequests = [], profiles
   });
 
   const promoteMutation = useMutation({
-    mutationFn: async (p: { userId: string; toRole: "officer" | "member" }) => {
+    mutationFn: async (p: { userId: string; toRole: "officer" | "vice_captain" | "member" }) => {
       if (!isCaptain) throw new Error("Captain only");
       const { error } = await supabase
         .from("team_members")
@@ -78,6 +90,41 @@ export function TeamMembersPanel({ team, members, pendingRequests = [], profiles
       queryClient.invalidateQueries({ queryKey: ["team-members", teamId] });
       queryClient.invalidateQueries({ queryKey: ["team-role", teamId] });
       toast.success("Role updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const transferCaptainMutation = useMutation({
+    mutationFn: async (newCaptainId: string) => {
+      if (!isCaptain || !user) throw new Error("Captain only");
+      // 1. Demote current captain to vice_captain row in team_members (insert or update)
+      const { error: meErr } = await supabase
+        .from("team_members")
+        .upsert(
+          { team_id: teamId, user_id: user.id, role: "vice_captain", status: "approved" },
+          { onConflict: "team_id,user_id" },
+        );
+      if (meErr) throw meErr;
+      // 2. Promote new user's row to captain
+      const { error: newErr } = await supabase
+        .from("team_members")
+        .update({ role: "captain", status: "approved" })
+        .eq("team_id", teamId)
+        .eq("user_id", newCaptainId);
+      if (newErr) throw newErr;
+      // 3. Update fishing_teams.captain_id
+      const { error: teamErr } = await supabase
+        .from("fishing_teams")
+        .update({ captain_id: newCaptainId })
+        .eq("id", teamId);
+      if (teamErr) throw teamErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-detail", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["team-members", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["team-role", teamId] });
+      toast.success("Captain transferred");
+      setTransferTarget(null);
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -152,6 +199,7 @@ export function TeamMembersPanel({ team, members, pendingRequests = [], profiles
         {allMembers.map(({ userId, role: memberRole }) => {
           const profile = profiles[userId];
           const memberIsCaptain = memberRole === "captain";
+          const memberIsViceCaptain = memberRole === "vice_captain";
           const memberIsOfficer = memberRole === "officer";
           return (
             <div key={userId} className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors">
@@ -164,24 +212,40 @@ export function TeamMembersPanel({ team, members, pendingRequests = [], profiles
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-sm truncate">{profile?.display_name || "Angler"}</p>
                     {memberIsCaptain && <Badge variant="secondary" className="h-4 text-[10px] gap-0.5"><Crown className="h-2.5 w-2.5" />Captain</Badge>}
+                    {memberIsViceCaptain && <Badge variant="secondary" className="h-4 text-[10px] gap-0.5"><Star className="h-2.5 w-2.5" />Vice Captain</Badge>}
                     {memberIsOfficer && <Badge variant="secondary" className="h-4 text-[10px] gap-0.5"><Shield className="h-2.5 w-2.5" />Officer</Badge>}
                   </div>
-                  <p className="text-xs text-muted-foreground capitalize">{memberRole}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{String(memberRole).replace("_", " ")}</p>
                 </div>
               </button>
               {isCaptain && !memberIsCaptain && userId !== user?.id && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap justify-end">
+                  {memberIsViceCaptain ? (
+                    <Button variant="ghost" size="sm" className="text-xs gap-1"
+                      onClick={() => promoteMutation.mutate({ userId, toRole: "member" })}>
+                      <ShieldOff className="h-3 w-3" />Remove vice
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="text-xs gap-1"
+                      onClick={() => promoteMutation.mutate({ userId, toRole: "vice_captain" })}>
+                      <Star className="h-3 w-3" />Make vice
+                    </Button>
+                  )}
                   {memberIsOfficer ? (
                     <Button variant="ghost" size="sm" className="text-xs gap-1"
                       onClick={() => promoteMutation.mutate({ userId, toRole: "member" })}>
                       <ShieldOff className="h-3 w-3" />Demote
                     </Button>
-                  ) : (
+                  ) : !memberIsViceCaptain && (
                     <Button variant="ghost" size="sm" className="text-xs gap-1"
                       onClick={() => promoteMutation.mutate({ userId, toRole: "officer" })}>
                       <Shield className="h-3 w-3" />Make officer
                     </Button>
                   )}
+                  <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary hover:text-primary"
+                    onClick={() => setTransferTarget({ userId, name: profile?.display_name || "this member" })}>
+                    <ArrowUpCircle className="h-3 w-3" />Transfer captain
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -197,6 +261,27 @@ export function TeamMembersPanel({ team, members, pendingRequests = [], profiles
         })}
       </div>
     </section>
+
+    <AlertDialog open={!!transferTarget} onOpenChange={(o) => !o && setTransferTarget(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Transfer captain role?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {transferTarget?.name} will become the new captain. You'll be moved to vice captain and lose
+            captain-only permissions. This can only be undone by the new captain.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => transferTarget && transferCaptainMutation.mutate(transferTarget.userId)}
+            disabled={transferCaptainMutation.isPending}
+          >
+            {transferCaptainMutation.isPending ? "Transferring..." : "Yes, transfer"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </div>
   );
 }

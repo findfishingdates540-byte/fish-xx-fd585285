@@ -5,10 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface TeamRoleInfo {
   isCaptain: boolean;
   isOfficer: boolean;
+  isViceCaptain: boolean;
   isMember: boolean;
   canPostPage: boolean;
   canPostGroup: boolean;
-  role: "captain" | "officer" | "member" | null;
+  role: "captain" | "vice_captain" | "officer" | "member" | null;
 }
 
 export function useTeamRole(teamId: string | undefined) {
@@ -20,6 +21,7 @@ export function useTeamRole(teamId: string | undefined) {
       const base: TeamRoleInfo = {
         isCaptain: false,
         isOfficer: false,
+        isViceCaptain: false,
         isMember: false,
         canPostPage: false,
         canPostGroup: false,
@@ -31,15 +33,17 @@ export function useTeamRole(teamId: string | undefined) {
         supabase.from("team_members").select("role").eq("team_id", teamId).eq("user_id", user.id).maybeSingle(),
       ]);
       const isCaptain = team?.captain_id === user.id;
-      const isOfficer = !isCaptain && member?.role === "officer";
+      const isViceCaptain = !isCaptain && member?.role === "vice_captain";
+      const isOfficer = !isCaptain && !isViceCaptain && member?.role === "officer";
       const isMember = isCaptain || !!member;
       return {
         isCaptain,
         isOfficer,
+        isViceCaptain,
         isMember,
-        canPostPage: isCaptain || isOfficer,
+        canPostPage: isCaptain || isViceCaptain || isOfficer,
         canPostGroup: isMember,
-        role: isCaptain ? "captain" : isOfficer ? "officer" : isMember ? "member" : null,
+        role: isCaptain ? "captain" : isViceCaptain ? "vice_captain" : isOfficer ? "officer" : isMember ? "member" : null,
       };
     },
   });
