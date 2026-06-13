@@ -135,6 +135,28 @@ serve(async (req) => {
           break;
         }
 
+        // Handle championship Calcutta entry payment
+        if (metaType === "championship_calcutta_entry") {
+          const championshipId = session.metadata?.championship_id;
+          const teamId = session.metadata?.team_id;
+          const ctId = session.metadata?.championship_team_id;
+          if (userId && championshipId && teamId) {
+            console.log(`Calcutta entry payment for user ${userId}, championship ${championshipId}, team ${teamId}`);
+            const filter = supabase
+              .from("championship_teams")
+              .update({
+                calcutta_paid: true,
+                calcutta_paid_at: new Date().toISOString(),
+                stripe_session_id: session.id,
+              });
+            const { error: regErr } = ctId
+              ? await filter.eq("id", ctId)
+              : await filter.eq("championship_id", championshipId).eq("team_id", teamId);
+            if (regErr) console.error("Error marking Calcutta as paid:", regErr);
+          }
+          break;
+        }
+
         // Handle tournament entry payment
         if (metaType === "tournament_entry") {
           const tournamentId = session.metadata?.tournament_id;
