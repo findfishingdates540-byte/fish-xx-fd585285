@@ -77,6 +77,3 @@ verify_jwt = false
 
 [functions.process-message-emails]
 verify_jwt = false
-
-[functions.upload-apk]
-verify_jwt = false
