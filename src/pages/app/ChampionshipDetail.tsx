@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Trophy, Calendar, Users, Sparkles, CheckCircle2, DollarSign, Crown } from "lucide-react";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { Fish } from "lucide-react";
+import sharkBanner from "@/assets/shark-championship-banner.jpg";
 
 export default function ChampionshipDetail() {
   const { id } = useParams<{ id: string }>();
@@ -142,15 +143,13 @@ export default function ChampionshipDetail() {
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
       {/* Banner */}
       <div className="relative rounded-xl overflow-hidden border border-slate-800">
-        {champ.banner_url ? (
-          <img src={champ.banner_url} alt="" className="w-full h-56 object-cover" />
-        ) : (
-          <div className="w-full h-56 bg-gradient-to-br from-slate-900 via-cyan-900/40 to-slate-900 flex items-center justify-center">
-            <Trophy className="w-20 h-20 text-cyan-400/60" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+        <img
+          src={champ.banner_url || sharkBanner}
+          alt={champ.title}
+          className="w-full h-72 md:h-[28rem] object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="outline" className="capitalize border-white/40 text-white">{champ.status}</Badge>
             <Badge variant="outline" className="border-cyan-400/60 text-cyan-200">Championship</Badge>
