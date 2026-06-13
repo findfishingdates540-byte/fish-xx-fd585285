@@ -546,7 +546,7 @@ const Index = () => {
                 transition={{ duration: 0.6, delay: 0.5 }}
               >
                 <motion.a
-                  href="https://zjmnlelqoiclkbrqefyv.supabase.co/storage/v1/object/public/apk-downloads/Fish-X.apk"
+                  href="/__l5e/assets-v1/db24bddf-4885-4fed-b71b-d3b92d14d751/Fish-X.apk"
                   download="Fish-X.apk"
                   className="flex items-center gap-3 bg-foreground text-background px-6 py-4 rounded-xl group"
                   whileHover={{ scale: 1.05 }}
