@@ -37,6 +37,7 @@ export default function AdminCompetitionCatches() {
   const [kind, setKind] = useState<'challenge' | 'tournament'>('challenge');
   const [rejecting, setRejecting] = useState<Row | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [preview, setPreview] = useState<{ row: Row; index: number } | null>(null);
   const qc = useQueryClient();
   const { user } = useAuth();
 
@@ -128,7 +129,27 @@ export default function AdminCompetitionCatches() {
                   <div key={r.id} className="flex flex-col md:flex-row gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
                     <div className="md:w-48 shrink-0">
                       {r.cover_photo_url ? (
-                        <img src={r.cover_photo_url} alt="" className="w-full h-32 object-cover rounded-lg" />
+                        <button
+                          type="button"
+                          onClick={() => setPreview({ row: r, index: 0 })}
+                          className="block w-full group relative"
+                          title="Click to preview"
+                        >
+                          <img src={r.cover_photo_url} alt="Catch submission" className="w-full h-32 object-cover rounded-lg group-hover:opacity-90 transition" />
+                          {r.measurement_photo_url && (
+                            <span className="absolute bottom-1 right-1 bg-black/70 text-[10px] text-white px-1.5 py-0.5 rounded">
+                              +1 photo
+                            </span>
+                          )}
+                        </button>
+                      ) : r.measurement_photo_url ? (
+                        <button
+                          type="button"
+                          onClick={() => setPreview({ row: r, index: 1 })}
+                          className="block w-full"
+                        >
+                          <img src={r.measurement_photo_url} alt="Measurement" className="w-full h-32 object-cover rounded-lg" />
+                        </button>
                       ) : (
                         <div className="w-full h-32 bg-slate-800 rounded-lg flex items-center justify-center">
                           <Fish className="h-8 w-8 text-slate-600" />
@@ -206,6 +227,56 @@ export default function AdminCompetitionCatches() {
               Reject Catch
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!preview} onOpenChange={(v) => { if (!v) setPreview(null); }}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              {preview?.row.species_name || 'Catch'} — {preview?.row.challenge?.title || preview?.row.tournament?.title || 'Competition'}
+            </DialogTitle>
+          </DialogHeader>
+          {preview && (() => {
+            const photos = [
+              preview.row.cover_photo_url && { url: preview.row.cover_photo_url, label: 'Catch photo' },
+              preview.row.measurement_photo_url && { url: preview.row.measurement_photo_url, label: 'Measurement photo' },
+            ].filter(Boolean) as { url: string; label: string }[];
+            const idx = Math.min(preview.index, Math.max(photos.length - 1, 0));
+            const active = photos[idx];
+            return (
+              <div className="space-y-3">
+                <div className="text-xs text-slate-400 flex flex-wrap gap-3">
+                  <span>by {preview.row.user?.display_name || 'Angler'}</span>
+                  {preview.row.length_in != null && <span>{preview.row.length_in} in</span>}
+                  {preview.row.weight_lbs != null && <span>{preview.row.weight_lbs} lbs</span>}
+                  {preview.row.general_location && <span>{preview.row.general_location}</span>}
+                  {preview.row.caught_at && <span>{new Date(preview.row.caught_at).toLocaleString()}</span>}
+                </div>
+                {active ? (
+                  <div className="bg-black rounded-lg overflow-hidden flex items-center justify-center max-h-[70vh]">
+                    <img src={active.url} alt={active.label} className="max-h-[70vh] w-auto object-contain" />
+                  </div>
+                ) : (
+                  <p className="text-slate-400 text-sm">No photo attached.</p>
+                )}
+                {photos.length > 1 && (
+                  <div className="flex gap-2 justify-center">
+                    {photos.map((p, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPreview({ row: preview.row, index: i })}
+                        className={`text-xs px-3 py-1 rounded-full border ${i === idx ? 'bg-cyan-600 border-cyan-500 text-white' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
