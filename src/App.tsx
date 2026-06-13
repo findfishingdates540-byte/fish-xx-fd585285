@@ -46,6 +46,8 @@ import CatchDetail from "./pages/app/CatchDetail";
 import Challenges from "./pages/app/Challenges";
 import CreateChallenge from "./pages/app/CreateChallenge";
 import ChallengeDetail from "./pages/app/ChallengeDetail";
+import Championships from "./pages/app/Championships";
+import ChampionshipDetail from "./pages/app/ChampionshipDetail";
 import Teams from "./pages/app/Teams";
 import CreateTeam from "./pages/app/CreateTeam";
 import TeamProfile from "./pages/app/TeamProfile";
