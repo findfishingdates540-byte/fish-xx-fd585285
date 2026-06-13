@@ -1,7 +1,7 @@
 import { FC, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Link2, Share2, Plus, X } from 'lucide-react';
+import { Search, Link2, Share2, Plus, X, Facebook, Twitter, Linkedin, Send, Mail, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
