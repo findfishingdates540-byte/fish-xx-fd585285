@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Trophy, Medal, Fish, Scale, Crown } from "lucide-react";
+import { ArrowLeft, Search, Trophy, Medal, Fish, Scale, Crown, X } from "lucide-react";
 
 interface AnglerRow {
   user_id: string;
@@ -33,15 +33,36 @@ const GlobalAnglers = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"points" | "catches" | "biggest" | "species">("points");
+  const [speciesId, setSpeciesId] = useState<string | "all">("all");
+  const [speciesQuery, setSpeciesQuery] = useState("");
+
+  // Load species list for the filter
+  const { data: speciesList = [] } = useQuery({
+    queryKey: ["global-anglers-species-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("fish_species")
+        .select("id, name, image_url")
+        .order("name", { ascending: true })
+        .limit(1000);
+      return (data || []) as { id: string; name: string; image_url: string | null }[];
+    },
+  });
+  const selectedSpecies = useMemo(
+    () => speciesList.find((s) => s.id === speciesId) || null,
+    [speciesList, speciesId],
+  );
 
   // Aggregate every angler from leaderboard_entries (one row per user/species).
   const { data: anglers = [], isLoading } = useQuery({
-    queryKey: ["global-anglers-full"],
+    queryKey: ["global-anglers-full", speciesId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("leaderboard_entries")
         .select("user_id, species_id, total_caught, total_released, largest_weight_lbs")
         .limit(5000);
+      if (speciesId !== "all") q = q.eq("species_id", speciesId);
+      const { data, error } = await q;
       if (error) throw error;
       const map = new Map<string, AnglerRow>();
       (data || []).forEach((e: any) => {
@@ -65,12 +86,14 @@ const GlobalAnglers = () => {
       // Layer in real points from verified catches
       const userIds = rows.map((r) => r.user_id);
       if (userIds.length > 0) {
-        const { data: scored } = await supabase
+        let sq = supabase
           .from("catches")
-          .select("user_id, computed_score")
+          .select("user_id, computed_score, species_id")
           .in("user_id", userIds)
           .not("computed_score", "is", null)
           .limit(5000);
+        if (speciesId !== "all") sq = sq.eq("species_id", speciesId);
+        const { data: scored } = await sq;
         const pts = new Map<string, number>();
         (scored || []).forEach((c: any) => {
           pts.set(c.user_id, (pts.get(c.user_id) || 0) + (Number(c.computed_score) || 0));
