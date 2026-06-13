@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Calendar, Users } from "lucide-react";
+import sharkBanner from "@/assets/shark-championship-banner.jpg";
 
 export default function Championships() {
   const { data: champs = [], isLoading } = useQuery({
@@ -39,13 +40,20 @@ export default function Championships() {
         {champs.map((c: any) => (
           <Link key={c.id} to={`/app/championships/${c.id}`}>
             <Card className="overflow-hidden hover:border-cyan-500/50 transition-colors h-full">
-              {c.banner_url ? (
-                <img src={c.banner_url} alt="" className="w-full h-40 object-cover" />
-              ) : (
-                <div className="w-full h-40 bg-gradient-to-br from-slate-800 via-cyan-900/50 to-slate-900 flex items-center justify-center">
-                  <Trophy className="w-12 h-12 text-cyan-400/60" />
+              <div className="relative w-full h-64 md:h-72 overflow-hidden">
+                <img
+                  src={c.banner_url || sharkBanner}
+                  alt={c.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
+                <div className="absolute top-3 left-3">
+                  <Badge className="bg-cyan-500/90 text-slate-950 border-0 font-semibold">
+                    <Trophy className="w-3 h-3 mr-1" /> Championship
+                  </Badge>
                 </div>
-              )}
+              </div>
               <div className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <h2 className="font-semibold text-lg leading-tight">{c.title}</h2>
