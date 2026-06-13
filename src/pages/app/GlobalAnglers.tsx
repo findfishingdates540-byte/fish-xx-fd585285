@@ -151,6 +151,22 @@ const GlobalAnglers = () => {
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
 
+  const metricFor = (a: typeof ranked[number]) => {
+    switch (sort) {
+      case "catches":
+        return { value: a.total_caught.toLocaleString(), label: "catches" };
+      case "biggest":
+        return {
+          value: a.largest_weight_lbs != null ? `${a.largest_weight_lbs} lb` : "—",
+          label: "biggest",
+        };
+      case "species":
+        return { value: a.species_count.toLocaleString(), label: "species" };
+      default:
+        return { value: a.points.toLocaleString(), label: "pts" };
+    }
+  };
+
   return (
     <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-24">
       <div className="sticky top-0 z-10 backdrop-blur bg-[hsl(var(--sb-surface)/0.85)] border-b sb-border">
@@ -296,7 +312,7 @@ const GlobalAnglers = () => {
                         <AvatarFallback className="bg-[hsl(var(--sb-surface-2))]">{(a.profile?.display_name || "?")[0]}</AvatarFallback>
                       </Avatar>
                       <p className="text-sm font-semibold truncate">{a.profile?.display_name || "Angler"}</p>
-                      <p className="text-[11px] sb-text-muted">#{realRank} · <span className="sb-cyan font-semibold">{a.points.toLocaleString()}</span> pts</p>
+                      <p className="text-[11px] sb-text-muted">#{realRank} · <span className="sb-cyan font-semibold">{metricFor(a).value}</span> {metricFor(a).label}</p>
                     </button>
                   );
                 })}
@@ -332,9 +348,9 @@ const GlobalAnglers = () => {
                     )}
                     <span className="flex items-center gap-1 sb-text-muted"><Crown className="h-3 w-3" />{a.species_count} spp.</span>
                   </div>
-                  <div className="text-right shrink-0 min-w-[64px]">
-                    <p className="text-sm font-bold sb-cyan">{a.points.toLocaleString()}</p>
-                    <p className="text-[10px] sb-text-muted uppercase tracking-wider">pts</p>
+                  <div className="text-right shrink-0 min-w-[72px]">
+                    <p className="text-sm font-bold sb-cyan">{metricFor(a).value}</p>
+                    <p className="text-[10px] sb-text-muted uppercase tracking-wider">{metricFor(a).label}</p>
                   </div>
                 </button>
               ))}
