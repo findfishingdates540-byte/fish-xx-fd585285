@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -201,28 +201,26 @@ function ChampionshipEditDialog({
   const qc = useQueryClient();
   const isNew = !championship?.id;
 
-  const [title, setTitle] = useState(championship?.title ?? "");
-  const [description, setDescription] = useState(championship?.description ?? "");
-  const [start, setStart] = useState(championship?.start_date ?? "2026-01-01");
-  const [end, setEnd] = useState(championship?.end_date ?? "2026-12-31");
-  const [status, setStatus] = useState(championship?.status ?? "upcoming");
-  const [bestN, setBestN] = useState(String(championship?.best_n_catches ?? 20));
-  const [calcuttaFee, setCalcuttaFee] = useState(String(championship?.calcutta_entry_fee ?? 100));
-  const [prizeDescription, setPrizeDescription] = useState(championship?.prize_description ?? "");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [start, setStart] = useState("2026-01-01");
+  const [end, setEnd] = useState("2026-12-31");
+  const [status, setStatus] = useState("upcoming");
+  const [bestN, setBestN] = useState("20");
+  const [calcuttaFee, setCalcuttaFee] = useState("100");
+  const [prizeDescription, setPrizeDescription] = useState("");
 
-  // Sync when championship prop changes
-  useState(() => {
-    if (championship?.id) {
-      setTitle(championship.title ?? "");
-      setDescription(championship.description ?? "");
-      setStart(championship.start_date ?? "2026-01-01");
-      setEnd(championship.end_date ?? "2026-12-31");
-      setStatus(championship.status ?? "upcoming");
-      setBestN(String(championship.best_n_catches ?? 20));
-      setCalcuttaFee(String(championship.calcutta_entry_fee ?? 100));
-      setPrizeDescription(championship.prize_description ?? "");
-    }
-  });
+  useEffect(() => {
+    if (!open) return;
+    setTitle(championship?.title ?? "");
+    setDescription(championship?.description ?? "");
+    setStart(championship?.start_date ?? "2026-01-01");
+    setEnd(championship?.end_date ?? "2026-12-31");
+    setStatus(championship?.status ?? "upcoming");
+    setBestN(String(championship?.best_n_catches ?? 20));
+    setCalcuttaFee(String(championship?.calcutta_entry_fee ?? 100));
+    setPrizeDescription(championship?.prize_description ?? "");
+  }, [championship, open]);
 
   const save = useMutation({
     mutationFn: async () => {
