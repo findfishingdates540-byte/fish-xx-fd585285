@@ -5048,6 +5048,8 @@ export type Database = {
         | "most_caught"
         | "species_specific"
         | "team"
+        | "total_weight"
+        | "most_species"
       drinking_habit: "never" | "socially" | "regularly"
       fishing_experience: "beginner" | "intermediate" | "advanced" | "expert"
       gender_type:
@@ -5217,6 +5219,8 @@ export const Constants = {
         "most_caught",
         "species_specific",
         "team",
+        "total_weight",
+        "most_species",
       ],
       drinking_habit: ["never", "socially", "regularly"],
       fishing_experience: ["beginner", "intermediate", "advanced", "expert"],
