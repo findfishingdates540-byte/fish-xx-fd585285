@@ -28,15 +28,16 @@ import { cn } from "@/lib/utils";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FishXIcon, type FishXIconName } from "@/components/ui/fishx-icon";
 
-const scoreboardLinks: Array<{ to: string; label: string; description: string; icon: FishXIconName }> = [
+const scoreboardLinks: Array<{ to: string; label: string; description: string; icon: FishXIconName; child?: boolean }> = [
   { to: "/app/leaderboard", label: "Scoreboards Hub", description: "Overall rankings and top anglers", icon: "leaderboard" },
   { to: "/app/species", label: "Species Explorer", description: "Browse species directory and records", icon: "species" },
   { to: "/app/challenges", label: "Fishing Challenges", description: "Compete in live and upcoming events", icon: "tournament" },
   { to: "/app/photo-challenges", label: "Photo Challenges", description: "Submit photos, vote & win prizes", icon: "photo" },
   { to: "/app/tournaments", label: "Tournaments", description: "Bracket-style head-to-head for teams", icon: "tournament" },
+  { to: "/app/championships", label: "Championships", description: "Season-long championship series", icon: "tournament" },
   { to: "/app/teams", label: "Teams", description: "Create or join a fishing team", icon: "team2" },
   { to: "/app/scoring-rules", label: "Scoring Rules", description: "How points, multipliers & trophies work", icon: "leaderboard" },
-  { to: "/app/scoring-examples", label: "Scoring Examples", description: "Walk through real catches and how points add up", icon: "leaderboard" },
+  { to: "/app/scoring-examples", label: "Scoring Examples", description: "Walk through real catches and how points add up", icon: "leaderboard", child: true },
 ];
 
 
@@ -221,7 +222,10 @@ export function FishingHeader() {
                           <NavigationMenuLink asChild>
                             <Link
                               to={link.to}
-                              className="flex items-start gap-3 rounded-lg p-3 hover:bg-accent transition-colors"
+                              className={cn(
+                                "flex items-start gap-3 rounded-lg p-3 hover:bg-accent transition-colors",
+                                link.child && "ml-6 border-l-2 border-border/60 pl-3",
+                              )}
                             >
                               <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                                 <FishXIcon name={link.icon} size={32} />
