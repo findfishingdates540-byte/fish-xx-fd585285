@@ -69,7 +69,6 @@ const GlobalAnglers = () => {
           .from("catches")
           .select("user_id, computed_score")
           .in("user_id", userIds)
-          .eq("is_verified", true)
           .not("computed_score", "is", null)
           .limit(5000);
         const pts = new Map<string, number>();
