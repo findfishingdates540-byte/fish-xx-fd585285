@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Trophy, Medal, Fish, Scale, Crown, X } from "lucide-react";
+import { ArrowLeft, Search, Trophy, Medal, Fish, Scale, Crown, X, Info } from "lucide-react";
 
 interface AnglerRow {
   user_id: string;
@@ -157,15 +157,38 @@ const GlobalAnglers = () => {
         return { value: a.total_caught.toLocaleString(), label: "catches" };
       case "biggest":
         return {
-          value: a.largest_weight_lbs != null ? `${a.largest_weight_lbs} lb` : "—",
+          value: a.largest_weight_lbs != null ? `${a.largest_weight_lbs} lbs` : "—",
           label: "biggest",
         };
       case "species":
         return { value: a.species_count.toLocaleString(), label: "species" };
       default:
-        return { value: a.points.toLocaleString(), label: "pts" };
+        return { value: a.points.toLocaleString(), label: "score" };
     }
   };
+
+  // Friendly podium line per sort
+  const podiumLineFor = (a: typeof ranked[number], rank: number) => {
+    switch (sort) {
+      case "catches":
+        return `#${rank} · ${a.total_caught.toLocaleString()} fish caught`;
+      case "biggest":
+        return `#${rank} · ${a.largest_weight_lbs != null ? `${a.largest_weight_lbs} lbs` : "—"}`;
+      case "species":
+        return `#${rank} · ${a.species_count.toLocaleString()} different species`;
+      default:
+        return `#${rank} · ${a.points.toLocaleString()} points`;
+    }
+  };
+
+  const sortDescription =
+    sort === "catches"
+      ? "Most Catches — who’s landed the most fish."
+      : sort === "biggest"
+      ? "Biggest Catch — ordered by the heaviest single fish (lbs)."
+      : sort === "species"
+      ? "Most Species — who’s caught the widest variety."
+      : "Top Scorers — ranked by total catch score.";
 
   return (
     <div className="scoreboard-hub min-h-screen -mx-4 md:-mx-0 pb-24">
@@ -179,12 +202,23 @@ const GlobalAnglers = () => {
               <Trophy className="h-4 w-4 sb-cyan" />
               Global Angler Rankings
             </h1>
-            <p className="text-[11px] sb-text-muted">All-time leaderboard across every species</p>
+            <p className="text-[11px] sb-text-muted">See who’s catching the most, the biggest, and the widest variety of fish.</p>
           </div>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
+        {/* How it works link */}
+        <div className="flex items-center justify-between text-xs">
+          <p className="sb-text-muted">All-time rankings, updated as anglers log catches.</p>
+          <button
+            onClick={() => navigate("/app/scoring-rules")}
+            className="sb-cyan font-semibold hover:underline whitespace-nowrap"
+          >
+            How scoring works →
+          </button>
+        </div>
+
         {/* Species filter */}
         <div className="sb-card p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
@@ -263,10 +297,10 @@ const GlobalAnglers = () => {
           </div>
           <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1">
             {([
-              { k: "points", label: "Points" },
-              { k: "catches", label: "Catches" },
-              { k: "biggest", label: "Biggest" },
-              { k: "species", label: "Species" },
+              { k: "points", label: "Top Scorers" },
+              { k: "catches", label: "Most Catches" },
+              { k: "biggest", label: "Biggest Catch" },
+              { k: "species", label: "Most Species" },
             ] as const).map((opt) => (
               <button
                 key={opt.k}
@@ -281,6 +315,12 @@ const GlobalAnglers = () => {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Active sort explainer */}
+        <div className="flex items-start gap-2 text-xs sb-text-muted px-1">
+          <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 sb-cyan" />
+          <p>{sortDescription}</p>
         </div>
 
         {isLoading ? (
@@ -312,7 +352,9 @@ const GlobalAnglers = () => {
                         <AvatarFallback className="bg-[hsl(var(--sb-surface-2))]">{(a.profile?.display_name || "?")[0]}</AvatarFallback>
                       </Avatar>
                       <p className="text-sm font-semibold truncate">{a.profile?.display_name || "Angler"}</p>
-                      <p className="text-[11px] sb-text-muted">#{realRank} · <span className="sb-cyan font-semibold">{metricFor(a).value}</span> {metricFor(a).label}</p>
+                      <p className="text-[11px] sb-text-muted">
+                        <span className="sb-cyan font-semibold">{podiumLineFor(a, realRank)}</span>
+                      </p>
                     </button>
                   );
                 })}
@@ -342,11 +384,11 @@ const GlobalAnglers = () => {
                     </p>
                   </div>
                   <div className="hidden sm:flex flex-col items-end text-xs gap-0.5">
-                    <span className="flex items-center gap-1 sb-text-muted"><Fish className="h-3 w-3" />{a.total_caught}</span>
+                    <span className="flex items-center gap-1 sb-text-muted"><Fish className="h-3 w-3" />{a.total_caught} caught</span>
                     {a.largest_weight_lbs != null && (
-                      <span className="flex items-center gap-1 sb-text-muted"><Scale className="h-3 w-3" />{a.largest_weight_lbs} lb</span>
+                      <span className="flex items-center gap-1 sb-text-muted"><Scale className="h-3 w-3" />{a.largest_weight_lbs} lbs heaviest</span>
                     )}
-                    <span className="flex items-center gap-1 sb-text-muted"><Crown className="h-3 w-3" />{a.species_count} spp.</span>
+                    <span className="flex items-center gap-1 sb-text-muted"><Crown className="h-3 w-3" />{a.species_count} species</span>
                   </div>
                   <div className="text-right shrink-0 min-w-[72px]">
                     <p className="text-sm font-bold sb-cyan">{metricFor(a).value}</p>
