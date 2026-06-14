@@ -1,31 +1,50 @@
 ## Goal
-Joshua finds the leaderboard "hard to understand" — driven by three stacked rows of filter chips (Timeframe + 8 Methods + 3 Waters = 14 chips) competing for attention above a near-empty board. Collapse them into a single, scannable filter bar.
+Make the Global Angler Rankings page instantly understandable to casual visitors — no fishing jargon, no mystery numbers, no guessing what each tab does.
 
-## New filter layout (one row)
-```text
-[ All-Time ▼ ]   [ Method: All ▼ ]   [ Water: All ▼ ]      Reset
-```
+## Changes
 
-- **Timeframe** — compact `Select` dropdown (All-Time / This Year / This Month). Default shown inline.
-- **Method** — `Select` dropdown with the same 8 options (All Methods, Land-Based, Surf, Kayak, Pier/Jetty, Flats/Skiff, Offshore, Charter).
-- **Water** — `Select` dropdown (All Water / Freshwater / Saltwater).
-- **Reset** link appears only when any filter is non-default; clears all three back to "All".
-- Wraps cleanly on mobile (each select takes ~1/2 width, Reset drops below).
+### 1. Page intro
+Add a one-line friendly intro below the page title, e.g.:
+> "See who’s catching the most, the biggest, and the widest variety of fish right now."
 
-## Why dropdowns instead of chips
-- 14 chips across 3 rows = 3× the vertical space and a wall of options before any data.
-- Dropdowns shrink the filter bar to a single line (~40 px) so the actual ranking is the first thing the eye lands on.
-- Each selected value still reads in plain English ("Method: Kayak"), so the active filter is obvious without scanning chips.
+### 2. Friendly filter tab labels
+Rewrite the four sort tabs from jargon to plain English:
+- **Points** → **Top Scorers**
+- **Catches** → **Most Catches**
+- **Biggest** → **Biggest Catch**
+- **Species** → **Most Species**
 
-## What stays the same
-- Underlying query, scoring, ranking, and data fetching — no business-logic changes.
-- "How scoring works →" link in the header.
-- Empty state copy.
-- Same component lives in the Leaderboard page and mobile Scoreboard Hub bottom sheet.
+### 3. Active-filter description pill
+When a filter is selected, show a short sentence directly under the tabs explaining what the list is ranking, e.g.:
+- "Top Scorers — ranked by total catch score."
+- "Most Catches — who’s landed the most fish."
+- "Biggest Catch — ordered by the heaviest single fish (lb)."
+- "Most Species — who’s caught the widest variety."
+
+### 4. Plain-English stat labels (list rows)
+Replace cryptic abbreviations in the right-hand stat block and row details:
+- **"pts"** → **"score"**
+- **"spp."** → **"species"**
+- Keep **"lb"** but consider **"lbs"** for clarity
+- In the hidden desktop detail row, expand abbreviations to full words: **"caught"**, **"heaviest"**, **"species"**
+
+### 5. How scoring works link (more visible)
+Move or duplicate the existing "How scoring works →" link so it sits right under the page intro or beside the tab row — not buried or easy to miss.
+
+### 6. Podium card copy
+In the top-3 podium cards, replace the generic **"#{rank} · {value} {label}"** line with context-aware phrasing tied to the active filter:
+- Top Scorers: "#{rank} · {score} points"
+- Most Catches: "#{rank} · {count} fish caught"
+- Biggest Catch: "#{rank} · {weight} lbs"
+- Most Species: "#{rank} · {count} different species"
+
+### 7. Empty-state copy (if changed)
+If touched, keep it friendly: e.g. "No anglers match your filters yet — try a different species or sort."
 
 ## Files touched
-- `src/components/leaderboard/PointsLeaderboard.tsx` — replace the three `TabRow` rows with a single `FilterBar` using shadcn `Select`; remove the now-unused `TabRow` helper.
+- `src/pages/app/GlobalAnglers.tsx` — copy rewrites, add intro line, active-filter description, podium context labels.
 
-## Out of scope (per admin's note "just hard to understand")
-- No changes to Team Rankings layout, scoring math, or column labels.
-- No empty-state redesign.
+## Out of scope
+- No new backend queries or scoring math changes.
+- No full visual redesign or layout restructuring beyond the described tweaks.
+- No changes to Team Rankings or other leaderboard pages.
