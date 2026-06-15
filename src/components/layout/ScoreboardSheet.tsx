@@ -24,7 +24,7 @@ export function ScoreboardSheet({ open, onOpenChange }: ScoreboardSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8 pt-2">
+      <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8 pt-2 max-h-[80dvh] overflow-y-auto">
         <SheetHeader className="pb-2">
           <SheetTitle className="text-center">Scoreboard Hub</SheetTitle>
         </SheetHeader>
