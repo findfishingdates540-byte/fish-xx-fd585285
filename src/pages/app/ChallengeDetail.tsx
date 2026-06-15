@@ -908,7 +908,7 @@ export default function ChallengeDetail() {
 
           {/* Rules */}
           <TabsContent value="rules" className="mt-4 space-y-4">
-            {/^|\s/.test('') || (c.title || '').toLowerCase().includes('shark') ? (
+            {(c.title || '').toLowerCase().includes('shark') ? (
               <div className="sb-card p-4 border border-red-500/40 bg-red-500/10">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
