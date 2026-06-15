@@ -24,11 +24,11 @@ export function ScoreboardSheet({ open, onOpenChange }: ScoreboardSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8 pt-2">
-        <SheetHeader className="pb-2">
+      <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8 pt-2 max-h-[85dvh]">
+        <SheetHeader className="pb-2 shrink-0">
           <SheetTitle className="text-center">Scoreboard Hub</SheetTitle>
         </SheetHeader>
-        <div className="grid gap-1">
+        <div className="grid gap-1 overflow-y-auto">
           {scoreboardLinks.map((link) => (
             <button
               key={link.to}
