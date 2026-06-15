@@ -908,6 +908,19 @@ export default function ChallengeDetail() {
 
           {/* Rules */}
           <TabsContent value="rules" className="mt-4 space-y-4">
+            {/^|\s/.test('') || (c.title || '').toLowerCase().includes('shark') ? (
+              <div className="sb-card p-4 border border-red-500/40 bg-red-500/10">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
+                  <div>
+                    <h2 className="text-sm font-bold text-red-300 mb-1">No Great White Sharks</h2>
+                    <p className="text-xs sb-text-muted leading-relaxed">
+                      Great White Sharks (<em>Carcharodon carcharias</em>) are a protected species worldwide and are <strong>not eligible</strong> for this challenge. Any submitted catch of a Great White will be disqualified. Always practice safe catch-and-release for all sharks.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
             <div className="sb-card p-4">
               <div className="flex items-center justify-between gap-2 mb-3">
                 <h2 className="text-[10px] uppercase tracking-widest sb-text-muted font-semibold">Scoring</h2>
