@@ -504,11 +504,13 @@ export default function Spots() {
 
       // Re-add spot GeoJSON layers after style change
       const sId = 'fishing-spots-source';
-      const sg: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: (!showReefs ? [] : filteredSpots).filter(s => s.location_lat && s.location_lng).map(s => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [s.location_lng, s.location_lat] }, properties: { spotId: s.id, boat: isBoatOnlySpot(s) } })) };
+      const sg: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: (!showReefs ? [] : filteredSpots).filter(s => s.location_lat && s.location_lng).map(s => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [s.location_lng, s.location_lat] }, properties: { spotId: s.id, boat: isBoatOnlySpot(s), trophy: isTrophySpot(s) } })) };
       ensureBoatIcon(map);
+      ensureTrophyIcon(map);
       map.addSource(sId, { type: 'geojson', data: sg, cluster: false });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['all', ['!=', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['all', ['==', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      map.addLayer({ id: 'spot-trophy', type: 'symbol', source: sId, filter: ['==', ['get', 'trophy'], true], layout: { 'icon-image': 'trophy-spot-icon', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
     });
   }, [enableTerrain, disableTerrain, enableBathymetry, sharedCatches, filteredSpots, showReefs]);
 
