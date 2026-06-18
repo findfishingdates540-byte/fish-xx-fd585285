@@ -36,6 +36,18 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.png";
+import trophySpotIconAsset from "@/assets/fishx_trophy_spot.png.asset.json";
+const trophySpotIconUrl = trophySpotIconAsset.url;
+
+// Sources from the 4 imported Trophy Spot Excel sheets
+const TROPHY_SPOT_SOURCES = new Set([
+  "FishX Starter DB",
+  "FishX Saltwater Trophy Spots",
+  "FishX Trophy Waters 1000",
+  "FishX Worldwide Trophy Fisheries",
+]);
+const isTrophySpot = (s: { source?: string | null }) =>
+  !!s.source && TROPHY_SPOT_SOURCES.has(s.source);
 
 // Heuristic: a spot is "boat-only" (cannot be reached from shore) when
 // it sits in deeper water, is offshore, or its area type implies open water.
@@ -77,8 +89,27 @@ const ensureBoatIcon = (map: mapboxgl.Map) => {
     boatIconMissingBoundMaps.add(map);
     map.on("styleimagemissing", (ev) => {
       if (ev.id === "boat-spot-icon") ensureBoatIcon(map);
+      if (ev.id === "trophy-spot-icon") ensureTrophyIcon(map);
     });
   }
+};
+
+const ensureTrophyIcon = (map: mapboxgl.Map) => {
+  if (map.hasImage("trophy-spot-icon")) return;
+  const img = new Image();
+  img.decoding = "async";
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    try {
+      if (!map.hasImage("trophy-spot-icon")) {
+        map.addImage("trophy-spot-icon", img, { pixelRatio: 2 });
+      }
+    } catch (e) {
+      console.warn("Failed to add trophy-spot-icon", e);
+    }
+  };
+  img.onerror = (e) => console.warn("trophy-spot-icon failed to load", e);
+  img.src = trophySpotIconUrl;
 };
 
 interface SharedCatch {
