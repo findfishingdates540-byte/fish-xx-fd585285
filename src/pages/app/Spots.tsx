@@ -572,7 +572,7 @@ export default function Spots() {
         .map(s => ({
           type: 'Feature' as const,
           geometry: { type: 'Point' as const, coordinates: [s.location_lng, s.location_lat] },
-          properties: { spotId: s.id, boat: isBoatOnlySpot(s) },
+          properties: { spotId: s.id, boat: isBoatOnlySpot(s), trophy: isTrophySpot(s) },
         })),
     };
 
@@ -581,9 +581,11 @@ export default function Spots() {
       if (existing) { existing.setData(geojson); return; }
 
       ensureBoatIcon(map);
+      ensureTrophyIcon(map);
       map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['!=', ['get', 'boat'], true], paint: { 'circle-color': '#ef4444', 'circle-radius': 9, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['==', ['get', 'boat'], true], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['all', ['!=', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], paint: { 'circle-color': '#ef4444', 'circle-radius': 9, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['all', ['==', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      map.addLayer({ id: 'spot-trophy', type: 'symbol', source: sourceId, filter: ['==', ['get', 'trophy'], true], layout: { 'icon-image': 'trophy-spot-icon', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
 
       // Expand the tap hit area so mobile users don't have to tap the exact pixel.
       const TAP_PADDING = 14; // px around the touch/click point
