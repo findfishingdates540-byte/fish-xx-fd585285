@@ -595,7 +595,7 @@ export default function Spots() {
           [x - TAP_PADDING, y - TAP_PADDING],
           [x + TAP_PADDING, y + TAP_PADDING],
         ];
-        const features = map.queryRenderedFeatures(bbox, { layers: ['spot-unclustered', 'spot-boat'] });
+        const features = map.queryRenderedFeatures(bbox, { layers: ['spot-unclustered', 'spot-boat', 'spot-trophy'] });
         if (!features.length) return;
         const spotId = features[0].properties?.spotId;
         const spot = fishingSpotsRef.current.find(s => s.id === spotId);
@@ -613,6 +613,8 @@ export default function Spots() {
       map.on('mouseleave', 'spot-unclustered', clearPointer);
       map.on('mouseenter', 'spot-boat', setPointer);
       map.on('mouseleave', 'spot-boat', clearPointer);
+      map.on('mouseenter', 'spot-trophy', setPointer);
+      map.on('mouseleave', 'spot-trophy', clearPointer);
     };
 
     if (map.isStyleLoaded()) {
