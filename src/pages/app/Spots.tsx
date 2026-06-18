@@ -41,6 +41,10 @@ const trophySpotIconUrl = trophySpotIconAsset.url;
 
 // Sources from the 4 imported Trophy Spot Excel sheets
 const TROPHY_SPOT_SOURCES = new Set([
+  "FishX_3000_Saltwater_Trophy_Spots_Starter_Database",
+  "FishX_Saltwater_Trophy_Spots",
+  "FishX_Trophy_Waters_1000_Map_Import",
+  "FishX_Worldwide_Trophy_Fisheries_Database",
   "FishX Starter DB",
   "FishX Saltwater Trophy Spots",
   "FishX Trophy Waters 1000",
@@ -176,7 +180,7 @@ const MAP_STYLES: Record<MapStyleKey, { label: string; icon: React.ReactNode; st
 };
 
 export default function Spots() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
@@ -204,7 +208,7 @@ export default function Spots() {
 
   // Fetch catches with share_location = true
   const { data: sharedCatches = [], isLoading, refetch } = useQuery({
-    queryKey: ['shared-catches-map'],
+    queryKey: ['shared-catches-map', user?.id],
     queryFn: async () => {
       const { data: catches } = await supabase
         .from('catches')
@@ -236,6 +240,7 @@ export default function Spots() {
         profile: profileMap.get(c.user_id) || null,
       })) as SharedCatch[];
     },
+    enabled: !authLoading && !!user?.id,
     staleTime: 60 * 1000,
   });
 
@@ -256,7 +261,7 @@ export default function Spots() {
 
   // Fetch fishing spots (reefs)
   const { data: fishingSpots = [] } = useQuery({
-    queryKey: ['map-fishing-spots'],
+    queryKey: ['map-fishing-spots', user?.id],
     queryFn: async () => {
       // PostgREST caps each request at 1000 rows, so page through everything
       const PAGE = 1000;
@@ -279,6 +284,7 @@ export default function Spots() {
       }
       return all;
     },
+    enabled: !authLoading && !!user?.id,
     staleTime: 5 * 60 * 1000,
   });
 
