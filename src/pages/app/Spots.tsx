@@ -261,7 +261,7 @@ export default function Spots() {
 
   // Fetch fishing spots (reefs)
   const { data: fishingSpots = [] } = useQuery({
-    queryKey: ['map-fishing-spots', user?.id],
+    queryKey: ['map-fishing-spots'],
     queryFn: async () => {
       // PostgREST caps each request at 1000 rows, so page through everything
       const PAGE = 1000;
@@ -284,7 +284,6 @@ export default function Spots() {
       }
       return all;
     },
-    enabled: !authLoading && !!user?.id,
     staleTime: 5 * 60 * 1000,
   });
 
