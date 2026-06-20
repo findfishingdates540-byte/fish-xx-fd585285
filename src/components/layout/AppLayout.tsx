@@ -186,6 +186,7 @@ function AppLayoutContent() {
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
+  const isPublicSpotsRoute = location.pathname === '/app/spots';
 
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile-mode', user?.id],
@@ -238,6 +239,18 @@ export function AppLayout() {
   }
 
   if (!user) {
+    if (isPublicSpotsRoute) {
+      return (
+        <ActiveModeProvider 
+          baseAccountMode="fishing"
+          isPremium={false}
+          premiumExpiresAt={null}
+        >
+          <AppLayoutContent />
+        </ActiveModeProvider>
+      );
+    }
+
     return <Navigate to="/auth" replace />;
   }
 
