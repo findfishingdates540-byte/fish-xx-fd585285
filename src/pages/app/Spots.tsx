@@ -36,10 +36,6 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.png";
-import trophySpotIconAsset from "@/assets/fishx_trophy_spot.png.asset.json";
-const trophySpotIconUrl = trophySpotIconAsset.url.startsWith("/__l5e/")
-  ? `https://fish-xx.lovable.app${trophySpotIconAsset.url}`
-  : trophySpotIconAsset.url;
 
 // Sources from the 4 imported Trophy Spot Excel sheets
 const TROPHY_SPOT_SOURCES = new Set([
@@ -140,32 +136,16 @@ const createTrophyIconImage = () => {
 };
 
 const ensureTrophyIcon = (map: mapboxgl.Map) => {
-  if (!map.hasImage("trophy-spot-icon")) {
-    const fallbackIcon = createTrophyIconImage();
-    if (fallbackIcon) {
-      try {
-        map.addImage("trophy-spot-icon", fallbackIcon, { pixelRatio: 2 });
-      } catch (e) {
-        console.warn("Failed to add fallback trophy-spot-icon", e);
-      }
-    }
-  }
-  const img = new Image();
-  img.decoding = "async";
-  img.crossOrigin = "anonymous";
-  img.onload = () => {
+  if (map.hasImage("trophy-spot-icon")) return;
+
+  const trophyIcon = createTrophyIconImage();
+  if (trophyIcon) {
     try {
-      if (map.hasImage("trophy-spot-icon")) {
-        map.updateImage("trophy-spot-icon", img);
-      } else {
-        map.addImage("trophy-spot-icon", img, { pixelRatio: 2 });
-      }
+      map.addImage("trophy-spot-icon", trophyIcon, { pixelRatio: 2 });
     } catch (e) {
       console.warn("Failed to add trophy-spot-icon", e);
     }
-  };
-  img.onerror = (e) => console.warn("trophy-spot-icon failed to load", e);
-  img.src = trophySpotIconUrl;
+  }
 };
 
 interface SharedCatch {
