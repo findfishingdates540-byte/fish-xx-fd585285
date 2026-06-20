@@ -48,8 +48,13 @@ const TROPHY_SPOT_SOURCES = new Set([
   "FishX Trophy Waters 1000",
   "FishX Worldwide Trophy Fisheries",
 ]);
-const isTrophySpot = (s: { source?: string | null }) =>
-  !!s.source && TROPHY_SPOT_SOURCES.has(s.source);
+const isTrophySpot = (s: { source?: string | null; description?: string | null; name?: string | null }) => {
+  const source = (s.source || "").trim();
+  if (TROPHY_SPOT_SOURCES.has(source)) return true;
+
+  const haystack = `${source} ${s.description || ""} ${s.name || ""}`.toLowerCase();
+  return haystack.includes("trophy") || haystack.includes("fishx starter db") || haystack.includes("worldwide trophy fisheries");
+};
 
 // Heuristic: a spot is "boat-only" (cannot be reached from shore) when
 // it sits in deeper water, is offshore, or its area type implies open water.
