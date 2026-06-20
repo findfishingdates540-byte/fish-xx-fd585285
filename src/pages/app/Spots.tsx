@@ -615,16 +615,19 @@ export default function Spots() {
     };
 
     const apply = () => {
-      const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
-      if (existing) { existing.setData(geojson); return; }
-
       ensureBoatIcon(map);
       ensureTrophyIcon(map);
-      map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['all', ['!=', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], paint: { 'circle-color': '#ef4444', 'circle-radius': 9, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      map.addLayer({ id: 'spot-trophy-fallback', type: 'circle', source: sourceId, filter: ['==', ['get', 'trophy'], true], paint: { 'circle-color': '#1454AE', 'circle-radius': 11, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
-      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['all', ['==', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
-      map.addLayer({ id: 'spot-trophy', type: 'symbol', source: sourceId, filter: ['==', ['get', 'trophy'], true], layout: { 'icon-image': 'trophy-spot-icon', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+      if (existing) {
+        existing.setData(geojson);
+      } else {
+        map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
+      }
+
+      if (!map.getLayer('spot-unclustered')) map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['all', ['!=', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], paint: { 'circle-color': '#ef4444', 'circle-radius': 9, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      if (!map.getLayer('spot-trophy-fallback')) map.addLayer({ id: 'spot-trophy-fallback', type: 'circle', source: sourceId, filter: ['==', ['get', 'trophy'], true], paint: { 'circle-color': '#1454AE', 'circle-radius': 11, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
+      if (!map.getLayer('spot-boat')) map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['all', ['==', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      if (!map.getLayer('spot-trophy')) map.addLayer({ id: 'spot-trophy', type: 'symbol', source: sourceId, filter: ['==', ['get', 'trophy'], true], layout: { 'icon-image': 'trophy-spot-icon', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
 
       // Expand the tap hit area so mobile users don't have to tap the exact pixel.
       const TAP_PADDING = 14; // px around the touch/click point
