@@ -37,7 +37,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.png";
 import trophySpotIconAsset from "@/assets/fishx_trophy_spot.png.asset.json";
-const trophySpotIconUrl = trophySpotIconAsset.url;
+const trophySpotIconUrl = trophySpotIconAsset.url.startsWith("/__l5e/")
+  ? `https://fish-xx.lovable.app${trophySpotIconAsset.url}`
+  : trophySpotIconAsset.url;
 
 // Sources from the 4 imported Trophy Spot Excel sheets
 const TROPHY_SPOT_SOURCES = new Set([
@@ -148,14 +150,14 @@ const ensureTrophyIcon = (map: mapboxgl.Map) => {
       }
     }
   }
-  if (map.hasImage("trophy-spot-icon")) return;
-
   const img = new Image();
   img.decoding = "async";
   img.crossOrigin = "anonymous";
   img.onload = () => {
     try {
-      if (!map.hasImage("trophy-spot-icon")) {
+      if (map.hasImage("trophy-spot-icon")) {
+        map.updateImage("trophy-spot-icon", img);
+      } else {
         map.addImage("trophy-spot-icon", img, { pixelRatio: 2 });
       }
     } catch (e) {
