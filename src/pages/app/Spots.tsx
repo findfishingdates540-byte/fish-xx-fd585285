@@ -98,8 +98,58 @@ const ensureBoatIcon = (map: mapboxgl.Map) => {
   }
 };
 
+const createTrophyIconImage = () => {
+  const size = 96;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.clearRect(0, 0, size, size);
+  ctx.shadowColor = "rgba(3, 16, 41, 0.35)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 4;
+  ctx.fillStyle = "#1454AE";
+  ctx.beginPath();
+  ctx.arc(48, 48, 34, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 46px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("★", 48, 44);
+
+  ctx.fillStyle = "#031029";
+  ctx.beginPath();
+  ctx.moveTo(28, 70);
+  ctx.lineTo(68, 70);
+  ctx.lineTo(60, 83);
+  ctx.lineTo(36, 83);
+  ctx.closePath();
+  ctx.fill();
+
+  return ctx.getImageData(0, 0, size, size);
+};
+
 const ensureTrophyIcon = (map: mapboxgl.Map) => {
+  if (!map.hasImage("trophy-spot-icon")) {
+    const fallbackIcon = createTrophyIconImage();
+    if (fallbackIcon) {
+      try {
+        map.addImage("trophy-spot-icon", fallbackIcon, { pixelRatio: 2 });
+      } catch (e) {
+        console.warn("Failed to add fallback trophy-spot-icon", e);
+      }
+    }
+  }
   if (map.hasImage("trophy-spot-icon")) return;
+
   const img = new Image();
   img.decoding = "async";
   img.crossOrigin = "anonymous";
