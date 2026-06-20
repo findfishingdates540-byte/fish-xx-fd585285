@@ -36,8 +36,6 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import boatSpotIconUrl from "@/assets/icons/fishx_icon_boat_spots.png";
-import trophySpotIconAsset from "@/assets/fishx_trophy_spot.png.asset.json";
-const trophySpotIconUrl = trophySpotIconAsset.url;
 
 // Sources from the 4 imported Trophy Spot Excel sheets
 const TROPHY_SPOT_SOURCES = new Set([
@@ -50,8 +48,13 @@ const TROPHY_SPOT_SOURCES = new Set([
   "FishX Trophy Waters 1000",
   "FishX Worldwide Trophy Fisheries",
 ]);
-const isTrophySpot = (s: { source?: string | null }) =>
-  !!s.source && TROPHY_SPOT_SOURCES.has(s.source);
+const isTrophySpot = (s: { source?: string | null; description?: string | null; name?: string | null }) => {
+  const source = (s.source || "").trim();
+  if (TROPHY_SPOT_SOURCES.has(source)) return true;
+
+  const haystack = `${source} ${s.description || ""} ${s.name || ""}`.toLowerCase();
+  return haystack.includes("trophy") || haystack.includes("fishx starter db") || haystack.includes("worldwide trophy fisheries");
+};
 
 // Heuristic: a spot is "boat-only" (cannot be reached from shore) when
 // it sits in deeper water, is offshore, or its area type implies open water.
@@ -98,22 +101,56 @@ const ensureBoatIcon = (map: mapboxgl.Map) => {
   }
 };
 
+const createTrophyIconImage = () => {
+  const size = 96;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.clearRect(0, 0, size, size);
+  ctx.shadowColor = "rgba(3, 16, 41, 0.35)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 4;
+  ctx.fillStyle = "#1454AE";
+  ctx.beginPath();
+  ctx.arc(48, 48, 34, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 46px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("★", 48, 44);
+
+  ctx.fillStyle = "#031029";
+  ctx.beginPath();
+  ctx.moveTo(28, 70);
+  ctx.lineTo(68, 70);
+  ctx.lineTo(60, 83);
+  ctx.lineTo(36, 83);
+  ctx.closePath();
+  ctx.fill();
+
+  return ctx.getImageData(0, 0, size, size);
+};
+
 const ensureTrophyIcon = (map: mapboxgl.Map) => {
   if (map.hasImage("trophy-spot-icon")) return;
-  const img = new Image();
-  img.decoding = "async";
-  img.crossOrigin = "anonymous";
-  img.onload = () => {
+
+  const trophyIcon = createTrophyIconImage();
+  if (trophyIcon) {
     try {
-      if (!map.hasImage("trophy-spot-icon")) {
-        map.addImage("trophy-spot-icon", img, { pixelRatio: 2 });
-      }
+      map.addImage("trophy-spot-icon", trophyIcon, { pixelRatio: 2 });
     } catch (e) {
       console.warn("Failed to add trophy-spot-icon", e);
     }
-  };
-  img.onerror = (e) => console.warn("trophy-spot-icon failed to load", e);
-  img.src = trophySpotIconUrl;
+  }
 };
 
 interface SharedCatch {
@@ -514,6 +551,8 @@ export default function Spots() {
       ensureTrophyIcon(map);
       map.addSource(sId, { type: 'geojson', data: sg, cluster: false });
       map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sId, filter: ['all', ['!=', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], paint: { 'circle-color': '#ef4444', 'circle-radius': 7, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-trophy-fallback', type: 'circle', source: sId, filter: ['==', ['get', 'trophy'], true], paint: { 'circle-color': '#1454AE', 'circle-radius': 10, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
+      map.addLayer({ id: 'spot-trophy-star', type: 'symbol', source: sId, filter: ['==', ['get', 'trophy'], true], layout: { 'text-field': '★', 'text-size': 16, 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff' } });
       map.addLayer({ id: 'spot-boat', type: 'symbol', source: sId, filter: ['all', ['==', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
       map.addLayer({ id: 'spot-trophy', type: 'symbol', source: sId, filter: ['==', ['get', 'trophy'], true], layout: { 'icon-image': 'trophy-spot-icon', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
     });
@@ -582,15 +621,20 @@ export default function Spots() {
     };
 
     const apply = () => {
-      const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
-      if (existing) { existing.setData(geojson); return; }
-
       ensureBoatIcon(map);
       ensureTrophyIcon(map);
-      map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
-      map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['all', ['!=', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], paint: { 'circle-color': '#ef4444', 'circle-radius': 9, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['all', ['==', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
-      map.addLayer({ id: 'spot-trophy', type: 'symbol', source: sourceId, filter: ['==', ['get', 'trophy'], true], layout: { 'icon-image': 'trophy-spot-icon', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      const existing = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+      if (existing) {
+        existing.setData(geojson);
+      } else {
+        map.addSource(sourceId, { type: 'geojson', data: geojson, cluster: false });
+      }
+
+      if (!map.getLayer('spot-unclustered')) map.addLayer({ id: 'spot-unclustered', type: 'circle', source: sourceId, filter: ['all', ['!=', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], paint: { 'circle-color': '#ef4444', 'circle-radius': 9, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      if (!map.getLayer('spot-trophy-fallback')) map.addLayer({ id: 'spot-trophy-fallback', type: 'circle', source: sourceId, filter: ['==', ['get', 'trophy'], true], paint: { 'circle-color': '#1454AE', 'circle-radius': 11, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
+      if (!map.getLayer('spot-trophy-star')) map.addLayer({ id: 'spot-trophy-star', type: 'symbol', source: sourceId, filter: ['==', ['get', 'trophy'], true], layout: { 'text-field': '★', 'text-size': 17, 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff' } });
+      if (!map.getLayer('spot-boat')) map.addLayer({ id: 'spot-boat', type: 'symbol', source: sourceId, filter: ['all', ['==', ['get', 'boat'], true], ['!=', ['get', 'trophy'], true]], layout: { 'icon-image': 'boat-spot-icon', 'icon-size': 0.55, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+      if (!map.getLayer('spot-trophy')) map.addLayer({ id: 'spot-trophy', type: 'symbol', source: sourceId, filter: ['==', ['get', 'trophy'], true], layout: { 'icon-image': 'trophy-spot-icon', 'icon-size': 0.5, 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
 
       // Expand the tap hit area so mobile users don't have to tap the exact pixel.
       const TAP_PADDING = 14; // px around the touch/click point
@@ -600,7 +644,7 @@ export default function Spots() {
           [x - TAP_PADDING, y - TAP_PADDING],
           [x + TAP_PADDING, y + TAP_PADDING],
         ];
-        const features = map.queryRenderedFeatures(bbox, { layers: ['spot-unclustered', 'spot-boat', 'spot-trophy'] });
+        const features = map.queryRenderedFeatures(bbox, { layers: ['spot-unclustered', 'spot-boat', 'spot-trophy-fallback', 'spot-trophy-star', 'spot-trophy'] });
         if (!features.length) return;
         const spotId = features[0].properties?.spotId;
         const spot = fishingSpotsRef.current.find(s => s.id === spotId);
@@ -618,6 +662,10 @@ export default function Spots() {
       map.on('mouseleave', 'spot-unclustered', clearPointer);
       map.on('mouseenter', 'spot-boat', setPointer);
       map.on('mouseleave', 'spot-boat', clearPointer);
+      map.on('mouseenter', 'spot-trophy-fallback', setPointer);
+      map.on('mouseleave', 'spot-trophy-fallback', clearPointer);
+      map.on('mouseenter', 'spot-trophy-star', setPointer);
+      map.on('mouseleave', 'spot-trophy-star', clearPointer);
       map.on('mouseenter', 'spot-trophy', setPointer);
       map.on('mouseleave', 'spot-trophy', clearPointer);
     };
