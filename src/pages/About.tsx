@@ -44,7 +44,7 @@ const About = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <img src={aboutHero} alt="Crew of anglers holding a marlin offshore" className="w-full h-full object-cover" />
+              <img src={aboutHero} alt="Anglers with their catches" className="w-full h-full object-cover" />
             </motion.div>
           </div>
         </div>
