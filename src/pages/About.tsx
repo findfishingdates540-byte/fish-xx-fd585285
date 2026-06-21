@@ -178,12 +178,12 @@ const About = () => {
             <div className="grid grid-cols-2 gap-6">
               <ScrollReveal delay={0.1}>
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={coupleFishing} alt="Anglers fishing together" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={catchesLeft} alt="Anglers with a catch" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
               </ScrollReveal>
               <ScrollReveal delay={0.2} className="pt-12">
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={fishingBuddies1} alt="Fishing friends" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={catchesRight} alt="Trophy catch on the water" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
               </ScrollReveal>
             </div>
