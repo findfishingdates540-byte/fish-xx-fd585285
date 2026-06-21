@@ -155,8 +155,8 @@ export default function ChampionshipDetail() {
     return <div className="p-6 text-sm text-muted-foreground">Loading championship…</div>;
   }
 
-  const commonTiers = tiers.filter((t: any) => t.tier === "common");
-  const premiumTiers = tiers.filter((t: any) => t.tier === "premium");
+  const commonTiers = tiers.filter((t: any) => t.tier === "common" && !/^(Shark,\s*White|Great White Shark|White Shark|Carcharodon carcharias)$/i.test(t.species_name));
+  const premiumTiers = tiers.filter((t: any) => t.tier === "premium" && !/^(Shark,\s*White|Great White Shark|White Shark|Carcharodon carcharias)$/i.test(t.species_name));
   const diversity = (champ.diversity_bonuses as any[]) || [];
   const paidCount = standings.filter((s: any) => s.calcutta_paid).length;
   const calcuttaPool = (Number(champ.calcutta_entry_fee) || 0) * paidCount;
