@@ -91,6 +91,31 @@ export default function ChampionshipDetail() {
       toast.info("Calcutta payment cancelled.");
       setParams({}, { replace: true });
     }
+
+    if (params.get("paypal") === "return") {
+      const orderId = params.get("token");
+      if (orderId) {
+        (async () => {
+          const { data, error } = await supabase.functions.invoke("paypal-calcutta-capture", {
+            body: { orderId },
+          });
+          if (error || data?.error) {
+            toast.error(data?.error || error?.message || "Could not confirm PayPal payment");
+          } else if (data?.ok) {
+            toast.success("Calcutta payment received! Your team is in the side-pot.");
+            qc.invalidateQueries({ queryKey: ["championship-standings", id] });
+          } else {
+            toast.info(`PayPal payment status: ${data?.status || "unknown"}`);
+          }
+          setParams({}, { replace: true });
+        })();
+      } else {
+        setParams({}, { replace: true });
+      }
+    } else if (params.get("paypal") === "cancelled") {
+      toast.info("PayPal payment cancelled.");
+      setParams({}, { replace: true });
+    }
   }, [params, id, qc, setParams]);
 
   const register = useMutation({
@@ -112,7 +137,7 @@ export default function ChampionshipDetail() {
 
   const payCalcutta = useMutation({
     mutationFn: async (teamId: string) => {
-      const { data, error } = await supabase.functions.invoke("championship-calcutta-checkout", {
+      const { data, error } = await supabase.functions.invoke("paypal-calcutta-checkout", {
         body: { championshipId: id, teamId },
       });
       if (error) throw error;
@@ -120,9 +145,10 @@ export default function ChampionshipDetail() {
         window.location.href = data.url as string;
         return;
       }
-      throw new Error("No checkout URL returned");
+      if (data?.error) throw new Error(data.error);
+      throw new Error("No PayPal approval URL returned");
     },
-    onError: (e: any) => toast.error(e?.message || "Could not start checkout"),
+    onError: (e: any) => toast.error(e?.message || "Could not start PayPal checkout"),
   });
 
   if (!champ) {
