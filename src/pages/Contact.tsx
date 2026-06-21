@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin, Clock, MessageSquare, Send, Copy, CheckCircle } from 'lucide-react';
+import { Mail, Phone, Clock, MessageSquare, Send, Copy, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import contactHero from '@/assets/contact-hero.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
