@@ -336,11 +336,11 @@ export default function ChampionshipDetail() {
                         </p>
                         <Button
                           size="sm"
-                          className="w-full bg-cyan-600 hover:bg-cyan-500"
+                          className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white"
                           disabled={payCalcutta.isPending}
                           onClick={() => payCalcutta.mutate((myRegistration as any).team_id)}
                         >
-                          {payCalcutta.isPending ? "Starting checkout…" : `Pay $${Number(champ.calcutta_entry_fee)} Calcutta`}
+                          {payCalcutta.isPending ? "Redirecting to PayPal…" : `Pay $${Number(champ.calcutta_entry_fee)} with PayPal`}
                         </Button>
                       </>
                     )}
