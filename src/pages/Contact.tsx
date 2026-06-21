@@ -124,11 +124,10 @@ const Contact = () => {
       {/* Contact Methods */}
       <section className="py-24 px-6 section-muted overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-4 gap-8" staggerDelay={0.1}>
+          <StaggerContainer className="grid md:grid-cols-3 gap-8" staggerDelay={0.1}>
             {[
-              { icon: Mail, title: 'Email Us', content: 'support@fish-x.com' },
-              { icon: Phone, title: 'Call Us', content: '1-800-FISHX-APP' },
-              { icon: MapPin, title: 'Location', content: '123 Fishing Lane\nLake City, FL 32055' },
+              { icon: Mail, title: 'Email Us', content: 'info@fish-x.com' },
+              { icon: Phone, title: 'Call Us', content: '1-844-678-FISH (3474)' },
               { icon: Clock, title: 'Hours', content: '24/7 Support\nAlways available' },
             ].map((item, i) => (
               <StaggerItem key={i}>
