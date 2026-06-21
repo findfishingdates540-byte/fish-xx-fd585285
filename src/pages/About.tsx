@@ -4,8 +4,8 @@ import { ArrowRight, Fish, Users, Target, Award, Globe, Sparkles } from 'lucide-
 import { PageMeta } from '@/components/seo/PageMeta';
 import { motion } from 'framer-motion';
 import aboutHero from '@/assets/about-catches.jpeg';
-import coupleFishing from '@/assets/couple-fishing.jpg';
-import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
+import catchesLeft from '@/assets/fishing-photo-1.jpg';
+import catchesRight from '@/assets/fishing-photo-2.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
