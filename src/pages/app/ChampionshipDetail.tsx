@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trophy, Calendar, Users, Sparkles, CheckCircle2, DollarSign, Crown } from "lucide-react";
+import { Trophy, Calendar, Users, Sparkles, CheckCircle2, DollarSign, Crown, ShieldAlert } from "lucide-react";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
 import { Fish } from "lucide-react";
 import sharkBanner from "@/assets/shark-championship-banner.jpg";
@@ -167,6 +167,30 @@ export default function ChampionshipDetail() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+          {/* Protected species warning — Great White Sharks */}
+          {/great\s*white|shark/i.test(champ.title || "") && (
+            <div className="rounded-xl border-2 border-red-500/60 bg-gradient-to-r from-red-950/70 via-red-900/40 to-red-950/70 p-4 md:p-5 flex items-start gap-4 shadow-lg shadow-red-900/30">
+              <div className="shrink-0 rounded-full bg-red-500/20 p-2.5 border border-red-400/40">
+                <ShieldAlert className="w-6 h-6 text-red-300" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className="border-red-400/60 text-red-200 uppercase tracking-wide text-[10px]">
+                    Protected Species
+                  </Badge>
+                </div>
+                <h3 className="text-base md:text-lg font-bold text-red-100">
+                  Great White Sharks are OFF LIMITS in this championship
+                </h3>
+                <p className="text-sm text-red-200/90 mt-1">
+                  Great White Sharks (<em>Carcharodon carcharias</em>) are a globally protected species. Targeting,
+                  landing, or submitting a Great White as a championship catch is strictly prohibited and will result in
+                  team disqualification. If accidentally hooked, release immediately without removing from the water.
+                </p>
+              </div>
+            </div>
+          )}
+
           {champ.description && (
             <Card className="p-4">
               <h2 className="font-semibold mb-2">About</h2>
