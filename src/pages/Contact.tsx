@@ -98,16 +98,8 @@ const Contact = () => {
           "@type": "LocalBusiness",
           name: "Fish-X",
           url: "https://fish-x.com",
-          email: "support@fish-x.com",
-          telephone: "1-800-FISHX-APP",
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: "123 Fishing Lane",
-            addressLocality: "Lake City",
-            addressRegion: "FL",
-            postalCode: "32055",
-            addressCountry: "US",
-          },
+          email: "info@fish-x.com",
+          telephone: "1-844-678-FISH",
           openingHours: "Mo-Su 00:00-23:59",
         }}
       />
