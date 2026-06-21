@@ -4,8 +4,8 @@ import { ArrowRight, Fish, Users, Target, Award, Globe, Sparkles } from 'lucide-
 import { PageMeta } from '@/components/seo/PageMeta';
 import { motion } from 'framer-motion';
 import aboutHero from '@/assets/about-catches.jpeg';
-import coupleFishing from '@/assets/couple-fishing.jpg';
-import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
+import catchesLeft from '@/assets/fishing-photo-1.jpg';
+import catchesRight from '@/assets/fishing-photo-2.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
@@ -178,12 +178,12 @@ const About = () => {
             <div className="grid grid-cols-2 gap-6">
               <ScrollReveal delay={0.1}>
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={coupleFishing} alt="Anglers fishing together" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={catchesLeft} alt="Anglers with a catch" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
               </ScrollReveal>
               <ScrollReveal delay={0.2} className="pt-12">
                 <div className="aspect-[3/4] rounded-3xl overflow-hidden shadow-lg">
-                  <img src={fishingBuddies1} alt="Fishing friends" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  <img src={catchesRight} alt="Trophy catch on the water" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
               </ScrollReveal>
             </div>
