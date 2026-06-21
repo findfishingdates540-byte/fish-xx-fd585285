@@ -3,11 +3,10 @@ import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Heart, MessageCircle, Users, MapPin, Shield, Star, Check, Sparkles, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { realPhoto } from '@/assets/real-photos';
-const datingHero = realPhoto(0);
-const coupleFishing = realPhoto(1);
-const datingCouple1 = realPhoto(2);
-const datingCouple2 = realPhoto(3);
+import datingHero from '@/assets/dating-hero.jpg';
+import coupleFishing from '@/assets/couple-fishing.jpg';
+import datingCouple1 from '@/assets/dating-couple-1.jpg';
+import datingCouple2 from '@/assets/dating-couple-2.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 

@@ -3,10 +3,9 @@ import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Camera, Trophy, Users, Check, DollarSign, Vote, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { realPhoto } from '@/assets/real-photos';
-const fishingPhoto1 = realPhoto(0);
-const fishingPhoto2 = realPhoto(1);
-const fishingPhoto3 = realPhoto(2);
+import fishingPhoto1 from '@/assets/fishing-photo-1.jpg';
+import fishingPhoto2 from '@/assets/fishing-photo-2.jpg';
+import fishingPhoto3 from '@/assets/fishing-photo-3.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal } from '@/components/ui/scroll-reveal';
 

@@ -11,8 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Phone, Clock, MessageSquare, Send, Copy, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { realPhoto } from '@/assets/real-photos';
-const contactHero = realPhoto(0);
+import contactHero from '@/assets/contact-hero.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 import { supabase } from '@/integrations/supabase/client';

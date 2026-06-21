@@ -42,8 +42,7 @@ import {
   CloudSun,
   Award
 } from 'lucide-react';
-import { realPhoto } from '@/assets/real-photos';
-const safetyHero = realPhoto(0);
+import safetyHero from '@/assets/safety-hero.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 
 type FilterTab = 'all' | 'dating' | 'fishing' | 'guidelines' | 'digital';

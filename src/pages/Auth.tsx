@@ -8,8 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Loader2, Mail, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { realPhoto } from '@/assets/real-photos';
-const authFishingImage = realPhoto(0);
+import authFishingImage from '@/assets/auth-fishing.jpg';
 import logo from '@/assets/fishx-logo.png';
 import {
   Dialog,

@@ -3,10 +3,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Fish, Users, Target, Award, Globe, Sparkles } from 'lucide-react';
 import { PageMeta } from '@/components/seo/PageMeta';
 import { motion } from 'framer-motion';
-import { realPhoto } from '@/assets/real-photos';
-const aboutHero = realPhoto(0);
-const coupleFishing = realPhoto(1);
-const fishingBuddies1 = realPhoto(2);
+import aboutHero from '@/assets/about-hero-marlin.jpeg';
+import coupleFishing from '@/assets/couple-fishing.jpg';
+import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
