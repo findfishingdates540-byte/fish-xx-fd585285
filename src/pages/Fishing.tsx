@@ -3,11 +3,12 @@ import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Fish, MapPin, Camera, Users, Trophy, Compass, Anchor, Check, Star, Award, Medal } from 'lucide-react';
 import { motion } from 'framer-motion';
-import fishingHero from '@/assets/fishing-hero.jpg';
-import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
-import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
-import heroFishing1 from '@/assets/hero-fishing-1.jpg';
-import heroFishing2 from '@/assets/hero-fishing-2.jpg';
+import { realPhoto } from '@/assets/real-photos';
+const fishingHero = realPhoto(0);
+const fishingBuddies1 = realPhoto(1);
+const fishingBuddies2 = realPhoto(2);
+const heroFishing1 = realPhoto(3);
+const heroFishing2 = realPhoto(4);
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
