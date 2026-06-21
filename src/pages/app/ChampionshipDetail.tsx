@@ -206,12 +206,13 @@ export default function ChampionshipDetail() {
                   </Badge>
                 </div>
                 <h3 className="text-base md:text-lg font-bold text-red-100">
-                  Great White Sharks are OFF LIMITS in this championship
+                  Shark, White / Great White Sharks are OFF LIMITS in this championship
                 </h3>
                 <p className="text-sm text-red-200/90 mt-1">
-                  Great White Sharks (<em>Carcharodon carcharias</em>) are a globally protected species. Targeting,
-                  landing, or submitting a Great White as a championship catch is strictly prohibited and will result in
-                  team disqualification. If accidentally hooked, release immediately without removing from the water.
+                  Shark, White (<em>Carcharodon carcharias</em>), commonly known as the Great White Shark,
+                  is a globally protected species. Targeting, landing, or submitting one as a championship
+                  catch is strictly prohibited and will result in team disqualification. If accidentally
+                  hooked, release immediately without removing from the water.
                 </p>
               </div>
             </div>
