@@ -155,8 +155,8 @@ export default function ChampionshipDetail() {
     return <div className="p-6 text-sm text-muted-foreground">Loading championship…</div>;
   }
 
-  const commonTiers = tiers.filter((t: any) => t.tier === "common");
-  const premiumTiers = tiers.filter((t: any) => t.tier === "premium");
+  const commonTiers = tiers.filter((t: any) => t.tier === "common" && !/^(Shark,\s*White|Great White Shark|White Shark|Carcharodon carcharias)$/i.test(t.species_name));
+  const premiumTiers = tiers.filter((t: any) => t.tier === "premium" && !/^(Shark,\s*White|Great White Shark|White Shark|Carcharodon carcharias)$/i.test(t.species_name));
   const diversity = (champ.diversity_bonuses as any[]) || [];
   const paidCount = standings.filter((s: any) => s.calcutta_paid).length;
   const calcuttaPool = (Number(champ.calcutta_entry_fee) || 0) * paidCount;
@@ -206,12 +206,13 @@ export default function ChampionshipDetail() {
                   </Badge>
                 </div>
                 <h3 className="text-base md:text-lg font-bold text-red-100">
-                  Great White Sharks are OFF LIMITS in this championship
+                  Shark, White / Great White Sharks are OFF LIMITS in this championship
                 </h3>
                 <p className="text-sm text-red-200/90 mt-1">
-                  Great White Sharks (<em>Carcharodon carcharias</em>) are a globally protected species. Targeting,
-                  landing, or submitting a Great White as a championship catch is strictly prohibited and will result in
-                  team disqualification. If accidentally hooked, release immediately without removing from the water.
+                  Shark, White (<em>Carcharodon carcharias</em>), commonly known as the Great White Shark,
+                  is a globally protected species. Targeting, landing, or submitting one as a championship
+                  catch is strictly prohibited and will result in team disqualification. If accidentally
+                  hooked, release immediately without removing from the water.
                 </p>
               </div>
             </div>
