@@ -100,7 +100,6 @@ serve(async (req) => {
     await svc.from("championship_teams")
       .update({
         calcutta_paid: true,
-        calcutta_paid_at: new Date().toISOString(),
         stripe_session_id: `paypal:${orderId}${captureId ? ":" + captureId : ""}`,
       })
       .eq("id", registrationId);
