@@ -99,6 +99,14 @@ export function LogCompetitionCatchModal({ open, onOpenChange, competition }: Pr
         }
       }
 
+      const finalSpeciesName = speciesName || "";
+      const isGreatWhite = /^(Shark,\s*White|Great White Shark|White Shark|Carcharodon carcharias)$/i.test(finalSpeciesName);
+      if (isGreatWhite) {
+        toast.error("Shark, White / Great White Sharks are protected and off-limits. Submission blocked.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const caughtAtISO = data.caught_at ? new Date(data.caught_at).toISOString() : null;
 
       const payload: Record<string, any> = {
