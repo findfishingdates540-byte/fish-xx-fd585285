@@ -926,6 +926,15 @@ export default function Profile() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Share Sheet */}
+      <ShareSheet
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        shareUrl={`${getShareBaseUrl()}/app/u/${user?.id}`}
+        shareTitle={`${profile?.display_name || 'My'}'s FISH-X Profile`}
+        shareText={`Check out ${profile?.display_name || 'my'} profile on FISH-X!`}
+      />
     </div>
   );
 }
