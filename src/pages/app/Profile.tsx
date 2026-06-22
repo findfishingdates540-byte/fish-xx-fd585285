@@ -22,7 +22,9 @@ import { thumb, medium } from '@/lib/image-url';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
 import { AccountSwitcherSheet } from '@/components/profile/AccountSwitcherSheet';
+import { getShareBaseUrl } from '@/lib/config';
 import { InviteFriendsCard } from '@/components/feed';
+import { ShareSheet } from '@/components/feed/ShareSheet';
 import { ProfileStatsBar } from '@/components/social/ProfileStatsBar';
 import { PostViewerOverlay } from '@/components/social/PostViewerOverlay';
 import { ProfilePostsGrid } from '@/components/social/ProfilePostsGrid';
@@ -83,6 +85,7 @@ export default function Profile() {
   };
   const [showDatingSheet, setShowDatingSheet] = useState(false);
   const [showSwitcher, setShowSwitcher] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('social');
 
@@ -277,7 +280,12 @@ export default function Profile() {
                   <span className="hidden md:inline">Settings</span>
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm border-border">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-background/90 backdrop-blur-sm border-border"
+                onClick={() => setIsShareOpen(true)}
+              >
                 <Share2 className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">Share</span>
               </Button>
@@ -918,6 +926,15 @@ export default function Profile() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Share Sheet */}
+      <ShareSheet
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        shareUrl={`${getShareBaseUrl()}/app/u/${user?.id}`}
+        shareTitle={`${profile?.display_name || 'My'}'s FISH-X Profile`}
+        shareText={`Check out ${profile?.display_name || 'my'} profile on FISH-X!`}
+      />
     </div>
   );
 }
