@@ -1,50 +1,57 @@
-## Goal
-Make the Global Angler Rankings page instantly understandable to casual visitors — no fishing jargon, no mystery numbers, no guessing what each tab does.
+# Fish-X Business — Detailed Plan Document
 
-## Changes
+Generate a single Microsoft Word file (`.docx`) containing the full, detailed version of the originally proposed standalone Fish-X Business plan. No project code will be written or modified.
 
-### 1. Page intro
-Add a one-line friendly intro below the page title, e.g.:
-> "See who’s catching the most, the biggest, and the widest variety of fish right now."
+## Deliverable
 
-### 2. Friendly filter tab labels
-Rewrite the four sort tabs from jargon to plain English:
-- **Points** → **Top Scorers**
-- **Catches** → **Most Catches**
-- **Biggest** → **Biggest Catch**
-- **Species** → **Most Species**
+- File: `/mnt/documents/FishX-Business-Plan.docx`
+- Format: Word (.docx), US Letter, Arial, branded heading styles (navy `#031029` / primary `#1454AE`), TOC, page numbers.
+- Length target: ~15–25 pages of substantive detail (not filler).
 
-### 3. Active-filter description pill
-When a filter is selected, show a short sentence directly under the tabs explaining what the list is ranking, e.g.:
-- "Top Scorers — ranked by total catch score."
-- "Most Catches — who’s landed the most fish."
-- "Biggest Catch — ordered by the heaviest single fish (lb)."
-- "Most Species — who’s caught the widest variety."
+## Document outline
 
-### 4. Plain-English stat labels (list rows)
-Replace cryptic abbreviations in the right-hand stat block and row details:
-- **"pts"** → **"score"**
-- **"spp."** → **"species"**
-- Keep **"lb"** but consider **"lbs"** for clarity
-- In the hidden desktop detail row, expand abbreviations to full words: **"caught"**, **"heaviest"**, **"species"**
+1. **Cover & Executive Summary** — product vision, who it serves, why standalone, success metrics.
+2. **Scope & Non-Goals** — what v1 includes vs. explicitly excludes.
+3. **Personas & Use Cases** — Charter Captain, Tackle Shop Owner, Marina, Apparel Brand, Gear Manufacturer, Guide Service; primary jobs-to-be-done per persona.
+4. **Architecture Overview**
+   - Standalone Lovable project, own Supabase instance, own auth namespace.
+   - Cross-app integration surface with consumer Fish-X (read-only directory feed, challenge sponsorship handshake, deep links).
+   - Tech stack, hosting, domains (`business.fishx.app` proposed).
+5. **Auth & Account Model** — business accounts, team members/roles (owner, manager, staff), invite flow, email verification, password reset, OAuth providers.
+6. **Data Model** — tables: `businesses`, `business_members`, `business_categories`, `business_posts`, `business_followers`, `business_buddies`, `business_messages`, `sponsored_challenges`, `subscriptions`, `verification_requests`. ER overview + RLS strategy (security-definer `has_business_role`).
+7. **Core Features (v1)**
+   - Signup wizard (category, location, verification docs upload).
+   - Public business profile page (hero, about, hours, location/map, gallery, posts, reviews stub).
+   - Social feed posts (text, photos, link to challenges/products).
+   - Followers + discoverable directory with filters (category, location, verified).
+   - Map view (Mapbox) with clustering.
+   - Buddies + 1:1 messaging with anglers (cross-app bridge via signed tokens).
+   - Sponsor a Fishing Challenge (creates entry in consumer Fish-X via signed webhook).
+8. **Monetization**
+   - Free tier: 1 location, basic profile, 5 posts/mo, basic directory listing.
+   - Premium tier: unlimited posts, featured placement, analytics, sponsored challenges, multi-location, verified badge priority.
+   - Stripe Checkout + Customer Portal, webhook to `business_subscriptions`.
+9. **Discovery & SEO** — public profile pages indexable, JSON-LD `LocalBusiness`, sitemap, OG/Twitter cards.
+10. **Admin & Moderation** — admin panel for verification approvals, reports, takedowns, audit logs.
+11. **Cross-App Integration Contracts** — exact endpoints, token format, payload shapes for: directory mirror, sponsored challenges, buddy/message bridge, deep links.
+12. **Security & Compliance** — RLS patterns, rate limiting, file upload validation, GDPR data export/delete, business verification document handling.
+13. **Notifications** — email (Resend), in-app, optional push (FCM) — event matrix.
+14. **Analytics** — profile views, follower growth, post reach, message response rate, sponsored challenge ROI.
+15. **Roadmap & Phasing**
+   - Phase 0 (week 1): project scaffold, auth, schema, RLS.
+   - Phase 1 (weeks 2–3): profile, posts, directory, map.
+   - Phase 2 (weeks 4–5): messaging + buddies + cross-app bridge.
+   - Phase 3 (week 6): Stripe + premium gating + sponsored challenges.
+   - Phase 4 (week 7): admin, moderation, analytics, polish, launch.
+16. **Open Questions & Risks** — verification SLA, cross-Supabase auth bridge approach, content moderation scale, payout model for sponsorships.
+17. **Appendix** — full table DDL sketches, RLS policy examples, edge function list, env vars.
 
-### 5. How scoring works link (more visible)
-Move or duplicate the existing "How scoring works →" link so it sits right under the page intro or beside the tab row — not buried or easy to miss.
+## How it will be produced
 
-### 6. Podium card copy
-In the top-3 podium cards, replace the generic **"#{rank} · {value} {label}"** line with context-aware phrasing tied to the active filter:
-- Top Scorers: "#{rank} · {score} points"
-- Most Catches: "#{rank} · {count} fish caught"
-- Biggest Catch: "#{rank} · {weight} lbs"
-- Most Species: "#{rank} · {count} different species"
-
-### 7. Empty-state copy (if changed)
-If touched, keep it friendly: e.g. "No anglers match your filters yet — try a different species or sort."
-
-## Files touched
-- `src/pages/app/GlobalAnglers.tsx` — copy rewrites, add intro line, active-filter description, podium context labels.
+- Use the bundled `docx` skill (`docx-js`) to generate the file programmatically with proper heading styles, TOC, tables for data model and event matrices, and footer page numbers.
+- Validate the output and save to `/mnt/documents/FishX-Business-Plan.docx` so the user can download it.
 
 ## Out of scope
-- No new backend queries or scoring math changes.
-- No full visual redesign or layout restructuring beyond the described tweaks.
-- No changes to Team Rankings or other leaderboard pages.
+
+- No source code, migrations, edge functions, or routes are added to this project.
+- No new Supabase project is provisioned.
