@@ -3,7 +3,7 @@
  */
 
 // The production domain for share links, referrals, etc.
-export const PRODUCTION_URL = 'https://fish-x.com';
+export const PRODUCTION_URL = 'https://fish-xx.lovable.app';
 
 /**
  * Get the base URL for shareable links.

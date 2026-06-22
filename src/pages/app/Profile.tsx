@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
 import { AccountSwitcherSheet } from '@/components/profile/AccountSwitcherSheet';
 import { InviteFriendsCard } from '@/components/feed';
+import { ShareSheet } from '@/components/feed/ShareSheet';
 import { ProfileStatsBar } from '@/components/social/ProfileStatsBar';
 import { PostViewerOverlay } from '@/components/social/PostViewerOverlay';
 import { ProfilePostsGrid } from '@/components/social/ProfilePostsGrid';
