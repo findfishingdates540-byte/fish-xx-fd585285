@@ -3,11 +3,11 @@ import { PageMeta } from '@/components/seo/PageMeta';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Fish, MapPin, Camera, Users, Trophy, Compass, Anchor, Check, Star, Award, Medal } from 'lucide-react';
 import { motion } from 'framer-motion';
-import fishingHero from '@/assets/fishing-hero.jpg';
-import fishingBuddies1 from '@/assets/fishing-buddies-1.jpg';
-import fishingBuddies2 from '@/assets/fishing-buddies-2.jpg';
-import heroFishing1 from '@/assets/hero-fishing-1.jpg';
-import heroFishing2 from '@/assets/hero-fishing-2.jpg';
+import fishingHero from '@/assets/fishing-photo-1.jpg';
+import fishingBuddies1 from '@/assets/fishing-photo-2.jpg';
+import fishingBuddies2 from '@/assets/fishing-photo-3.jpg';
+import heroFishing1 from '@/assets/fishing-photo-4.jpg';
+import heroFishing2 from '@/assets/fishing-photo-5.jpg';
 import { PublicHeader, PublicFooter } from '@/components/layout';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/scroll-reveal';
 
