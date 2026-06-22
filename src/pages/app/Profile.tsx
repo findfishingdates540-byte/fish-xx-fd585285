@@ -22,6 +22,7 @@ import { thumb, medium } from '@/lib/image-url';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfilePromptDisplay, InterestDisplay, ProfileCompletionCard, type ProfilePrompt } from '@/components/profile';
 import { AccountSwitcherSheet } from '@/components/profile/AccountSwitcherSheet';
+import { getShareBaseUrl } from '@/lib/config';
 import { InviteFriendsCard } from '@/components/feed';
 import { ShareSheet } from '@/components/feed/ShareSheet';
 import { ProfileStatsBar } from '@/components/social/ProfileStatsBar';
@@ -279,7 +280,12 @@ export default function Profile() {
                   <span className="hidden md:inline">Settings</span>
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm border-border">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-background/90 backdrop-blur-sm border-border"
+                onClick={() => setIsShareOpen(true)}
+              >
                 <Share2 className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">Share</span>
               </Button>
