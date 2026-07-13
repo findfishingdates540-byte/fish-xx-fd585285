@@ -21,6 +21,7 @@ interface Catch {
   photos: string[] | null;
   cover_photo_url: string | null;
   measurement_photo_url: string | null;
+  video_url?: string | null;
   notes: string | null;
   caught_at: string | null;
   created_at: string;
@@ -44,6 +45,7 @@ export default function AdminCatches() {
   const [selectedCatch, setSelectedCatch] = useState<Catch | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
   const queryClient = useQueryClient();
 
@@ -70,6 +72,39 @@ export default function AdminCatches() {
     },
     staleTime: 30000,
   });
+
+  const rowIds = (catches || []).map((c) => c.id);
+  const { data: extraPhotosByCatch = {} } = useQuery({
+    queryKey: ['admin-catches-extras', rowIds.join(',')],
+    enabled: rowIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('catch_photos')
+        .select('catch_id, photo_url, photo_type')
+        .in('catch_id', rowIds);
+      const map: Record<string, { url: string; label: string }[]> = {};
+      (data || []).forEach((p: any) => {
+        map[p.catch_id] = map[p.catch_id] || [];
+        map[p.catch_id].push({ url: p.photo_url, label: p.photo_type || 'Photo' });
+      });
+      return map;
+    },
+  });
+
+  const collectPhotos = (c: Catch): { url: string; label: string }[] => {
+    const list: { url: string; label: string }[] = [];
+    if (c.cover_photo_url) list.push({ url: c.cover_photo_url, label: 'Catch photo' });
+    if (c.measurement_photo_url) list.push({ url: c.measurement_photo_url, label: 'Measurement photo' });
+    (c.photos || []).forEach((url, i) => {
+      if (url && url !== c.cover_photo_url && url !== c.measurement_photo_url) {
+        list.push({ url, label: `Additional photo ${i + 1}` });
+      }
+    });
+    ((extraPhotosByCatch as Record<string, { url: string; label: string }[]>)[c.id] || []).forEach((p) => {
+      if (!list.some((x) => x.url === p.url)) list.push(p);
+    });
+    return list;
+  };
 
   const { mutate: deleteCatch, isPending: deletePending } = useMutation({
     mutationFn: async (id: string) => {
@@ -104,6 +139,7 @@ export default function AdminCatches() {
 
   const handleViewDetails = (c: Catch) => {
     setSelectedCatch(c);
+    setActivePhotoIdx(0);
     setDetailsOpen(true);
   };
 
