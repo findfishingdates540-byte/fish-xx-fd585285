@@ -19,6 +19,8 @@ type Row = {
   length_in: number | null;
   cover_photo_url: string | null;
   measurement_photo_url: string | null;
+  photos: string[] | null;
+  video_url: string | null;
   general_location: string | null;
   caught_at: string | null;
   created_at: string;
@@ -50,7 +52,7 @@ export default function AdminCompetitionCatches() {
       const { data, error } = await supabase
         .from('catches')
         .select(`
-          id, species_name, weight_lbs, length_in, cover_photo_url, measurement_photo_url, trophy_level,
+          id, species_name, weight_lbs, length_in, cover_photo_url, measurement_photo_url, photos, video_url, trophy_level,
           general_location, caught_at, created_at, approval_status, approval_notes,
           challenge_id, tournament_id, species_id,
           user:profiles!catches_user_id_fkey(id, display_name, photos),
@@ -65,6 +67,40 @@ export default function AdminCompetitionCatches() {
       return (data as any) || [];
     },
   });
+
+  // Fetch extra photos from catch_photos table for currently-visible rows
+  const rowIds = rows.map((r) => r.id);
+  const { data: extraPhotosByCatch = {} } = useQuery({
+    queryKey: ['admin-competition-catch-extras', rowIds.join(',')],
+    enabled: rowIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('catch_photos')
+        .select('catch_id, photo_url, photo_type')
+        .in('catch_id', rowIds);
+      const map: Record<string, { url: string; label: string }[]> = {};
+      (data || []).forEach((p: any) => {
+        map[p.catch_id] = map[p.catch_id] || [];
+        map[p.catch_id].push({ url: p.photo_url, label: p.photo_type || 'Photo' });
+      });
+      return map;
+    },
+  });
+
+  const collectPhotos = (r: Row): { url: string; label: string }[] => {
+    const list: { url: string; label: string }[] = [];
+    if (r.cover_photo_url) list.push({ url: r.cover_photo_url, label: 'Catch photo' });
+    if (r.measurement_photo_url) list.push({ url: r.measurement_photo_url, label: 'Measurement photo' });
+    (r.photos || []).forEach((url, i) => {
+      if (url && url !== r.cover_photo_url && url !== r.measurement_photo_url) {
+        list.push({ url, label: `Additional photo ${i + 1}` });
+      }
+    });
+    ((extraPhotosByCatch as Record<string, { url: string; label: string }[]>)[r.id] || []).forEach((p) => {
+      if (!list.some((x) => x.url === p.url)) list.push(p);
+    });
+    return list;
+  };
 
   // Map of championship challenge_id -> set of premium species (id or lowercased name)
   const challengeIds = Array.from(new Set(rows.map((r) => r.challenge_id).filter(Boolean))) as string[];
@@ -167,33 +203,49 @@ export default function AdminCompetitionCatches() {
                 return (
                   <div key={r.id} className="flex flex-col md:flex-row gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
                     <div className="md:w-48 shrink-0">
-                      {r.cover_photo_url ? (
-                        <button
-                          type="button"
-                          onClick={() => setPreview({ row: r, index: 0 })}
-                          className="block w-full group relative"
-                          title="Click to preview"
-                        >
-                          <img src={r.cover_photo_url} alt="Catch submission" className="w-full h-32 object-cover rounded-lg group-hover:opacity-90 transition" />
-                          {r.measurement_photo_url && (
-                            <span className="absolute bottom-1 right-1 bg-black/70 text-[10px] text-white px-1.5 py-0.5 rounded">
-                              +1 photo
-                            </span>
-                          )}
-                        </button>
-                      ) : r.measurement_photo_url ? (
-                        <button
-                          type="button"
-                          onClick={() => setPreview({ row: r, index: 1 })}
-                          className="block w-full"
-                        >
-                          <img src={r.measurement_photo_url} alt="Measurement" className="w-full h-32 object-cover rounded-lg" />
-                        </button>
-                      ) : (
-                        <div className="w-full h-32 bg-slate-800 rounded-lg flex items-center justify-center">
-                          <Fish className="h-8 w-8 text-slate-600" />
-                        </div>
-                      )}
+                      {(() => {
+                        const photos = collectPhotos(r);
+                        if (photos.length === 0) {
+                          return (
+                            <div className="w-full h-32 bg-slate-800 rounded-lg flex items-center justify-center">
+                              <Fish className="h-8 w-8 text-slate-600" />
+                            </div>
+                          );
+                        }
+                        const extra = photos.length - 1;
+                        return (
+                          <div className="space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => setPreview({ row: r, index: 0 })}
+                              className="block w-full group relative"
+                              title="Click to preview all photos"
+                            >
+                              <img src={photos[0].url} alt={photos[0].label} className="w-full h-32 object-cover rounded-lg group-hover:opacity-90 transition" />
+                              {extra > 0 && (
+                                <span className="absolute bottom-1 right-1 bg-black/70 text-[10px] text-white px-1.5 py-0.5 rounded">
+                                  +{extra} more
+                                </span>
+                              )}
+                            </button>
+                            {photos.length > 1 && (
+                              <div className="flex gap-1 overflow-x-auto">
+                                {photos.slice(1, 5).map((p, i) => (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    onClick={() => setPreview({ row: r, index: i + 1 })}
+                                    className="shrink-0"
+                                    title={p.label}
+                                  >
+                                    <img src={p.url} alt={p.label} className="h-10 w-10 object-cover rounded" />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3 mb-2">
@@ -300,10 +352,7 @@ export default function AdminCompetitionCatches() {
             </DialogTitle>
           </DialogHeader>
           {preview && (() => {
-            const photos = [
-              preview.row.cover_photo_url && { url: preview.row.cover_photo_url, label: 'Catch photo' },
-              preview.row.measurement_photo_url && { url: preview.row.measurement_photo_url, label: 'Measurement photo' },
-            ].filter(Boolean) as { url: string; label: string }[];
+            const photos = collectPhotos(preview.row);
             const idx = Math.min(preview.index, Math.max(photos.length - 1, 0));
             const active = photos[idx];
             return (
@@ -322,8 +371,13 @@ export default function AdminCompetitionCatches() {
                 ) : (
                   <p className="text-slate-400 text-sm">No photo attached.</p>
                 )}
+                {preview.row.video_url && (
+                  <div className="bg-black rounded-lg overflow-hidden">
+                    <video src={preview.row.video_url} controls className="w-full max-h-[50vh]" />
+                  </div>
+                )}
                 {photos.length > 1 && (
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-2 justify-center flex-wrap">
                     {photos.map((p, i) => (
                       <button
                         key={i}
