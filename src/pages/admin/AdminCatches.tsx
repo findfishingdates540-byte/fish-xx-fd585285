@@ -21,6 +21,7 @@ interface Catch {
   photos: string[] | null;
   cover_photo_url: string | null;
   measurement_photo_url: string | null;
+  video_url?: string | null;
   notes: string | null;
   caught_at: string | null;
   created_at: string;
@@ -44,6 +45,7 @@ export default function AdminCatches() {
   const [selectedCatch, setSelectedCatch] = useState<Catch | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
   const queryClient = useQueryClient();
 
@@ -70,6 +72,39 @@ export default function AdminCatches() {
     },
     staleTime: 30000,
   });
+
+  const rowIds = (catches || []).map((c) => c.id);
+  const { data: extraPhotosByCatch = {} } = useQuery({
+    queryKey: ['admin-catches-extras', rowIds.join(',')],
+    enabled: rowIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('catch_photos')
+        .select('catch_id, photo_url, photo_type')
+        .in('catch_id', rowIds);
+      const map: Record<string, { url: string; label: string }[]> = {};
+      (data || []).forEach((p: any) => {
+        map[p.catch_id] = map[p.catch_id] || [];
+        map[p.catch_id].push({ url: p.photo_url, label: p.photo_type || 'Photo' });
+      });
+      return map;
+    },
+  });
+
+  const collectPhotos = (c: Catch): { url: string; label: string }[] => {
+    const list: { url: string; label: string }[] = [];
+    if (c.cover_photo_url) list.push({ url: c.cover_photo_url, label: 'Catch photo' });
+    if (c.measurement_photo_url) list.push({ url: c.measurement_photo_url, label: 'Measurement photo' });
+    (c.photos || []).forEach((url, i) => {
+      if (url && url !== c.cover_photo_url && url !== c.measurement_photo_url) {
+        list.push({ url, label: `Additional photo ${i + 1}` });
+      }
+    });
+    ((extraPhotosByCatch as Record<string, { url: string; label: string }[]>)[c.id] || []).forEach((p) => {
+      if (!list.some((x) => x.url === p.url)) list.push(p);
+    });
+    return list;
+  };
 
   const { mutate: deleteCatch, isPending: deletePending } = useMutation({
     mutationFn: async (id: string) => {
@@ -104,6 +139,7 @@ export default function AdminCatches() {
 
   const handleViewDetails = (c: Catch) => {
     setSelectedCatch(c);
+    setActivePhotoIdx(0);
     setDetailsOpen(true);
   };
 
@@ -154,18 +190,27 @@ export default function AdminCatches() {
               className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700/50 hover:border-slate-600 transition-colors"
             >
               {/* Catch Image */}
-              <div className="aspect-video bg-slate-700 relative">
-                {(c.cover_photo_url || c.photos?.[0] || c.measurement_photo_url) ? (
-                  <img
-                    src={c.cover_photo_url || c.photos?.[0] || c.measurement_photo_url || ''}
-                    alt={c.species_name || 'Catch'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Fish className="w-8 h-8 text-slate-500" />
-                  </div>
-                )}
+              <div className="aspect-video bg-slate-700 relative cursor-pointer" onClick={() => handleViewDetails(c)}>
+                {(() => {
+                  const photos = collectPhotos(c);
+                  if (photos.length === 0) {
+                    return (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Fish className="w-8 h-8 text-slate-500" />
+                      </div>
+                    );
+                  }
+                  return (
+                    <>
+                      <img src={photos[0].url} alt={c.species_name || 'Catch'} className="w-full h-full object-cover" />
+                      {photos.length > 1 && (
+                        <span className="absolute bottom-2 right-2 bg-black/70 text-[10px] text-white px-1.5 py-0.5 rounded">
+                          +{photos.length - 1} more
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
                 <Badge className="absolute top-2 right-2 bg-emerald-500/20 text-emerald-400 border-0">
                   {c.species_name || 'Unknown Species'}
                 </Badge>
@@ -280,13 +325,36 @@ export default function AdminCatches() {
                   <><CheckCircle2 className="w-4 h-4 mr-2" />Verify Catch (add to scoring)</>
                 )}
               </Button>
-              {(selectedCatch.cover_photo_url || selectedCatch.photos?.[0] || selectedCatch.measurement_photo_url) && (
-                <img 
-                  src={selectedCatch.cover_photo_url || selectedCatch.photos?.[0] || selectedCatch.measurement_photo_url || ''} 
-                  alt="Catch" 
-                  className="w-full aspect-video object-cover rounded-lg"
-                />
-              )}
+              {(() => {
+                const photos = collectPhotos(selectedCatch);
+                if (photos.length === 0) return null;
+                const idx = Math.min(activePhotoIdx, photos.length - 1);
+                const active = photos[idx];
+                return (
+                  <div className="space-y-2">
+                    <img src={active.url} alt={active.label} className="w-full aspect-video object-cover rounded-lg" />
+                    <p className="text-xs text-slate-400">{active.label} ({idx + 1} of {photos.length})</p>
+                    {photos.length > 1 && (
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {photos.map((p, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setActivePhotoIdx(i)}
+                            className={`shrink-0 rounded border-2 transition ${i === idx ? 'border-emerald-500' : 'border-transparent hover:border-slate-600'}`}
+                            title={p.label}
+                          >
+                            <img src={p.url} alt={p.label} className="h-16 w-16 object-cover rounded" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {selectedCatch.video_url && (
+                      <video src={selectedCatch.video_url} controls className="w-full rounded-lg mt-2" />
+                    )}
+                  </div>
+                );
+              })()}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-slate-400">Species</p>
