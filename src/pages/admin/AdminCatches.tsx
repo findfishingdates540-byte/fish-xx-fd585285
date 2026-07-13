@@ -325,13 +325,36 @@ export default function AdminCatches() {
                   <><CheckCircle2 className="w-4 h-4 mr-2" />Verify Catch (add to scoring)</>
                 )}
               </Button>
-              {(selectedCatch.cover_photo_url || selectedCatch.photos?.[0] || selectedCatch.measurement_photo_url) && (
-                <img 
-                  src={selectedCatch.cover_photo_url || selectedCatch.photos?.[0] || selectedCatch.measurement_photo_url || ''} 
-                  alt="Catch" 
-                  className="w-full aspect-video object-cover rounded-lg"
-                />
-              )}
+              {(() => {
+                const photos = collectPhotos(selectedCatch);
+                if (photos.length === 0) return null;
+                const idx = Math.min(activePhotoIdx, photos.length - 1);
+                const active = photos[idx];
+                return (
+                  <div className="space-y-2">
+                    <img src={active.url} alt={active.label} className="w-full aspect-video object-cover rounded-lg" />
+                    <p className="text-xs text-slate-400">{active.label} ({idx + 1} of {photos.length})</p>
+                    {photos.length > 1 && (
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {photos.map((p, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setActivePhotoIdx(i)}
+                            className={`shrink-0 rounded border-2 transition ${i === idx ? 'border-emerald-500' : 'border-transparent hover:border-slate-600'}`}
+                            title={p.label}
+                          >
+                            <img src={p.url} alt={p.label} className="h-16 w-16 object-cover rounded" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {selectedCatch.video_url && (
+                      <video src={selectedCatch.video_url} controls className="w-full rounded-lg mt-2" />
+                    )}
+                  </div>
+                );
+              })()}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-slate-400">Species</p>
