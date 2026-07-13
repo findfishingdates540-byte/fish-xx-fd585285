@@ -190,18 +190,27 @@ export default function AdminCatches() {
               className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700/50 hover:border-slate-600 transition-colors"
             >
               {/* Catch Image */}
-              <div className="aspect-video bg-slate-700 relative">
-                {(c.cover_photo_url || c.photos?.[0] || c.measurement_photo_url) ? (
-                  <img
-                    src={c.cover_photo_url || c.photos?.[0] || c.measurement_photo_url || ''}
-                    alt={c.species_name || 'Catch'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Fish className="w-8 h-8 text-slate-500" />
-                  </div>
-                )}
+              <div className="aspect-video bg-slate-700 relative cursor-pointer" onClick={() => handleViewDetails(c)}>
+                {(() => {
+                  const photos = collectPhotos(c);
+                  if (photos.length === 0) {
+                    return (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Fish className="w-8 h-8 text-slate-500" />
+                      </div>
+                    );
+                  }
+                  return (
+                    <>
+                      <img src={photos[0].url} alt={c.species_name || 'Catch'} className="w-full h-full object-cover" />
+                      {photos.length > 1 && (
+                        <span className="absolute bottom-2 right-2 bg-black/70 text-[10px] text-white px-1.5 py-0.5 rounded">
+                          +{photos.length - 1} more
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
                 <Badge className="absolute top-2 right-2 bg-emerald-500/20 text-emerald-400 border-0">
                   {c.species_name || 'Unknown Species'}
                 </Badge>
