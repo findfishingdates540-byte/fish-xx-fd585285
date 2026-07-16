@@ -2434,6 +2434,95 @@ export type Database = {
         }
         Relationships: []
       }
+      prize_payout_details: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          bank_routing: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          full_name: string
+          id: string
+          mailing_address_1: string | null
+          mailing_address_2: string | null
+          mailing_city: string | null
+          mailing_country: string | null
+          mailing_postal_code: string | null
+          mailing_state: string | null
+          method: string
+          notes: string | null
+          payout_id: string
+          paypal_email: string | null
+          submitted_at: string
+          tax_id: string | null
+          updated_at: string
+          venmo_handle: string | null
+          winner_id: string
+          zelle_identifier: string | null
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          bank_routing?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          full_name: string
+          id?: string
+          mailing_address_1?: string | null
+          mailing_address_2?: string | null
+          mailing_city?: string | null
+          mailing_country?: string | null
+          mailing_postal_code?: string | null
+          mailing_state?: string | null
+          method: string
+          notes?: string | null
+          payout_id: string
+          paypal_email?: string | null
+          submitted_at?: string
+          tax_id?: string | null
+          updated_at?: string
+          venmo_handle?: string | null
+          winner_id: string
+          zelle_identifier?: string | null
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          bank_routing?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          full_name?: string
+          id?: string
+          mailing_address_1?: string | null
+          mailing_address_2?: string | null
+          mailing_city?: string | null
+          mailing_country?: string | null
+          mailing_postal_code?: string | null
+          mailing_state?: string | null
+          method?: string
+          notes?: string | null
+          payout_id?: string
+          paypal_email?: string | null
+          submitted_at?: string
+          tax_id?: string | null
+          updated_at?: string
+          venmo_handle?: string | null
+          winner_id?: string
+          zelle_identifier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prize_payout_details_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: true
+            referencedRelation: "prize_payouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prize_payouts: {
         Row: {
           admin_notes: string | null
