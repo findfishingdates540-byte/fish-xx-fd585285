@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns";
 import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
 import { formatPrizeDescription } from "@/lib/utils";
+import { WinnerPayoutForm } from "@/components/prizes/WinnerPayoutForm";
 
 function Countdown({ targetMs }: { targetMs: number }) {
   const [now, setNow] = useState(() => Date.now());
