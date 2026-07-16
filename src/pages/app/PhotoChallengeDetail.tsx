@@ -472,6 +472,9 @@ export default function PhotoChallengeDetail() {
                   "Your prize is being processed. The organizer will contact you."
                 )}
               </p>
+              {myPayout.status !== "sent" && user && (
+                <WinnerPayoutForm payoutId={myPayout.id} winnerId={user.id} />
+              )}
             </div>
           )}
         </Card>
