@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTournamentMatchAlerts } from "@/hooks/use-tournament-match-alerts";
 import { formatPrizeDescription } from "@/lib/utils";
+import { WinnerPayoutForm } from "@/components/prizes/WinnerPayoutForm";
 import { BracketConnectors } from "@/components/tournaments/BracketConnectors";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -693,6 +694,9 @@ const TournamentDetail = () => {
                   <span className="flex items-center gap-1 text-primary"><CheckCircle className="h-3 w-3" /> Payment has been sent!</span>
                 ) : "Your prize is being processed. The organizer will contact you."}
               </p>
+              {myPayout.status !== "sent" && user && (
+                <WinnerPayoutForm payoutId={myPayout.id} winnerId={user.id} />
+              )}
             </div>
           )}
         </Card>

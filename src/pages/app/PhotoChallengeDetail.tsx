@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns";
 import { usePlatformFeePercent } from "@/hooks/use-platform-fee";
 import { formatPrizeDescription } from "@/lib/utils";
+import { WinnerPayoutForm } from "@/components/prizes/WinnerPayoutForm";
 
 function Countdown({ targetMs }: { targetMs: number }) {
   const [now, setNow] = useState(() => Date.now());
@@ -472,6 +473,9 @@ export default function PhotoChallengeDetail() {
                   "Your prize is being processed. The organizer will contact you."
                 )}
               </p>
+              {myPayout.status !== "sent" && user && (
+                <WinnerPayoutForm payoutId={myPayout.id} winnerId={user.id} />
+              )}
             </div>
           )}
         </Card>

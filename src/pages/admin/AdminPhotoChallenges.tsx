@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { PhotoChallengeEditDialog } from "@/components/admin/PhotoChallengeEditDialog";
+import { AdminPayoutDetailsDialog } from "@/components/admin/AdminPayoutDetailsDialog";
 
 export default function AdminPhotoChallenges() {
   const { user } = useAuth();
@@ -41,6 +42,7 @@ export default function AdminPhotoChallenges() {
   const [votingEndDate, setVotingEndDate] = useState("");
   const [uploading, setUploading] = useState(false);
   const [payoutNotes, setPayoutNotes] = useState("");
+  const [viewingPayoutId, setViewingPayoutId] = useState<string | null>(null);
 
   const { data: challenges = [], isLoading } = useQuery({
     queryKey: ["admin-photo-challenges"],
@@ -714,6 +716,14 @@ export default function AdminPhotoChallenges() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs mr-1"
+                        onClick={() => setViewingPayoutId(p.id)}
+                      >
+                        View Details
+                      </Button>
                       {p.status === "pending" && (
                         <div className="flex items-center gap-1 justify-end">
                           <Input
@@ -751,6 +761,10 @@ export default function AdminPhotoChallenges() {
         challenge={editingChallenge}
         open={!!editingChallenge}
         onOpenChange={(v) => !v && setEditingChallenge(null)}
+      />
+      <AdminPayoutDetailsDialog
+        payoutId={viewingPayoutId}
+        onOpenChange={(v) => !v && setViewingPayoutId(null)}
       />
     </div>
   );
