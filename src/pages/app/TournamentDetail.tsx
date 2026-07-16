@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTournamentMatchAlerts } from "@/hooks/use-tournament-match-alerts";
 import { formatPrizeDescription } from "@/lib/utils";
+import { WinnerPayoutForm } from "@/components/prizes/WinnerPayoutForm";
 import { BracketConnectors } from "@/components/tournaments/BracketConnectors";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
