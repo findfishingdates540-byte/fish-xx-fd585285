@@ -693,6 +693,9 @@ const TournamentDetail = () => {
                   <span className="flex items-center gap-1 text-primary"><CheckCircle className="h-3 w-3" /> Payment has been sent!</span>
                 ) : "Your prize is being processed. The organizer will contact you."}
               </p>
+              {myPayout.status !== "sent" && user && (
+                <WinnerPayoutForm payoutId={myPayout.id} winnerId={user.id} />
+              )}
             </div>
           )}
         </Card>
