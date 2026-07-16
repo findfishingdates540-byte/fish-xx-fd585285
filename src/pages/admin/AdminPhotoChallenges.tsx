@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { PhotoChallengeEditDialog } from "@/components/admin/PhotoChallengeEditDialog";
+import { AdminPayoutDetailsDialog } from "@/components/admin/AdminPayoutDetailsDialog";
 
 export default function AdminPhotoChallenges() {
   const { user } = useAuth();
@@ -41,6 +42,7 @@ export default function AdminPhotoChallenges() {
   const [votingEndDate, setVotingEndDate] = useState("");
   const [uploading, setUploading] = useState(false);
   const [payoutNotes, setPayoutNotes] = useState("");
+  const [viewingPayoutId, setViewingPayoutId] = useState<string | null>(null);
 
   const { data: challenges = [], isLoading } = useQuery({
     queryKey: ["admin-photo-challenges"],
