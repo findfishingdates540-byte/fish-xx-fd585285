@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Trophy, Calendar, Users, Sparkles, CheckCircle2, DollarSign, Crown, ShieldAlert } from "lucide-react";
 import { LogCompetitionCatchModal } from "@/components/competition/LogCompetitionCatchModal";
+import { ChampionshipCatchesPanel } from "@/components/competition/ChampionshipCatchesPanel";
 import { Fish } from "lucide-react";
 import sharkBanner from "@/assets/shark-championship-banner.jpg";
 
@@ -272,6 +273,9 @@ export default function ChampionshipDetail() {
           </Card>
 
           {/* Scoring rules */}
+          {/* Catch submissions (pending / approved) */}
+          <ChampionshipCatchesPanel championshipId={champ.id} />
+
           <Card className="p-4">
             <h2 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-cyan-400" /> Scoring</h2>
             <div className="grid sm:grid-cols-2 gap-4 text-sm">
