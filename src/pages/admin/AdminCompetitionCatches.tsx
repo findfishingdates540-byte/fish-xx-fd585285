@@ -187,6 +187,7 @@ export default function AdminCompetitionCatches() {
       <Tabs value={kind} onValueChange={(v) => setKind(v as any)} className="mb-4">
         <TabsList className="bg-slate-800">
           <TabsTrigger value="challenge">Challenges</TabsTrigger>
+          <TabsTrigger value="championship">Championships</TabsTrigger>
           <TabsTrigger value="tournament">Tournaments</TabsTrigger>
         </TabsList>
       </Tabs>
