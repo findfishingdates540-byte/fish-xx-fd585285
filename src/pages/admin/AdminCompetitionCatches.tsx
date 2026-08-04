@@ -31,13 +31,13 @@ type Row = {
   species_id: string | null;
   trophy_level?: string | null;
   user: { id: string; display_name: string | null; photos: string[] | null } | null;
-  challenge: { id: string; title: string } | null;
+  challenge: { id: string; title: string; is_championship?: boolean | null } | null;
   tournament: { id: string; title: string } | null;
 };
 
 export default function AdminCompetitionCatches() {
   const [tab, setTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
-  const [kind, setKind] = useState<'challenge' | 'tournament'>('challenge');
+  const [kind, setKind] = useState<'challenge' | 'championship' | 'tournament'>('challenge');
   const [rejecting, setRejecting] = useState<Row | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [preview, setPreview] = useState<{ row: Row; index: number } | null>(null);
@@ -48,19 +48,31 @@ export default function AdminCompetitionCatches() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['admin-competition-catches', kind, tab],
     queryFn: async (): Promise<Row[]> => {
-      const col = kind === 'challenge' ? 'challenge_id' : 'tournament_id';
-      const { data, error } = await supabase
+      const col = kind === 'tournament' ? 'tournament_id' : 'challenge_id';
+      const challengeJoin =
+        kind === 'tournament'
+          ? 'challenge:fishing_challenges!catches_challenge_id_fkey(id, title, is_championship)'
+          : 'challenge:fishing_challenges!catches_challenge_id_fkey!inner(id, title, is_championship)';
+      let query = supabase
         .from('catches')
         .select(`
           id, species_name, weight_lbs, length_in, cover_photo_url, measurement_photo_url, photos, video_url, trophy_level,
           general_location, caught_at, created_at, approval_status, approval_notes,
           challenge_id, tournament_id, species_id,
           user:profiles!catches_user_id_fkey(id, display_name, photos),
-          challenge:fishing_challenges!catches_challenge_id_fkey(id, title),
+          ${challengeJoin},
           tournament:tournaments!catches_tournament_id_fkey(id, title)
         `)
         .not(col, 'is', null)
-        .eq('approval_status', tab)
+        .eq('approval_status', tab);
+
+      if (kind === 'championship') {
+        query = query.eq('challenge.is_championship', true);
+      } else if (kind === 'challenge') {
+        query = query.or('is_championship.is.null,is_championship.eq.false', { referencedTable: 'fishing_challenges' });
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .limit(200);
       if (error) throw error;
