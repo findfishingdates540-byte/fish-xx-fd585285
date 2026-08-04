@@ -265,7 +265,7 @@ export default function AdminCompetitionCatches() {
                         <div className="min-w-0">
                           <h3 className="font-semibold text-white truncate">{r.species_name || 'Unknown species'}</h3>
                           <p className="text-xs text-slate-400 truncate">by {r.user?.display_name || 'Angler'}</p>
-                          <p className="text-xs text-cyan-400 truncate mt-0.5">{kind === 'challenge' ? '🏆' : '⚔️'} {comp}</p>
+                          <p className="text-xs text-cyan-400 truncate mt-0.5">{kind === 'tournament' ? '⚔️' : kind === 'championship' ? '👑' : '🏆'} {comp}</p>
                         </div>
                         <ApprovalBadge status={r.approval_status} notes={r.approval_notes} size="md" />
                       </div>
