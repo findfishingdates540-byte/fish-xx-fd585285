@@ -80,6 +80,26 @@ export function WinnerPayoutForm({ payoutId, winnerId }: Props) {
   const save = useMutation({
     mutationFn: async () => {
       if (!fullName.trim()) throw new Error("Full name is required");
+      const missing: string[] = [];
+      if (method === "paypal" && !paypalEmail.trim()) missing.push("PayPal email");
+      if (method === "venmo" && !venmoHandle.trim()) missing.push("Venmo handle");
+      if (method === "zelle" && !zelleIdentifier.trim()) missing.push("Zelle email or phone");
+      if (method === "bank") {
+        if (!bankAccountName.trim()) missing.push("Account holder name");
+        if (!bankRouting.trim()) missing.push("Routing number");
+        if (!bankAccountNumber.trim()) missing.push("Account number");
+      }
+      if (method === "mailing_check") {
+        if (!addr1.trim()) missing.push("Address line 1");
+        if (!city.trim()) missing.push("City");
+        if (!state.trim()) missing.push("State / Region");
+        if (!postal.trim()) missing.push("Postal code");
+        if (!country.trim()) missing.push("Country");
+      }
+      if (method === "other" && !notes.trim())
+        missing.push("Notes for organizer (describe how to pay you)");
+      if (missing.length)
+        throw new Error(`Please fill in: ${missing.join(", ")}`);
       const payload: any = {
         payout_id: payoutId,
         winner_id: winnerId,
@@ -87,19 +107,19 @@ export function WinnerPayoutForm({ payoutId, winnerId }: Props) {
         full_name: fullName.trim(),
         contact_email: contactEmail || null,
         contact_phone: contactPhone || null,
-        paypal_email: method === "paypal" ? paypalEmail : null,
-        venmo_handle: method === "venmo" ? venmoHandle : null,
-        zelle_identifier: method === "zelle" ? zelleIdentifier : null,
-        bank_account_name: method === "bank" ? bankAccountName : null,
-        bank_name: method === "bank" ? bankName : null,
-        bank_routing: method === "bank" ? bankRouting : null,
-        bank_account_number: method === "bank" ? bankAccountNumber : null,
-        mailing_address_1: method === "mailing_check" ? addr1 : null,
-        mailing_address_2: method === "mailing_check" ? addr2 : null,
-        mailing_city: method === "mailing_check" ? city : null,
-        mailing_state: method === "mailing_check" ? state : null,
-        mailing_postal_code: method === "mailing_check" ? postal : null,
-        mailing_country: method === "mailing_check" ? country : null,
+        paypal_email: method === "paypal" ? paypalEmail.trim() : null,
+        venmo_handle: method === "venmo" ? venmoHandle.trim() : null,
+        zelle_identifier: method === "zelle" ? zelleIdentifier.trim() : null,
+        bank_account_name: method === "bank" ? bankAccountName.trim() : null,
+        bank_name: method === "bank" ? bankName.trim() || null : null,
+        bank_routing: method === "bank" ? bankRouting.trim() : null,
+        bank_account_number: method === "bank" ? bankAccountNumber.trim() : null,
+        mailing_address_1: method === "mailing_check" ? addr1.trim() : null,
+        mailing_address_2: method === "mailing_check" ? addr2.trim() || null : null,
+        mailing_city: method === "mailing_check" ? city.trim() : null,
+        mailing_state: method === "mailing_check" ? state.trim() : null,
+        mailing_postal_code: method === "mailing_check" ? postal.trim() : null,
+        mailing_country: method === "mailing_check" ? country.trim() : null,
         tax_id: taxId || null,
         notes: notes || null,
       };
