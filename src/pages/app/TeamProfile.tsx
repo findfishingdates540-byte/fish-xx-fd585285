@@ -97,12 +97,16 @@ export default function TeamProfile() {
     queryKey: ["team-stats", teamId, memberUserIds.join(",")],
     queryFn: async () => {
       if (memberUserIds.length === 0) return { totalCatches: 0, totalWeight: 0, topSpecies: null };
-      const [tournamentsRes, challengesRes] = await Promise.all([
+      const [tournamentsRes, challengesRes, championshipsRes] = await Promise.all([
         supabase.from("tournament_participants").select("tournament_id").eq("team_id", teamId),
         supabase.from("challenge_participants").select("challenge_id").eq("team_id", teamId),
+        supabase.from("championship_teams").select("championship_id").eq("team_id", teamId),
       ]);
       const tournamentIds = (tournamentsRes.data || []).map((r: any) => r.tournament_id).filter(Boolean);
-      const challengeIds = (challengesRes.data || []).map((r: any) => r.challenge_id).filter(Boolean);
+      const challengeIds = Array.from(new Set([
+        ...(challengesRes.data || []).map((r: any) => r.challenge_id),
+        ...(championshipsRes.data || []).map((r: any) => r.championship_id),
+      ].filter(Boolean)));
       if (tournamentIds.length === 0 && challengeIds.length === 0) {
         return { totalCatches: 0, totalWeight: 0, topSpecies: null };
       }
