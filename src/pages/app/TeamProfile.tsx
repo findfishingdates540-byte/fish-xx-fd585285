@@ -32,6 +32,7 @@ import { FollowPageButton } from "@/components/teams/FollowPageButton";
 import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
 import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
+import TeamCatchesTab from "@/components/teams/TeamCatchesTab";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
 import { TeamAboutPanel } from "@/components/teams/TeamAboutPanel";
 import { TeamMembersPanel } from "@/components/teams/TeamMembersPanel";
