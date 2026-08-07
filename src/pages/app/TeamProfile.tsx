@@ -443,8 +443,9 @@ export default function TeamProfile() {
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-2 bg-background/85 backdrop-blur border-b mb-4">
-          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-4" : "grid-cols-3"}`}>
+          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-5" : "grid-cols-4"}`}>
             <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsTrigger value="catches">Catches</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             {isCaptain && <TabsTrigger value="insights">Insights</TabsTrigger>}
@@ -453,6 +454,10 @@ export default function TeamProfile() {
 
         <TabsContent value="media" className="mt-0">
           <TeamMediaTab teamId={teamId!} />
+        </TabsContent>
+
+        <TabsContent value="catches" className="mt-4">
+          <TeamCatchesTab teamId={teamId!} memberUserIds={memberUserIds} />
         </TabsContent>
 
         <TabsContent value="about" className="mt-4">
