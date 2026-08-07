@@ -32,6 +32,7 @@ import { FollowPageButton } from "@/components/teams/FollowPageButton";
 import { TeamInsightsTab } from "@/components/teams/TeamInsightsTab";
 import { logTeamPageView } from "@/hooks/use-team-page-insights";
 import { TeamMediaTab } from "@/components/teams/TeamMediaTab";
+import TeamCatchesTab from "@/components/teams/TeamCatchesTab";
 import { EditTeamDialog } from "@/components/teams/EditTeamDialog";
 import { TeamAboutPanel } from "@/components/teams/TeamAboutPanel";
 import { TeamMembersPanel } from "@/components/teams/TeamMembersPanel";
@@ -97,12 +98,16 @@ export default function TeamProfile() {
     queryKey: ["team-stats", teamId, memberUserIds.join(",")],
     queryFn: async () => {
       if (memberUserIds.length === 0) return { totalCatches: 0, totalWeight: 0, topSpecies: null };
-      const [tournamentsRes, challengesRes] = await Promise.all([
+      const [tournamentsRes, challengesRes, championshipsRes] = await Promise.all([
         supabase.from("tournament_participants").select("tournament_id").eq("team_id", teamId),
         supabase.from("challenge_participants").select("challenge_id").eq("team_id", teamId),
+        supabase.from("championship_teams").select("championship_id").eq("team_id", teamId),
       ]);
       const tournamentIds = (tournamentsRes.data || []).map((r: any) => r.tournament_id).filter(Boolean);
-      const challengeIds = (challengesRes.data || []).map((r: any) => r.challenge_id).filter(Boolean);
+      const challengeIds = Array.from(new Set([
+        ...(challengesRes.data || []).map((r: any) => r.challenge_id),
+        ...(championshipsRes.data || []).map((r: any) => r.championship_id),
+      ].filter(Boolean)));
       if (tournamentIds.length === 0 && challengeIds.length === 0) {
         return { totalCatches: 0, totalWeight: 0, topSpecies: null };
       }
@@ -439,8 +444,9 @@ export default function TeamProfile() {
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-2 bg-background/85 backdrop-blur border-b mb-4">
-          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-4" : "grid-cols-3"}`}>
+          <TabsList className={`grid w-full ${isCaptain ? "grid-cols-5" : "grid-cols-4"}`}>
             <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsTrigger value="catches">Catches</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             {isCaptain && <TabsTrigger value="insights">Insights</TabsTrigger>}
@@ -449,6 +455,10 @@ export default function TeamProfile() {
 
         <TabsContent value="media" className="mt-0">
           <TeamMediaTab teamId={teamId!} />
+        </TabsContent>
+
+        <TabsContent value="catches" className="mt-4">
+          <TeamCatchesTab teamId={teamId!} memberUserIds={memberUserIds} />
         </TabsContent>
 
         <TabsContent value="about" className="mt-4">
