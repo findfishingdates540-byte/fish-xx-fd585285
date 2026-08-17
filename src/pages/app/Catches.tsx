@@ -10,6 +10,12 @@ import { LogCatchForm, type LogCatchFormData } from "@/components/catches/LogCat
 import { EditCatchDialog } from "@/components/catches/EditCatchDialog";
 import { ApprovalBadge } from "@/components/competition/ApprovalBadge";
 import { thumb } from "@/lib/image-url";
+import { ExplorerMap, type MapPoint } from "@/components/catches/ExplorerMap";
+import { PhotoLightbox, type LightboxPhoto } from "@/components/catches/PhotoLightbox";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import { useSavedSpots } from "@/hooks/use-saved-spots";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Fish,
@@ -22,7 +28,13 @@ import {
   Share2,
   ArrowLeft,
   Pencil,
+  Bookmark,
+  Images,
+  Star,
+  Anchor,
+  Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +92,43 @@ export default function Catches() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  // Explorer state
+  const [tab, setTab] = useState<"catches" | "spots">("catches");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const { savedSpotIds, isLoading: savedLoading } = useSavedSpots();
+  const savedIdList = Array.from(savedSpotIds);
+
+  // Saved spots detail
+  const { data: savedSpots = [] } = useQuery({
+    queryKey: ["explorer-saved-spots", savedIdList.sort().join(",")],
+    queryFn: async () => {
+      if (savedIdList.length === 0) return [];
+      const { data } = await supabase
+        .from("fishing_spots")
+        .select("id, name, location_name, location_lat, location_lng, photos, description, area_type, depth_ft, rating_avg, rating_count, species_available")
+        .in("id", savedIdList);
+      return data || [];
+    },
+    enabled: savedIdList.length > 0,
+  });
+
+  // Photos for the selected catch
+  const { data: extraPhotos = [] } = useQuery({
+    queryKey: ["explorer-catch-photos", tab === "catches" ? selectedId : null],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("catch_photos")
+        .select("photo_url, photo_type")
+        .eq("catch_id", selectedId!)
+        .order("created_at", { ascending: true });
+      return data || [];
+    },
+    enabled: tab === "catches" && !!selectedId,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -310,63 +359,334 @@ export default function Catches() {
     );
   }
 
+  const q = search.trim().toLowerCase();
+  const filteredCatches = q
+    ? catches.filter((c) =>
+        [c.species_name, c.general_location, c.notes, c.bait_used]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q)),
+      )
+    : catches;
+  const filteredSpots = q
+    ? savedSpots.filter((sp: any) =>
+        [sp.name, sp.location_name, sp.description]
+          .filter(Boolean)
+          .some((v: string) => String(v).toLowerCase().includes(q)),
+      )
+    : savedSpots;
+
+  const points: MapPoint[] =
+    tab === "catches"
+      ? filteredCatches
+          .filter((c) => c.location_lat != null && c.location_lng != null)
+          .map((c) => ({
+            id: c.id,
+            lat: Number(c.location_lat),
+            lng: Number(c.location_lng),
+            label: c.species_name || "Catch",
+            sublabel: c.general_location,
+            kind: "catch" as const,
+          }))
+      : filteredSpots.map((sp: any) => ({
+          id: sp.id,
+          lat: Number(sp.location_lat),
+          lng: Number(sp.location_lng),
+          label: sp.name,
+          sublabel: sp.location_name,
+          kind: "spot" as const,
+        }));
+
+  const selectedCatch = tab === "catches" ? catches.find((c) => c.id === selectedId) : undefined;
+  const selectedSpot: any = tab === "spots" ? savedSpots.find((sp: any) => sp.id === selectedId) : undefined;
+
+  const handleSelect = (id: string) => {
+    setSelectedId(id);
+    // Let the map begin its flight, then reveal the lightbox
+    setTimeout(() => setLightboxOpen(true), 900);
+  };
+
+  const catchPhotos: LightboxPhoto[] = (() => {
+    if (!selectedCatch) return [];
+    const seen = new Set<string>();
+    const out: LightboxPhoto[] = [];
+    const push = (url?: string | null, label?: string) => {
+      if (!url || seen.has(url)) return;
+      seen.add(url);
+      out.push({ url, label });
+    };
+    push(selectedCatch.cover_photo_url, "Trophy Shot");
+    push(selectedCatch.measurement_photo_url, "Measurement");
+    (extraPhotos as any[]).forEach((p) =>
+      push(p.photo_url, p.photo_type === "scale" ? "On the Scale" : p.photo_type === "measurement" ? "Measurement" : "Additional"),
+    );
+    (selectedCatch.photos || []).forEach((u) => push(u, "Additional"));
+    return out;
+  })();
+
+  const spotPhotos: LightboxPhoto[] = (selectedSpot?.photos || []).map((u: string) => ({ url: u, label: "Spot" }));
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-[1500px] mx-auto p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">My Catches</h1>
-          <p className="text-muted-foreground">
-            {catches.length} {catches.length === 1 ? "catch" : "catches"} logged
-          </p>
+      <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/15 via-card to-card p-5 md:p-6 mb-5">
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary mb-1">
+              Catch Explorer
+            </p>
+            <h1 className="text-2xl md:text-3xl font-bold">My Catches &amp; Spots</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {catches.length} {catches.length === 1 ? "catch" : "catches"} logged ·{" "}
+              {savedSpots.length} saved {savedSpots.length === 1 ? "spot" : "spots"} · tap any card to fly the map
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative hidden sm:block">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search…"
+                className="pl-8 w-44"
+              />
+            </div>
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Log Catch
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Log Catch
-        </Button>
       </div>
 
-      {/* Catches Grid */}
-      {catches.length === 0 ? (
-        <div className="text-center py-16 border rounded-xl bg-muted/30">
-          <Fish className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No catches yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Start logging your fishing catches to track your progress
-          </p>
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Log Your First Catch
-          </Button>
+      {/* Tabs */}
+      <Tabs
+        value={tab}
+        onValueChange={(v) => {
+          setTab(v as "catches" | "spots");
+          setSelectedId(null);
+        }}
+        className="mb-4"
+      >
+        <TabsList>
+          <TabsTrigger value="catches" className="gap-1.5">
+            <Fish className="h-4 w-4" /> Catches
+            <span className="ml-1 text-[11px] text-muted-foreground">{catches.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="spots" className="gap-1.5">
+            <Bookmark className="h-4 w-4" /> Saved Spots
+            <span className="ml-1 text-[11px] text-muted-foreground">{savedSpots.length}</span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(380px,44%)]">
+        {/* LEFT: list */}
+        <div className="space-y-3 lg:max-h-[calc(100vh-16rem)] lg:overflow-y-auto lg:pr-1 no-scrollbar">
+          {tab === "catches" ? (
+            filteredCatches.length === 0 ? (
+              <div className="text-center py-16 border rounded-2xl bg-muted/30">
+                <Fish className="h-14 w-14 mx-auto text-muted-foreground mb-3" />
+                <h3 className="text-lg font-semibold mb-1">
+                  {catches.length === 0 ? "No catches yet" : "No matches"}
+                </h3>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  {catches.length === 0
+                    ? "Start logging your catches to build your map."
+                    : "Try a different search term."}
+                </p>
+                {catches.length === 0 && (
+                  <Button onClick={() => setShowForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Log Your First Catch
+                  </Button>
+                )}
+              </div>
+            ) : (
+              filteredCatches.map((catchItem) => (
+                <CatchCard
+                  key={catchItem.id}
+                  catchData={catchItem}
+                  isActive={selectedId === catchItem.id}
+                  onSelect={() => handleSelect(catchItem.id)}
+                  onDelete={() => handleDelete(catchItem.id)}
+                  onUpdated={(updates) =>
+                    setCatches((prev) =>
+                      prev.map((c) =>
+                        c.id === catchItem.id ? { ...c, ...(updates as Partial<Catch>) } : c,
+                      ),
+                    )
+                  }
+                  species={species}
+                  formatDate={formatDate}
+                  spots={spots}
+                />
+              ))
+            )
+          ) : savedLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-28 rounded-2xl" />
+              ))}
+            </div>
+          ) : filteredSpots.length === 0 ? (
+            <div className="text-center py-16 border rounded-2xl bg-muted/30">
+              <Bookmark className="h-14 w-14 mx-auto text-muted-foreground mb-3" />
+              <h3 className="text-lg font-semibold mb-1">No saved spots</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Save spots from the map to build your personal fishing atlas.
+              </p>
+              <Button variant="outline" onClick={() => navigate("/app/spots")}>
+                <MapPin className="h-4 w-4 mr-2" />
+                Explore Spots
+              </Button>
+            </div>
+          ) : (
+            filteredSpots.map((sp: any) => (
+              <SpotCard
+                key={sp.id}
+                spot={sp}
+                isActive={selectedId === sp.id}
+                onSelect={() => handleSelect(sp.id)}
+                onOpen={() => navigate(`/app/spots/${sp.id}`)}
+              />
+            ))
+          )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {catches.map((catchItem) => (
-            <CatchCard
-              key={catchItem.id}
-              catchData={catchItem}
-              onDelete={() => handleDelete(catchItem.id)}
-              onUpdated={(updates) =>
-                setCatches((prev) =>
-                  prev.map((c) =>
-                    c.id === catchItem.id ? { ...c, ...(updates as Partial<Catch>) } : c,
-                  ),
-                )
-              }
-              species={species}
-              formatDate={formatDate}
-              spots={spots}
-            />
-          ))}
+
+        {/* RIGHT: map */}
+        <div className="lg:sticky lg:top-20 h-[380px] lg:h-[calc(100vh-16rem)]">
+          <ExplorerMap points={points} selectedId={selectedId} onSelect={handleSelect} className="h-full" />
         </div>
-      )}
+      </div>
+
+      {/* Lightbox */}
+      <PhotoLightbox
+        open={lightboxOpen && (!!selectedCatch || !!selectedSpot)}
+        onClose={() => setLightboxOpen(false)}
+        title={
+          selectedCatch
+            ? selectedCatch.species_name || "Unknown Species"
+            : selectedSpot?.name || "Saved Spot"
+        }
+        subtitle={
+          selectedCatch
+            ? [formatDate(selectedCatch.caught_at), selectedCatch.general_location].filter(Boolean).join(" · ")
+            : [selectedSpot?.location_name, selectedSpot?.area_type].filter(Boolean).join(" · ")
+        }
+        photos={selectedCatch ? catchPhotos : spotPhotos}
+        notes={selectedCatch ? selectedCatch.notes : selectedSpot?.description}
+        stats={
+          selectedCatch
+            ? [
+                { label: "Weight", value: selectedCatch.weight_lbs ? `${selectedCatch.weight_lbs} lbs` : "—" },
+                { label: "Length", value: selectedCatch.length_in ? `${selectedCatch.length_in} in` : "—" },
+                { label: "Status", value: selectedCatch.catch_status === "released" ? "Released" : "Harvested" },
+                { label: "Bait", value: selectedCatch.bait_used || "—" },
+              ]
+            : selectedSpot
+              ? [
+                  { label: "Depth", value: selectedSpot.depth_ft ? `${selectedSpot.depth_ft} ft` : "—" },
+                  { label: "Type", value: selectedSpot.area_type || "—" },
+                  {
+                    label: "Rating",
+                    value: selectedSpot.rating_avg
+                      ? `${Number(selectedSpot.rating_avg).toFixed(1)} (${selectedSpot.rating_count || 0})`
+                      : "—",
+                  },
+                  { label: "Species", value: String(selectedSpot.species_available?.length || 0) },
+                ]
+              : []
+        }
+        footer={
+          selectedCatch ? (
+            <Button variant="outline" className="w-full" onClick={() => navigate(`/app/catches/${selectedCatch.id}`)}>
+              <Images className="h-4 w-4 mr-2" />
+              Open full catch page
+            </Button>
+          ) : selectedSpot ? (
+            <Button variant="outline" className="w-full" onClick={() => navigate(`/app/spots/${selectedSpot.id}`)}>
+              <MapPin className="h-4 w-4 mr-2" />
+              Open spot page
+            </Button>
+          ) : null
+        }
+      />
     </div>
+  );
+}
+
+// Saved Spot Card
+function SpotCard({
+  spot,
+  isActive,
+  onSelect,
+  onOpen,
+}: {
+  spot: any;
+  isActive: boolean;
+  onSelect: () => void;
+  onOpen: () => void;
+}) {
+  const photo = spot.photos?.[0];
+  return (
+    <button
+      onClick={onSelect}
+      className={`w-full text-left flex gap-3 rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+        isActive ? "border-primary ring-2 ring-primary/40 shadow-lg" : "hover:border-primary/40"
+      }`}
+    >
+      <div className="relative h-24 w-24 shrink-0 rounded-xl overflow-hidden bg-muted">
+        {photo ? (
+          <img src={thumb(photo)} alt={spot.name} loading="lazy" className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center">
+            <Anchor className="h-7 w-7 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold leading-tight truncate">{spot.name}</h3>
+          {spot.rating_avg ? (
+            <span className="flex items-center gap-1 text-xs text-amber-500 shrink-0">
+              <Star className="h-3.5 w-3.5 fill-current" />
+              {Number(spot.rating_avg).toFixed(1)}
+            </span>
+          ) : null}
+        </div>
+        {spot.location_name && (
+          <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground truncate">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            {spot.location_name}
+          </p>
+        )}
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {spot.area_type && <Badge variant="secondary">{spot.area_type}</Badge>}
+          {spot.depth_ft && <Badge variant="outline">{spot.depth_ft} ft</Badge>}
+          {spot.species_available?.length ? (
+            <Badge variant="outline">{spot.species_available.length} species</Badge>
+          ) : null}
+        </div>
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+          className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+        >
+          View spot →
+        </span>
+      </div>
+    </button>
   );
 }
 
 // Catch Card Component
 interface CatchCardProps {
   catchData: Catch;
+  isActive: boolean;
+  onSelect: () => void;
   onDelete: () => void;
   onUpdated: (updates: Partial<Catch>) => void;
   species: FishSpecies[];
@@ -374,7 +694,7 @@ interface CatchCardProps {
   spots: FishingSpot[];
 }
 
-function CatchCard({ catchData, onDelete, onUpdated, species, formatDate, spots }: CatchCardProps) {
+function CatchCard({ catchData, isActive, onSelect, onDelete, onUpdated, species, formatDate, spots }: CatchCardProps) {
   const createPost = useCreatePost();
   const [isSharing, setIsSharing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
