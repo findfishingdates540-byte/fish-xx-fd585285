@@ -725,98 +725,121 @@ function CatchCard({ catchData, isActive, onSelect, onDelete, onUpdated, species
   };
 
   const displayPhoto = catchData.cover_photo_url || catchData.photos?.[0];
+  const hasCoords = catchData.location_lat != null && catchData.location_lng != null;
 
   return (
-    <div className="rounded-xl border overflow-hidden bg-background">
-      <div className="relative h-48 bg-muted">
+    <div
+      onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      className={`group relative flex gap-3 rounded-2xl border bg-card p-3 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+        isActive ? "border-primary ring-2 ring-primary/40 shadow-lg" : "hover:border-primary/40"
+      }`}
+    >
+      <div className="relative h-28 w-28 sm:h-32 sm:w-32 shrink-0 overflow-hidden rounded-xl bg-muted">
         {displayPhoto ? (
-          <img src={thumb(displayPhoto)} alt={catchData.species_name || "Catch"} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+          <img
+            src={thumb(displayPhoto)}
+            alt={catchData.species_name || "Catch"}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Fish className="h-12 w-12 text-muted-foreground" />
+          <div className="flex h-full w-full items-center justify-center">
+            <Fish className="h-8 w-8 text-muted-foreground" />
           </div>
         )}
-        <Badge
-          className={`absolute top-2 left-2 ${
-            catchData.catch_status === "released"
-              ? "bg-emerald-600/90 text-white border-0"
-              : "bg-amber-600/90 text-white border-0"
+        <span
+          className={`absolute bottom-1 left-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-white ${
+            catchData.catch_status === "released" ? "bg-emerald-600/90" : "bg-amber-600/90"
           }`}
         >
-          {catchData.catch_status === "released" ? "🐟 Released" : "🎣 Harvested"}
-        </Badge>
-        {catchData.is_verified && (
-          <Badge className="absolute top-2 left-24 bg-blue-600/90 text-white border-0">✓ Verified</Badge>
-        )}
-        {(catchData.challenge_id || catchData.tournament_id) && catchData.approval_status && (
-          <div className="absolute bottom-2 right-2">
-            <ApprovalBadge status={catchData.approval_status} notes={catchData.approval_notes} />
-          </div>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="absolute top-2 right-2 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background">
-              <MoreVertical className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setIsEditing(true)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleShareToFeed} disabled={isSharing}>
-              <Share2 className="h-4 w-4 mr-2" />
-              {isSharing ? "Sharing..." : "Share to Feed"}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onDelete} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          {catchData.catch_status === "released" ? "Released" : "Harvested"}
+        </span>
       </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-lg mb-1">{catchData.species_name || "Unknown Species"}</h3>
-        <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
-          <span className="flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" />
-            {formatDate(catchData.caught_at)}
-          </span>
-          {catchData.general_location && (
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5" />
-              {catchData.general_location}
-            </span>
-          )}
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="truncate font-semibold leading-tight">
+              {catchData.species_name || "Unknown Species"}
+            </h3>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {formatDate(catchData.caught_at)}
+              </span>
+              {catchData.general_location && (
+                <span className="flex items-center gap-1 truncate">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+                  {catchData.general_location}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            {catchData.is_verified && (
+              <Badge className="bg-blue-600/90 text-white border-0">✓</Badge>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted">
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleShareToFeed} disabled={isSharing}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  {isSharing ? "Sharing..." : "Share to Feed"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2 mb-3">
+
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {catchData.weight_lbs && (
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="gap-1">
               <Scale className="h-3 w-3" />
               {catchData.weight_lbs} lbs
             </Badge>
           )}
           {catchData.length_in && (
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="gap-1">
               <Ruler className="h-3 w-3" />
               {catchData.length_in} in
             </Badge>
           )}
           {catchData.bait_used && <Badge variant="outline">{catchData.bait_used}</Badge>}
+          {(catchData.challenge_id || catchData.tournament_id) && catchData.approval_status && (
+            <ApprovalBadge status={catchData.approval_status} notes={catchData.approval_notes} />
+          )}
         </div>
+
         {catchData.notes && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{catchData.notes}</p>
+          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{catchData.notes}</p>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full mt-3"
-          onClick={() => setIsEditing(true)}
-        >
-          <Pencil className="h-4 w-4 mr-2" />
-          Edit catch
-        </Button>
+
+        <p className="mt-2 text-[11px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+          {hasCoords ? "Fly to location & view photos →" : "View photos →"}
+        </p>
       </div>
+
       <EditCatchDialog
         open={isEditing}
         onOpenChange={setIsEditing}
