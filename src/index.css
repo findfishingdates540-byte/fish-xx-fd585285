@@ -347,3 +347,69 @@
     display: none;
   }
 }
+
+/* ---- Catch Explorer map markers ---- */
+@layer components {
+  .explorer-marker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+
+  .explorer-marker__dot {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 9999px;
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--primary));
+    box-shadow: 0 6px 16px -6px hsl(var(--primary) / 0.7);
+    transition: transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 250ms ease;
+  }
+
+  .explorer-marker:hover .explorer-marker__dot {
+    transform: scale(1.15);
+  }
+
+  .explorer-marker.is-active .explorer-marker__dot {
+    transform: scale(1.35);
+    background: hsl(var(--primary));
+    box-shadow: 0 10px 26px -6px hsl(var(--primary));
+  }
+
+  .explorer-marker__pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: hsl(var(--primary) / 0.45);
+    opacity: 0;
+  }
+
+  .explorer-marker.is-active .explorer-marker__pulse {
+    animation: explorer-pulse 1.8s ease-out infinite;
+  }
+
+  @keyframes explorer-pulse {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.75;
+    }
+    100% {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+  }
+}
