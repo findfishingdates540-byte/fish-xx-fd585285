@@ -480,7 +480,7 @@ export default function Catches() {
         </TabsList>
       </Tabs>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(380px,44%)]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(340px,38%)_1fr]">
         {/* LEFT: list */}
         <div className="space-y-3 lg:max-h-[calc(100vh-16rem)] lg:overflow-y-auto lg:pr-1 no-scrollbar">
           {tab === "catches" ? (
