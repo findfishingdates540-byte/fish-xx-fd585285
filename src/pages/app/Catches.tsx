@@ -103,7 +103,7 @@ export default function Catches() {
   const savedIdList = Array.from(savedSpotIds);
 
   // Saved spots detail
-  const { data: savedSpots = [] } = useQuery({
+  const { data: savedSpots = [], isLoading: savedSpotsLoading } = useQuery({
     queryKey: ["explorer-saved-spots", savedIdList.sort().join(",")],
     queryFn: async () => {
       if (savedIdList.length === 0) return [];
@@ -523,7 +523,7 @@ export default function Catches() {
                 />
               ))
             )
-          ) : savedLoading ? (
+          ) : savedLoading || savedSpotsLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-28 rounded-2xl" />
