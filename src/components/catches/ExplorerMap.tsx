@@ -32,20 +32,35 @@ export function ExplorerMap({ points, selectedId, onSelect, className }: Explore
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
   const [ready, setReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Init map
   useEffect(() => {
     if (!token || !containerRef.current || mapRef.current) return;
-    mapboxgl.accessToken = token;
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/outdoors-v12",
-      center: [-98.5795, 39.8283],
-      zoom: 3.2,
-      attributionControl: false,
-    });
-    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
-    map.on("load", () => setReady(true));
+
+    if (typeof mapboxgl.supported === "function" && !mapboxgl.supported()) {
+      setMapError("WebGL is not available in this browser.");
+      return;
+    }
+
+    let map: mapboxgl.Map;
+    try {
+      mapboxgl.accessToken = token;
+      map = new mapboxgl.Map({
+        container: containerRef.current,
+        style: "mapbox://styles/mapbox/outdoors-v12",
+        center: [-98.5795, 39.8283],
+        zoom: 3.2,
+        attributionControl: false,
+      });
+      map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+      map.on("load", () => setReady(true));
+      map.on("error", (e) => console.warn("Mapbox error:", e?.error?.message));
+    } catch (err) {
+      console.error("Failed to initialize map:", err);
+      setMapError("Map could not be initialized.");
+      return;
+    }
     mapRef.current = map;
     return () => {
       markersRef.current.forEach((m) => m.remove());
