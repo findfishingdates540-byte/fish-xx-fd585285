@@ -103,7 +103,7 @@ export default function Catches() {
   const savedIdList = Array.from(savedSpotIds);
 
   // Saved spots detail
-  const { data: savedSpots = [] } = useQuery({
+  const { data: savedSpots = [], isLoading: savedSpotsLoading } = useQuery({
     queryKey: ["explorer-saved-spots", savedIdList.sort().join(",")],
     queryFn: async () => {
       if (savedIdList.length === 0) return [];
