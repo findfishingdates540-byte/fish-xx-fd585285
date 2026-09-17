@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { PenSquare, BookImage } from 'lucide-react';
+import { PenSquare, BookImage, Fish } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { FishXIcon, type FishXIconName } from '@/components/ui/fishx-icon';
 
@@ -23,6 +23,7 @@ const allActions: Action[] = [
   { key: 'post', to: '/app/feed', lucideIcon: PenSquare, label: 'Create Post', description: 'Share an update with your feed', modes: ['fishing', 'both'] },
   { key: 'story', to: '/app/feed', lucideIcon: BookImage, label: 'Add Story', description: 'Share a moment that disappears in 24h', modes: ['fishing', 'both'] },
   { key: 'catch', to: '/app/catches', fishxIcon: 'catchlog', label: 'Log a Catch', description: 'Record your latest catch', modes: ['fishing', 'both'] },
+  { key: 'catches', to: '/app/catches', lucideIcon: Fish, label: 'Catches', description: 'View all your logged catches', modes: ['fishing', 'both'] },
   { key: 'trip', to: '/app/trips/', fishxIcon: 'events', label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
   { key: 'photo-challenge', to: '/app/photo-challenges', fishxIcon: 'photo', label: 'Enter Photo Challenge', description: 'Submit a photo to an active challenge', modes: ['fishing', 'both'] },
 ];
