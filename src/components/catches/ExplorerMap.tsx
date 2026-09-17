@@ -32,20 +32,35 @@ export function ExplorerMap({ points, selectedId, onSelect, className }: Explore
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
   const [ready, setReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Init map
   useEffect(() => {
     if (!token || !containerRef.current || mapRef.current) return;
-    mapboxgl.accessToken = token;
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/outdoors-v12",
-      center: [-98.5795, 39.8283],
-      zoom: 3.2,
-      attributionControl: false,
-    });
-    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
-    map.on("load", () => setReady(true));
+
+    if (typeof mapboxgl.supported === "function" && !mapboxgl.supported()) {
+      setMapError("WebGL is not available in this browser.");
+      return;
+    }
+
+    let map: mapboxgl.Map;
+    try {
+      mapboxgl.accessToken = token;
+      map = new mapboxgl.Map({
+        container: containerRef.current,
+        style: "mapbox://styles/mapbox/outdoors-v12",
+        center: [-98.5795, 39.8283],
+        zoom: 3.2,
+        attributionControl: false,
+      });
+      map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+      map.on("load", () => setReady(true));
+      map.on("error", (e) => console.warn("Mapbox error:", e?.error?.message));
+    } catch (err) {
+      console.error("Failed to initialize map:", err);
+      setMapError("Map could not be initialized.");
+      return;
+    }
     mapRef.current = map;
     return () => {
       markersRef.current.forEach((m) => m.remove());
@@ -115,18 +130,18 @@ export function ExplorerMap({ points, selectedId, onSelect, className }: Explore
   return (
     <div className={`relative overflow-hidden rounded-2xl border bg-muted ${className || ""}`}>
       <div ref={containerRef} className="absolute inset-0" />
-      {(isLoading || (!ready && !error)) && (
+      {(isLoading || (!ready && !error && !mapError)) && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted/70 backdrop-blur-sm">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
-      {error && (
+      {(error || mapError) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
           <MapPinOff className="h-8 w-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Map unavailable right now.</p>
+          <p className="text-sm text-muted-foreground">{mapError || "Map unavailable right now."}</p>
         </div>
       )}
-      {ready && points.length === 0 && !error && (
+      {ready && points.length === 0 && !error && !mapError && (
         <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border bg-background/85 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur">
           No mapped locations yet
         </div>
