@@ -40,6 +40,7 @@ export function TripSpotSelector({
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [view, setView] = useState<"saved" | "all">("saved");
+  const [mapError, setMapError] = useState<string | null>(null);
   // Track the actual selected spot data to persist across view changes
   const [selectedSpotData, setSelectedSpotData] = useState<FishingSpot | null>(null);
 
@@ -82,19 +83,34 @@ export function TripSpotSelector({
   useEffect(() => {
     if (!mapContainer.current || !token || map.current) return;
 
-    mapboxgl.accessToken = token;
+    if (typeof mapboxgl.supported === "function" && !mapboxgl.supported()) {
+      setMapError("Interactive map unavailable on this device.");
+      return;
+    }
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
-      center: [-98.5795, 39.8283],
-      zoom: 3,
-    });
+    let spotMap: mapboxgl.Map;
+    try {
+      mapboxgl.accessToken = token;
+      spotMap = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/light-v11",
+        center: [-98.5795, 39.8283],
+        zoom: 3,
+      });
+      spotMap.addControl(
+        new mapboxgl.NavigationControl({ showCompass: false }),
+        "top-right"
+      );
+      spotMap.on("error", (event) => {
+        console.warn("Trip spot map error:", event.error?.message);
+      });
+    } catch (error) {
+      console.error("Failed to initialize trip spot map:", error);
+      setMapError("Interactive map unavailable on this device.");
+      return;
+    }
 
-    map.current.addControl(
-      new mapboxgl.NavigationControl({ showCompass: false }),
-      "top-right"
-    );
+    map.current = spotMap;
 
     return () => {
       map.current?.remove();
@@ -189,9 +205,11 @@ export function TripSpotSelector({
         if (div) div.style.transform = "scale(1)";
       });
 
+      const currentMap = map.current;
+      if (!currentMap) return;
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([spot.location_lng, spot.location_lat])
-        .addTo(map.current!);
+        .addTo(currentMap);
 
       markersRef.current.push(marker);
     });
@@ -251,6 +269,11 @@ export function TripSpotSelector({
             alt={displaySpot.name}
             className="w-full h-full object-cover"
           />
+        ) : mapError ? (
+          <div className="flex h-full flex-col items-center justify-center bg-muted p-6 text-center text-muted-foreground">
+            <MapPin className="mb-2 h-8 w-8" />
+            <p className="text-sm">{mapError}</p>
+          </div>
         ) : (
           <div ref={mapContainer} className="w-full h-full" />
         )}
