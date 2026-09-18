@@ -194,6 +194,7 @@ export default function Spots() {
   const fishingSpotsRef = useRef<FishingSpot[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [activeStyle, setActiveStyle] = useState<MapStyleKey>("outdoors");
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(false);
