@@ -12,7 +12,8 @@ interface CreateActionSheetProps {
 
 type Action = {
   key: string;
-  to: string;
+  to?: string;
+  external?: string;
   lucideIcon?: typeof PenSquare;
   fishxIcon?: FishXIconName;
   label: string;
@@ -27,6 +28,7 @@ const allActions: Action[] = [
   { key: 'catches', to: '/app/catches', lucideIcon: Fish, label: 'Catches', description: 'View all your logged catches', modes: ['fishing', 'both'] },
   { key: 'trip', to: '/app/trips/', fishxIcon: 'events', label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
   { key: 'photo-challenge', to: '/app/photo-challenges', fishxIcon: 'photo', label: 'Enter Photo Challenge', description: 'Submit a photo to an active challenge', modes: ['fishing', 'both'] },
+  { key: 'book-charters', external: BOOKING_PLATFORM_URL, lucideIcon: Ship, label: 'Book Charters', description: 'Book charters, guides & tackle shop', modes: ['fishing', 'both'] },
 ];
 
 export function CreateActionSheet({ open, onOpenChange, accountMode }: CreateActionSheetProps) {
