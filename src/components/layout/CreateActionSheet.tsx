@@ -36,15 +36,20 @@ export function CreateActionSheet({ open, onOpenChange, accountMode }: CreateAct
 
   const actions = allActions.filter(a => a.modes.includes(accountMode));
 
-  const handleAction = (action: typeof allActions[0]) => {
+  const handleAction = (action: Action) => {
     onOpenChange(false);
+    // External booking platform opens in a new tab
+    if (action.external) {
+      window.open(action.external, '_blank', 'noopener,noreferrer');
+      return;
+    }
     // For post/story, we navigate and could trigger dialogs via state
     if (action.key === 'story') {
-      navigate(action.to, { state: { openStory: true } });
+      navigate(action.to!, { state: { openStory: true } });
     } else if (action.key === 'post') {
-      navigate(action.to, { state: { openPost: true } });
+      navigate(action.to!, { state: { openPost: true } });
     } else {
-      navigate(action.to);
+      navigate(action.to!);
     }
   };
 
