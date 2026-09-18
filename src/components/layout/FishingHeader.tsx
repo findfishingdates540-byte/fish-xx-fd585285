@@ -178,7 +178,19 @@ export function FishingHeader() {
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
-            {fishingNavItems.map((item) => (
+            {fishingNavItems.map((item) =>
+              item.external ? (
+                <a
+                  key={item.to}
+                  href={item.to}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium transition-colors hover:text-foreground text-muted-foreground flex items-center gap-1"
+                >
+                  <Ship className="h-3.5 w-3.5" />
+                  {item.label}
+                </a>
+              ) : (
               <NavLink
                 key={item.to}
                 to={item.to}
