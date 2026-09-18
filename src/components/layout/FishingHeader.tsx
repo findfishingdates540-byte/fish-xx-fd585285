@@ -23,7 +23,8 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Search, Trophy } from "lucide-react";
+import { Search, Trophy, Ship } from "lucide-react";
+import { BOOKING_PLATFORM_URL } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FishXIcon, type FishXIconName } from "@/components/ui/fishx-icon";
@@ -41,13 +42,16 @@ const scoreboardLinks: Array<{ to: string; label: string; description: string; i
 ];
 
 
-const fishingNavItems = [
+type FishingNavItem = { to: string; label: string; badgeType?: "buddyRequests" | "messages"; external?: boolean };
+
+const fishingNavItems: FishingNavItem[] = [
   { to: "/app/feed", label: "Feed" },
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
   { to: "/app/buddies", label: "Buddies", badgeType: "buddyRequests" as const },
   { to: "/app/buddy-messages", label: "Messages", badgeType: "messages" as const },
   { to: "/app/catches", label: "Catches" },
+  { to: BOOKING_PLATFORM_URL, label: "Book Charters", external: true },
 ];
 
 export function FishingHeader() {
@@ -176,7 +180,19 @@ export function FishingHeader() {
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
-            {fishingNavItems.map((item) => (
+            {fishingNavItems.map((item) =>
+              item.external ? (
+                <a
+                  key={item.to}
+                  href={item.to}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium transition-colors hover:text-foreground text-muted-foreground flex items-center gap-1"
+                >
+                  <Ship className="h-3.5 w-3.5" />
+                  {item.label}
+                </a>
+              ) : (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -205,7 +221,8 @@ export function FishingHeader() {
                   </Badge>
                 )}
               </NavLink>
-            ))}
+              )
+            )}
 
             {/* Scoreboard Hub Dropdown */}
             <NavigationMenu>

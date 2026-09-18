@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { PenSquare, BookImage, Fish } from 'lucide-react';
+import { PenSquare, BookImage, Fish, Ship } from 'lucide-react';
+import { BOOKING_PLATFORM_URL } from '@/lib/config';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { FishXIcon, type FishXIconName } from '@/components/ui/fishx-icon';
 
@@ -11,7 +12,8 @@ interface CreateActionSheetProps {
 
 type Action = {
   key: string;
-  to: string;
+  to?: string;
+  external?: string;
   lucideIcon?: typeof PenSquare;
   fishxIcon?: FishXIconName;
   label: string;
@@ -26,6 +28,7 @@ const allActions: Action[] = [
   { key: 'catches', to: '/app/catches', lucideIcon: Fish, label: 'Catches', description: 'View all your logged catches', modes: ['fishing', 'both'] },
   { key: 'trip', to: '/app/trips/', fishxIcon: 'events', label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
   { key: 'photo-challenge', to: '/app/photo-challenges', fishxIcon: 'photo', label: 'Enter Photo Challenge', description: 'Submit a photo to an active challenge', modes: ['fishing', 'both'] },
+  { key: 'book-charters', external: BOOKING_PLATFORM_URL, lucideIcon: Ship, label: 'Book Charters', description: 'Book charters, guides & tackle shop', modes: ['fishing', 'both'] },
 ];
 
 export function CreateActionSheet({ open, onOpenChange, accountMode }: CreateActionSheetProps) {
@@ -33,15 +36,20 @@ export function CreateActionSheet({ open, onOpenChange, accountMode }: CreateAct
 
   const actions = allActions.filter(a => a.modes.includes(accountMode));
 
-  const handleAction = (action: typeof allActions[0]) => {
+  const handleAction = (action: Action) => {
     onOpenChange(false);
+    // External booking platform opens in a new tab
+    if (action.external) {
+      window.open(action.external, '_blank', 'noopener,noreferrer');
+      return;
+    }
     // For post/story, we navigate and could trigger dialogs via state
     if (action.key === 'story') {
-      navigate(action.to, { state: { openStory: true } });
+      navigate(action.to!, { state: { openStory: true } });
     } else if (action.key === 'post') {
-      navigate(action.to, { state: { openPost: true } });
+      navigate(action.to!, { state: { openPost: true } });
     } else {
-      navigate(action.to);
+      navigate(action.to!);
     }
   };
 
