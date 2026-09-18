@@ -28,6 +28,7 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
   const map = useRef<mapboxgl.Map | null>(null);
   const { token, isLoading: tokenLoading, error: tokenError } = useMapboxToken();
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
+  const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
     const calculateCountdown = () => {
@@ -57,20 +58,35 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
   useEffect(() => {
     if (!token || !mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = token;
+    if (typeof mapboxgl.supported === "function" && !mapboxgl.supported()) {
+      setMapError("Interactive map unavailable on this device.");
+      return;
+    }
 
     const lat = trip.location_lat || 39.0968;
     const lng = trip.location_lng || -120.0324;
+    let tripMap: mapboxgl.Map;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/outdoors-v12",
-      center: [lng, lat],
-      zoom: 11,
-      interactive: true,
-    });
+    try {
+      mapboxgl.accessToken = token;
+      tripMap = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/outdoors-v12",
+        center: [lng, lat],
+        zoom: 11,
+        interactive: true,
+      });
+      tripMap.addControl(new mapboxgl.NavigationControl(), "top-right");
+      tripMap.on("error", (event) => {
+        console.warn("Trip map error:", event.error?.message);
+      });
+    } catch (error) {
+      console.error("Failed to initialize trip map:", error);
+      setMapError("Interactive map unavailable on this device.");
+      return;
+    }
 
-    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    map.current = tripMap;
 
     // Add marker
     const markerEl = document.createElement("div");
@@ -96,7 +112,7 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
 
     new mapboxgl.Marker({ element: markerEl })
       .setLngLat([lng, lat])
-      .addTo(map.current);
+      .addTo(tripMap);
 
     return () => {
       map.current?.remove();
@@ -120,11 +136,12 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
             <div className="absolute inset-0 bg-muted flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-foreground" />
             </div>
-          ) : tokenError ? (
+          ) : tokenError || mapError ? (
             <div className="absolute inset-0 bg-muted flex items-center justify-center">
               <div className="text-center text-muted-foreground">
                 <MapPin className="h-12 w-12 mx-auto mb-2 text-foreground" />
                 <p className="text-sm font-medium">{trip.location_name || "Location TBD"}</p>
+                {mapError && <p className="mt-1 text-xs">{mapError}</p>}
               </div>
             </div>
           ) : (
