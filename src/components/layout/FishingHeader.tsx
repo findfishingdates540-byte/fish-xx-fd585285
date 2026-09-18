@@ -42,7 +42,9 @@ const scoreboardLinks: Array<{ to: string; label: string; description: string; i
 ];
 
 
-const fishingNavItems = [
+type FishingNavItem = { to: string; label: string; badgeType?: "buddyRequests" | "messages"; external?: boolean };
+
+const fishingNavItems: FishingNavItem[] = [
   { to: "/app/feed", label: "Feed" },
   { to: "/app/spots", label: "Find Spots" },
   { to: "/app/trips", label: "My Trips" },
