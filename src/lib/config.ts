@@ -5,6 +5,9 @@
 // The production domain for share links, referrals, etc.
 export const PRODUCTION_URL = 'https://fish-xx.lovable.app';
 
+// Fish-X Business booking platform (charters, guides, bait & tackle)
+export const BOOKING_PLATFORM_URL = 'https://www.bookfishingtrips.com';
+
 /**
  * Get the base URL for shareable links.
  * Uses production URL in production, otherwise falls back to current origin.
