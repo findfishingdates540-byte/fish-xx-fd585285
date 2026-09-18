@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, MessageCircle, Calendar, Loader2 } from "lucide-react";
+import { MapPin, Ship, Calendar, Loader2 } from "lucide-react";
+import { BOOKING_PLATFORM_URL } from "@/lib/config";
 import { format, differenceInSeconds } from "date-fns";
 import { useMapboxToken } from "@/hooks/use-mapbox-token";
 import mapboxgl from "mapbox-gl";
@@ -205,9 +206,15 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
               <Calendar className="h-4 w-4 mr-2" />
               View Itinerary
             </Button>
-            <Button variant="outline" className="flex-1">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Message
+            <Button variant="outline" className="flex-1" asChild>
+              <a
+                href={BOOKING_PLATFORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Ship className="h-4 w-4 mr-2" />
+                Book a Charter
+              </a>
             </Button>
           </div>
         </div>
