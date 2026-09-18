@@ -417,16 +417,29 @@ export default function Spots() {
     if (!token || !mapContainerRef.current || mapRef.current) return;
 
     mapboxgl.accessToken = token;
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: MAP_STYLES[activeStyle].style,
-      center: [
-        userProfile?.location_lng || -98.5795,
-        userProfile?.location_lat || 39.8283,
-      ],
-      zoom: userProfile?.location_lat ? 8 : 4,
-      pitch: activeStyle === 'terrain' ? 60 : 0,
-      bearing: activeStyle === 'terrain' ? -17 : 0,
+    let map: mapboxgl.Map;
+    try {
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: MAP_STYLES[activeStyle].style,
+        center: [
+          userProfile?.location_lng || -98.5795,
+          userProfile?.location_lat || 39.8283,
+        ],
+        zoom: userProfile?.location_lat ? 8 : 4,
+        pitch: activeStyle === 'terrain' ? 60 : 0,
+        bearing: activeStyle === 'terrain' ? -17 : 0,
+      });
+    } catch (err) {
+      console.error('Map init failed', err);
+      setMapError(
+        'Map unavailable — your browser or device could not start hardware graphics (WebGL). Try enabling hardware acceleration or a different browser.'
+      );
+      return;
+    }
+
+    map.on('error', (e) => {
+      console.error('Map error', e?.error || e);
     });
 
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100 }), 'bottom-left');
