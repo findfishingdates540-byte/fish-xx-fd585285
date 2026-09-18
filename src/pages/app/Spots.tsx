@@ -194,6 +194,7 @@ export default function Spots() {
   const fishingSpotsRef = useRef<FishingSpot[]>([]);
   const [selectedCatch, setSelectedCatch] = useState<SharedCatch | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [activeStyle, setActiveStyle] = useState<MapStyleKey>("outdoors");
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [terrainEnabled, setTerrainEnabled] = useState(false);
@@ -417,16 +418,29 @@ export default function Spots() {
     if (!token || !mapContainerRef.current || mapRef.current) return;
 
     mapboxgl.accessToken = token;
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: MAP_STYLES[activeStyle].style,
-      center: [
-        userProfile?.location_lng || -98.5795,
-        userProfile?.location_lat || 39.8283,
-      ],
-      zoom: userProfile?.location_lat ? 8 : 4,
-      pitch: activeStyle === 'terrain' ? 60 : 0,
-      bearing: activeStyle === 'terrain' ? -17 : 0,
+    let map: mapboxgl.Map;
+    try {
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: MAP_STYLES[activeStyle].style,
+        center: [
+          userProfile?.location_lng || -98.5795,
+          userProfile?.location_lat || 39.8283,
+        ],
+        zoom: userProfile?.location_lat ? 8 : 4,
+        pitch: activeStyle === 'terrain' ? 60 : 0,
+        bearing: activeStyle === 'terrain' ? -17 : 0,
+      });
+    } catch (err) {
+      console.error('Map init failed', err);
+      setMapError(
+        'Map unavailable — your browser or device could not start hardware graphics (WebGL). Try enabling hardware acceleration or a different browser.'
+      );
+      return;
+    }
+
+    map.on('error', (e) => {
+      console.error('Map error', e?.error || e);
     });
 
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100 }), 'bottom-left');
@@ -689,6 +703,15 @@ export default function Spots() {
     <div className="relative w-full" style={{ height: isMobile ? 'calc(100dvh - 56px)' : 'calc(100vh - 64px)' }}>
       {/* Map Container */}
       <div ref={mapContainerRef} className="absolute inset-0" />
+
+      {mapError && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-100 p-6 text-center">
+          <div className="max-w-sm space-y-2">
+            <p className="font-semibold text-slate-900">Map unavailable</p>
+            <p className="text-sm text-slate-600">{mapError}</p>
+          </div>
+        </div>
+      )}
 
       {/* Top-Left stacked controls */}
       <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-10 flex flex-col gap-2.5">
