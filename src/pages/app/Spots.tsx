@@ -704,6 +704,15 @@ export default function Spots() {
       {/* Map Container */}
       <div ref={mapContainerRef} className="absolute inset-0" />
 
+      {mapError && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-100 p-6 text-center">
+          <div className="max-w-sm space-y-2">
+            <p className="font-semibold text-slate-900">Map unavailable</p>
+            <p className="text-sm text-slate-600">{mapError}</p>
+          </div>
+        </div>
+      )}
+
       {/* Top-Left stacked controls */}
       <div className="absolute top-20 left-3 sm:top-24 sm:left-4 z-10 flex flex-col gap-2.5">
         <button
