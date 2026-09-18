@@ -219,7 +219,8 @@ export function FishingHeader() {
                   </Badge>
                 )}
               </NavLink>
-            ))}
+              )
+            )}
 
             {/* Scoreboard Hub Dropdown */}
             <NavigationMenu>
