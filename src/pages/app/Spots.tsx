@@ -705,7 +705,7 @@ export default function Spots() {
       <div ref={mapContainerRef} className="absolute inset-0" />
 
       {mapError && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-100 p-6 text-center">
+        <div className="absolute inset-0 z-[5] flex items-center justify-center bg-slate-100 p-6 pt-32 pb-40 text-center pointer-events-none">
           <div className="max-w-sm space-y-2">
             <p className="font-semibold text-slate-900">Map unavailable</p>
             <p className="text-sm text-slate-600">{mapError}</p>
