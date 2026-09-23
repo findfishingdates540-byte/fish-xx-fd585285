@@ -84,6 +84,7 @@ import AdminTeams from "./pages/admin/AdminTeams";
 import AdminScoringSettings from "./pages/admin/AdminScoringSettings";
 import AdminCompetitionCatches from "./pages/admin/AdminCompetitionCatches";
 import AdminChampionships from "./pages/admin/AdminChampionships";
+import AdminPrizePayouts from "./pages/admin/AdminPrizePayouts";
 import ScoreboardHubLayout from "@/components/layout/ScoreboardHubLayout";
 
 const queryClient = new QueryClient({
@@ -239,6 +240,7 @@ const App = () => (
               <Route path="tournaments" element={<AdminTournaments />} />
               <Route path="competition-catches" element={<AdminCompetitionCatches />} />
               <Route path="championships" element={<AdminChampionships />} />
+              <Route path="prize-payouts" element={<AdminPrizePayouts />} />
               <Route path="team-posts" element={<AdminTeamPosts />} />
               <Route path="teams" element={<AdminTeams />} />
               <Route path="scoring" element={<AdminScoringSettings />} />

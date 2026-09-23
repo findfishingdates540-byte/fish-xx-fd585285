@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, User, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, ShieldCheck, Ticket, ChevronDown, Camera, Swords, Flag, Award, Shield, Trophy } from 'lucide-react';
+import { LayoutDashboard, Users, MapPin, Heart, AlertTriangle, Settings, LogOut, User, Fish, MessageSquare, MessageCircle, Anchor, History, Megaphone, BarChart3, Menu, ShieldCheck, Ticket, ChevronDown, Camera, Swords, Flag, Award, Shield, Trophy, Medal } from 'lucide-react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,6 +97,10 @@ const navItems: NavItem[] = [{
   to: '/admin/championships',
   icon: Trophy,
   label: 'Championships'
+}, {
+  to: '/admin/prize-payouts',
+  icon: Medal,
+  label: 'Prize Payouts'
 }, {
   to: '/admin/competition-catches',
   icon: Fish,
