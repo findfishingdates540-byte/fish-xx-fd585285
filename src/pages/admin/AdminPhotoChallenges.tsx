@@ -18,7 +18,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { PhotoChallengeEditDialog } from "@/components/admin/PhotoChallengeEditDialog";
-import { AdminPayoutDetailsDialog } from "@/components/admin/AdminPayoutDetailsDialog";
 
 export default function AdminPhotoChallenges() {
   const { user } = useAuth();
@@ -41,8 +40,6 @@ export default function AdminPhotoChallenges() {
   const [endDate, setEndDate] = useState("");
   const [votingEndDate, setVotingEndDate] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [payoutNotes, setPayoutNotes] = useState("");
-  const [viewingPayoutId, setViewingPayoutId] = useState<string | null>(null);
 
   const { data: challenges = [], isLoading } = useQuery({
     queryKey: ["admin-photo-challenges"],
@@ -264,51 +261,6 @@ export default function AdminPhotoChallenges() {
     setVotingEndDate("");
   };
 
-  // Prize payouts query
-  const { data: payouts = [] } = useQuery({
-    queryKey: ["admin-prize-payouts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("prize_payouts")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-
-      const winnerIds = [...new Set((data || []).map((p: any) => p.winner_id))];
-      const challengeIds = [...new Set((data || []).filter((p: any) => p.challenge_id).map((p: any) => p.challenge_id))];
-
-      const [{ data: profiles }, { data: challengeNames }] = await Promise.all([
-        supabase.from("profiles").select("id, display_name, photos").in("id", winnerIds.length > 0 ? winnerIds : ["none"]),
-        supabase.from("photo_challenges").select("id, title").in("id", challengeIds.length > 0 ? challengeIds : ["none"]),
-      ]);
-
-      const profileMap: Record<string, any> = {};
-      (profiles || []).forEach((p: any) => (profileMap[p.id] = p));
-      const challengeMap: Record<string, string> = {};
-      (challengeNames || []).forEach((c: any) => (challengeMap[c.id] = c.title));
-
-      return (data || []).map((p: any) => ({
-        ...p,
-        winner_profile: profileMap[p.winner_id] || null,
-        challenge_title: p.challenge_id ? challengeMap[p.challenge_id] : "Tournament",
-      }));
-    },
-  });
-
-  const markSentMutation = useMutation({
-    mutationFn: async ({ payoutId, notes }: { payoutId: string; notes: string }) => {
-      const { error } = await supabase
-        .from("prize_payouts")
-        .update({ status: "sent", sent_at: new Date().toISOString(), admin_notes: notes || null } as any)
-        .eq("id", payoutId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({ title: "Marked as sent" });
-      queryClient.invalidateQueries({ queryKey: ["admin-prize-payouts"] });
-    },
-    onError: (err: any) => toast({ title: "Error", description: err.message, variant: "destructive" }),
-  });
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -664,10 +616,6 @@ export default function AdminPhotoChallenges() {
         challenge={editingChallenge}
         open={!!editingChallenge}
         onOpenChange={(v) => !v && setEditingChallenge(null)}
-      />
-      <AdminPayoutDetailsDialog
-        payoutId={viewingPayoutId}
-        onOpenChange={(v) => !v && setViewingPayoutId(null)}
       />
     </div>
   );
