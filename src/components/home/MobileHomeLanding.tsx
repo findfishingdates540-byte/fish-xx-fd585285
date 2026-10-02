@@ -228,6 +228,19 @@ const MobileHomeLanding = () => {
           </button>
         </motion.div>
 
+        {/* App Download */}
+        <motion.a
+          href="https://zjmnlelqoiclkbrqefyv.supabase.co/storage/v1/object/public/apk-downloads/Fish-X.apk"
+          download="Fish-X.apk"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <Smartphone className="w-4 h-4" />
+          <span className="underline underline-offset-2">Download latest app</span>
+        </motion.a>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
