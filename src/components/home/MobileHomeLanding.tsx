@@ -2,7 +2,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Fish, Heart, Mail } from 'lucide-react';
+import { Fish, Heart, Smartphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AppPreloader } from '@/components/layout/AppPreloader';
