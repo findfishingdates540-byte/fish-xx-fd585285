@@ -324,25 +324,25 @@ export default function AdminDashboard() {
         ) : (
           <>
             <StatsCard
-              title="Total Revenue"
-              value="$124,500"
-              change={12}
-              icon={DollarSign}
+              title="Total Users"
+              value={stats?.totalUsers || 0}
+              changeLabel={`+${(stats?.newUsers30d || 0).toLocaleString()} new in last 30 days`}
+              icon={UserPlus}
               iconBgColor="bg-cyan-500/20"
               iconColor="text-cyan-400"
             />
             <StatsCard
               title="Active Users"
               value={stats?.activeUsers || 0}
-              change={5}
+              changeLabel="Active in last 30 days"
               icon={Users}
               iconBgColor="bg-violet-500/20"
               iconColor="text-violet-400"
             />
             <StatsCard
-              title="Matches Made"
-              value={stats?.totalMatches || 0}
-              change={-2}
+              title="Catches Logged"
+              value={stats?.totalCatches || 0}
+              changeLabel={`${(stats?.totalMatches || 0).toLocaleString()} dating matches`}
               icon={Heart}
               iconBgColor="bg-rose-500/20"
               iconColor="text-rose-400"
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
             <StatsCard
               title="Spots Logged"
               value={stats?.totalSpots || 0}
-              change={8}
+              changeLabel={`${(stats?.premiumUsers || 0).toLocaleString()} premium users`}
               icon={MapPin}
               iconBgColor="bg-emerald-500/20"
               iconColor="text-emerald-400"

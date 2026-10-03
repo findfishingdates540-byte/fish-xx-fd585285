@@ -5,6 +5,7 @@ import { subDays, startOfDay, format } from 'date-fns';
 interface AdminStats {
   totalUsers: number;
   activeUsers: number;
+  newUsers30d: number;
   premiumUsers: number;
   totalMatches: number;
   totalSpots: number;
@@ -12,11 +13,7 @@ interface AdminStats {
   totalTrips: number;
   totalPosts: number;
   pendingReports: number;
-  modeDistribution: {
-    dating: number;
-    fishing: number;
-    both: number;
-  };
+  modeDistribution: { dating: number; fishing: number; both: number };
 }
 
 interface DailyStats {
@@ -25,95 +22,82 @@ interface DailyStats {
   activeUsers: number;
 }
 
+const head = { count: 'exact' as const, head: true };
+
 export function useAdminStats() {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async (): Promise<AdminStats> => {
-      // Fetch all stats in parallel
-      const [
-        { count: totalUsers },
-        { count: activeUsers },
-        { count: premiumUsers },
-        { count: totalMatches },
-        { count: totalSpots },
-        { count: totalCatches },
-        { count: totalTrips },
-        { count: totalPosts },
-        { count: pendingReports },
-        { data: profiles }
-      ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_premium', true),
-        supabase.from('matches').select('*', { count: 'exact', head: true }).eq('is_match', true),
-        supabase.from('fishing_spots').select('*', { count: 'exact', head: true }),
-        supabase.from('catches').select('*', { count: 'exact', head: true }),
-        supabase.from('fishing_trips').select('*', { count: 'exact', head: true }),
-        supabase.from('feed_posts').select('*', { count: 'exact', head: true }),
-        supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('profiles').select('account_mode')
+      const since30 = subDays(new Date(), 30).toISOString();
+      const r = await Promise.all([
+        supabase.from('profiles').select('id', head),
+        supabase.from('profiles').select('id', head).gte('last_active_at', since30),
+        supabase.from('profiles').select('id', head).gte('created_at', since30),
+        supabase.from('profiles').select('id', head).eq('is_premium', true),
+        supabase.from('matches').select('id', head).eq('is_match', true),
+        supabase.from('fishing_spots').select('id', head),
+        supabase.from('catches').select('id', head),
+        supabase.from('fishing_trips').select('id', head),
+        supabase.from('feed_posts').select('id', head),
+        supabase.from('reports').select('id', head).eq('status', 'pending'),
+        supabase.from('profiles').select('id', head).eq('account_mode', 'dating'),
+        supabase.from('profiles').select('id', head).eq('account_mode', 'fishing'),
+        supabase.from('profiles').select('id', head).eq('account_mode', 'both'),
       ]);
-
-      // Calculate mode distribution
-      const modeDistribution = {
-        dating: profiles?.filter(p => p.account_mode === 'dating').length || 0,
-        fishing: profiles?.filter(p => p.account_mode === 'fishing').length || 0,
-        both: profiles?.filter(p => p.account_mode === 'both').length || 0
-      };
-
+      const c = (i: number) => r[i].count || 0;
       return {
-        totalUsers: totalUsers || 0,
-        activeUsers: activeUsers || 0,
-        premiumUsers: premiumUsers || 0,
-        totalMatches: totalMatches || 0,
-        totalSpots: totalSpots || 0,
-        totalCatches: totalCatches || 0,
-        totalTrips: totalTrips || 0,
-        totalPosts: totalPosts || 0,
-        pendingReports: pendingReports || 0,
-        modeDistribution
+        totalUsers: c(0),
+        activeUsers: c(1),
+        newUsers30d: c(2),
+        premiumUsers: c(3),
+        totalMatches: c(4),
+        totalSpots: c(5),
+        totalCatches: c(6),
+        totalTrips: c(7),
+        totalPosts: c(8),
+        pendingReports: c(9),
+        modeDistribution: { dating: c(10), fishing: c(11), both: c(12) },
       };
     },
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
   });
+}
+
+async function fetchAllDates(column: 'created_at' | 'last_active_at', since: string) {
+  const out: string[] = [];
+  const page = 1000;
+  for (let from = 0; ; from += page) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(column)
+      .gte(column, since)
+      .range(from, from + page - 1);
+    if (error || !data) break;
+    data.forEach((row: any) => row[column] && out.push(row[column]));
+    if (data.length < page) break;
+  }
+  return out;
 }
 
 export function useEngagementTrends(days: number = 30) {
   return useQuery({
     queryKey: ['engagement-trends', days],
     queryFn: async (): Promise<DailyStats[]> => {
-      const startDate = startOfDay(subDays(new Date(), days));
-      
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('created_at, last_active_at')
-        .gte('created_at', startDate.toISOString());
-
-      // Group by day
-      const dailyData: Record<string, DailyStats> = {};
-      
+      const since = startOfDay(subDays(new Date(), days - 1)).toISOString();
+      const [signups, actives] = await Promise.all([
+        fetchAllDates('created_at', since),
+        fetchAllDates('last_active_at', since),
+      ]);
+      const daily: Record<string, DailyStats> = {};
       for (let i = 0; i < days; i++) {
         const date = format(subDays(new Date(), days - 1 - i), 'yyyy-MM-dd');
-        dailyData[date] = { date, signups: 0, activeUsers: 0 };
+        daily[date] = { date, signups: 0, activeUsers: 0 };
       }
-
-      profiles?.forEach(profile => {
-        const signupDate = format(new Date(profile.created_at), 'yyyy-MM-dd');
-        if (dailyData[signupDate]) {
-          dailyData[signupDate].signups++;
-        }
-        
-        if (profile.last_active_at) {
-          const activeDate = format(new Date(profile.last_active_at), 'yyyy-MM-dd');
-          if (dailyData[activeDate]) {
-            dailyData[activeDate].activeUsers++;
-          }
-        }
-      });
-
-      return Object.values(dailyData);
+      signups.forEach(d => { const k = format(new Date(d), 'yyyy-MM-dd'); if (daily[k]) daily[k].signups++; });
+      actives.forEach(d => { const k = format(new Date(d), 'yyyy-MM-dd'); if (daily[k]) daily[k].activeUsers++; });
+      return Object.values(daily);
     },
-    staleTime: 60000, // 1 minute
+    staleTime: 60000,
   });
 }
 
@@ -127,7 +111,6 @@ export function useRecentPremiumSubscriptions() {
         .eq('is_premium', true)
         .order('updated_at', { ascending: false })
         .limit(10);
-
       return data || [];
     },
     staleTime: 30000,
@@ -147,7 +130,6 @@ export function useAdminReports() {
         `)
         .order('created_at', { ascending: false })
         .limit(50);
-
       return data || [];
     },
     staleTime: 30000,
@@ -158,16 +140,8 @@ export function useAdminUsers(search?: string) {
   return useQuery({
     queryKey: ['admin-users', search],
     queryFn: async () => {
-      let query = supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (search) {
-        query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%`);
-      }
-
+      let query = supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(100);
+      if (search) query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%`);
       const { data } = await query;
       return data || [];
     },
@@ -182,9 +156,10 @@ export function usePopularSpots() {
       const { data } = await supabase
         .from('fishing_spots')
         .select('id, name, location_name, rating_avg, rating_count, location_lat, location_lng')
+        .gt('rating_count', 0)
         .order('rating_count', { ascending: false })
+        .order('rating_avg', { ascending: false })
         .limit(5);
-
       return data || [];
     },
     staleTime: 60000,
