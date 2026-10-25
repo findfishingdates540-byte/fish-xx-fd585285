@@ -208,7 +208,7 @@ export function NextUpTrip({ trip }: NextUpTripProps) {
             </Button>
             <Button variant="outline" className="flex-1" asChild>
               <a
-                href={BOOKING_PLATFORM_URL}
+                href={BOOKING_CHARTERS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
               >
