@@ -24,7 +24,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Search, Trophy, Ship } from "lucide-react";
-import { BOOKING_PLATFORM_URL } from "@/lib/config";
+import { BOOKING_CHARTERS_URL } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FishXIcon, type FishXIconName } from "@/components/ui/fishx-icon";
@@ -51,7 +51,7 @@ const fishingNavItems: FishingNavItem[] = [
   { to: "/app/buddies", label: "Buddies", badgeType: "buddyRequests" as const },
   { to: "/app/buddy-messages", label: "Messages", badgeType: "messages" as const },
   { to: "/app/catches", label: "Catches" },
-  { to: BOOKING_PLATFORM_URL, label: "Book Charters", external: true },
+  { to: BOOKING_CHARTERS_URL, label: "Book Charters", external: true },
 ];
 
 export function FishingHeader() {

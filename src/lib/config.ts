@@ -7,6 +7,9 @@ export const PRODUCTION_URL = 'https://fish-xx.lovable.app';
 
 // Fish-X Business booking platform (charters, guides, bait & tackle)
 export const BOOKING_PLATFORM_URL = 'https://www.bookfishingtrips.com';
+export const BOOKING_CHARTERS_URL = `${BOOKING_PLATFORM_URL}/explore/charters`;
+export const BOOKING_MARKETPLACE_URL = `${BOOKING_PLATFORM_URL}/marketplace`;
+export const BOOKING_LODGES_URL = `${BOOKING_PLATFORM_URL}/explore/lodges`;
 
 /**
  * Get the base URL for shareable links.
