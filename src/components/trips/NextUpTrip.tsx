@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Ship, Calendar, Loader2 } from "lucide-react";
-import { BOOKING_PLATFORM_URL } from "@/lib/config";
+import { BOOKING_CHARTERS_URL } from "@/lib/config";
 import { format, differenceInSeconds } from "date-fns";
 import { useMapboxToken } from "@/hooks/use-mapbox-token";
 import mapboxgl from "mapbox-gl";

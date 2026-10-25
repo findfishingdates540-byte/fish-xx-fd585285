@@ -28,7 +28,9 @@ const allActions: Action[] = [
   { key: 'catches', to: '/app/catches', lucideIcon: Fish, label: 'Catches', description: 'View all your logged catches', modes: ['fishing', 'both'] },
   { key: 'trip', to: '/app/trips/', fishxIcon: 'events', label: 'Plan a Trip', description: 'Organize your next fishing trip', modes: ['fishing', 'both'] },
   { key: 'photo-challenge', to: '/app/photo-challenges', fishxIcon: 'photo', label: 'Enter Photo Challenge', description: 'Submit a photo to an active challenge', modes: ['fishing', 'both'] },
-  { key: 'book-charters', external: BOOKING_PLATFORM_URL, lucideIcon: Ship, label: 'Book Charters', description: 'Book charters, guides & tackle shop', modes: ['fishing', 'both'] },
+  { key: 'book-charters', external: BOOKING_CHARTERS_URL, lucideIcon: Ship, label: 'Book a Captain', description: 'Charters, guides & fishing captains', modes: ['fishing', 'both'] },
+  { key: 'marketplace', external: BOOKING_MARKETPLACE_URL, lucideIcon: ShoppingBag, label: 'Marketplace', description: 'Gear, tackle & apparel shop', modes: ['fishing', 'both'] },
+  { key: 'lodges', external: BOOKING_LODGES_URL, lucideIcon: BedDouble, label: 'Lodges & Stays', description: 'Find lodges and places to stay', modes: ['fishing', 'both'] },
 ];
 
 export function CreateActionSheet({ open, onOpenChange, accountMode }: CreateActionSheetProps) {

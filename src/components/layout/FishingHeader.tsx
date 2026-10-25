@@ -24,7 +24,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Search, Trophy, Ship } from "lucide-react";
-import { BOOKING_PLATFORM_URL } from "@/lib/config";
+import { BOOKING_CHARTERS_URL } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FishXIcon, type FishXIconName } from "@/components/ui/fishx-icon";
