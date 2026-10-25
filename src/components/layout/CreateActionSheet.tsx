@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { PenSquare, BookImage, Fish, Ship } from 'lucide-react';
-import { BOOKING_PLATFORM_URL } from '@/lib/config';
+import { PenSquare, BookImage, Fish, Ship, ShoppingBag, BedDouble } from 'lucide-react';
+import { BOOKING_CHARTERS_URL, BOOKING_MARKETPLACE_URL, BOOKING_LODGES_URL } from '@/lib/config';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { FishXIcon, type FishXIconName } from '@/components/ui/fishx-icon';
 
