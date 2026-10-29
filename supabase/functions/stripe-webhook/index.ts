@@ -19,6 +19,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Health probes / browser visits send GET or HEAD with no body.
+  // Never treat these as webhook failures — respond 200 so uptime checks
+  // (and accidental link clicks) don't pollute Stripe's delivery stats.
+  if (req.method === "GET" || req.method === "HEAD") {
+    return new Response(JSON.stringify({ ok: true, service: "stripe-webhook" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  }
+
+
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -38,14 +49,31 @@ serve(async (req) => {
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
 
+    // Empty-body probes (some monitors send POSTs with no payload) —
+    // accept them so they never count as webhook failures.
+    if (!body) {
+      console.log("Empty webhook body — ignoring");
+      return new Response(JSON.stringify({ received: true, ignored: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     console.log("Received webhook event");
 
-    // For now, we'll parse the event directly since we may not have webhook secret configured
-    // In production, you should verify the signature with STRIPE_WEBHOOK_SECRET
     let event: Stripe.Event;
-    
+
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    if (webhookSecret && signature) {
+    if (webhookSecret) {
+      if (!signature) {
+        // We have a signing secret but the caller didn't sign the request —
+        // don't process unverified payloads.
+        console.error("Missing stripe-signature header on signed endpoint");
+        return new Response(JSON.stringify({ error: "Missing signature" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       try {
         event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       } catch (err) {
@@ -56,10 +84,14 @@ serve(async (req) => {
         });
       }
     } else {
-      // Parse without verification (for testing)
-      event = JSON.parse(body);
-      console.log("Warning: Processing webhook without signature verification");
+      // No signing secret configured — log loudly but don't fail delivery.
+      console.error("STRIPE_WEBHOOK_SECRET not configured; ignoring event without verification");
+      return new Response(JSON.stringify({ received: true, ignored: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
+
 
     console.log("Event type:", event.type);
 
@@ -333,13 +365,17 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    // Acknowledge the delivery even when handling fails: Stripe counts non-2xx
+    // responses as webhook failures and will disable the endpoint after repeated
+    // errors. The error is logged here for diagnosis instead.
     console.error("Webhook error:", error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ received: true, error: errorMessage }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
+        status: 200,
       }
     );
   }
 });
+
