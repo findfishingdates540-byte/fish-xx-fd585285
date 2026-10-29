@@ -19,6 +19,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Health probes / browser visits send GET or HEAD with no body.
+  // Never treat these as webhook failures — respond 200 so uptime checks
+  // (and accidental link clicks) don't pollute Stripe's delivery stats.
+  if (req.method === "GET" || req.method === "HEAD") {
+    return new Response(JSON.stringify({ ok: true, service: "stripe-webhook" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  }
+
+
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
