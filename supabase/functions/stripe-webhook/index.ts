@@ -365,13 +365,17 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    // Acknowledge the delivery even when handling fails: Stripe counts non-2xx
+    // responses as webhook failures and will disable the endpoint after repeated
+    // errors. The error is logged here for diagnosis instead.
     console.error("Webhook error:", error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ received: true, error: errorMessage }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
+        status: 200,
       }
     );
   }
 });
+
