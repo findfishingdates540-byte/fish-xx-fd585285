@@ -15,7 +15,7 @@ import { PhotoLightbox, type LightboxPhoto } from "@/components/catches/PhotoLig
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { useSavedSpots } from "@/hooks/use-saved-spots";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Plus,
   Fish,
@@ -33,6 +33,7 @@ import {
   Star,
   Anchor,
   Search,
+  Lock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -63,6 +64,7 @@ interface Catch {
   measurement_photo_url: string | null;
   general_location: string | null;
   is_verified: boolean;
+  is_private: boolean;
   challenge_id?: string | null;
   tournament_id?: string | null;
   approval_status?: string | null;
