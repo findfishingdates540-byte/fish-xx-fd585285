@@ -550,6 +550,46 @@ export default function Catches() {
                 />
               ))
             )
+          ) : tab === "private" ? (
+            filteredPrivate.length === 0 ? (
+              <div className="text-center py-16 border rounded-2xl bg-muted/30">
+                <Lock className="h-14 w-14 mx-auto text-muted-foreground mb-3" />
+                <h3 className="text-lg font-semibold mb-1">
+                  {privateCatches.length === 0 ? "No private spots yet" : "No matches"}
+                </h3>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  {privateCatches.length === 0
+                    ? 'Log a catch and choose "Keep Location Private" — it becomes a secret spot only you can see.'
+                    : "Try a different search term."}
+                </p>
+                {privateCatches.length === 0 && (
+                  <Button onClick={() => setShowForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Log a Private Catch
+                  </Button>
+                )}
+              </div>
+            ) : (
+              filteredPrivate.map((catchItem) => (
+                <CatchCard
+                  key={catchItem.id}
+                  catchData={catchItem}
+                  isActive={selectedId === catchItem.id}
+                  onSelect={() => handleSelect(catchItem.id)}
+                  onDelete={() => handleDelete(catchItem.id)}
+                  onUpdated={(updates) =>
+                    setCatches((prev) =>
+                      prev.map((c) =>
+                        c.id === catchItem.id ? { ...c, ...(updates as Partial<Catch>) } : c,
+                      ),
+                    )
+                  }
+                  species={species}
+                  formatDate={formatDate}
+                  spots={spots}
+                />
+              ))
+            )
           ) : savedLoading || savedSpotsLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
