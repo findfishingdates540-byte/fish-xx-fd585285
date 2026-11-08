@@ -75,7 +75,7 @@ export function BuddyCard({
   };
 
   const handleCardClick = () => {
-    navigate(`/app/profile/${profile.id}`);
+    navigate(`/app/profile/${profile.id}`, { state: { from: '/app/buddies' } });
   };
 
   const handleConfirmHide = () => {
