@@ -460,7 +460,8 @@ export default function Catches() {
             <h1 className="text-2xl md:text-3xl font-bold">My Catches &amp; Spots</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {catches.length} {catches.length === 1 ? "catch" : "catches"} logged ·{" "}
-              {savedSpots.length} saved {savedSpots.length === 1 ? "spot" : "spots"} · tap any card to fly the map
+              {savedSpots.length} saved {savedSpots.length === 1 ? "spot" : "spots"} ·{" "}
+              {privateCatches.length} private · tap any card to fly the map
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -485,7 +486,7 @@ export default function Catches() {
       <Tabs
         value={tab}
         onValueChange={(v) => {
-          setTab(v as "catches" | "spots");
+          setTab(v as "catches" | "spots" | "private");
           setSelectedId(null);
         }}
         className="mb-4"
@@ -498,6 +499,10 @@ export default function Catches() {
           <TabsTrigger value="spots" className="gap-1.5">
             <Bookmark className="h-4 w-4" /> Saved Spots
             <span className="ml-1 text-[11px] text-muted-foreground">{savedSpots.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="private" className="gap-1.5">
+            <Lock className="h-4 w-4" /> Private Spots
+            <span className="ml-1 text-[11px] text-muted-foreground">{privateCatches.length}</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
