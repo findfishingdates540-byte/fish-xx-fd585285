@@ -15,7 +15,7 @@ import { PhotoLightbox, type LightboxPhoto } from "@/components/catches/PhotoLig
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { useSavedSpots } from "@/hooks/use-saved-spots";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Plus,
   Fish,
@@ -33,6 +33,7 @@ import {
   Star,
   Anchor,
   Search,
+  Lock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -63,6 +64,7 @@ interface Catch {
   measurement_photo_url: string | null;
   general_location: string | null;
   is_verified: boolean;
+  is_private: boolean;
   challenge_id?: string | null;
   tournament_id?: string | null;
   approval_status?: string | null;
@@ -95,7 +97,11 @@ export default function Catches() {
   const navigate = useNavigate();
 
   // Explorer state
-  const [tab, setTab] = useState<"catches" | "spots">("catches");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab");
+  const [tab, setTab] = useState<"catches" | "spots" | "private">(
+    initialTab === "spots" || initialTab === "private" ? initialTab : "catches",
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -127,7 +133,7 @@ export default function Catches() {
         .order("created_at", { ascending: true });
       return data || [];
     },
-    enabled: tab === "catches" && !!selectedId,
+    enabled: tab !== "spots" && !!selectedId,
   });
 
   useEffect(() => {
@@ -375,28 +381,44 @@ export default function Catches() {
       )
     : savedSpots;
 
+  // Private spots = catches the angler marked private (their secret honey holes)
+  const privateCatches = catches.filter((c) => c.is_private);
+  const filteredPrivate = q
+    ? privateCatches.filter((c) =>
+        [c.species_name, c.general_location, c.notes, c.bait_used]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q)),
+      )
+    : privateCatches;
+
+  const toCatchPoint = (c: Catch): MapPoint => ({
+    id: c.id,
+    lat: Number(c.location_lat),
+    lng: Number(c.location_lng),
+    label: c.species_name || "Catch",
+    sublabel: c.general_location,
+    kind: "catch" as const,
+  });
+
   const points: MapPoint[] =
     tab === "catches"
       ? filteredCatches
           .filter((c) => c.location_lat != null && c.location_lng != null)
-          .map((c) => ({
-            id: c.id,
-            lat: Number(c.location_lat),
-            lng: Number(c.location_lng),
-            label: c.species_name || "Catch",
-            sublabel: c.general_location,
-            kind: "catch" as const,
-          }))
-      : filteredSpots.map((sp: any) => ({
-          id: sp.id,
-          lat: Number(sp.location_lat),
-          lng: Number(sp.location_lng),
-          label: sp.name,
-          sublabel: sp.location_name,
-          kind: "spot" as const,
-        }));
+          .map(toCatchPoint)
+      : tab === "private"
+        ? filteredPrivate
+            .filter((c) => c.location_lat != null && c.location_lng != null)
+            .map(toCatchPoint)
+        : filteredSpots.map((sp: any) => ({
+            id: sp.id,
+            lat: Number(sp.location_lat),
+            lng: Number(sp.location_lng),
+            label: sp.name,
+            sublabel: sp.location_name,
+            kind: "spot" as const,
+          }));
 
-  const selectedCatch = tab === "catches" ? catches.find((c) => c.id === selectedId) : undefined;
+  const selectedCatch = tab !== "spots" ? catches.find((c) => c.id === selectedId) : undefined;
   const selectedSpot: any = tab === "spots" ? savedSpots.find((sp: any) => sp.id === selectedId) : undefined;
 
   const handleSelect = (id: string) => {
@@ -438,7 +460,8 @@ export default function Catches() {
             <h1 className="text-2xl md:text-3xl font-bold">My Catches &amp; Spots</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {catches.length} {catches.length === 1 ? "catch" : "catches"} logged ·{" "}
-              {savedSpots.length} saved {savedSpots.length === 1 ? "spot" : "spots"} · tap any card to fly the map
+              {savedSpots.length} saved {savedSpots.length === 1 ? "spot" : "spots"} ·{" "}
+              {privateCatches.length} private · tap any card to fly the map
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -463,7 +486,7 @@ export default function Catches() {
       <Tabs
         value={tab}
         onValueChange={(v) => {
-          setTab(v as "catches" | "spots");
+          setTab(v as "catches" | "spots" | "private");
           setSelectedId(null);
         }}
         className="mb-4"
@@ -476,6 +499,10 @@ export default function Catches() {
           <TabsTrigger value="spots" className="gap-1.5">
             <Bookmark className="h-4 w-4" /> Saved Spots
             <span className="ml-1 text-[11px] text-muted-foreground">{savedSpots.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="private" className="gap-1.5">
+            <Lock className="h-4 w-4" /> Private Spots
+            <span className="ml-1 text-[11px] text-muted-foreground">{privateCatches.length}</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -504,6 +531,46 @@ export default function Catches() {
               </div>
             ) : (
               filteredCatches.map((catchItem) => (
+                <CatchCard
+                  key={catchItem.id}
+                  catchData={catchItem}
+                  isActive={selectedId === catchItem.id}
+                  onSelect={() => handleSelect(catchItem.id)}
+                  onDelete={() => handleDelete(catchItem.id)}
+                  onUpdated={(updates) =>
+                    setCatches((prev) =>
+                      prev.map((c) =>
+                        c.id === catchItem.id ? { ...c, ...(updates as Partial<Catch>) } : c,
+                      ),
+                    )
+                  }
+                  species={species}
+                  formatDate={formatDate}
+                  spots={spots}
+                />
+              ))
+            )
+          ) : tab === "private" ? (
+            filteredPrivate.length === 0 ? (
+              <div className="text-center py-16 border rounded-2xl bg-muted/30">
+                <Lock className="h-14 w-14 mx-auto text-muted-foreground mb-3" />
+                <h3 className="text-lg font-semibold mb-1">
+                  {privateCatches.length === 0 ? "No private spots yet" : "No matches"}
+                </h3>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  {privateCatches.length === 0
+                    ? 'Log a catch and choose "Keep Location Private" — it becomes a secret spot only you can see.'
+                    : "Try a different search term."}
+                </p>
+                {privateCatches.length === 0 && (
+                  <Button onClick={() => setShowForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Log a Private Catch
+                  </Button>
+                )}
+              </div>
+            ) : (
+              filteredPrivate.map((catchItem) => (
                 <CatchCard
                   key={catchItem.id}
                   catchData={catchItem}
