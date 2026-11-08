@@ -40,9 +40,29 @@ export default function Buddies() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('discover');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [experienceFilter, setExperienceFilter] = useState('all');
+  const [savedView] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(`buddies-view-${user?.id ?? 'guest'}`);
+      return stored ? JSON.parse(stored) as { activeTab?: string; searchQuery?: string; experienceFilter?: string } : {};
+    } catch {
+      return {};
+    }
+  });
+  const [activeTab, setActiveTab] = useState(savedView.activeTab || 'discover');
+  const [searchQuery, setSearchQuery] = useState(savedView.searchQuery || '');
+  const [experienceFilter, setExperienceFilter] = useState(savedView.experienceFilter || 'all');
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(`buddies-view-${user?.id ?? 'guest'}`, JSON.stringify({
+        activeTab,
+        searchQuery,
+        experienceFilter,
+      }));
+    } catch {
+      // The list remains usable if browser storage is unavailable.
+    }
+  }, [activeTab, searchQuery, experienceFilter, user?.id]);
   
   // Use the optimized RPC-based hook
   const { data: buddyData, isLoading: loading, refetch: fetchData } = useBuddyData();
