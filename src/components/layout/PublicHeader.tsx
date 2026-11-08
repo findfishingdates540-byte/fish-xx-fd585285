@@ -15,6 +15,7 @@ export function PublicHeader() {
     { to: '/fishing', label: 'Fishing' },
     { to: '/challenges', label: 'Challenges' },
     { to: '/safety', label: 'Safety' },
+    { to: '/#download', label: 'Get the App' },
   ];
 
   const handleLogout = async () => {
