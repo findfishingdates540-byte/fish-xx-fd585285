@@ -19,7 +19,7 @@ export function PublicFooter() {
               <li><Link to="/fishing" className="hover:text-foreground transition-colors">Fishing Spots</Link></li>
               <li><Link to="/fishing" className="hover:text-foreground transition-colors">Fishing Buddies</Link></li>
               <li><Link to="/challenges" className="hover:text-foreground transition-colors">Challenges</Link></li>
-              <li><Link to="/#download" className="hover:text-foreground transition-colors">Get the App</Link></li>
+              <li><Link to="/install" className="hover:text-foreground transition-colors">Get the App</Link></li>
             </ul>
           </div>
           
