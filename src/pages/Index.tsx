@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Apple, Smartphone, Check, Trophy, Heart, Fish } from 'lucide-react';
 import { PageMeta } from '@/components/seo/PageMeta';
@@ -31,8 +31,19 @@ import { AppPreloader } from '@/components/layout/AppPreloader';
 const Index = () => {
   const isMobile = useIsMobile();
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [accountMode, setAccountMode] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+
+  // Scroll to the app download section when arriving via /#download
+  useEffect(() => {
+    if (location.hash === '#download' && !isMobile) {
+      const timer = setTimeout(() => {
+        document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash, isMobile]);
 
   useEffect(() => {
     if (user) {
@@ -502,7 +513,7 @@ const Index = () => {
       </section>
 
       {/* App Download Section */}
-      <section className="py-24 px-6 border-b border-border overflow-hidden">
+      <section id="download" className="py-24 px-6 border-b border-border overflow-hidden scroll-mt-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left" className="space-y-8">
