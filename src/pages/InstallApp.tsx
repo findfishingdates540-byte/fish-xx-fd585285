@@ -28,6 +28,7 @@ const InstallApp = () => {
       <PageMeta
         title="Get the Fish-X App — Download for Android"
         description="Download the Fish-X mobile app. Discover fishing spots, log catches, join competitions, and connect with anglers wherever you are."
+        path="/install"
       />
       <PublicHeader />
 
