@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
+import { getRestoredScrollPosition } from '@/lib/route-scroll';
 
 export function ScrollToTop() {
   const location = useLocation();
@@ -32,14 +33,11 @@ export function ScrollToTop() {
     scrollPositions.current.set(currentKey.current, window.scrollY);
     currentKey.current = location.key;
 
-    if (navigationType !== 'POP') {
-      restoring.current = false;
-      window.scrollTo(0, 0);
-      return;
-    }
-
-    const savedPosition = scrollPositions.current.get(location.key);
-    if (savedPosition === undefined) {
+    const targetPosition = getRestoredScrollPosition(
+      navigationType,
+      scrollPositions.current.get(location.key),
+    );
+    if (targetPosition === null) {
       restoring.current = false;
       window.scrollTo(0, 0);
       return;
@@ -50,8 +48,8 @@ export function ScrollToTop() {
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
     const restorePosition = () => {
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (maxScroll >= savedPosition || attempts >= 40) {
-        window.scrollTo(0, savedPosition);
+      if (maxScroll >= targetPosition || attempts >= 40) {
+        window.scrollTo(0, targetPosition);
         restoring.current = false;
         return;
       }

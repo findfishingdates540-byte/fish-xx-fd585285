@@ -137,7 +137,7 @@ export default function UserProfile() {
       
       if (error) throw error;
       toast.success('Profile hidden');
-      navigate('/app/buddies');
+      handleBackToBuddies();
     } catch (error) {
       toast.error('Failed to hide profile');
     }
