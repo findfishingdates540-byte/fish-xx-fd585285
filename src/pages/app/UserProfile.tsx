@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ import {
 export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showHideDialog, setShowHideDialog] = useState(false);
@@ -143,6 +144,14 @@ export default function UserProfile() {
     setShowHideDialog(false);
   };
 
+  const handleBackToBuddies = () => {
+    if (location.state?.from === '/app/buddies') {
+      navigate(-1);
+      return;
+    }
+    navigate('/app/buddies', { replace: true });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -172,7 +181,7 @@ export default function UserProfile() {
       <div className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <button onClick={() => navigate('/app/buddies')} className="hover:text-foreground">
+            <button onClick={handleBackToBuddies} className="hover:text-foreground">
               Buddies
             </button>
             <span>/</span>
