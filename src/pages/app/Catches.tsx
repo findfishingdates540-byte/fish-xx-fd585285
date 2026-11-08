@@ -97,7 +97,11 @@ export default function Catches() {
   const navigate = useNavigate();
 
   // Explorer state
-  const [tab, setTab] = useState<"catches" | "spots">("catches");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab");
+  const [tab, setTab] = useState<"catches" | "spots" | "private">(
+    initialTab === "spots" || initialTab === "private" ? initialTab : "catches",
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -129,7 +133,7 @@ export default function Catches() {
         .order("created_at", { ascending: true });
       return data || [];
     },
-    enabled: tab === "catches" && !!selectedId,
+    enabled: tab !== "spots" && !!selectedId,
   });
 
   useEffect(() => {
@@ -377,28 +381,44 @@ export default function Catches() {
       )
     : savedSpots;
 
+  // Private spots = catches the angler marked private (their secret honey holes)
+  const privateCatches = catches.filter((c) => c.is_private);
+  const filteredPrivate = q
+    ? privateCatches.filter((c) =>
+        [c.species_name, c.general_location, c.notes, c.bait_used]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q)),
+      )
+    : privateCatches;
+
+  const toCatchPoint = (c: Catch): MapPoint => ({
+    id: c.id,
+    lat: Number(c.location_lat),
+    lng: Number(c.location_lng),
+    label: c.species_name || "Catch",
+    sublabel: c.general_location,
+    kind: "catch" as const,
+  });
+
   const points: MapPoint[] =
     tab === "catches"
       ? filteredCatches
           .filter((c) => c.location_lat != null && c.location_lng != null)
-          .map((c) => ({
-            id: c.id,
-            lat: Number(c.location_lat),
-            lng: Number(c.location_lng),
-            label: c.species_name || "Catch",
-            sublabel: c.general_location,
-            kind: "catch" as const,
-          }))
-      : filteredSpots.map((sp: any) => ({
-          id: sp.id,
-          lat: Number(sp.location_lat),
-          lng: Number(sp.location_lng),
-          label: sp.name,
-          sublabel: sp.location_name,
-          kind: "spot" as const,
-        }));
+          .map(toCatchPoint)
+      : tab === "private"
+        ? filteredPrivate
+            .filter((c) => c.location_lat != null && c.location_lng != null)
+            .map(toCatchPoint)
+        : filteredSpots.map((sp: any) => ({
+            id: sp.id,
+            lat: Number(sp.location_lat),
+            lng: Number(sp.location_lng),
+            label: sp.name,
+            sublabel: sp.location_name,
+            kind: "spot" as const,
+          }));
 
-  const selectedCatch = tab === "catches" ? catches.find((c) => c.id === selectedId) : undefined;
+  const selectedCatch = tab !== "spots" ? catches.find((c) => c.id === selectedId) : undefined;
   const selectedSpot: any = tab === "spots" ? savedSpots.find((sp: any) => sp.id === selectedId) : undefined;
 
   const handleSelect = (id: string) => {
