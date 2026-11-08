@@ -1,4 +1,4 @@
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Apple, Smartphone, Check, Trophy, Heart, Fish } from 'lucide-react';
 import { PageMeta } from '@/components/seo/PageMeta';
@@ -31,19 +31,8 @@ import { AppPreloader } from '@/components/layout/AppPreloader';
 const Index = () => {
   const isMobile = useIsMobile();
   const { user, loading } = useAuth();
-  const location = useLocation();
   const [accountMode, setAccountMode] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-
-  // Scroll to the app download section when arriving via /#download
-  useEffect(() => {
-    if (location.hash === '#download' && !isMobile) {
-      const timer = setTimeout(() => {
-        document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [location.hash, isMobile]);
 
   useEffect(() => {
     if (user) {
